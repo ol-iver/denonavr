@@ -74,6 +74,7 @@ COMMAND_POWER_ON_URL = "/goform/formiPhoneAppPower.xml?1+PowerOn"
 COMMAND_POWER_STANDBY_URL = "/goform/formiPhoneAppPower.xml?1+PowerStandby"
 COMMAND_VOLUME_UP_URL = "/goform/formiPhoneAppDirect.xml?MVUP"
 COMMAND_VOLUME_DOWN_URL = "/goform/formiPhoneAppDirect.xml?MVDOWN"
+COMMAND_SET_VOLUME_URL = "/goform/formiPhoneAppVolume.xml?1+%.1f"
 COMMAND_MUTE_ON_URL = "/goform/formiPhoneAppMute.xml?1+MuteOn"
 COMMAND_MUTE_OFF_URL = "/goform/formiPhoneAppMute.xml?1+MuteOff"
 COMMAND_NETAUDIO_POST_URL = "/NetAudio/index.put.asp"
@@ -685,6 +686,22 @@ class DenonAVR(object):
         try:
             return bool(self.send_get_command(
                 self._host, COMMAND_VOLUME_DOWN_URL))
+        except ConnectionError:
+            return False
+
+    def set_volume(self, volume):
+        """
+        Set receiver volume via HTTP get command.
+
+        Volume is send in a format like -50.0.
+        Minimum is -80.0, maximum at 18.0
+        """
+        if volume < -80 or volume > 18:
+            raise ValueError("Invalid volume!")
+
+        try:
+            return bool(self.send_get_command(
+                self._host, COMMAND_SET_VOLUME_URL % volume))
         except ConnectionError:
             return False
 
