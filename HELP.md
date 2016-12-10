@@ -9,12 +9,27 @@ DESCRIPTION
 
 PACKAGE CONTENTS
     denonavr
+    ssdp
+
+FUNCTIONS
+    discover(attempts=3)
+        Discover all DenonAVR devices in LAN zone.        
+        Returns a list of dictionaries which includes all discovered DenonAVR
+        devices with keys "host", "ModelName" and "PresentationURL".
+        Returns "None" if no DenonAVR receiver was found.
+        By default SSDP broadcasts are sent up to 3 times with a 2 seconds timeout.
+    
+    init_all_receivers(attempts=3)
+        Initialize all discovered DenonAVR receivers in LAN zone.
+        Returns a list of created DenonAVR instances.
+        Returns "None" if no DenonAVR receiver was found.
+        By default SSDP broadcasts are sent up to 3 times with a 2 seconds timeout.
 
 DATA
     __title__ = 'denonavr'
 
 VERSION
-    0.1.6
+    0.2.0
 
 ====================================================================================
 
@@ -56,18 +71,23 @@ CLASSES
      |  
      |  previous_track(self)
      |      Send previous track command to receiver command via HTTP post.
-     | 
+     |  
      |  set_input_func(self, input_func)
-     |      Set input_func of device.      
+     |      Set input_func of device.    
      |      Valid values depend on the device and should be taken from
      |      "input_func_list".
      |      Return "True" on success and "False" on fail.
-     |	 
+     |  
+     |  set_volume(self, volume)
+     |      Set receiver volume via HTTP get command.
+     |      Volume is send in a format like -50.0.
+     |      Minimum is -80.0, maximum at 18.0
+     |  
      |  toggle_play_pause(self)
      |      Toggle play pause media player.
      |  
      |  update(self)
-     |      Get the latest status information from device.      
+     |      Get the latest status information from device.
      |      Method queries device via HTTP and updates instance attributes.
      |      Returns "True" on success and "False" on fail.
      |  
@@ -110,30 +130,31 @@ CLASSES
      |  frequency
      |      Return frequency of current radio station as string.
      |  
+     |  host
+     |      Return the host of the device as string.
+     |  
      |  image_url
      |      Return image URL of current playing media when powered on.
      |  
      |  input_func
      |      Return the current input source as string.
-     |      &
-     |      Setter function for input_func to switch input_func of device.	 
      |  
      |  input_func_list
      |      Return a list of available input sources as string.
      |  
      |  muted
-     |      Boolean if volume is currently muted.      
+     |      Boolean if volume is currently muted.
      |      Return "True" if muted and "False" if not muted.
      |  
      |  name
      |      Return the name of the device as string.
      |  
      |  power
-     |      Return the power state of the device.      
+     |      Return the power state of the device.   
      |      Possible values are: "ON", "STANDBY" and "OFF"
      |  
      |  state
-     |      Return the state of the device.     
+     |      Return the state of the device.
      |      Possible values are: "on", "off", "playing", "paused"
      |      "playing" and "paused" are only available for input functions
      |      in PLAYING_SOURCES.
@@ -145,8 +166,34 @@ CLASSES
      |      Return title of current playing media as string.
      |  
      |  volume
-     |      Return volume of Denon AVR as float.      
+     |      Return volume of Denon AVR as float.
      |      Volume is send in a format like -50.0.
      |      Minimum is -80.0, maximum at 18.0
 
+====================================================================================
 
+Help on module denonavr.ssdp in denonavr:
+
+NAME
+    denonavr.ssdp - This module implements a discovery function for Denon AVR receivers.
+
+DESCRIPTION
+    :copyright: (c) 2016 by Oliver Goetz.
+    :license: MIT, see LICENSE for more details.
+
+FUNCTIONS
+    evaluate_scpd_xml(url)
+        Get and evaluate SCPD XML to identified URLs.
+        Returns dictionary with keys "host", "ModelName" and "PresentationURL"
+        if a Denon device was found and "False" if not.
+    
+    identify_denonavr_receivers(attempts)
+        Identify DenonAVR using SSDP and SCPD queries.
+        Returns a list of dictionaries which includes all discovered DenonAVR
+        devices with keys "host", "ModelName" and "PresentationURL".
+        Returns "None" if no DenonAVR receiver was found.
+    
+    send_ssdp_broadcast(attempts)
+        Send SSDP broadcast message to discover UPnP devices.
+        Returns a list of dictionaries with "address" (IP, PORT) and "URL"
+        of SCPD XML for all discovered devices.

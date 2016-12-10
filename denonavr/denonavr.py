@@ -128,7 +128,7 @@ class DenonAVR(object):
         """Get status XML via HTTP and return it as XML ElementTree."""
         # Get XML structure via HTTP get
         try:
-            req = requests.get("http://{host}{command}"
+            res = requests.get("http://{host}{command}"
                                .format(host=host, command=command), timeout=2)
         except requests.exceptions.ConnectionError:
             _LOGGER.error("ConnectionError retrieving data from host %s",
@@ -138,17 +138,12 @@ class DenonAVR(object):
             _LOGGER.error("Timeout retrieving data from host %s", host)
             raise ConnectionError
         # Continue with XML processing only if HTTP status code = 200
-        if req.status_code == 200:
-            # Convert bytecode to string
-            r_string = ""
-            for line in req:
-                line_string = str(line, req.encoding)
-                r_string += line_string
+        if res.status_code == 200:
             # Return XML ElementTree
-            return ET.fromstring(r_string)
+            return ET.fromstring(res.text)
         else:
             _LOGGER.error("Host %s returned HTTP status code %s\
-                when trying to receive data", host, req.status_code)
+                when trying to receive data", host, res.status_code)
             raise ConnectionError
 
     @classmethod
@@ -156,7 +151,7 @@ class DenonAVR(object):
         """Send command via HTTP get to receiver."""
         # Send commands via HTTP get
         try:
-            req = requests.get("http://{host}{command}"
+            res = requests.get("http://{host}{command}"
                                .format(host=host, command=command), timeout=2)
         except requests.exceptions.ConnectionError:
             _LOGGER.error("ConnectionError sending GET request to host %s",
@@ -165,12 +160,12 @@ class DenonAVR(object):
         except requests.exceptions.Timeout:
             _LOGGER.error("Timeout sending GET request to host %s", host)
             raise ConnectionError
-        if req.status_code == 200:
+        if res.status_code == 200:
             return True
         else:
             _LOGGER.error(
                 "Host %s returned HTTP status code %s\
-                when trying to send GET commands", host, req.status_code)
+                when trying to send GET commands", host, res.status_code)
             return False
 
     @classmethod
@@ -178,7 +173,7 @@ class DenonAVR(object):
         """Send command via HTTP post to receiver."""
         # Send commands via HTTP post
         try:
-            req = requests.post(
+            res = requests.post(
                 "http://{host}{command}"
                 .format(host=host, command=command), data=body)
         except requests.exceptions.ConnectionError:
@@ -188,11 +183,11 @@ class DenonAVR(object):
         except requests.exceptions.Timeout:
             _LOGGER.error("Timeout sending POST request to host %s", host)
             raise ConnectionError
-        if req.status_code == 200:
+        if res.status_code == 200:
             return True
         else:
             _LOGGER.error("Host %s returned HTTP status code %s when trying to\
-                send POST commands", host, req.status_code)
+                send POST commands", host, res.status_code)
             return False
 
     def update(self):
@@ -301,8 +296,7 @@ class DenonAVR(object):
             # Renamed sources
             if child.tag == "RenameSource":
                 for value in child:
-                    for value2 in value:
-                        xml_renamesource.append(value2.text.strip())
+                    xml_renamesource.append(value[0].text.strip())
 
         # The renamed sources are in the same row as the default ones
         for i, item in enumerate(xml_inputfunclist):
@@ -460,6 +454,11 @@ class DenonAVR(object):
     def name(self):
         """Return the name of the device as string."""
         return self._name
+
+    @property
+    def host(self):
+        """Return the host of the device as string."""
+        return self._host
 
     @property
     def power(self):
