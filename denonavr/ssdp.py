@@ -17,36 +17,55 @@ _LOGGER = logging.getLogger('DenonSSDP')
 
 SSDP_ADDR = "239.255.255.250"
 SSDP_PORT = 1900
-SSDP_ST = "ssdp:all"
+SSDP_ST_1 = "ssdp:all"
+SSDP_ST_2 = "upnp:rootdevice"
+SSDP_ST_3 = "urn:schemas-upnp-org:device:MediaRenderer:1"
 
-SSDP_QUERY = (
+SSDP_QUERY_1 = (
     "M-SEARCH * HTTP/1.1\r\n" +
     "HOST: {addr}:{port}\r\n".format(addr=SSDP_ADDR, port=SSDP_PORT) +
     "MAN: \"ssdp:discover\"\r\n" +
     "MX: 2\r\n" +
-    "ST: {st}\r\n".format(st=SSDP_ST) + "\r\n"
+    "ST: {st}\r\n".format(st=SSDP_ST_1) + "\r\n"
 )
+SSDP_QUERY_2 = (
+    "M-SEARCH * HTTP/1.1\r\n" +
+    "HOST: {addr}:{port}\r\n".format(addr=SSDP_ADDR, port=SSDP_PORT) +
+    "MAN: \"ssdp:discover\"\r\n" +
+    "MX: 2\r\n" +
+    "ST: {st}\r\n".format(st=SSDP_ST_2) + "\r\n"
+)
+SSDP_QUERY_3 = (
+    "M-SEARCH * HTTP/1.1\r\n" +
+    "HOST: {addr}:{port}\r\n".format(addr=SSDP_ADDR, port=SSDP_PORT) +
+    "MAN: \"ssdp:discover\"\r\n" +
+    "MX: 2\r\n" +
+    "ST: {st}\r\n".format(st=SSDP_ST_3) + "\r\n"
+)
+
+SSDP_QUERIES = (SSDP_QUERY_1, SSDP_QUERY_2, SSDP_QUERY_3)
 
 SCPD_XMLNS = "{urn:schemas-upnp-org:device-1-0}"
 SCPD_DEVICE = "{xmlns}device".format(xmlns=SCPD_XMLNS)
 SCPD_DEVICETYPE = "{xmlns}deviceType".format(xmlns=SCPD_XMLNS)
 SCPD_MANUFACTURER = "{xmlns}manufacturer".format(xmlns=SCPD_XMLNS)
 SCPD_MODELNAME = "{xmlns}modelName".format(xmlns=SCPD_XMLNS)
+SCPD_FRIENDLYNAME = "{xmlns}friendlyName".format(xmlns=SCPD_XMLNS)
 SCPD_PRESENTATIONURL = "{xmlns}presentationURL".format(xmlns=SCPD_XMLNS)
 
 DEVICETYPE_DENON = "urn:schemas-upnp-org:device:MediaRenderer:1"
 
 
-def identify_denonavr_receivers(attempts):
+def identify_denonavr_receivers():
     """
     Identify DenonAVR using SSDP and SCPD queries.
 
-    Returns a list of dictionaries which includes all discovered DenonAVR
-    devices with keys "host", "ModelName" and "PresentationURL".
-    Returns "None" if no DenonAVR receiver was found.
+    Returns a list of dictionaries which includes all discovered Denon AVR
+    devices with keys "host", "modelName", "friendlyName", "presentationURL".
+    Returns "None" if no Denon AVR receiver was found.
     """
     # Sending SSDP broadcast message to get devices
-    devices = send_ssdp_broadcast(attempts)
+    devices = send_ssdp_broadcast()
 
     # Check which responding device is a DenonAVR device and prepare output
     receivers = []
@@ -64,30 +83,32 @@ def identify_denonavr_receivers(attempts):
         return None
 
 
-def send_ssdp_broadcast(attempts):
+def send_ssdp_broadcast():
     """
     Send SSDP broadcast message to discover UPnP devices.
 
     Returns a list of dictionaries with "address" (IP, PORT) and "URL"
     of SCPD XML for all discovered devices.
     """
-    # Prepare SSDP broadcast message
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-    sock.settimeout(2)
-    sock.sendto(SSDP_QUERY.encode(), (SSDP_ADDR, SSDP_PORT))
+    # Send up to three different broadcast messages
+    for i, ssdp_query in enumerate(SSDP_QUERIES):
+        # Prepare SSDP broadcast message
+        sock = socket.socket(
+            socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        sock.settimeout(2)
+        sock.sendto(ssdp_query.encode(), (SSDP_ADDR, SSDP_PORT))
 
-    # Collect all responses within the timeout period
-    res = []
-    # Repeat up to 3 times if there is no response
-    for i in range(attempts):
+        # Collect all responses within the timeout period
+        res = []
         try:
             while True:
                 res.append(sock.recvfrom(10240))
         except socket.timeout:
-            pass
+            sock.close()
 
         if res:
-            _LOGGER.debug("Results after %s SSDP queries", i + 1)
+            _LOGGER.debug("Got results after %s SSDP queries", i + 1)
+            sock.close()
             break
 
     # Prepare output of responding devices
@@ -114,8 +135,8 @@ def evaluate_scpd_xml(url):
     """
     Get and evaluate SCPD XML to identified URLs.
 
-    Returns dictionary with keys "host", "ModelName" and "PresentationURL"
-    if a Denon device was found and "False" if not.
+    Returns dictionary with keys "host", "modelName", "friendlyName" and
+    "presentationURL" if a Denon AVR device was found and "False" if not.
     """
     # Get SCPD XML via HTTP GET
     try:
@@ -140,10 +161,12 @@ def evaluate_scpd_xml(url):
                 device["host"] = urlparse(
                     root.find(SCPD_DEVICE).find(
                         SCPD_PRESENTATIONURL).text).hostname
-                device["PresentationURL"] = (
+                device["presentationURL"] = (
                     root.find(SCPD_DEVICE).find(SCPD_PRESENTATIONURL).text)
-                device["ModelName"] = (
+                device["modelName"] = (
                     root.find(SCPD_DEVICE).find(SCPD_MODELNAME).text)
+                device["friendlyName"] = (
+                    root.find(SCPD_DEVICE).find(SCPD_FRIENDLYNAME).text)
                 return device
             else:
                 return False

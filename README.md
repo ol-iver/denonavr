@@ -1,7 +1,7 @@
 # denonavr
 [![Build Status](https://travis-ci.org/scarface-4711/denonavr.svg?branch=master)](https://travis-ci.org/scarface-4711/denonavr)
 
-Automation Library for Denon AVR receivers - current version 0.2.0
+Automation Library for Denon AVR receivers - current version 0.2.1
 
 ## Installation
 
@@ -88,7 +88,7 @@ True
 
 >>> discovered_devices = denonavr.discover()
 discovered_devices
-[{'host': '192.168.0.250', 'ModelName': '*AVR-X4100W', 'PresentationURL': 'http://192.168.0.250'}]
+[{'friendlyName': 'Denon AVR-X4100W', 'host': '192.168.0.250', 'modelName': '*AVR-X4100W', 'presentationURL': 'http://192.168.0.250'}]
 >>> discovered_denon = denonavr.DenonAVR(discovered_devices[0]['host'])
 >>> discovered_denon.power
 'STANDBY'

@@ -17,30 +17,30 @@ from . import ssdp
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 __title__ = "denonavr"
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 
-def discover(attempts=3):
+def discover():
     """
-    Discover all DenonAVR devices in LAN zone.
+    Discover all Denon AVR devices in LAN zone.
 
-    Returns a list of dictionaries which includes all discovered DenonAVR
-    devices with keys "host", "ModelName" and "PresentationURL".
-    Returns "None" if no DenonAVR receiver was found.
+    Returns a list of dictionaries which includes all discovered Denon AVR
+    devices with keys "host", "modelName", "friendlyName", "presentationURL".
+    Returns "None" if no Denon AVR receiver was found.
     By default SSDP broadcasts are sent up to 3 times with a 2 seconds timeout.
     """
-    return ssdp.identify_denonavr_receivers(attempts)
+    return ssdp.identify_denonavr_receivers()
 
 
-def init_all_receivers(attempts=3):
+def init_all_receivers():
     """
-    Initialize all discovered DenonAVR receivers in LAN zone.
+    Initialize all discovered Denon AVR receivers in LAN zone.
 
-    Returns a list of created DenonAVR instances.
-    Returns "None" if no DenonAVR receiver was found.
+    Returns a list of created Denon AVR instances.
+    Returns "None" if no Denon AVR receiver was found.
     By default SSDP broadcasts are sent up to 3 times with a 2 seconds timeout.
     """
-    receivers = discover(attempts)
+    receivers = discover()
 
     if receivers is None:
         return None

@@ -12,24 +12,24 @@ PACKAGE CONTENTS
     ssdp
 
 FUNCTIONS
-    discover(attempts=3)
-        Discover all DenonAVR devices in LAN zone.        
-        Returns a list of dictionaries which includes all discovered DenonAVR
-        devices with keys "host", "ModelName" and "PresentationURL".
-        Returns "None" if no DenonAVR receiver was found.
+    discover()
+        Discover all Denon AVR devices in LAN zone.        
+        Returns a list of dictionaries which includes all discovered Denon AVR
+        devices with keys "host", "modelName", "friendlyName", "presentationURL".
+        Returns "None" if no Denon AVR receiver was found.
         By default SSDP broadcasts are sent up to 3 times with a 2 seconds timeout.
     
-    init_all_receivers(attempts=3)
-        Initialize all discovered DenonAVR receivers in LAN zone.
-        Returns a list of created DenonAVR instances.
-        Returns "None" if no DenonAVR receiver was found.
+    init_all_receivers()
+        Initialize all discovered Denon AVR receivers in LAN zone.
+        Returns a list of created Denon AVR instances.
+        Returns "None" if no Denon AVR receiver was found.
         By default SSDP broadcasts are sent up to 3 times with a 2 seconds timeout.
 
 DATA
     __title__ = 'denonavr'
 
 VERSION
-    0.2.0
+    0.2.1
 
 ====================================================================================
 
@@ -184,16 +184,16 @@ DESCRIPTION
 FUNCTIONS
     evaluate_scpd_xml(url)
         Get and evaluate SCPD XML to identified URLs.
-        Returns dictionary with keys "host", "ModelName" and "PresentationURL"
-        if a Denon device was found and "False" if not.
+        Returns dictionary with keys "host", "modelName", "friendlyName" and
+        "presentationURL" if a Denon AVR device was found and "False" if not.
     
-    identify_denonavr_receivers(attempts)
+    identify_denonavr_receivers()
         Identify DenonAVR using SSDP and SCPD queries.
-        Returns a list of dictionaries which includes all discovered DenonAVR
-        devices with keys "host", "ModelName" and "PresentationURL".
-        Returns "None" if no DenonAVR receiver was found.
+        Returns a list of dictionaries which includes all discovered Denon AVR
+        devices with keys "host", "modelName", "friendlyName", "presentationURL".
+        Returns "None" if no Denon AVR receiver was found.
     
-    send_ssdp_broadcast(attempts)
+    send_ssdp_broadcast()
         Send SSDP broadcast message to discover UPnP devices.
         Returns a list of dictionaries with "address" (IP, PORT) and "URL"
         of SCPD XML for all discovered devices.
