@@ -120,11 +120,16 @@ def send_ssdp_broadcast():
         # Some string operations to get the receivers URL
         # which could be found between LOCATION and end of line of the response
         en_decoded = entry[0].decode("utf-8")
-        device["URL"] = (
-            en_decoded[
-                en_decoded.lower().find("location:") + 10:en_decoded.find(
-                    "\r\n", en_decoded.lower().find("location:"))]
-        )
+        # If location is not found, skip the entry
+        try:
+            device["URL"] = (
+                en_decoded[
+                    en_decoded.lower().index(
+                        "location:") + 10:en_decoded.index(
+                            "\r\n", en_decoded.lower().index("location:"))]
+            )
+        except ValueError:
+            continue
         devices[device["address"]] = device.copy()
 
     _LOGGER.debug("Following devices found: %s", list(devices.values()))
@@ -141,16 +146,17 @@ def evaluate_scpd_xml(url):
     # Get SCPD XML via HTTP GET
     try:
         res = requests.get(url, timeout=2)
-    except requests.exceptions.ConnectTimeout:
-        raise ConnectionError
-    except requests.exceptions.ConnectionError:
+    except requests.exceptions.RequestException as err:
+        _LOGGER.error(
+            "When trying to request %s the following error occurred: %s",
+            url, err)
         raise ConnectionError
 
     if res.status_code == 200:
-        root = ET.fromstring(res.text)
-        # Look for manufacturer "Denon" in response.
-        # Using "try" in case tags are not available in XML
         try:
+            root = ET.fromstring(res.text)
+            # Look for manufacturer "Denon" in response.
+            # Using "try" in case tags are not available in XML
             _LOGGER.debug("Device %s has manufacturer %s", url,
                           root.find(SCPD_DEVICE).find(SCPD_MANUFACTURER).text)
             if (root.find(SCPD_DEVICE).find(
@@ -170,7 +176,11 @@ def evaluate_scpd_xml(url):
                 return device
             else:
                 return False
-        except AttributeError:
+        except (AttributeError, ValueError, ET.ParseError) as err:
+            _LOGGER.error(
+                "Error occurred during evaluation of SCPD XML: %s", err)
             return False
     else:
+        _LOGGER.error("Host returned HTTP status %s when connecting to %s",
+                      res.status_code, url)
         raise ConnectionError

@@ -139,8 +139,14 @@ class DenonAVR(object):
             raise ConnectionError
         # Continue with XML processing only if HTTP status code = 200
         if res.status_code == 200:
-            # Return XML ElementTree
-            return ET.fromstring(res.text)
+            try:
+                # Return XML ElementTree
+                return ET.fromstring(res.text)
+            except ET.ParseError:
+                _LOGGER.error(
+                    "Host %s returned malformed XML after command: %s",
+                    host, command)
+                raise ConnectionError
         else:
             _LOGGER.error("Host %s returned HTTP status code %s\
                 when trying to receive data", host, res.status_code)
