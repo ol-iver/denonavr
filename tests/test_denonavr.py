@@ -13,10 +13,11 @@ import requests_mock
 import denonavr
 
 FAKE_IP = "10.0.0.0"
-TESTING_RECEIVERS = ("AVR-X4100W",)
+TESTING_RECEIVERS = ("AVR-X4100W", "AVR-2312CI", "AVR-1912", "AVR-3311CI")
 
 STATUS_URL = "/goform/formMainZone_MainZoneXmlStatus.xml"
 MAINZONE_URL = "/goform/formMainZone_MainZoneXml.xml"
+DEVICEINFO_URL = "/goform/Deviceinfo.xml"
 NETAUDIOSTATUS_URL = "/goform/formNetAudio_StatusXml.xml"
 TUNERSTATUS_URL = "/goform/formTuner_TunerXml.xml"
 HDTUNERSTATUS_URL = "/goform/formTuner_HdXml.xml"
@@ -49,6 +50,10 @@ class TestMainFunctions(testtools.TestCase):
         elif request.path_url == MAINZONE_URL:
             content = get_sample_content(
                         "{receiver}-formMainZone_MainZoneXml.xml"
+                        .format(receiver=self._testing_receiver))
+        elif request.path_url == DEVICEINFO_URL:
+            content = get_sample_content(
+                        "{receiver}-Deviceinfo.xml"
                         .format(receiver=self._testing_receiver))
         elif request.path_url == NETAUDIOSTATUS_URL:
             content = get_sample_content(

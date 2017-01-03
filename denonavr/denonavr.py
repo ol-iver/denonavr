@@ -9,63 +9,35 @@ This module implements the interface to Denon AVR receivers.
 
 import logging
 import time
+import re
 import html
 import xml.etree.ElementTree as ET
 import requests
 
 _LOGGER = logging.getLogger('DenonAVR')
 
-# For ModelId 1
-SOURCES_1_ID = ("1",)
-SOURCES_1 = {'Internet Radio': 'IRP', 'Tuner': 'TUNER', 'TV Audio': 'TV',
-             'DVD/Blu-ray': 'DVD', 'Media Player': 'MPLAY', 'Game': 'GAME',
-             'AUX1': 'AUX1', 'Bluetooth': 'BT', 'CBL/SAT': 'SAT/CBL',
-             'Online Music': 'NETHOME', 'iPod/USB': 'USB/IPOD',
-             'Blu-ray': 'BD'}
-
-# For ModelId 2,3,7,8
-SOURCES_2_ID = ("2", "3", "7", "8")
-SOURCES_2 = {'Internet Radio': 'IRP', 'Tuner': 'TUNER', 'TV Audio': 'TV',
-             'DVD': 'DVD', 'Media Player': 'MPLAY', 'CD': 'CD', 'Game': 'GAME',
-             'AUX2': 'AUX2', 'AUX1': 'AUX1', 'Bluetooth': 'BT',
-             'CBL/SAT': 'SAT/CBL', 'Online Music': 'NETHOME',
-             'iPod/USB': 'USB/IPOD', 'Blu-ray': 'BD', 'Media Server': 'SERVER'}
-
-# For ModelId 9
-SOURCES_3_ID = ("9",)
-SOURCES_3 = {'Internet Radio': 'IRP', 'Tuner': 'TUNER', 'TV Audio': 'TV',
-             'DVD': 'DVD', 'Media Player': 'MPLAY', 'Game': 'GAME',
-             'AUX2': 'AUX2', 'AUX1': 'AUX1', 'Bluetooth': 'BT',
-             'CBL/SAT': 'SAT/CBL', 'Online Music': 'NETHOME',
-             'iPod/USB': 'USB/IPOD', 'Phono': 'PHONO', 'Blu-ray': 'BD',
-             'CD': 'CD'}
-
-# For ModelId 4,5,6,10,11,12
-SOURCES_4_ID = ("4", "5", "6", "10", "11", "12")
-SOURCES_4 = {'Internet Radio': 'IRP', 'Online Music': 'NETHOME',
-             'TV Audio': 'TV', 'DVD': 'DVD', 'Media Player': 'MPLAY',
-             'CD': 'CD', 'Game': 'GAME', 'AUX2': 'AUX2',
-             'iPod/USB': 'USB/IPOD', 'AUX1': 'AUX1', 'Bluetooth': 'BT',
-             'CBL/SAT': 'SAT/CBL', 'Tuner': 'TUNER', 'Phono': 'PHONO',
-             'Blu-ray': 'BD', 'Media Server': 'SERVER'}
-
-# For ModelId 5,6,10,11,12 in SalesArea 0
-SOURCES_5_ID = ("5", "6", "10", "11", "12")
-SOURCES_5_SA = ("0",)
-SOURCES_5 = {'Internet Radio': 'IRP', 'Online Music': 'NETHOME',
-             'TV Audio': 'TV', 'DVD': 'DVD', 'Game': 'GAME',
-             'Media Player': 'MPLAY', 'CD': 'CD', 'AUX2': 'AUX2',
-             'HD Radio': 'HDRADIO', 'AUX1': 'AUX1', 'Bluetooth': 'BT',
-             'CBL/SAT': 'SAT/CBL', 'iPod/USB': 'USB/IPOD', 'Phono': 'PHONO',
-             'Blu-ray': 'BD', 'Media Server': 'SERVER'}
+SOURCE_MAPPING = {'Internet Radio': 'IRP', 'Online Music': 'NET',
+                  'TV Audio': 'TV', 'DVD': 'DVD', 'Media Player': 'MPLAY',
+                  'CD': 'CD', 'Game': 'GAME', 'AUX1': 'AUX1', 'AUX2': 'AUX2',
+                  'iPod/USB': 'USB/IPOD', 'Bluetooth': 'BT', 'Blu-ray': 'BD',
+                  'CBL/SAT': 'SAT/CBL', 'Tuner': 'TUNER', 'Phono': 'PHONO',
+                  'Media Server': 'SERVER', 'HD Radio': 'HDRADIO',
+                  'DVD/Blu-ray': 'DVD', 'Spotify': 'SPOTIFY',
+                  'Flickr': 'FLICKR', 'Favorites': 'FAVORITES'}
 
 PLAYING_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
-                   "Internet Radio", "Tuner", "HD Radio")
+                   "Internet Radio", "Favorites", "Spotify", "Flickr", "Tuner",
+                   "HD Radio", "TUNER", "NET/USB", "HDRADIO")
 NETAUDIO_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
-                    "Internet Radio")
+                    "Internet Radio", "Favorites", "Spotify", "Flickr",
+                    "NET/USB")
+
+NON_X_STATIC_SOURCES = {'Internet Radio': 'Internet Radio',
+                        'Media Server': 'Media Server'}
 
 STATUS_URL = "/goform/formMainZone_MainZoneXmlStatus.xml"
 MAINZONE_URL = "/goform/formMainZone_MainZoneXml.xml"
+DEVICEINFO_URL = "/goform/Deviceinfo.xml"
 NETAUDIOSTATUS_URL = "/goform/formNetAudio_StatusXml.xml"
 TUNERSTATUS_URL = "/goform/formTuner_TunerXml.xml"
 HDTUNERSTATUS_URL = "/goform/formTuner_HdXml.xml"
@@ -104,14 +76,17 @@ class DenonAVR(object):
         """
         self._name = name
         self._host = host
+        # Initially assume receiver is a model like AVR-X...
+        self._avr_x = True
         self._mute = False
         self._volume = "--"
         self._input_func = None
         self._input_func_list = {}
+        self._input_func_list_rev = {}
+        self._netaudio_func_list = []
+        self._playing_func_list = []
         self._state = None
         self._power = None
-        self._modelid = None
-        self._salesarea = None
         self._image_url = (
             "http://{host}/img/album%20art_S.png".format(host=host))
         self._title = None
@@ -121,6 +96,7 @@ class DenonAVR(object):
         self._frequency = None
         self._station = None
         # Fill variables with initial values
+        self._update_input_func_list()
         self.update()
 
     @classmethod
@@ -148,8 +124,9 @@ class DenonAVR(object):
                     host, command)
                 raise ConnectionError
         else:
-            _LOGGER.error("Host %s returned HTTP status code %s\
-                when trying to receive data", host, res.status_code)
+            _LOGGER.error((
+                "Host %s returned HTTP status code %s "
+                "when trying to receive data"), host, res.status_code)
             raise ConnectionError
 
     @classmethod
@@ -169,9 +146,9 @@ class DenonAVR(object):
         if res.status_code == 200:
             return True
         else:
-            _LOGGER.error(
-                "Host %s returned HTTP status code %s\
-                when trying to send GET commands", host, res.status_code)
+            _LOGGER.error((
+                "Host %s returned HTTP status code %s "
+                "when trying to send GET commands"), host, res.status_code)
             return False
 
     @classmethod
@@ -192,8 +169,9 @@ class DenonAVR(object):
         if res.status_code == 200:
             return True
         else:
-            _LOGGER.error("Host %s returned HTTP status code %s when trying to\
-                send POST commands", host, res.status_code)
+            _LOGGER.error((
+                "Host %s returned HTTP status code %s when trying to "
+                "send POST commands"), host, res.status_code)
             return False
 
     def update(self):
@@ -217,21 +195,18 @@ class DenonAVR(object):
             if child.tag == "Power":
                 self._power = child[0].text
             elif child.tag == "InputFuncSelect":
-                self._input_func = child[0].text
+                self._input_func = self._get_active_input_func(child[0].text)
             elif child.tag == "MasterVolume":
                 self._volume = child[0].text
             elif child.tag == "Mute":
                 self._mute = child[0].text
-            elif child.tag == "ModelId":
-                self._modelid = child[0].text
-            elif child.tag == "SalesArea":
-                self._salesarea = child[0].text
             elif child.tag == "FriendlyName" and self._name is None:
                 self._name = child[0].text
 
         # Set state and media image URL based on current source
         # and power status
-        if self._power == POWER_ON and self._input_func in PLAYING_SOURCES:
+        if (self._power == POWER_ON) and (
+                self._input_func in self._playing_func_list):
             if self._update_media_data():
                 pass
             else:
@@ -263,9 +238,9 @@ class DenonAVR(object):
             if self._update_input_func_list():
                 pass
             else:
-                _LOGGER.error(
-                    "Input function list for Denon receiver at host %s\
-                    could not be updated", self._host)
+                _LOGGER.error((
+                    "Input function list for Denon receiver at host %s "
+                    "could not be updated"), self._host)
 
         # Finished
         return True
@@ -274,74 +249,257 @@ class DenonAVR(object):
         """
         Update sources list from receiver.
 
-        Internal method which queries device via HTTP to identify input
-        functions based on modelid and salescode, to map renamed sources
-        and to update instance attributes.
+        Internal method which updates sources list of receiver after getting
+        sources and potential renaming information from receiver.
         """
         # pylint: disable=too-many-branches
-        # A different XML is needed to get names of eventually renamed sources
-        try:
-            root = self.get_status_xml(self._host, STATUS_URL)
-        except ConnectionError:
-            self._input_func_list = None
+        # Get all sources and renaming information from receiver
+        # For structural information of the variables please see the methods
+        receiver_sources = self._get_receiver_sources()
+
+        # If no sources for the receiver could be found, update failed
+        if receiver_sources is None:
             return False
 
+        # First input_func_list determination of AVR-X receivers
+        if self._avr_x is True:
+            renamed_sources, deleted_sources = (
+                self._get_renamed_deleted_sources())
+
+            # Remove all deleted sources
+            for deleted_source in deleted_sources.items():
+                if deleted_source[1] == "DEL":
+                    receiver_sources.pop(deleted_source[0], None)
+
+            # Clear and rebuild the sources lists
+            self._input_func_list.clear()
+            self._input_func_list_rev.clear()
+            self._netaudio_func_list.clear()
+            self._playing_func_list.clear()
+            for item in receiver_sources.items():
+                # For renamed sources use those names and save the default name
+                # for a later mapping
+                if item[0] in renamed_sources:
+                    self._input_func_list[renamed_sources[item[0]]] = item[1]
+                    self._input_func_list_rev[
+                        item[0]] = renamed_sources[item[0]]
+                    # If the source is a netaudio source, save its renamed name
+                    if item[1] in NETAUDIO_SOURCES:
+                        self._netaudio_func_list.append(
+                            renamed_sources[item[0]])
+                    # If the source is a playing source, save its renamed name
+                    if item[1] in PLAYING_SOURCES:
+                        self._playing_func_list.append(
+                            renamed_sources[item[0]])
+                # Otherwise the default names are used
+                else:
+                    self._input_func_list[item[1]] = item[1]
+                    self._input_func_list_rev[item[0]] = item[1]
+                    # If the source is a netaudio source, save its name
+                    if item[1] in NETAUDIO_SOURCES:
+                        self._netaudio_func_list.append(item[1])
+                    # If the source is a playing source, save its name
+                    if item[1] in PLAYING_SOURCES:
+                        self._playing_func_list.append(item[1])
+
+        # Determination of input_func_list for non AVR-nonX receivers
+        else:
+            # Clear and rebuild the sources lists
+            self._input_func_list.clear()
+            self._input_func_list_rev.clear()
+            self._netaudio_func_list.clear()
+            self._playing_func_list.clear()
+            for item in receiver_sources.items():
+                self._input_func_list[item[1]] = item[0]
+                self._input_func_list_rev[item[0]] = item[1]
+                # If the source is a netaudio source, save its name
+                if item[1] in NETAUDIO_SOURCES:
+                    self._netaudio_func_list.append(item[1])
+                # If the source is a playing source, save its name
+                if item[1] in PLAYING_SOURCES:
+                    self._playing_func_list.append(item[1])
+
+        # Finished
+        return True
+
+    def _get_renamed_deleted_sources(self):
+        """
+        Get renamed and deleted sources lists from receiver .
+
+        Internal method which queries device via HTTP to get names of renamed
+        input sources.
+        """
+        # pylint: disable=too-many-branches
+        # renamed_sources and deleted_sources are dicts with "source" as key
+        # and "renamed_source" or deletion flag as value.
         renamed_sources = {}
+        deleted_sources = {}
         xml_inputfunclist = []
         xml_renamesource = []
+        xml_deletesource = []
+
+        # This XML is needed to get names of eventually renamed sources
+        try:
+            # AVR-X and AVR-nonX using different XMLs to provide info about
+            # deleted sources
+            if self._avr_x is True:
+                root = self.get_status_xml(self._host, STATUS_URL)
+            else:
+                root = self.get_status_xml(self._host, MAINZONE_URL)
+        except ConnectionError:
+            return (renamed_sources, deleted_sources)
 
         # Get the relevant tags from XML structure
         for child in root:
             # Default names of the sources
             if child.tag == "InputFuncList":
                 for value in child:
-                    # For some reason some functions are written in capital
-                    # letters in this structure.
-                    # We need to lower them for a later mapping
-                    xml_inputfunclist.append(value.text.lower())
+                    xml_inputfunclist.append(value.text)
             # Renamed sources
             if child.tag == "RenameSource":
                 for value in child:
-                    xml_renamesource.append(value[0].text.strip())
+                    # Two different kinds of source structure types exist
+                    # 1. <RenameSource><Value>...
+                    if value.text is not None:
+                        xml_renamesource.append(value.text.strip())
+                    # 2. <RenameSource><Value><Value>
+                    else:
+                        try:
+                            xml_renamesource.append(value[0].text.strip())
+                        # Exception covers empty tags and appends empty line
+                        # in this case, to ensure that sources and
+                        # renamed_sources lists have always the same length
+                        except IndexError:
+                            xml_renamesource.append(None)
+            # Deleted sources
+            if child.tag == "SourceDelete":
+                for value in child:
+                    xml_deletesource.append(value.text)
 
-        # The renamed sources are in the same row as the default ones
+        # Renamed and deleted sources are in the same row as the default ones
+        # Only values which are not None are considered. Otherwise translation
+        # is not valid and original name is taken
         for i, item in enumerate(xml_inputfunclist):
             try:
-                renamed_sources[item] = xml_renamesource[i]
+                if xml_renamesource[i] is not None:
+                    renamed_sources[item] = xml_renamesource[i]
+                else:
+                    renamed_sources[item] = item
             except IndexError:
-                return False
+                _LOGGER.error(
+                    "List of renamed sources incomplete, continuing anyway")
+            try:
+                deleted_sources[item] = xml_deletesource[i]
+            except IndexError:
+                _LOGGER.error(
+                    "List of deleted sources incomplete, continuing anyway")
 
-        # Get the sources mapping based on the ModelId and SalesArea
-        # Mapping is needed because displaying and sending interfaces
-        # are using different names
-        if self._modelid in SOURCES_5_ID and self._salesarea in SOURCES_5_SA:
-            selected_sources = SOURCES_5
-        elif self._modelid in SOURCES_4_ID:
-            selected_sources = SOURCES_4
-        elif self._modelid in SOURCES_3_ID:
-            selected_sources = SOURCES_3
-        elif self._modelid in SOURCES_2_ID:
-            selected_sources = SOURCES_2
-        elif self._modelid in SOURCES_1_ID:
-            selected_sources = SOURCES_1
-        else:
-            _LOGGER.error("No sources for ModelId %s and SalesArea %s defined",
-                          self._modelid, self._salesarea)
-            return False
+        return (renamed_sources, deleted_sources)
 
-        # Clear and rebuild the sources list
-        self._input_func_list.clear()
-        for item in selected_sources.items():
-            # For renamed sources use those names
-            if item[0].lower() in renamed_sources:
-                self._input_func_list[renamed_sources[item[0].lower()]] = \
-                    item[1]
-            # Otherwise the standard names
+    def _get_receiver_sources(self):
+        """
+        Get sources list from receiver.
+
+        Internal method which queries device via HTTP to get the receiver's
+        input sources.
+        """
+        # This XML is needed to get the sources of the receiver
+        try:
+            root = self.get_status_xml(self._host, DEVICEINFO_URL)
+        except ConnectionError:
+            _LOGGER.error("Connection Error: Receiver sources list empty")
+            return None
+
+        # No Deviceinfo.xml was found at the receiver which points to a model
+        # AVR-nonX. The receiver is "offering" an error HTML page and not a
+        # HTTP 404 status code
+        try:
+            error_pattern = re.compile(r'Form .* is not defined')
+            if error_pattern.search(root.find("./body/p").text) is not None:
+                self._avr_x = False
+                # Sources list is equal to list of renamed sources.
+                non_x_sources, deleted_non_x_sources = (
+                    self._get_renamed_deleted_sources())
+                # Remove all deleted sources
+                for deleted_source in deleted_non_x_sources.items():
+                    if deleted_source[1] == "DEL":
+                        non_x_sources.pop(deleted_source[0], None)
+                # Invalid source "SOURCE" needs to be deleted
+                non_x_sources.pop("SOURCE", None)
+                # Add AVR-nonX static resources (netaudio devices)
+                non_x_sources.update(NON_X_STATIC_SOURCES)
+                return non_x_sources
+        except AttributeError:
+            # AttributeError occurs when error message HTML tag is not found.
+            # In this case the Deviceinfo.xml was found and program continues
+            # with the AVR-X source determination
+            pass
+
+        # Following source determination of AVR-X receivers
+        self._avr_x = True
+        # receiver_sources is of type dict with "FuncName" as key and
+        # "DefaultName" as value.
+        receiver_sources = {}
+        # Source determination from XML
+        for xml_zonecapa in root.findall("DeviceZoneCapabilities"):
+            # Currently only Main Zone (No=0) supported
+            if xml_zonecapa.find("./Zone/No").text == "0":
+                # Get list of all input sources of receiver
+                xml_list = xml_zonecapa.find("./InputSource/List")
+                for xml_source in xml_list.findall("Source"):
+                    receiver_sources[
+                        xml_source.find("FuncName").text] = xml_source.find(
+                            "DefaultName").text
+
+        return receiver_sources
+
+    def _get_active_input_func(self, input_func):
+        """
+        Get active input function from receiver.
+
+        Internal method which determines the currently active input function.
+        Handling of AVR-X and AVR-nonX receivers is different. AVR-X receivers
+        are returning the renamed value whereas AVR-nonX receivers are
+        returning the original value of input_func
+        Additionally for AVR-X receivers a special handling is necessary
+        because network audio sources could not be completely determined
+        by the input_func field.
+        """
+        # input_func handling of AVR-X receivers
+        if self._avr_x is True:
+            if input_func in self._netaudio_func_list:
+                # Get status XML from Denon receiver via HTTP
+                try:
+                    root = self.get_status_xml(self._host, STATUS_URL)
+                except ConnectionError:
+                    return input_func
+
+                tmp_input_func = root.find("InputFuncSelect")[0].text
+
+                try:
+                    new_input_func = self._input_func_list_rev[tmp_input_func]
+                except KeyError:
+                    _LOGGER.error(
+                        "No mapping for network audio source %s",
+                        tmp_input_func)
+                    return input_func
+
+                return new_input_func
+
+            # Not a network audio function -> output = input
             else:
-                self._input_func_list[item[0]] = item[1]
+                return input_func
 
-        # Finished
-        return True
+        # input_func handling of AVR-nonX receivers
+        else:
+            try:
+                new_input_func = self._input_func_list_rev[input_func]
+            except KeyError:
+                _LOGGER.error(
+                    "No mapping for network audio source %s", input_func)
+                return input_func
+
+            return new_input_func
 
     def _update_media_data(self):
         """
@@ -351,8 +509,9 @@ class DenonAVR(object):
         information (title, artist, etc.) and URL of cover image.
         """
         # pylint: disable=too-many-branches
+        # pylint: disable=too-many-statements
         # Use different query URL based on selected source
-        if self._input_func in NETAUDIO_SOURCES:
+        if self._input_func in self._netaudio_func_list:
             try:
                 root = self.get_status_xml(
                     self._host, "{url}?ZoneName=MAIN+ZONE"
@@ -387,7 +546,7 @@ class DenonAVR(object):
                     self._frequency = None
                     self._station = None
 
-        elif self._input_func == "Tuner":
+        elif self._input_func == "Tuner" or self._input_func == "TUNER":
             try:
                 root = self.get_status_xml(self._host,
                                            "{url}?ZoneName=MAIN+ZONE"
@@ -415,7 +574,7 @@ class DenonAVR(object):
                                    .format(host=self._host)):
                 self._image_url = ("http://{host}/img/album%20art_S.png"
                                    .format(host=self._host))
-        elif self._input_func == "HD Radio":
+        elif self._input_func == "HD Radio" or self._input_func == "HDRADIO":
             try:
                 root = self.get_status_xml(
                     self._host, "{url}?ZoneName=MAIN+ZONE"
@@ -452,6 +611,19 @@ class DenonAVR(object):
                                    .format(host=self._host)):
                 self._image_url = ("http://{host}/img/album%20art_S.png"
                                    .format(host=self._host))
+        # No behavior implemented, so reset all variables for that source
+        else:
+            self._band = None
+            self._frequency = None
+            self._title = None
+            self._artist = None
+            self._album = None
+            self._station = None
+            # Assume PLAYING_DEVICE is always PLAYING
+            self._state = STATE_PLAYING
+            # No special cover, using a static one
+            self._image_url = (
+                "http://{host}/img/album%20art_S.png".format(host=self._host))
 
         # Finished
         return True
@@ -572,9 +744,14 @@ class DenonAVR(object):
         # For selection of sources other names then at receiving sources
         # have to be used
         try:
-            linp = self._input_func_list[input_func]
+            # AVR-X receiver needs source mapping to set input_func
+            if self._avr_x is True:
+                linp = SOURCE_MAPPING[self._input_func_list[input_func]]
+            # AVR-nonX receiver gets parameter for setting input_func directly
+            else:
+                linp = self._input_func_list[input_func]
         except KeyError:
-            _LOGGER.error("No mapping rule for source %s", input_func)
+            _LOGGER.error("No mapping for input source %s", input_func)
             return False
         try:
             if self.send_get_command(self._host, COMMAND_SEL_SRC_URL + linp):

@@ -4,7 +4,7 @@
 from setuptools import find_packages, setup
 
 setup(name='denonavr',
-      version='0.2.2',
+      version='0.3.0',
       description='Automation Library for Denon AVR receivers',
       long_description='Automation Library for Denon AVR receivers',
       url='https://github.com/scarface-4711/denonavr',
@@ -25,5 +25,5 @@ setup(name='denonavr',
           "Topic :: Home Automation",
           "Programming Language :: Python :: 3.4",
           "Programming Language :: Python :: 3.5",
-          "Programming Language :: Python :: Implementation :: PyPy"
+          "Programming Language :: Python :: 3.6",
           ])

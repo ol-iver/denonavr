@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<FriendlyName><value>Denon AVR-X2100W</value></FriendlyName>
+<Power><value>ON</value></Power>
+<ZonePower><value>ON</value></ZonePower>
+<RenameZone><value>SALON     </value></RenameZone>
+<TopMenuLink><value>ON</value></TopMenuLink>
+<VideoSelectDisp><value>ON</value></VideoSelectDisp>
+<VideoSelect><value></value></VideoSelect>
+<VideoSelectOnOff><value>OFF</value></VideoSelectOnOff>
+<VideoSelectLists>
+<value index='ON'  table='Włącz' param=''/>
+<value index='OFF'  table='Wył.' param=''/>
+<value index='SAT/CBL'  table='CBL/SAT     ' param=''/>
+<value index='DVD'  table='DVD         ' param=''/>
+<value index='BD'  table='Blu-ray     ' param=''/>
+<value index='GAME'  table='Game        ' param=''/>
+<value index='AUX1'  table='AUX1        ' param=''/>
+<value index='MPLAY'  table='Media Player' param=''/>
+</VideoSelectLists>
+<ECOModeDisp><value>ON</value></ECOModeDisp>
+<ECOMode><value></value></ECOMode>
+<ECOModeLists>
+<value index='ON'  table='Włącz' param=''/>
+<value index='OFF'  table='Wył.' param=''/>
+<value index='AUTO'  table='Automatyczna' param=''/>
+</ECOModeLists>
+<AddSourceDisplay><value>FALSE</value></AddSourceDisplay>
+<ModelId><value>2</value></ModelId>
+<BrandId><value>DENON_MODEL</value></BrandId>
+<SalesArea><value>6</value></SalesArea>
+<InputFuncSelect><value>Online Music</value></InputFuncSelect>
+<NetFuncSelect><value>IRADIO</value></NetFuncSelect>
+<selectSurround><value>Stereo                         </value></selectSurround>
+<VolumeDisplay><value>Absolute</value></VolumeDisplay>
+<MasterVolume><value>--</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<RemoteMaintenance><value></value></RemoteMaintenance>
+<SubwooferDisplay><value>FALSE</value></SubwooferDisplay>
+<Zone2VolDisp><value>TRUE</value></Zone2VolDisp>
+</item>

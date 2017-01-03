@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<Zone><value>MAIN ZONE </value></Zone>
+<Power><value>OFF</value></Power>
+<InputFuncList>
+<value>SOURCE</value>
+<value>TUNER</value>
+<value>PHONO</value>
+<value>CD</value>
+<value>DVD</value>
+<value>BD</value>
+<value>TV</value>
+<value>SAT/CBL</value>
+<value>GAME</value>
+<value>DOCK</value>
+<value>DVR</value>
+<value>V.AUX</value>
+<value>NET/USB</value>
+<value>SIRIUS</value>
+<value>HDRADIO</value>
+</InputFuncList>
+<RenameSource>
+<value></value>
+<value></value>
+<value>PHONO   </value>
+<value>SqzBox  </value>
+<value>SACD    </value>
+<value>BluRay  </value>
+<value>TV      </value>
+<value>SAT/CBL </value>
+<value>HDMI5   </value>
+<value>DOCK    </value>
+<value>GAME    </value>
+<value>V.AUX   </value>
+<value>NET/USB </value>
+<value>SIRIUS  </value>
+<value>HD Radio</value>
+</RenameSource>
+<InputFuncSelect><value>SAT/CBL</value></InputFuncSelect>
+<VolumeDisplay><value>Relative</value></VolumeDisplay>
+<RestorerMode><value>OFF</value></RestorerMode>
+<SurrMode><value>Stereo</value></SurrMode>
+<MasterVolume><value>-46.5</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<Model><value>33XX E3</value></Model>
+</item>

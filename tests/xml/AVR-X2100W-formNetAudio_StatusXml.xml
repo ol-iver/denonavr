@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<BTMessage><value>0</value></BTMessage>
+<chFlag>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>1</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+</chFlag>
+<szLine>
+<value>Now Playing</value>
+<value>Sia - The Greatest (feat. Kendrick Lamar)</value>
+<value>1.fm Absolute TOP 40</value>
+<value></value>
+<value></value>
+<value>KRONEHIT Dance</value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+</szLine>
+<NetPlayingIcon><value>2</value></NetPlayingIcon>
+<NetPlayingTitle><value>Internet Radio</value></NetPlayingTitle>
+<NetworkNewTop><value>0</value></NetworkNewTop>
+<iPodUSBTop><value>0</value></iPodUSBTop>
+<iPodRemoteDirect><value>0</value></iPodRemoteDirect>
+<Art>
+<value>2</value>
+</Art>
+<Slideshow><value></value></Slideshow>
+<SlideshowLists>
+<value index='OFF'  table='OFF' param=''/>
+<value index='05'  table='05' param=''/>
+<value index='10'  table='10' param=''/>
+<value index='15'  table='15' param=''/>
+<value index='20'  table='20' param=''/>
+<value index='30'  table='30' param=''/>
+<value index='60'  table='60' param=''/>
+</SlideshowLists>
+<iRadio><value>0</value></iRadio>
+<iRadioSearch><value>0</value></iRadioSearch>
+<Flickr><value>0</value></Flickr>
+<FlickrSearch><value>0</value></FlickrSearch>
+<AddFlickrContact><value>0</value></AddFlickrContact>
+<NetAudioRandom><value>OFF</value></NetAudioRandom>
+<NetAudioRepeat><value>OFF</value></NetAudioRepeat>
+<ModelId><value>2</value></ModelId>
+<BrandId><value>DENON_MODEL</value></BrandId>
+<SalesArea><value>6</value></SalesArea>
+<InputFuncSelect><value>Online Music</value></InputFuncSelect>
+<NetFuncSelect><value>IRADIO</value></NetFuncSelect>
+<selectSurround><value>Stereo                         </value></selectSurround>
+<VolumeDisplay><value>Absolute</value></VolumeDisplay>
+<MasterVolume><value>--</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<RemoteMaintenance><value></value></RemoteMaintenance>
+<SubwooferDisplay><value>FALSE</value></SubwooferDisplay>
+<Zone2VolDisp><value>TRUE</value></Zone2VolDisp>
+</item>

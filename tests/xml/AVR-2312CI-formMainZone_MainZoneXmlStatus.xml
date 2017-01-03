@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<Zone><value>MAIN ZONE </value></Zone>
+<Power><value>OFF</value></Power>
+<InputFuncList>
+<value>SOURCE</value>
+<value>TUNER</value>
+<value>CD</value>
+<value>NET/USB</value>
+<value>DVD</value>
+<value>BD</value>
+<value>TV</value>
+<value>SAT/CBL</value>
+<value>DVR</value>
+<value>DOCK</value>
+<value>GAME2</value>
+<value>GAME</value>
+<value>V.AUX</value>
+</InputFuncList>
+<RenameSource>
+<value></value>
+<value>TUNER   </value>
+<value>CD      </value>
+<value>NET/USB </value>
+<value>DVD     </value>
+<value>HTPC    </value>
+<value>TV      </value>
+<value>SAT/CBL </value>
+<value>EXTERNAL</value>
+<value>DOCK    </value>
+<value>XBOX360 </value>
+<value>PS3     </value>
+<value>V.AUX   </value>
+</RenameSource>
+<InputFuncSelect><value>BD</value></InputFuncSelect>
+<VolumeDisplay><value>Relative</value></VolumeDisplay>
+<RestorerMode><value>----</value></RestorerMode>
+<SurrMode><value>MCH STEREO</value></SurrMode>
+<MasterVolume><value>-36.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<Model><value>23XX E2</value></Model>
+</item>
