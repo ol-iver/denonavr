@@ -728,6 +728,24 @@ class DenonAVR(object):
         """Return current radio station as string."""
         return self._station
 
+    @property
+    def netaudio_func_list(self):
+        """Return list of network audio devices.
+
+        Those devices should react to play, pause, next and previous
+        track commands.
+        """
+        return self._netaudio_func_list
+
+    @property
+    def playing_func_list(self):
+        """Return list of playing devices.
+
+        Those devices offer additional information about what they are playing
+        (e.g. title, artist, album, band, frequency, station, image_url).
+        """
+        return self._playing_func_list
+
     @input_func.setter
     def input_func(self, input_func):
         """Setter function for input_func to switch input_func of device."""

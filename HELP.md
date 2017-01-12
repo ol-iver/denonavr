@@ -29,7 +29,7 @@ DATA
     __title__ = 'denonavr'
 
 VERSION
-    0.3.0
+    0.3.1
 
 ====================================================================================
 
@@ -149,6 +149,16 @@ CLASSES
      |  name
      |      Return the name of the device as string.
      |  
+     |  netaudio_func_list
+     |      Return list of network audio devices.
+     |      Those devices should react to play, pause, next and previous
+     |      track commands.
+     |
+     |  playing_func_list
+     |      Return list of playing devices.
+     |      Those devices offer additional information about what they are playing
+     |      (e.g. title, artist, album, band, frequency, station, image_url).
+     |
      |  power
      |      Return the power state of the device.   
      |      Possible values are: "ON", "STANDBY" and "OFF"
