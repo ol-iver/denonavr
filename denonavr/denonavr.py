@@ -78,7 +78,7 @@ class DenonAVR(object):
         self._host = host
         # Initially assume receiver is a model like AVR-X...
         self._avr_x = True
-        self._mute = False
+        self._mute = STATE_OFF
         self._volume = "--"
         self._input_func = None
         self._input_func_list = {}
@@ -665,7 +665,7 @@ class DenonAVR(object):
 
         Return "True" if muted and "False" if not muted.
         """
-        return bool(self._mute == 'on')
+        return bool(self._mute == STATE_ON)
 
     @property
     def volume(self):
@@ -910,13 +910,13 @@ class DenonAVR(object):
         try:
             if mute:
                 if self.send_get_command(self._host, COMMAND_MUTE_ON_URL):
-                    self._mute = mute
+                    self._mute = STATE_ON
                     return True
                 else:
                     return False
             else:
                 if self.send_get_command(self._host, COMMAND_MUTE_OFF_URL):
-                    self._mute = mute
+                    self._mute = STATE_OFF
                     return True
                 else:
                     return False
