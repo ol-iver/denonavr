@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<item>
+  <Zone>
+    <value>MainZone</value>
+  </Zone>
+  <Power>
+    <value>STANDBY</value>
+  </Power>
+  <Model>
+    <value/>
+  </Model>
+  <InputFuncSelect>
+    <value>TUNER</value>
+  </InputFuncSelect>
+  <MasterVolume>
+    <value>-72.0</value>
+  </MasterVolume>
+  <Mute>
+    <value>off</value>
+  </Mute>
+</item>

@@ -6,12 +6,13 @@ This module implements the interface to Denon AVR receivers.
 :copyright: (c) 2016 by Oliver Goetz.
 :license: MIT, see LICENSE for more details.
 """
-
+# pylint: disable=too-many-lines
+from io import BytesIO
 import logging
 import time
 import re
 import html
-import xml.etree.ElementTree as ET
+import xml.etree.cElementTree as ET
 import requests
 
 _LOGGER = logging.getLogger('DenonAVR')
@@ -35,6 +36,7 @@ NETAUDIO_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
 NON_X_STATIC_SOURCES = {'Internet Radio': 'Internet Radio',
                         'Media Server': 'Media Server'}
 
+APPCOMMAND_URL = "/goform/AppCommand.xml"
 STATUS_URL = "/goform/formMainZone_MainZoneXmlStatus.xml"
 MAINZONE_URL = "/goform/formMainZone_MainZoneXml.xml"
 DEVICEINFO_URL = "/goform/Deviceinfo.xml"
@@ -167,7 +169,7 @@ class DenonAVR(object):
             _LOGGER.error("Timeout sending POST request to host %s", host)
             raise ConnectionError
         if res.status_code == 200:
-            return True
+            return res.text
         else:
             _LOGGER.error((
                 "Host %s returned HTTP status code %s when trying to "
@@ -190,18 +192,32 @@ class DenonAVR(object):
             self._state = STATE_OFF
             return False
 
-        # Get the relevant tags from the XML structure
-        for child in root:
-            if child.tag == "Power":
-                self._power = child[0].text
-            elif child.tag == "InputFuncSelect":
-                self._input_func = self._get_active_input_func(child[0].text)
-            elif child.tag == "MasterVolume":
-                self._volume = child[0].text
-            elif child.tag == "Mute":
-                self._mute = child[0].text
-            elif child.tag == "FriendlyName" and self._name is None:
-                self._name = child[0].text
+        # Set all tags to be evaluated
+        relevant_tags = {'Power': None, 'InputFuncSelect': None, 'Mute': None,
+                         'MasterVolume': None, 'FriendlyName': None}
+
+        if self._name is not None:
+            relevant_tags.pop("FriendlyName", None)
+
+        # Get the relevant tags from the XML structure and save them to
+        # internal attributes
+        relevant_tags = self._get_status_from_xml_tags(root, relevant_tags)
+
+        # If not all tags could be found try to find them in different XML
+        if relevant_tags:
+            try:
+                root = self.get_status_xml(self._host, STATUS_URL)
+            except ConnectionError:
+                self._power = POWER_OFF
+                self._state = STATE_OFF
+                return False
+
+            # Try to get the rest of the tags from this XML
+            relevant_tags = self._get_status_from_xml_tags(root, relevant_tags)
+
+            if relevant_tags:
+                _LOGGER.error("Missing status information from XML for: %s",
+                              ", ".join(relevant_tags.keys()))
 
         # Set state and media image URL based on current source
         # and power status
@@ -263,8 +279,13 @@ class DenonAVR(object):
 
         # First input_func_list determination of AVR-X receivers
         if self._avr_x is True:
-            renamed_sources, deleted_sources = (
-                self._get_renamed_deleted_sources())
+            renamed_sources, deleted_sources, status_success = (
+                self._get_renamed_deleted_sourcesapp())
+
+            # Backup if previous try with AppCommand was not successful
+            if not status_success:
+                renamed_sources, deleted_sources = (
+                    self._get_renamed_deleted_sources())
 
             # Remove all deleted sources
             for deleted_source in deleted_sources.items():
@@ -396,6 +417,65 @@ class DenonAVR(object):
 
         return (renamed_sources, deleted_sources)
 
+    def _get_renamed_deleted_sourcesapp(self):
+        """
+        Get renamed and deleted sources lists from receiver .
+
+        Internal method which queries device via HTTP to get names of renamed
+        input sources. In this method AppCommand.xml is used.
+        """
+        # renamed_sources and deleted_sources are dicts with "source" as key
+        # and "renamed_source" or deletion flag as value.
+        renamed_sources = {}
+        deleted_sources = {}
+
+        # Prepare POST XML body for AppCommand.xml
+        post_root = ET.Element("tx")
+        # Append tag for renamed sources
+        item = ET.Element("cmd")
+        item.set("id", "1")
+        item.text = "GetRenameSource"
+        post_root.append(item)
+        # Append tag for deleted sources
+        item = ET.Element("cmd")
+        item.set("id", "1")
+        item.text = "GetDeletedSource"
+        post_root.append(item)
+        # Buffer XML body as binary IO
+        body = BytesIO()
+        post_tree = ET.ElementTree(post_root)
+        post_tree.write(body, encoding='utf-8', xml_declaration=True)
+
+        # Query receivers AppCommand.xml
+        try:
+            res = self.send_post_command(
+                self._host, APPCOMMAND_URL, body.getvalue())
+        except ConnectionError:
+            body.close()
+            return (renamed_sources, deleted_sources, False)
+
+        # Buffered XML not needed anymore: close
+        body.close()
+
+        try:
+            # Return XML ElementTree
+            root = ET.fromstring(res)
+        except ET.ParseError:
+            _LOGGER.error(
+                "Host %s returned malformed XML after command: %s",
+                self._host, APPCOMMAND_URL)
+            return (renamed_sources, deleted_sources, False)
+
+        for child in root.findall("./cmd/functionrename/list"):
+            renamed_sources[child.find("name").text.strip()] = (
+                child.find("rename").text.strip())
+
+        for child in root.findall("./cmd/functiondelete/list"):
+            deleted_sources[child.find("FuncName").text.strip()] = "DEL" if (
+                child.find("use").text.strip() == "0") else None
+
+        return (renamed_sources, deleted_sources, True)
+
     def _get_receiver_sources(self):
         """
         Get sources list from receiver.
@@ -479,10 +559,17 @@ class DenonAVR(object):
                 try:
                     new_input_func = self._input_func_list_rev[tmp_input_func]
                 except KeyError:
-                    _LOGGER.error(
-                        "No mapping for network audio source %s",
-                        tmp_input_func)
-                    return input_func
+                    source_found = False
+                    for k, i in SOURCE_MAPPING.items():
+                        if i == tmp_input_func:
+                            new_input_func = k
+                            source_found = True
+
+                    if source_found is False:
+                        _LOGGER.error(
+                            "No mapping for network audio source %s",
+                            tmp_input_func)
+                        return input_func
 
                 return new_input_func
 
@@ -628,6 +715,34 @@ class DenonAVR(object):
         # Finished
         return True
 
+    def _get_status_from_xml_tags(self, root, relevant_tags):
+        """
+        Internal method to get relevant status tags from XML structure.
+
+        Status is saved to internal attributes.
+        Return dictionary of tags not found in XML.
+        """
+        for child in root:
+            if child.tag not in relevant_tags.keys():
+                continue
+            elif child.tag == "Power":
+                self._power = child[0].text
+                relevant_tags.pop(child.tag, None)
+            elif child.tag == "InputFuncSelect":
+                self._input_func = self._get_active_input_func(child[0].text)
+                relevant_tags.pop(child.tag, None)
+            elif child.tag == "MasterVolume":
+                self._volume = child[0].text
+                relevant_tags.pop(child.tag, None)
+            elif child.tag == "Mute":
+                self._mute = child[0].text
+                relevant_tags.pop(child.tag, None)
+            elif child.tag == "FriendlyName" and self._name is None:
+                self._name = child[0].text
+                relevant_tags.pop(child.tag, None)
+
+        return relevant_tags
+
     @property
     def name(self):
         """Return the name of the device as string."""
@@ -761,16 +876,23 @@ class DenonAVR(object):
         """
         # For selection of sources other names then at receiving sources
         # have to be used
-        try:
-            # AVR-X receiver needs source mapping to set input_func
-            if self._avr_x is True:
+        # AVR-X receiver needs source mapping to set input_func
+        if self._avr_x is True:
+            direct_mapping = False
+            try:
                 linp = SOURCE_MAPPING[self._input_func_list[input_func]]
-            # AVR-nonX receiver gets parameter for setting input_func directly
-            else:
+            except KeyError:
+                direct_mapping = True
+        else:
+            direct_mapping = True
+        # AVR-nonX receiver and if no mapping was found get parameter for
+        # setting input_func directly
+        if direct_mapping is True:
+            try:
                 linp = self._input_func_list[input_func]
-        except KeyError:
-            _LOGGER.error("No mapping for input source %s", input_func)
-            return False
+            except KeyError:
+                _LOGGER.error("No mapping for input source %s", input_func)
+                return False
         try:
             if self.send_get_command(self._host, COMMAND_SEL_SRC_URL + linp):
                 self._input_func = input_func
@@ -785,9 +907,9 @@ class DenonAVR(object):
         # Use Play/Pause button only for sources which support NETAUDIO
         if (self._state == STATE_PLAYING and
                 self._input_func in NETAUDIO_SOURCES):
-            self._pause()
+            return self._pause()
         elif self._input_func in NETAUDIO_SOURCES:
-            self._play()
+            return self._play()
 
     def _play(self):
         """Send play command to receiver command via HTTP post."""

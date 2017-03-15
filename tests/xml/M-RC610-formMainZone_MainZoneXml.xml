@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<item>
+  <FriendlyName>
+    <value>Marantz M-CR610</value>
+  </FriendlyName>
+  <Power>
+    <value>STANDBY</value>
+  </Power>
+  <ZonePower>
+    <value/>
+  </ZonePower>
+  <Filter>
+    <value/>
+  </Filter>
+  <NoiseShaper>
+    <value/>
+  </NoiseShaper>
+  <DCFilter>
+    <value/>
+  </DCFilter>
+  <TopMenuLink>
+    <value/>
+  </TopMenuLink>
+  <ModelId>
+    <value>24</value>
+  </ModelId>
+  <SalesArea>
+    <value>1</value>
+  </SalesArea>
+  <InputFuncSelect>
+    <value>TUNER</value>
+  </InputFuncSelect>
+  <NetFuncSelect>
+    <value>RHAPSODY</value>
+  </NetFuncSelect>
+</item>

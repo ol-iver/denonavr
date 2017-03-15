@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<item>
+  <Band>
+    <value/>
+  </Band>
+  <Preset>
+    <value/>
+  </Preset>
+  <PresetLists>
+    <value index="0" skip="OFF" table="OFF" param=""/>
+    <value index="1" skip="" table="01" param=""/>
+    <value index="2" skip="" table="02" param=""/>
+    <value index="3" skip="" table="03" param=""/>
+    <value index="4" skip="" table="04" param=""/>
+    <value index="5" skip="" table="05" param=""/>
+    <value index="6" skip="" table="06" param=""/>
+    <value index="7" skip="" table="07" param=""/>
+    <value index="8" skip="" table="08" param=""/>
+    <value index="9" skip="" table="09" param=""/>
+    <value index="10" skip="" table="10" param=""/>
+    <value index="11" skip="" table="11" param=""/>
+    <value index="12" skip="" table="12" param=""/>
+    <value index="13" skip="" table="13" param=""/>
+    <value index="14" skip="" table="14" param=""/>
+    <value index="15" skip="" table="15" param=""/>
+    <value index="16" skip="" table="16" param=""/>
+    <value index="17" skip="" table="17" param=""/>
+    <value index="18" skip="" table="18" param=""/>
+    <value index="19" skip="" table="19" param=""/>
+    <value index="20" skip="" table="20" param=""/>
+    <value index="21" skip="" table="21" param=""/>
+    <value index="22" skip="" table="22" param=""/>
+    <value index="23" skip="" table="23" param=""/>
+    <value index="24" skip="" table="24" param=""/>
+    <value index="25" skip="" table="25" param=""/>
+    <value index="26" skip="" table="26" param=""/>
+    <value index="27" skip="" table="27" param=""/>
+    <value index="28" skip="" table="28" param=""/>
+    <value index="29" skip="" table="29" param=""/>
+    <value index="30" skip="" table="30" param=""/>
+    <value index="31" skip="" table="31" param=""/>
+    <value index="32" skip="" table="32" param=""/>
+    <value index="33" skip="" table="33" param=""/>
+    <value index="34" skip="" table="34" param=""/>
+    <value index="35" skip="" table="35" param=""/>
+    <value index="36" skip="" table="36" param=""/>
+    <value index="37" skip="" table="37" param=""/>
+    <value index="38" skip="" table="38" param=""/>
+    <value index="39" skip="" table="39" param=""/>
+    <value index="40" skip="" table="40" param=""/>
+    <value index="41" skip="" table="41" param=""/>
+    <value index="42" skip="" table="42" param=""/>
+    <value index="43" skip="" table="43" param=""/>
+    <value index="44" skip="" table="44" param=""/>
+    <value index="45" skip="" table="45" param=""/>
+    <value index="46" skip="" table="46" param=""/>
+    <value index="47" skip="" table="47" param=""/>
+    <value index="48" skip="" table="48" param=""/>
+    <value index="49" skip="" table="49" param=""/>
+    <value index="50" skip="" table="50" param=""/>
+    <value index="51" skip="" table="51" param=""/>
+    <value index="52" skip="" table="52" param=""/>
+    <value index="53" skip="" table="53" param=""/>
+    <value index="54" skip="" table="54" param=""/>
+    <value index="55" skip="" table="55" param=""/>
+    <value index="56" skip="" table="56" param=""/>
+  </PresetLists>
+  <Frequency>
+    <value> 0.00</value>
+  </Frequency>
+  <Area>
+    <value/>
+  </Area>
+  <Mode>
+    <value/>
+  </Mode>
+  <ModelId>
+    <value>24</value>
+  </ModelId>
+  <SalesArea>
+    <value>1</value>
+  </SalesArea>
+  <InputFuncSelect>
+    <value>TUNER</value>
+  </InputFuncSelect>
+  <NetFuncSelect>
+    <value>RHAPSODY</value>
+  </NetFuncSelect>
+</item>
