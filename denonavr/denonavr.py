@@ -24,7 +24,9 @@ SOURCE_MAPPING = {'Internet Radio': 'IRP', 'Online Music': 'NET',
                   'CBL/SAT': 'SAT/CBL', 'Tuner': 'TUNER', 'Phono': 'PHONO',
                   'Media Server': 'SERVER', 'HD Radio': 'HDRADIO',
                   'DVD/Blu-ray': 'DVD', 'Spotify': 'SPOTIFY',
-                  'Flickr': 'FLICKR', 'Favorites': 'FAVORITES'}
+                  'Flickr': 'FLICKR', 'Favorites': 'FAVORITES',
+                  'Analog In 1': 'AUXB', 'Analog In 2': 'AUXC',
+                  'Digital In': 'AUXD'}
 
 PLAYING_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
                    "Internet Radio", "Favorites", "Spotify", "Flickr", "Tuner",
@@ -460,7 +462,7 @@ class DenonAVR(object):
         try:
             # Return XML ElementTree
             root = ET.fromstring(res)
-        except ET.ParseError:
+        except (ET.ParseError, TypeError):
             _LOGGER.error(
                 "Host %s returned malformed XML after command: %s",
                 self._host, APPCOMMAND_URL)
