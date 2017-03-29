@@ -251,7 +251,7 @@ class DenonAVR(object):
             self._frequency = None
             self._station = None
 
-        # Get/update sources list if current source is not know yet
+        # Get/update sources list if current source is not known yet
         if self._input_func not in self._input_func_list:
             if self._update_input_func_list():
                 pass
@@ -492,48 +492,54 @@ class DenonAVR(object):
             _LOGGER.error("Connection Error: Receiver sources list empty")
             return None
 
-        # No Deviceinfo.xml was found at the receiver which points to a model
-        # AVR-nonX. The receiver is "offering" an error HTML page and not a
-        # HTTP 404 status code
+        # Test if receiver is a AVR-X
         try:
-            error_pattern = re.compile(r'Form .* is not defined')
-            if error_pattern.search(root.find("./body/p").text) is not None:
-                self._avr_x = False
-                # Sources list is equal to list of renamed sources.
+            avr_x_pattern = re.compile(r'.*AVR-X.*')
+            self._avr_x = bool(
+                avr_x_pattern.search(root.find("ModelName").text) is not None)
+        except AttributeError:
+            # AttributeError occurs when ModelName tag is not found.
+            # In this case there is no AVR-X device
+            self._avr_x = False
+
+        if self._avr_x is False:
+            # Sources list is equal to list of renamed sources.
+            non_x_sources, deleted_non_x_sources, status_success = (
+                self._get_renamed_deleted_sourcesapp())
+
+            # Backup if previous try with AppCommand was not successful
+            if not status_success:
                 non_x_sources, deleted_non_x_sources = (
                     self._get_renamed_deleted_sources())
-                # Remove all deleted sources
-                for deleted_source in deleted_non_x_sources.items():
-                    if deleted_source[1] == "DEL":
-                        non_x_sources.pop(deleted_source[0], None)
-                # Invalid source "SOURCE" needs to be deleted
-                non_x_sources.pop("SOURCE", None)
-                # Add AVR-nonX static resources (netaudio devices)
-                non_x_sources.update(NON_X_STATIC_SOURCES)
-                return non_x_sources
-        except AttributeError:
-            # AttributeError occurs when error message HTML tag is not found.
-            # In this case the Deviceinfo.xml was found and program continues
-            # with the AVR-X source determination
-            pass
 
-        # Following source determination of AVR-X receivers
-        self._avr_x = True
-        # receiver_sources is of type dict with "FuncName" as key and
-        # "DefaultName" as value.
-        receiver_sources = {}
-        # Source determination from XML
-        for xml_zonecapa in root.findall("DeviceZoneCapabilities"):
-            # Currently only Main Zone (No=0) supported
-            if xml_zonecapa.find("./Zone/No").text == "0":
-                # Get list of all input sources of receiver
-                xml_list = xml_zonecapa.find("./InputSource/List")
-                for xml_source in xml_list.findall("Source"):
-                    receiver_sources[
-                        xml_source.find("FuncName").text] = xml_source.find(
-                            "DefaultName").text
+            # Remove all deleted sources
+            for deleted_source in deleted_non_x_sources.items():
+                if deleted_source[1] == "DEL":
+                    non_x_sources.pop(deleted_source[0], None)
+            # Invalid source "SOURCE" needs to be deleted
+            non_x_sources.pop("SOURCE", None)
+            # Add AVR-nonX static resources (netaudio devices)
+            non_x_sources.update(NON_X_STATIC_SOURCES)
+            return non_x_sources
 
-        return receiver_sources
+        else:
+            # Following source determination of AVR-X receivers
+            # receiver_sources is of type dict with "FuncName" as key and
+            # "DefaultName" as value.
+            receiver_sources = {}
+            # Source determination from XML
+            for xml_zonecapa in root.findall("DeviceZoneCapabilities"):
+                # Currently only Main Zone (No=0) supported
+                if xml_zonecapa.find("./Zone/No").text == "0":
+                    # Get list of all input sources of receiver
+                    xml_list = xml_zonecapa.find("./InputSource/List")
+                    for xml_source in xml_list.findall("Source"):
+                        receiver_sources[
+                            xml_source.find(
+                                "FuncName").text] = xml_source.find(
+                                    "DefaultName").text
+
+            return receiver_sources
 
     def _get_active_input_func(self, input_func):
         """
