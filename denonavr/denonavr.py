@@ -519,7 +519,7 @@ class DenonAVR(object):
             # Invalid source "SOURCE" needs to be deleted
             non_x_sources.pop("SOURCE", None)
             # Add AVR-nonX static resources (netaudio devices)
-            non_x_sources.update(NON_X_STATIC_SOURCES)
+            # non_x_sources.update(NON_X_STATIC_SOURCES)
             return non_x_sources
 
         else:
@@ -541,7 +541,7 @@ class DenonAVR(object):
 
             return receiver_sources
 
-    def _get_active_input_func(self, input_func):
+    def _get_active_input_func(self, input_func, net_func):
         """
         Get active input function from receiver.
 
@@ -553,6 +553,8 @@ class DenonAVR(object):
         because network audio sources could not be completely determined
         by the input_func field.
         """
+        # pylint: disable=too-many-branches
+        # pylint: disable=too-many-return-statements
         # input_func handling of AVR-X receivers
         if self._avr_x is True:
             if input_func in self._netaudio_func_list:
@@ -587,12 +589,20 @@ class DenonAVR(object):
 
         # input_func handling of AVR-nonX receivers
         else:
-            try:
-                new_input_func = self._input_func_list_rev[input_func]
-            except KeyError:
-                _LOGGER.error(
-                    "No mapping for network audio source %s", input_func)
-                return input_func
+            if input_func == "NET":
+                try:
+                    new_input_func = self._input_func_list_rev[net_func]
+                except KeyError:
+                    _LOGGER.error(
+                        "No mapping for network audio source %s", net_func)
+                    return net_func
+            else:
+                try:
+                    new_input_func = self._input_func_list_rev[input_func]
+                except KeyError:
+                    _LOGGER.error(
+                        "No mapping for audio source %s", input_func)
+                    return input_func
 
             return new_input_func
 
@@ -737,7 +747,8 @@ class DenonAVR(object):
                 self._power = child[0].text
                 relevant_tags.pop(child.tag, None)
             elif child.tag == "InputFuncSelect":
-                self._input_func = self._get_active_input_func(child[0].text)
+                self._input_func = self._get_active_input_func(
+                    child[0].text, root.find("NetFuncSelect")[0].text)
                 relevant_tags.pop(child.tag, None)
             elif child.tag == "MasterVolume":
                 self._volume = child[0].text
