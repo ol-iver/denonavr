@@ -24,19 +24,14 @@ SOURCE_MAPPING = {'Internet Radio': 'IRP', 'Online Music': 'NET',
                   'CBL/SAT': 'SAT/CBL', 'Tuner': 'TUNER', 'Phono': 'PHONO',
                   'Media Server': 'SERVER', 'HD Radio': 'HDRADIO',
                   'DVD/Blu-ray': 'DVD', 'Spotify': 'SPOTIFY',
-                  'Flickr': 'FLICKR', 'Favorites': 'FAVORITES',
-                  'Analog In 1': 'AUXB', 'Analog In 2': 'AUXC',
-                  'Digital In': 'AUXD'}
+                  'Flickr': 'FLICKR', 'Favorites': 'FAVORITES'}
 
 PLAYING_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
                    "Internet Radio", "Favorites", "Spotify", "Flickr", "Tuner",
-                   "HD Radio", "TUNER", "NET/USB", "HDRADIO")
+                   "HD Radio", "TUNER", "NET/USB", "HDRADIO", "Music Server")
 NETAUDIO_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
                     "Internet Radio", "Favorites", "Spotify", "Flickr",
-                    "NET/USB")
-
-NON_X_STATIC_SOURCES = {'Internet Radio': 'Internet Radio',
-                        'Media Server': 'Media Server'}
+                    "NET/USB", "Music Server")
 
 APPCOMMAND_URL = "/goform/AppCommand.xml"
 STATUS_URL = "/goform/formMainZone_MainZoneXmlStatus.xml"
@@ -190,8 +185,6 @@ class DenonAVR(object):
         try:
             root = self.get_status_xml(self._host, MAINZONE_URL)
         except ConnectionError:
-            self._power = POWER_OFF
-            self._state = STATE_OFF
             return False
 
         # Set all tags to be evaluated
@@ -210,8 +203,6 @@ class DenonAVR(object):
             try:
                 root = self.get_status_xml(self._host, STATUS_URL)
             except ConnectionError:
-                self._power = POWER_OFF
-                self._state = STATE_OFF
                 return False
 
             # Try to get the rest of the tags from this XML
@@ -518,8 +509,6 @@ class DenonAVR(object):
                     non_x_sources.pop(deleted_source[0], None)
             # Invalid source "SOURCE" needs to be deleted
             non_x_sources.pop("SOURCE", None)
-            # Add AVR-nonX static resources (netaudio devices)
-            # non_x_sources.update(NON_X_STATIC_SOURCES)
             return non_x_sources
 
         else:
