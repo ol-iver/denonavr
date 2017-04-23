@@ -7,12 +7,14 @@ This module implements the interface to Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 # pylint: disable=too-many-lines
+# pylint: disable=no-else-return
+
 from io import BytesIO
 import logging
 import time
 import re
 import html
-import xml.etree.cElementTree as ET
+import xml.etree.ElementTree as ET
 import requests
 
 _LOGGER = logging.getLogger('DenonAVR')
@@ -724,7 +726,7 @@ class DenonAVR(object):
 
     def _get_status_from_xml_tags(self, root, relevant_tags):
         """
-        Internal method to get relevant status tags from XML structure.
+        Get relevant status tags from XML structure with this internal method.
 
         Status is saved to internal attributes.
         Return dictionary of tags not found in XML.

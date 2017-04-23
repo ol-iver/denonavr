@@ -6,6 +6,7 @@ This module implements a discovery function for Denon AVR receivers.
 :copyright: (c) 2016 by Oliver Goetz.
 :license: MIT, see LICENSE for more details.
 """
+# pylint: disable=no-else-return
 
 import logging
 import socket
