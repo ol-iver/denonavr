@@ -466,8 +466,12 @@ class DenonAVR(object):
                 child.find("rename").text.strip())
 
         for child in root.findall("./cmd/functiondelete/list"):
-            deleted_sources[child.find("FuncName").text.strip()] = "DEL" if (
-                child.find("use").text.strip() == "0") else None
+            if child.find("FuncName") is not None:
+                deleted_sources[
+                    child.find("FuncName").text.strip()] = "DEL" if (child.find("use").text.strip() == "0") else None
+            else:
+                deleted_sources[
+                    child.find("name").text.strip()] = "DEL" if (child.find("use").text.strip() == "0") else None
 
         return (renamed_sources, deleted_sources, True)
 
