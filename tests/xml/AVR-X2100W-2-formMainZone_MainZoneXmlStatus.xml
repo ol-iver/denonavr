@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<Zone><value>SALON     </value></Zone>
+<Power><value>ON</value></Power>
+<InputFuncList>
+<value>CBL/SAT</value>
+<value>DVD</value>
+<value>Blu-ray</value>
+<value>GAME</value>
+<value>AUX1</value>
+<value>AUX2</value>
+<value>Media Player</value>
+<value>iPod/USB</value>
+<value>CD</value>
+<value>TUNER</value>
+<value>NETWORK</value>
+<value>TV AUDIO</value>
+<value>Bluetooth</value>
+</InputFuncList>
+<RenameSource>
+<value><value>TV          </value></value>
+<value><value>DVD         </value></value>
+<value><value>Dune        </value></value>
+<value><value>Xbox360     </value></value>
+<value><value>AUX1        </value></value>
+<value><value>AUX2        </value></value>
+<value><value>AndroidTV   </value></value>
+<value><value>iPod/USB</value></value>
+<value><value>CD          </value></value>
+<value><value>Tuner</value></value>
+<value><value>Online Music</value></value>
+<value><value>TV Audio    </value></value>
+<value><value>Bluetooth</value></value>
+</RenameSource>
+<SourceDelete>
+<value>USE</value>
+<value>DEL</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>DEL</value>
+<value>USE</value>
+<value></value>
+<value>DEL</value>
+<value>USE</value>
+</SourceDelete>
+<InputFuncSelect><value>SAT/CBL</value></InputFuncSelect>
+<VolumeDisplay><value>Absolute</value></VolumeDisplay>
+<RestorerMode><value>----</value></RestorerMode>
+<SurrMode><value>PLII Cinema                    </value></SurrMode>
+<MasterVolume><value>-28.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<Model><value></value></Model>
+</item>

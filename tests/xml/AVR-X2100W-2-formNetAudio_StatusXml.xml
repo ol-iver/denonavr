@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<BTMessage><value>0</value></BTMessage>
+<chFlag>
+<value>0</value>
+<value>8</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+</chFlag>
+<szLine>
+<value>Online Music</value>
+<value>Favorites</value>
+<value>Internet Radio</value>
+<value>Flickr</value>
+<value>Media Server</value>
+<value></value>
+<value></value>
+<value></value>
+<value>   [    0/4  ]</value>
+<value></value>
+</szLine>
+<NetPlayingIcon><value>-1</value></NetPlayingIcon>
+<NetPlayingTitle><value></value></NetPlayingTitle>
+<NetworkNewTop><value>1</value></NetworkNewTop>
+<NetworkContentsList>
+<iContentsCnt><value>4</value></iContentsCnt>
+<L1Col1_Icon_off><value>../img/favorite_off.png</value></L1Col1_Icon_off>
+<L1Col1_Icon_on><value>../img/favorite_on.png</value></L1Col1_Icon_on>
+<L1Col1_CMD><value>FAVORITES</value></L1Col1_CMD>
+<L1Col2_Icon_off><value>../img/Internetradio_off.png</value></L1Col2_Icon_off>
+<L1Col2_Icon_on><value>../img/Internetradio_on.png</value></L1Col2_Icon_on>
+<L1Col2_CMD><value>IRADIO</value></L1Col2_CMD>
+<L2Col1_Icon_off><value>../img/Mediaserver_off.png</value></L2Col1_Icon_off>
+<L2Col1_Icon_on><value>../img/Mediaserver_on.png</value></L2Col1_Icon_on>
+<L2Col1_CMD><value>SERVER</value></L2Col1_CMD>
+<L1Col3_Icon_off><value>../img/flickr_off.png</value></L1Col3_Icon_off>
+<L1Col3_Icon_on><value>../img/flickr_on.png</value></L1Col3_Icon_on>
+<L1Col3_CMD><value>FLICKR</value></L1Col3_CMD>
+</NetworkContentsList>
+<iPodUSBTop><value>0</value></iPodUSBTop>
+<iPodRemoteDirect><value>0</value></iPodRemoteDirect>
+<Art>
+<value>0</value>
+</Art>
+<Slideshow><value></value></Slideshow>
+<SlideshowLists>
+<value index='OFF'  table='OFF' param=''/>
+<value index='05'  table='05' param=''/>
+<value index='10'  table='10' param=''/>
+<value index='15'  table='15' param=''/>
+<value index='20'  table='20' param=''/>
+<value index='30'  table='30' param=''/>
+<value index='60'  table='60' param=''/>
+</SlideshowLists>
+<iRadio><value>0</value></iRadio>
+<iRadioSearch><value>0</value></iRadioSearch>
+<Flickr><value>0</value></Flickr>
+<FlickrSearch><value>0</value></FlickrSearch>
+<AddFlickrContact><value>0</value></AddFlickrContact>
+<NetAudioRandom><value>OFF</value></NetAudioRandom>
+<NetAudioRepeat><value>OFF</value></NetAudioRepeat>
+<ModelId><value>2</value></ModelId>
+<BrandId><value>DENON_MODEL</value></BrandId>
+<SalesArea><value>6</value></SalesArea>
+<InputFuncSelect><value>TV</value></InputFuncSelect>
+<NetFuncSelect><value>NET</value></NetFuncSelect>
+<selectSurround><value>PLII Cinema                    </value></selectSurround>
+<VolumeDisplay><value>Absolute</value></VolumeDisplay>
+<MasterVolume><value>-28.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<RemoteMaintenance><value></value></RemoteMaintenance>
+<SubwooferDisplay><value>FALSE</value></SubwooferDisplay>
+<Zone2VolDisp><value>TRUE</value></Zone2VolDisp>
+</item>

@@ -1,0 +1,2683 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Device_Info>
+<DeviceInfoVers>0001</DeviceInfoVers>
+<CommApiVers>0300</CommApiVers>
+<BrandCode>0</BrandCode>
+<ProductCategory>01</ProductCategory>
+<CategoryName>AV RECEIVER</CategoryName>
+<ManualModelName>*AVR-X2100W</ManualModelName>
+<DeliveryCode>02</DeliveryCode>
+<ModelName>*AVR-X2100W</ModelName>
+<MacAddress>0005CD4556F4</MacAddress>
+<UpgradeVersion>00</UpgradeVersion>
+<ReloadDeviceInfo>0</ReloadDeviceInfo>
+<DeviceZones>2</DeviceZones>
+<DeviceCapabilities>
+<Menu>
+<lists>
+<ItemType>0</ItemType>
+<MenuName>Audio</MenuName>
+<DispName>Audio</DispName>
+<IconID>263</IconID>
+<lists>
+<ItemType>1</ItemType>
+<FuncName>DialogLevel</FuncName>
+</lists>
+<lists>
+<ItemType>1</ItemType>
+<FuncName>SubwooferLevel</FuncName>
+</lists>
+<lists>
+<ItemType>1</ItemType>
+<FuncName>SurroundParameter</FuncName>
+</lists>
+<lists>
+<ItemType>1</ItemType>
+<FuncName>Restorer</FuncName>
+</lists>
+<lists>
+<ItemType>1</ItemType>
+<FuncName>AudioDelay</FuncName>
+</lists>
+<lists>
+<ItemType>1</ItemType>
+<FuncName>Audyssey</FuncName>
+</lists>
+<lists>
+<ItemType>1</ItemType>
+<FuncName>GraphicEQ</FuncName>
+</lists>
+</lists>
+<lists>
+<ItemType>0</ItemType>
+<MenuName>Video</MenuName>
+<DispName>Video</DispName>
+<IconID>264</IconID>
+<lists>
+<ItemType>1</ItemType>
+<FuncName>HdmiSetup</FuncName>
+</lists>
+</lists>
+<lists>
+<ItemType>0</ItemType>
+<MenuName>Inputs</MenuName>
+<DispName>Inputs</DispName>
+<IconID>265</IconID>
+<lists>
+<ItemType>1</ItemType>
+<FuncName>SourceRename</FuncName>
+</lists>
+</lists>
+<lists>
+<ItemType>0</ItemType>
+<MenuName>Speakers</MenuName>
+<DispName>Speakers</DispName>
+<IconID>266</IconID>
+<lists>
+<ItemType>1</ItemType>
+<FuncName>SpeakerAB</FuncName>
+</lists>
+</lists>
+<lists>
+<ItemType>0</ItemType>
+<MenuName>Network</MenuName>
+<DispName>Network</DispName>
+<IconID>267</IconID>
+<lists>
+<ItemType>1</ItemType>
+<FuncName>NetworkInfo</FuncName>
+</lists>
+</lists>
+<lists>
+<ItemType>0</ItemType>
+<MenuName>General</MenuName>
+<DispName>General</DispName>
+<IconID>268</IconID>
+<lists>
+<ItemType>1</ItemType>
+<FuncName>ECO</FuncName>
+</lists>
+<lists>
+<ItemType>1</ItemType>
+<FuncName>Zone2Setup</FuncName>
+</lists>
+<lists>
+<ItemType>1</ItemType>
+<FuncName>ZoneRename</FuncName>
+</lists>
+<lists>
+<ItemType>1</ItemType>
+<FuncName>QuickSelectName</FuncName>
+</lists>
+<lists>
+<ItemType>1</ItemType>
+<FuncName>FrontDisplay</FuncName>
+</lists>
+</lists>
+<lists>
+<ItemType>0</ItemType>
+<MenuName>SetupAssistant</MenuName>
+<DispName>Setup Assistant</DispName>
+<IconID>269</IconID>
+</lists>
+</Menu>
+<Setup>
+<Language>
+<lists>
+<value>English</value>
+<value>German</value>
+<value>French</value>
+<value>Italian</value>
+<value>Spanish</value>
+<value>Dutch</value>
+<value>Swedish</value>
+<value>Russian</value>
+<value>Polish</value>
+</lists>
+<ShortcutControl>0</ShortcutControl>
+</Language>
+<NetLink>
+<Control>0</Control>
+<FuncName>NetLink</FuncName>
+<ShortcutControl>0</ShortcutControl>
+</NetLink>
+<ClockAdjust>
+<Control>0</Control>
+<FuncName>ClockAdjust</FuncName>
+<ShortcutControl>0</ShortcutControl>
+</ClockAdjust>
+<SleepTimer>
+<Control>1</Control>
+<FuncName>SleepTimer</FuncName>
+<MaxTimeMin>120</MaxTimeMin>
+<StepTimeMin>10</StepTimeMin>
+<Functions>
+<AllZoneSleep>1</AllZoneSleep>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</SleepTimer>
+<WakeupTimer>
+<Control>0</Control>
+<FuncName>WakeupTimer</FuncName>
+<ShortcutControl>0</ShortcutControl>
+</WakeupTimer>
+<PartyMode>
+<Control>0</Control>
+<FuncName>PartyMode</FuncName>
+<Version>01</Version>
+<ShortcutControl>0</ShortcutControl>
+</PartyMode>
+<BatteryMode>
+<Control>0</Control>
+<FuncName>BatteryMode</FuncName>
+<ShortcutControl>0</ShortcutControl>
+</BatteryMode>
+<DeviceColor>
+<Control>0</Control>
+<FuncName>DeviceColor</FuncName>
+<Color></Color>
+<ShortcutControl>0</ShortcutControl>
+</DeviceColor>
+<ECO>
+<Control>1</Control>
+<FuncName>ECO</FuncName>
+<List>
+<AutoStandby>
+<Zone>Main</Zone>
+<List>
+<Value>0</Value>
+<Value>15</Value>
+<Value>30</Value>
+<Value>60</Value>
+</List>
+</AutoStandby>
+<AutoStandby>
+<Zone>Zone2</Zone>
+<List>
+<Value>0</Value>
+<Value>120</Value>
+<Value>240</Value>
+<Value>480</Value>
+</List>
+</AutoStandby>
+</List>
+<Functions>
+<GetECO>1</GetECO>
+<GetECOMeter>1</GetECOMeter>
+<GetAutoStandby>1</GetAutoStandby>
+<SetECOMode>1</SetECOMode>
+<SetECOPwOnDefault>1</SetECOPwOnDefault>
+<SetECODisplay>1</SetECODisplay>
+<SetAutoStandby>1</SetAutoStandby>
+</Functions>
+</ECO>
+<ToneControl>
+<Control>1</Control>
+<FuncSet>
+<Name>ToneControlSet_AVR</Name>
+</FuncSet>
+<ToneControlSet_AVR>
+<DispName>Tone Control</DispName>
+<BassMin>0</BassMin>
+<BassMax>12</BassMax>
+<BassDefault>6</BassDefault>
+<BassStep>1</BassStep>
+<TrebleMin>0</TrebleMin>
+<TrebleMax>12</TrebleMax>
+<TrebleDefault>6</TrebleDefault>
+<TrebleStep>1</TrebleStep>
+</ToneControlSet_AVR>
+<Functions>
+<GetToneControl>1</GetToneControl>
+<SetToneControl>1</SetToneControl>
+</Functions>
+</ToneControl>
+<DialogLevel>
+<Control>1</Control>
+<DispName>Dialog Level</DispName>
+<FuncName>DialogLevel</FuncName>
+<MinRange>0</MinRange>
+<MaxRange>48</MaxRange>
+<DefaultValue>24</DefaultValue>
+<Step>0.5</Step>
+<Functions>
+<GetDialogLevel>1</GetDialogLevel>
+<SetDialogLevel>1</SetDialogLevel>
+</Functions>
+</DialogLevel>
+<SubwooferLevel>
+<Control>1</Control>
+<DispName>Subwoofer Level</DispName>
+<FuncName>SubwooferLevel</FuncName>
+<SubwooferNum>1</SubwooferNum>
+<List>
+<DispName>Level</DispName>
+</List>
+<MinRange>0</MinRange>
+<MaxRange>48</MaxRange>
+<DefaultValue>24</DefaultValue>
+<Step>0.5</Step>
+<Functions>
+<GetSubwooferLevel>1</GetSubwooferLevel>
+<SetSubwooferLevel>1</SetSubwooferLevel>
+</Functions>
+</SubwooferLevel>
+<ChannelLevel>
+<Control>1</Control>
+<DispName>Channel Level</DispName>
+<FuncName>ChannelLevel</FuncName>
+<ChLists>
+<Ch>
+<Name>C</Name>
+<DispName>Center</DispName>
+<MinRange>0</MinRange>
+<MaxRange>48</MaxRange>
+<DefaultValue>24</DefaultValue>
+<Step>0.5</Step>
+</Ch>
+<Ch>
+<Name>SW</Name>
+<DispName>Subwoofer</DispName>
+<MinRange>0</MinRange>
+<MaxRange>48</MaxRange>
+<DefaultValue>24</DefaultValue>
+<Step>0.5</Step>
+</Ch>
+<Ch>
+<Name>FL</Name>
+<DispName>Front L</DispName>
+<MinRange>0</MinRange>
+<MaxRange>48</MaxRange>
+<DefaultValue>24</DefaultValue>
+<Step>0.5</Step>
+</Ch>
+<Ch>
+<Name>FR</Name>
+<DispName>Front R</DispName>
+<MinRange>0</MinRange>
+<MaxRange>48</MaxRange>
+<DefaultValue>24</DefaultValue>
+<Step>0.5</Step>
+</Ch>
+<Ch>
+<Name>SL</Name>
+<DispName>Surround L</DispName>
+<MinRange>0</MinRange>
+<MaxRange>48</MaxRange>
+<DefaultValue>24</DefaultValue>
+<Step>0.5</Step>
+</Ch>
+<Ch>
+<Name>SR</Name>
+<DispName>Surround R</DispName>
+<MinRange>0</MinRange>
+<MaxRange>48</MaxRange>
+<DefaultValue>24</DefaultValue>
+<Step>0.5</Step>
+</Ch>
+<Ch>
+<Name>SBL</Name>
+<DispName>Surround Back L</DispName>
+<MinRange>0</MinRange>
+<MaxRange>48</MaxRange>
+<DefaultValue>24</DefaultValue>
+<Step>0.5</Step>
+</Ch>
+<Ch>
+<Name>SBR</Name>
+<DispName>Surround Back R</DispName>
+<MinRange>0</MinRange>
+<MaxRange>48</MaxRange>
+<DefaultValue>24</DefaultValue>
+<Step>0.5</Step>
+</Ch>
+<Ch>
+<Name>SB</Name>
+<DispName>Surround Back</DispName>
+<MinRange>0</MinRange>
+<MaxRange>48</MaxRange>
+<DefaultValue>24</DefaultValue>
+<Step>0.5</Step>
+</Ch>
+<Ch>
+<Name>FHL</Name>
+<DispName>Front Height L</DispName>
+<MinRange>0</MinRange>
+<MaxRange>48</MaxRange>
+<DefaultValue>24</DefaultValue>
+<Step>0.5</Step>
+</Ch>
+<Ch>
+<Name>FHR</Name>
+<DispName>Front Height R</DispName>
+<MinRange>0</MinRange>
+<MaxRange>48</MaxRange>
+<DefaultValue>24</DefaultValue>
+<Step>0.5</Step>
+</Ch>
+<Ch>
+<Name>ZRL</Name>
+<DispName>Reest</DispName>
+<MinRange>24</MinRange>
+<MaxRange>24</MaxRange>
+<DefaultValue>24</DefaultValue>
+<Step>24</Step>
+</Ch>
+</ChLists>
+<Functions>
+<GetChLevel>1</GetChLevel>
+<SetChLevel>1</SetChLevel>
+</Functions>
+</ChannelLevel>
+<AllZoneStereo>
+<Control>1</Control>
+<DispName>All Zone Stereo</DispName>
+<FuncName>AllZoneStereo</FuncName>
+<SoundModeList>
+<Name>STEREO</Name>
+<Name>MULTI CH STEREO</Name>
+</SoundModeList>
+<Functions>
+<GetAllZoneStereo>1</GetAllZoneStereo>
+<SetAllZoneStereo>1</SetAllZoneStereo>
+</Functions>
+</AllZoneStereo>
+<UserManualViewer>
+<Control>1</Control>
+<DispName>UserManualViewer</DispName>
+<FuncName>UserManualViewer</FuncName>
+<ShortcutControl>0</ShortcutControl>
+</UserManualViewer>
+<FrontDisplay>
+<Control>1</Control>
+<DispName>Front Display</DispName>
+<FuncName>FrontDisplay</FuncName>
+<Dimmer>
+<Control>1</Control>
+<DispName>Dimmer</DispName>
+<List>
+<Value>
+<DispName>Bright</DispName>
+<CmdNo>3</CmdNo>
+</Value>
+<Value>
+<DispName>Dim</DispName>
+<CmdNo>2</CmdNo>
+</Value>
+<Value>
+<DispName>Dark</DispName>
+<CmdNo>1</CmdNo>
+</Value>
+<Value>
+<DispName>Off</DispName>
+<CmdNo>0</CmdNo>
+</Value>
+</List>
+<Functions>
+<GetDimmer>1</GetDimmer>
+<SetDimmer>1</SetDimmer>
+</Functions>
+</Dimmer>
+</FrontDisplay>
+<Slideshow>
+<Control>1</Control>
+<DispName>Slideshow</DispName>
+<FuncName>Slideshow</FuncName>
+<Functions>
+<GetSlideshow>1</GetSlideshow>
+<SetSlideshow>1</SetSlideshow>
+</Functions>
+</Slideshow>
+<SlideshowInterval>
+<Control>1</Control>
+<DispName>Slideshow Interval</DispName>
+<FuncName>SlideshowInterval</FuncName>
+<List>
+<Value>OFF</Value>
+<Value>5</Value>
+<Value>10</Value>
+<Value>15</Value>
+<Value>20</Value>
+<Value>30</Value>
+<Value>60</Value>
+</List>
+<Functions>
+<GetSlideshowInterval>1</GetSlideshowInterval>
+<SetSlideshowInterval>1</SetSlideshowInterval>
+</Functions>
+</SlideshowInterval>
+<NetworkInfo>
+<Control>1</Control>
+<DispName>Information</DispName>
+<FuncName>NetworkInfo</FuncName>
+<ShortcutControl>0</ShortcutControl>
+<Functions>
+<DispFriendlyNameCandidate>1</DispFriendlyNameCandidate>
+</Functions>
+<Commands>
+<GetNetworkInfo ver="1">1</GetNetworkInfo>
+</Commands>
+</NetworkInfo>
+<PictureMode>
+<Control>1</Control>
+<DispName>Picture Mode</DispName>
+<FuncName>PictureMode</FuncName>
+<List>
+<Value>
+<DispName>Standard</DispName>
+<CmdNo>1</CmdNo>
+</Value>
+<Value>
+<DispName>Movie</DispName>
+<CmdNo>2</CmdNo>
+</Value>
+<Value>
+<DispName>Vivid</DispName>
+<CmdNo>3</CmdNo>
+</Value>
+<Value>
+<DispName>Streaming</DispName>
+<CmdNo>4</CmdNo>
+</Value>
+<Value>
+<DispName>ISF Day</DispName>
+<CmdNo>5</CmdNo>
+</Value>
+<Value>
+<DispName>ISF Night</DispName>
+<CmdNo>6</CmdNo>
+</Value>
+<Value>
+<DispName>Custom</DispName>
+<CmdNo>7</CmdNo>
+</Value>
+<Value>
+<DispName>Off</DispName>
+<CmdNo>0</CmdNo>
+</Value>
+</List>
+<Functions>
+<GetPictureMode>1</GetPictureMode>
+<SetPictureMode>1</SetPictureMode>
+</Functions>
+</PictureMode>
+<VideoSelect>
+<Control>1</Control>
+<DispName>Video Select</DispName>
+<FuncName>VideoSelect</FuncName>
+<List>
+<Value>
+<DispName>Off</DispName>
+<CmdNo>0</CmdNo>
+</Value>
+<Value>
+<DispName>On</DispName>
+<CmdNo>1</CmdNo>
+</Value>
+</List>
+<Functions>
+<GetVideoSelect>1</GetVideoSelect>
+<SetVideoSelect>1</SetVideoSelect>
+</Functions>
+</VideoSelect>
+<ZoneRename>
+<Control>1</Control>
+<DispName>Zone Rename</DispName>
+<FuncName>ZoneRename</FuncName>
+<List>
+<Value>
+<Zone>Main</Zone>
+<DispName>MAIN ZONE</DispName>
+</Value>
+<Value>
+<Zone>Zone2</Zone>
+<DispName>ZONE2</DispName>
+</Value>
+</List>
+<Functions>
+<GetZoneName>1</GetZoneName>
+<SetZoneName>1</SetZoneName>
+<SetZoneNameDefault>1</SetZoneNameDefault>
+</Functions>
+</ZoneRename>
+<Restorer>
+<Control>1</Control>
+<DispName>Restorer</DispName>
+<FuncName>Restorer</FuncName>
+<ShortcutControl>0</ShortcutControl>
+<List>
+<Value>
+<DispName>High</DispName>
+<CmdNo>3</CmdNo>
+</Value>
+<Value>
+<DispName>Medium</DispName>
+<CmdNo>2</CmdNo>
+</Value>
+<Value>
+<DispName>Low</DispName>
+<CmdNo>1</CmdNo>
+</Value>
+<Value>
+<DispName>Off</DispName>
+<CmdNo>0</CmdNo>
+</Value>
+</List>
+<Commands>
+<GetRestorerMode ver="1">1</GetRestorerMode>
+<SetRestorerMode ver="1">1</SetRestorerMode>
+</Commands>
+</Restorer>
+<HdmiSetup>
+<Control>1</Control>
+<DispName>HDMI Setup</DispName>
+<FuncName>HdmiSetup</FuncName>
+<ShortcutControl>0</ShortcutControl>
+<HdmiAudioOut>
+<Control>1</Control>
+<DispName>HDMI Audio Out</DispName>
+<FuncName>HdmiAudioOut</FuncName>
+<List>
+<Value>
+<DispName>AVR</DispName>
+<CmdNo>1</CmdNo>
+</Value>
+<Value>
+<DispName>TV</DispName>
+<CmdNo>2</CmdNo>
+</Value>
+</List>
+</HdmiAudioOut>
+<HdmiVideoOut>
+<Control>1</Control>
+<DispName>Video Output</DispName>
+<FuncName>HdmiVideoOut</FuncName>
+<List>
+<Value>
+<DispName>Auto(Dual)</DispName>
+<CmdNo>3</CmdNo>
+</Value>
+<Value>
+<DispName>Monitor 1</DispName>
+<CmdNo>1</CmdNo>
+</Value>
+<Value>
+<DispName>Monitor 2</DispName>
+<CmdNo>2</CmdNo>
+</Value>
+</List>
+</HdmiVideoOut>
+<Commands>
+<GetHdmiSetup ver="1">1</GetHdmiSetup>
+<SetHdmiSetup ver="1">1</SetHdmiSetup>
+</Commands>
+</HdmiSetup>
+<GraphicEQ>
+<Control>1</Control>
+<DispName>Graphic EQ</DispName>
+<FuncName>GraphicEQ</FuncName>
+<ShortcutControl>0</ShortcutControl>
+<List>
+<Value>
+<DispName>Off</DispName>
+<CmdNo>0</CmdNo>
+</Value>
+<Value>
+<DispName>On</DispName>
+<CmdNo>1</CmdNo>
+</Value>
+</List>
+<SpeakerSelection>
+<Control>1</Control>
+<DispName>Speaker Selection</DispName>
+<FuncName>SpeakerSelection</FuncName>
+<List>
+<Value>
+<DispName>Left/Right</DispName>
+<CmdNo>1</CmdNo>
+</Value>
+<Value>
+<DispName>Each</DispName>
+<CmdNo>2</CmdNo>
+</Value>
+<Value>
+<DispName>All</DispName>
+<CmdNo>3</CmdNo>
+</Value>
+</List>
+</SpeakerSelection>
+<EnableAllChList>
+<Control>1</Control>
+<DispName>Speaker Selection All</DispName>
+<FuncName>SpeakerSelectionAll</FuncName>
+<List>
+<Value>
+<DispName>All</DispName>
+<CmdNo>1</CmdNo>
+</Value>
+</List>
+</EnableAllChList>
+<EnableLRChList>
+<Control>1</Control>
+<DispName>Speaker Selection LR</DispName>
+<FuncName>SpeakerSelectionLR</FuncName>
+<List>
+<Value>
+<DispName>Front L/R</DispName>
+<CmdNo>1</CmdNo>
+</Value>
+<Value>
+<DispName>Center</DispName>
+<CmdNo>2</CmdNo>
+</Value>
+<Value>
+<DispName>Surround L/R</DispName>
+<CmdNo>3</CmdNo>
+</Value>
+<Value>
+<DispName>Surround Back L/R</DispName>
+<CmdNo>4</CmdNo>
+</Value>
+<Value>
+<DispName>Surround Back</DispName>
+<CmdNo>16</CmdNo>
+</Value>
+<Value>
+<DispName>Front Wide L/R</DispName>
+<CmdNo>5</CmdNo>
+</Value>
+<Value>
+<DispName>Front Height L/R</DispName>
+<CmdNo>6</CmdNo>
+</Value>
+<Value>
+<DispName>Top Front L/R</DispName>
+<CmdNo>7</CmdNo>
+</Value>
+<Value>
+<DispName>Top Middle L/R</DispName>
+<CmdNo>8</CmdNo>
+</Value>
+<Value>
+<DispName>Top Rear L/R</DispName>
+<CmdNo>9</CmdNo>
+</Value>
+<Value>
+<DispName>Rear Height L/R</DispName>
+<CmdNo>12</CmdNo>
+</Value>
+<Value>
+<DispName>Surround Height L/R</DispName>
+<CmdNo>10</CmdNo>
+</Value>
+<Value>
+<DispName>Front Dolby L/R</DispName>
+<CmdNo>13</CmdNo>
+</Value>
+<Value>
+<DispName>Surround Dolby L/R</DispName>
+<CmdNo>14</CmdNo>
+</Value>
+<Value>
+<DispName>Back Dolby L/R</DispName>
+<CmdNo>15</CmdNo>
+</Value>
+<Value>
+<DispName>Top Surround</DispName>
+<CmdNo>11</CmdNo>
+</Value>
+</List>
+</EnableLRChList>
+<EnableEachChList>
+<Control>1</Control>
+<DispName>Speaker Selection Each</DispName>
+<FuncName>SpeakerSelectionEach</FuncName>
+<List>
+<Value>
+<DispName>Front L</DispName>
+<CmdNo>1</CmdNo>
+</Value>
+<Value>
+<DispName>Front R</DispName>
+<CmdNo>2</CmdNo>
+</Value>
+<Value>
+<DispName>Center</DispName>
+<CmdNo>3</CmdNo>
+</Value>
+<Value>
+<DispName>Surround L</DispName>
+<CmdNo>4</CmdNo>
+</Value>
+<Value>
+<DispName>Surround R</DispName>
+<CmdNo>5</CmdNo>
+</Value>
+<Value>
+<DispName>Surround Back L</DispName>
+<CmdNo>6</CmdNo>
+</Value>
+<Value>
+<DispName>Surround Back R</DispName>
+<CmdNo>7</CmdNo>
+</Value>
+<Value>
+<DispName>Surround Back</DispName>
+<CmdNo>8</CmdNo>
+</Value>
+<Value>
+<DispName>Front Wide L</DispName>
+<CmdNo>9</CmdNo>
+</Value>
+<Value>
+<DispName>Front Wide R</DispName>
+<CmdNo>10</CmdNo>
+</Value>
+<Value>
+<DispName>Front Height L</DispName>
+<CmdNo>11</CmdNo>
+</Value>
+<Value>
+<DispName>Front Height R</DispName>
+<CmdNo>12</CmdNo>
+</Value>
+<Value>
+<DispName>Top Front L</DispName>
+<CmdNo>13</CmdNo>
+</Value>
+<Value>
+<DispName>Top Front R</DispName>
+<CmdNo>14</CmdNo>
+</Value>
+<Value>
+<DispName>Top Middle L</DispName>
+<CmdNo>15</CmdNo>
+</Value>
+<Value>
+<DispName>Top Middle R</DispName>
+<CmdNo>16</CmdNo>
+</Value>
+<Value>
+<DispName>Top Rear L</DispName>
+<CmdNo>17</CmdNo>
+</Value>
+<Value>
+<DispName>Top Rear R</DispName>
+<CmdNo>18</CmdNo>
+</Value>
+<Value>
+<DispName>Rear Height L</DispName>
+<CmdNo>22</CmdNo>
+</Value>
+<Value>
+<DispName>Rear Height R</DispName>
+<CmdNo>25</CmdNo>
+</Value>
+<Value>
+<DispName>Surround Height L</DispName>
+<CmdNo>19</CmdNo>
+</Value>
+<Value>
+<DispName>Surround Height R</DispName>
+<CmdNo>20</CmdNo>
+</Value>
+<Value>
+<DispName>Front Dolby L</DispName>
+<CmdNo>23</CmdNo>
+</Value>
+<Value>
+<DispName>Front Dolby R</DispName>
+<CmdNo>24</CmdNo>
+</Value>
+<Value>
+<DispName>Surround Dolby L</DispName>
+<CmdNo>26</CmdNo>
+</Value>
+<Value>
+<DispName>Surround Dolby R</DispName>
+<CmdNo>27</CmdNo>
+</Value>
+<Value>
+<DispName>Back Dolby L</DispName>
+<CmdNo>28</CmdNo>
+</Value>
+<Value>
+<DispName>Back Dolby R</DispName>
+<CmdNo>29</CmdNo>
+</Value>
+<Value>
+<DispName>Top Surround</DispName>
+<CmdNo>21</CmdNo>
+</Value>
+</List>
+</EnableEachChList>
+<EQBand>
+<Control>1</Control>
+<DispName>EQ Band</DispName>
+<FuncName>EQBand</FuncName>
+<List>
+<Value>
+<DispName>63 Hz</DispName>
+<CmdNo>1</CmdNo>
+</Value>
+<Value>
+<DispName>125 Hz</DispName>
+<CmdNo>2</CmdNo>
+</Value>
+<Value>
+<DispName>250 Hz</DispName>
+<CmdNo>3</CmdNo>
+</Value>
+<Value>
+<DispName>500 Hz</DispName>
+<CmdNo>4</CmdNo>
+</Value>
+<Value>
+<DispName>1 kHz</DispName>
+<CmdNo>5</CmdNo>
+</Value>
+<Value>
+<DispName>2 kHz</DispName>
+<CmdNo>6</CmdNo>
+</Value>
+<Value>
+<DispName>4 kHz</DispName>
+<CmdNo>7</CmdNo>
+</Value>
+<Value>
+<DispName>8 kHz</DispName>
+<CmdNo>8</CmdNo>
+</Value>
+<Value>
+<DispName>16 kHz</DispName>
+<CmdNo>9</CmdNo>
+</Value>
+</List>
+</EQBand>
+<EQAdjustDB>
+<Control>1</Control>
+<DispName>EQAdjustDB</DispName>
+<FuncName>EQAdjustDB</FuncName>
+<MinValue>-20.0</MinValue>
+<MaxValue>6.0</MaxValue>
+<StepValue>0.5</StepValue>
+</EQAdjustDB>
+<Commands>
+<GetEQSetting ver="1">1</GetEQSetting>
+<SetEQSetting ver="1">1</SetEQSetting>
+<GetEQAdjustChList ver="1">1</GetEQAdjustChList>
+<GetEQParameter ver="1">1</GetEQParameter>
+<SetEQParameter ver="1">1</SetEQParameter>
+<GetEQOtherFunc ver="1">1</GetEQOtherFunc>
+<SetEQOtherFunc ver="1">1</SetEQOtherFunc>
+</Commands>
+</GraphicEQ>
+<Audyssey>
+<Control>1</Control>
+<DispName>Audyssey</DispName>
+<FuncName>Audyssey</FuncName>
+<ShortcutControl>0</ShortcutControl>
+<MultEq>
+<Control>1</Control>
+<DispName>MultEQ XT</DispName>
+<FuncName>MultEq</FuncName>
+<List>
+<Value>
+<DispName>Reference</DispName>
+<CmdNo>3</CmdNo>
+</Value>
+<Value>
+<DispName>L/R Bypass</DispName>
+<CmdNo>2</CmdNo>
+</Value>
+<Value>
+<DispName>Flat</DispName>
+<CmdNo>1</CmdNo>
+</Value>
+<Value>
+<DispName>Off</DispName>
+<CmdNo>0</CmdNo>
+</Value>
+</List>
+</MultEq>
+<DynamicEq>
+<Control>1</Control>
+<DispName>Dynamic EQ</DispName>
+<FuncName>DynamicEq</FuncName>
+<List>
+<Value>
+<DispName>Off</DispName>
+<CmdNo>0</CmdNo>
+</Value>
+<Value>
+<DispName>On</DispName>
+<CmdNo>1</CmdNo>
+</Value>
+</List>
+</DynamicEq>
+<DynamicVolume>
+<Control>1</Control>
+<DispName>Dynamic Volume</DispName>
+<FuncName>DynamicVolume</FuncName>
+<List>
+<Value>
+<DispName>Off</DispName>
+<CmdNo>0</CmdNo>
+</Value>
+<Value>
+<DispName>Light</DispName>
+<CmdNo>1</CmdNo>
+</Value>
+<Value>
+<DispName>Medium</DispName>
+<CmdNo>2</CmdNo>
+</Value>
+<Value>
+<DispName>Heavy</DispName>
+<CmdNo>3</CmdNo>
+</Value>
+</List>
+</DynamicVolume>
+<Commands>
+<GetAudyssey ver="1">1</GetAudyssey>
+<SetAudyssey ver="1">1</SetAudyssey>
+</Commands>
+</Audyssey>
+<SurroundParameter>
+<Control>1</Control>
+<DispName>Surround Parameter</DispName>
+<FuncName>SurroundParameter</FuncName>
+<ShortcutControl>0</ShortcutControl>
+<CinemaEq>
+<Control>1</Control>
+<DispName>Cinema EQ</DispName>
+<FuncName>CinemaEq</FuncName>
+<List>
+<Value>
+<DispName>Off</DispName>
+<CmdNo>0</CmdNo>
+</Value>
+<Value>
+<DispName>On</DispName>
+<CmdNo>1</CmdNo>
+</Value>
+</List>
+</CinemaEq>
+<Commands>
+<GetSurroundParameter ver="1">1</GetSurroundParameter>
+<SetSurroundParameter ver="1">1</SetSurroundParameter>
+</Commands>
+</SurroundParameter>
+<AudioDelay>
+<Control>1</Control>
+<DispName>Audio Delay</DispName>
+<FuncName>AudioDelay</FuncName>
+<ShortcutControl>0</ShortcutControl>
+<MinValue>0</MinValue>
+<MaxValue>200</MaxValue>
+<StepValue>1</StepValue>
+<Commands>
+<GetAudioDelay ver="1">1</GetAudioDelay>
+<SetAudioDelay ver="1">1</SetAudioDelay>
+</Commands>
+</AudioDelay>
+<ExternalContol>
+<Control>1</Control>
+<DispName>External Contol</DispName>
+<FuncName>ExternalContol</FuncName>
+<ShortcutControl>0</ShortcutControl>
+<Commands>
+<GetExternalContol ver="1">1</GetExternalContol>
+<SetExternalContol ver="1">1</SetExternalContol>
+</Commands>
+</ExternalContol>
+<SourceRename>
+<Control>1</Control>
+<DispName>Source Rename</DispName>
+<FuncName>SourceRename</FuncName>
+<ShortcutControl>0</ShortcutControl>
+<Commands>
+<GetSourceRename ver="1">1</GetSourceRename>
+<SetSourceRename ver="1">1</SetSourceRename>
+<SetSourceRenameDefault ver="1">1</SetSourceRenameDefault>
+</Commands>
+</SourceRename>
+<Zone2Setup>
+<Control>1</Control>
+<DispName>Zone2 Setup</DispName>
+<FuncName>Zone2Setup</FuncName>
+<ShortcutControl>0</ShortcutControl>
+<LchLevel>
+<Control>1</Control>
+<DispName>Lch Level</DispName>
+<FuncName>LchLevel</FuncName>
+<MinValue>-12</MinValue>
+<MaxValue>12</MaxValue>
+<StepValue>1</StepValue>
+</LchLevel>
+<RchLevel>
+<Control>1</Control>
+<DispName>Rch Level</DispName>
+<FuncName>RchLevel</FuncName>
+<MinValue>-12</MinValue>
+<MaxValue>12</MaxValue>
+<StepValue>1</StepValue>
+</RchLevel>
+<Commands>
+<GetLRchLevel ver="1">1</GetLRchLevel>
+<SetLRchLevel ver="1">1</SetLRchLevel>
+</Commands>
+</Zone2Setup>
+<SoundMode>
+<Control>1</Control>
+<DispName>Sound Mode</DispName>
+<FuncName>SoundMode</FuncName>
+<ShortcutControl>0</ShortcutControl>
+<Genre>
+<List>
+<Value>
+<DispName>MOVIE</DispName>
+<CmdNo>1</CmdNo>
+</Value>
+<Value>
+<DispName>MOVIE</DispName>
+<CmdNo>MUSIC</CmdNo>
+</Value>
+<Value>
+<DispName>MUS</DispName>
+<CmdNo>MUSIC</CmdNo>
+</Value>
+<Value>
+<DispName>3</DispName>
+<CmdNo>GAM</CmdNo>
+</Value>
+</List>
+</Genre>
+<Commands>
+<GetSoundMode ver="1">1</GetSoundMode>
+<SetSoundMode ver="1">1</SetSoundMode>
+<GetSoundModeList ver="1">1</GetSoundModeList>
+<SetSoundModeList ver="1">1</SetSoundModeList>
+</Commands>
+</SoundMode>
+<StatusInfo>
+<Control>1</Control>
+<DispName>INFO</DispName>
+<FuncName>StatusInfo</FuncName>
+<ShortcutControl>0</ShortcutControl>
+<Commands>
+<GetInputSignal ver="1">1</GetInputSignal>
+<GetActiveSpeaker ver="1">1</GetActiveSpeaker>
+<GetVideoInfo ver="1">1</GetVideoInfo>
+<GetAudioInfo ver="1">1</GetAudioInfo>
+<GetAudyssyInfo ver="1">1</GetAudyssyInfo>
+</Commands>
+</StatusInfo>
+<AsynchronousFavorites>
+<Control>1</Control>
+<DispName>Asynchronous Favorites</DispName>
+<FuncName>AsynchronousFavorites</FuncName>
+<ShortcutControl>0</ShortcutControl>
+<Commands>
+<GetFavoritesList ver="1">1</GetFavoritesList>
+<SetFavoritesListPlay ver="1">1</SetFavoritesListPlay>
+</Commands>
+</AsynchronousFavorites>
+<SpeakerAB>
+<Control>1</Control>
+<DispName>Front Speaker</DispName>
+<FuncName>SpeakerAB</FuncName>
+<SpList>
+<Sp>
+<DispName>Speaker A</DispName>
+<CmdNo>1</CmdNo>
+</Sp>
+<Sp>
+<DispName>Speaker B</DispName>
+<CmdNo>2</CmdNo>
+</Sp>
+<Sp>
+<DispName>Speaker A+B</DispName>
+<CmdNo>3</CmdNo>
+</Sp>
+</SpList>
+<Functions>
+<GetStatus>1</GetStatus>
+</Functions>
+</SpeakerAB>
+</Setup>
+<Operation>
+<Clock>
+<Control>0</Control>
+<FuncName>Clock</FuncName>
+<ShortcutControl>0</ShortcutControl>
+</Clock>
+<AllZonePower>
+<Control>1</Control>
+<FuncName>AllZonePower</FuncName>
+<ShortcutControl>0</ShortcutControl>
+</AllZonePower>
+<AllZoneMute>
+<Control>1</Control>
+<FuncName>AllZoneMute</FuncName>
+<ShortcutControl>0</ShortcutControl>
+</AllZoneMute>
+<Favorites>
+<Control>0</Control>
+<FuncName>SystemFavorites</FuncName>
+<MaxFavorites>50</MaxFavorites>
+<Functions>
+<FavoriteCall>0</FavoriteCall>
+</Functions>
+<ShortcutControl>0</ShortcutControl>
+</Favorites>
+</Operation>
+</DeviceCapabilities>
+<DeviceZoneCapabilities>
+<Zone>
+<No>0</No>
+</Zone>
+<ShortcutControl>
+<Control>1</Control>
+<EntryList>
+<Shortcut>
+<Category>1</Category>
+<IconId>210</IconId>
+<DispName>Restorer</DispName>
+<FuncName>Restorer</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>1</Category>
+<IconId>204</IconId>
+<DispName>Sleep Timer</DispName>
+<FuncName>SleepTimer</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>2</Category>
+<IconId>110</IconId>
+<DispName>Cursor</DispName>
+<FuncName>Cursor</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>3</Category>
+<IconId>111</IconId>
+<DispName>Quick Select 1</DispName>
+<FuncName>Quick Select1</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>3</Category>
+<IconId>111</IconId>
+<DispName>Quick Select 2</DispName>
+<FuncName>Quick Select2</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>3</Category>
+<IconId>111</IconId>
+<DispName>Quick Select 3</DispName>
+<FuncName>Quick Select3</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>3</Category>
+<IconId>111</IconId>
+<DispName>Quick Select 4</DispName>
+<FuncName>Quick Select4</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>34</IconId>
+<DispName>Favorites</DispName>
+<FuncName>Favorites</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>26</IconId>
+<DispName>Internet Radio</DispName>
+<FuncName>Internet Radio</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>55</IconId>
+<DispName>Spotify</DispName>
+<FuncName>SpotifyConnect</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>25</IconId>
+<DispName>Media Server</DispName>
+<FuncName>Media Server</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>29</IconId>
+<DispName>Flickr</DispName>
+<FuncName>Flickr</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>4</IconId>
+<DispName>CBL/SAT</DispName>
+<FuncName>CBL/SAT</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>2</IconId>
+<DispName>DVD</DispName>
+<FuncName>DVD</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>1</IconId>
+<DispName>Blu-ray</DispName>
+<FuncName>Blu-ray</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>8</IconId>
+<DispName>Game</DispName>
+<FuncName>GAME</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>42</IconId>
+<DispName>AUX1</DispName>
+<FuncName>AUX1</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>43</IconId>
+<DispName>AUX2</DispName>
+<FuncName>AUX2</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>46</IconId>
+<DispName>Media Player</DispName>
+<FuncName>Media Player</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>22</IconId>
+<DispName>iPod/USB</DispName>
+<FuncName>iPod/USB</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>17</IconId>
+<DispName>CD</DispName>
+<FuncName>CD</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>19</IconId>
+<DispName>Tuner</DispName>
+<FuncName>TUNER</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>3</IconId>
+<DispName>TV Audio</DispName>
+<FuncName>TV AUDIO</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>59</IconId>
+<DispName>Bluetooth</DispName>
+<FuncName>Bluetooth</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>5</Category>
+<IconId>212</IconId>
+<DispName>Direct</DispName>
+<FuncName>DIRECT</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>5</Category>
+<IconId>212</IconId>
+<DispName>Stereo</DispName>
+<FuncName>STEREO</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>5</Category>
+<IconId>213</IconId>
+<DispName>Pure Direct</DispName>
+<FuncName>PURE DIRECT</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>5</Category>
+<IconId>214</IconId>
+<DispName>Dolby Digital</DispName>
+<FuncName>DOLBY DIGITAL</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>5</Category>
+<IconId>214</IconId>
+<DispName>DTS Surround</DispName>
+<FuncName>DTS SURROUND</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>5</Category>
+<IconId>224</IconId>
+<DispName>Auto</DispName>
+<FuncName>AUTO</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>5</Category>
+<IconId>215</IconId>
+<DispName>Multi Ch Stereo</DispName>
+<FuncName>MULTI CH STEREO</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>5</Category>
+<IconId>215</IconId>
+<DispName>Rock Arena</DispName>
+<FuncName>ROCK ARENA</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>5</Category>
+<IconId>215</IconId>
+<DispName>Jazz Club</DispName>
+<FuncName>JAZZ CLUB</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>5</Category>
+<IconId>215</IconId>
+<DispName>Mono Movie</DispName>
+<FuncName>MONO MOVIE</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>5</Category>
+<IconId>215</IconId>
+<DispName>Video Game</DispName>
+<FuncName>VIDEO GAME</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>5</Category>
+<IconId>215</IconId>
+<DispName>Matrix</DispName>
+<FuncName>MATRIX</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>5</Category>
+<IconId>215</IconId>
+<DispName>Virtual</DispName>
+<FuncName>VIRTUAL</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>5</Category>
+<IconId>220</IconId>
+<DispName>Movie</DispName>
+<FuncName>MOVIE</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>5</Category>
+<IconId>221</IconId>
+<DispName>Music</DispName>
+<FuncName>MUSIC</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>5</Category>
+<IconId>222</IconId>
+<DispName>Game</DispName>
+<FuncName>GAME</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>5</Category>
+<IconId>223</IconId>
+<DispName>Pure</DispName>
+<FuncName>PURE</FuncName>
+</Shortcut>
+</EntryList>
+<DefaultList>
+<Shortcut>
+<No>1</No>
+<Category>4</Category>
+<FuncName>Internet Radio</FuncName>
+</Shortcut>
+<Shortcut>
+<No>2</No>
+<Category>4</Category>
+<FuncName>iPod/USB</FuncName>
+</Shortcut>
+<Shortcut>
+<No>3</No>
+<Category>4</Category>
+<FuncName>TUNER</FuncName>
+</Shortcut>
+<Shortcut>
+<No>4</No>
+<Category>4</Category>
+<FuncName>Media Server</FuncName>
+</Shortcut>
+<Shortcut>
+<No>5</No>
+<Category>4</Category>
+<FuncName>CBL/SAT</FuncName>
+</Shortcut>
+<Shortcut>
+<No>6</No>
+<Category>4</Category>
+<FuncName>Blu-ray</FuncName>
+</Shortcut>
+<Shortcut>
+<No>7</No>
+<Category>4</Category>
+<FuncName>Media Player</FuncName>
+</Shortcut>
+<Shortcut>
+<No>8</No>
+<Category>4</Category>
+<FuncName>GAME</FuncName>
+</Shortcut>
+</DefaultList>
+</ShortcutControl>
+<Power>
+<Control>1</Control>
+</Power>
+<Volume>
+<Control>1</Control>
+<MaxValue>98.0</MaxValue>
+<StepValue>0.5</StepValue>
+<MaxVolumeList>
+<Param>
+<Absolute>OFF</Absolute>
+<Relative>OFF</Relative>
+<Value>98.0</Value>
+</Param>
+<Param>
+<Absolute>86.0</Absolute>
+<Relative>+6.0dB</Relative>
+<Value>86.0</Value>
+</Param>
+<Param>
+<Absolute>83.0</Absolute>
+<Relative>+3.0dB</Relative>
+<Value>83.0</Value>
+</Param>
+<Param>
+<Absolute>80.0</Absolute>
+<Relative>0.0dB</Relative>
+<Value>80.0</Value>
+</Param>
+<Param>
+<Absolute>74.0</Absolute>
+<Relative>-6.0dB</Relative>
+<Value>74.0</Value>
+</Param>
+<Param>
+<Absolute>68.0</Absolute>
+<Relative>-12.0dB</Relative>
+<Value>68.0</Value>
+</Param>
+<Param>
+<Absolute>60.0</Absolute>
+<Relative>-20.0dB</Relative>
+<Value>60.0</Value>
+</Param>
+<Param>
+<Absolute>50.0</Absolute>
+<Relative>-30.0dB</Relative>
+<Value>50.0</Value>
+</Param>
+<Param>
+<Absolute>40.0</Absolute>
+<Relative>-40.0dB</Relative>
+<Value>40.0</Value>
+</Param>
+</MaxVolumeList>
+<DefaultMaxVolumeValue>-6.0dB</DefaultMaxVolumeValue>
+<Functions>
+<SetMaxVolume>1</SetMaxVolume>
+</Functions>
+</Volume>
+<Mute>
+<Control>1</Control>
+</Mute>
+<InputSource>
+<Control>1</Control>
+<List>
+<Source>
+<IconId>34</IconId>
+<FuncName>Favorites</FuncName>
+<DefaultName>Favorites</DefaultName>
+<SourcePath>root/NETWORK/Favorites</SourcePath>
+<GroupNo>2</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>26</IconId>
+<FuncName>Internet Radio</FuncName>
+<DefaultName>Internet Radio</DefaultName>
+<SourcePath>root/NETWORK/Internet Radio</SourcePath>
+<GroupNo>2</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>55</IconId>
+<FuncName>SpotifyConnect</FuncName>
+<DefaultName>Spotify</DefaultName>
+<SourcePath>root/NETWORK/SpotifyConnect</SourcePath>
+<GroupNo>2</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>25</IconId>
+<FuncName>Media Server</FuncName>
+<DefaultName>Media Server</DefaultName>
+<SourcePath>root/NETWORK/Media Server</SourcePath>
+<GroupNo>2</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>29</IconId>
+<FuncName>Flickr</FuncName>
+<DefaultName>Flickr</DefaultName>
+<SourcePath>root/NETWORK/Flickr</SourcePath>
+<GroupNo>2</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>4</IconId>
+<FuncName>CBL/SAT</FuncName>
+<DefaultName>CBL/SAT</DefaultName>
+<SourcePath>root/CBLSAT</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>2</IconId>
+<FuncName>DVD</FuncName>
+<DefaultName>DVD</DefaultName>
+<SourcePath>root/DVD</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>1</IconId>
+<FuncName>Blu-ray</FuncName>
+<DefaultName>Blu-ray</DefaultName>
+<SourcePath>root/Blu-ray</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc>BdOperation</RelatedFunc>
+</Source>
+<Source>
+<IconId>8</IconId>
+<FuncName>GAME</FuncName>
+<DefaultName>Game</DefaultName>
+<SourcePath>root/GAME</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>42</IconId>
+<FuncName>AUX1</FuncName>
+<DefaultName>AUX1</DefaultName>
+<SourcePath>root/AUX1</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>43</IconId>
+<FuncName>AUX2</FuncName>
+<DefaultName>AUX2</DefaultName>
+<SourcePath>root/AUX2</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>46</IconId>
+<FuncName>Media Player</FuncName>
+<DefaultName>Media Player</DefaultName>
+<SourcePath>root/Media Player</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>22</IconId>
+<FuncName>iPod/USB</FuncName>
+<DefaultName>iPod/USB</DefaultName>
+<SourcePath>root/iPodUSB</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc>iPod</RelatedFunc>
+</Source>
+<Source>
+<IconId>17</IconId>
+<FuncName>CD</FuncName>
+<DefaultName>CD</DefaultName>
+<SourcePath>root/CD</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>19</IconId>
+<FuncName>TUNER</FuncName>
+<DefaultName>Tuner</DefaultName>
+<SourcePath>root/TUNER</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc>TunerOperation</RelatedFunc>
+</Source>
+<Source>
+<IconId>23</IconId>
+<FuncName>NETWORK</FuncName>
+<DefaultName>Online Music</DefaultName>
+<SourcePath>root/NETWORK</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc>NetUsb</RelatedFunc>
+</Source>
+<Source>
+<IconId>3</IconId>
+<FuncName>TV AUDIO</FuncName>
+<DefaultName>TV Audio</DefaultName>
+<SourcePath>root/TV AUDIO</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>59</IconId>
+<FuncName>Bluetooth</FuncName>
+<DefaultName>Bluetooth</DefaultName>
+<SourcePath>root/Bluetooth</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+</List>
+<Functions>
+<SourceSelect>1</SourceSelect>
+<GetRenameSource>1</GetRenameSource>
+<GetDeleteSource>1</GetDeleteSource>
+</Functions>
+</InputSource>
+<SurroundMode>
+<Control>1</Control>
+<DispName>Sound Mode</DispName>
+<GroupList>
+<Group>
+<GroupName>Direct/Stereo</GroupName>
+</Group>
+<Group>
+<GroupName>Pure Direct</GroupName>
+</Group>
+<Group>
+<GroupName>Standard</GroupName>
+</Group>
+<Group>
+<GroupName>Auto</GroupName>
+</Group>
+<Group>
+<GroupName>DSP Simulation</GroupName>
+</Group>
+</GroupList>
+<List>
+<Mode>
+<IconId>212</IconId>
+<GroupName>Direct/Stereo</GroupName>
+<Name>Direct</Name>
+</Mode>
+<Mode>
+<IconId>212</IconId>
+<GroupName>Direct/Stereo</GroupName>
+<Name>Stereo</Name>
+</Mode>
+<Mode>
+<IconId>213</IconId>
+<GroupName>Pure Direct</GroupName>
+<Name>Pure Direct</Name>
+</Mode>
+<Mode>
+<IconId>214</IconId>
+<GroupName>Standard</GroupName>
+<Name>Dolby Digital</Name>
+</Mode>
+<Mode>
+<IconId>214</IconId>
+<GroupName>Standard</GroupName>
+<Name>DTS Surround</Name>
+</Mode>
+<Mode>
+<IconId>224</IconId>
+<GroupName>Auto</GroupName>
+<Name>Auto</Name>
+</Mode>
+<Mode>
+<IconId>215</IconId>
+<GroupName>DSP Simulation</GroupName>
+<Name>Multi Ch Stereo</Name>
+</Mode>
+<Mode>
+<IconId>215</IconId>
+<GroupName>DSP Simulation</GroupName>
+<Name>Rock Arena</Name>
+</Mode>
+<Mode>
+<IconId>215</IconId>
+<GroupName>DSP Simulation</GroupName>
+<Name>Jazz Club</Name>
+</Mode>
+<Mode>
+<IconId>215</IconId>
+<GroupName>DSP Simulation</GroupName>
+<Name>Mono Movie</Name>
+</Mode>
+<Mode>
+<IconId>215</IconId>
+<GroupName>DSP Simulation</GroupName>
+<Name>Video Game</Name>
+</Mode>
+<Mode>
+<IconId>215</IconId>
+<GroupName>DSP Simulation</GroupName>
+<Name>Matrix</Name>
+</Mode>
+<Mode>
+<IconId>215</IconId>
+<GroupName>DSP Simulation</GroupName>
+<Name>Virtual</Name>
+</Mode>
+</List>
+<Functions>
+<ChangeSurroundMode>1</ChangeSurroundMode>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</SurroundMode>
+<Setup>
+<Restorer>
+<Control>1</Control>
+<DispName>Restorer</DispName>
+<FuncName>Restorer</FuncName>
+<List>
+<Mode>
+<IconId>217</IconId>
+<Name>High</Name>
+<No>MODE1</No>
+</Mode>
+<Mode>
+<IconId>218</IconId>
+<Name>Medium</Name>
+<No>MODE2</No>
+</Mode>
+<Mode>
+<IconId>219</IconId>
+<Name>Low</Name>
+<No>MODE3</No>
+</Mode>
+<Mode>
+<IconId>216</IconId>
+<Name>OFF</Name>
+<No>OFF</No>
+</Mode>
+</List>
+<Functions>
+<ChangeRestorerMode>1</ChangeRestorerMode>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</Restorer>
+<ToneControl>
+<Control>0</Control>
+<FuncName>ToneControl</FuncName>
+</ToneControl>
+</Setup>
+<Operation>
+<Cursor>
+<Control>1</Control>
+<FuncName>Cursor</FuncName>
+<CursorType>1</CursorType>
+<ShortcutControl>1</ShortcutControl>
+</Cursor>
+<QuickSelect>
+<Control>1</Control>
+<MaxQuickSelect>4</MaxQuickSelect>
+<QuickSelect1>
+<Name>Quick Select 1</Name>
+<FuncName>Quick Select1</FuncName>
+<ShortcutControl>1</ShortcutControl>
+<No>1</No>
+</QuickSelect1>
+<QuickSelect2>
+<Name>Quick Select 2</Name>
+<FuncName>Quick Select2</FuncName>
+<ShortcutControl>1</ShortcutControl>
+<No>2</No>
+</QuickSelect2>
+<QuickSelect3>
+<Name>Quick Select 3</Name>
+<FuncName>Quick Select3</FuncName>
+<ShortcutControl>1</ShortcutControl>
+<No>3</No>
+</QuickSelect3>
+<QuickSelect4>
+<Name>Quick Select 4</Name>
+<FuncName>Quick Select4</FuncName>
+<ShortcutControl>1</ShortcutControl>
+<No>4</No>
+</QuickSelect4>
+<Functions>
+<GetQuickSelectName>1</GetQuickSelectName>
+<SetQuickSelectName>1</SetQuickSelectName>
+<SetQuickSelectNameDefault>1</SetQuickSelectNameDefault>
+<SetQuickSelectMemory>1</SetQuickSelectMemory>
+<SetQuickSelect>1</SetQuickSelect>
+</Functions>
+</QuickSelect>
+<TunerOperation>
+<Control>1</Control>
+<TunerType>0</TunerType>
+<Name>TUNER</Name>
+<MaxPresets>56</MaxPresets>
+<BandList>
+<Band>
+<Name>FM</Name>
+</Band>
+<Band>
+<Name>AM</Name>
+</Band>
+</BandList>
+<ModeList>
+<Mode>
+<Name>Auto</Name>
+<Value>AUTO</Value>
+</Mode>
+<Mode>
+<Name>Manual</Name>
+<Value>MANUAL</Value>
+</Mode>
+</ModeList>
+<Functions>
+<SelectBand>1</SelectBand>
+<GetPresetList>1</GetPresetList>
+<PresetCall>1</PresetCall>
+<PresetUpDown>1</PresetUpDown>
+<TuneUpDown>1</TuneUpDown>
+<FreqDirect>1</FreqDirect>
+<GetPresetListPOST>1</GetPresetListPOST>
+<SetTunerTuneMode>1</SetTunerTuneMode>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</TunerOperation>
+<BdOperation>
+<Control>1</Control>
+<DispName>Blu-ray</DispName>
+<Functions>
+<OpeFuncSet>1</OpeFuncSet>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</BdOperation>
+<CdOperation>
+<Control>0</Control>
+<DispName>CD</DispName>
+<Functions>
+<OpeFuncSet>0</OpeFuncSet>
+</Functions>
+<ShortcutControl>0</ShortcutControl>
+</CdOperation>
+<DockOperation>
+<Control>0</Control>
+<DispName>Dock</DispName>
+<Functions>
+<OpeFuncSet>0</OpeFuncSet>
+</Functions>
+<ShortcutControl>0</ShortcutControl>
+</DockOperation>
+<PartyZone>
+<Capability>0</Capability>
+<ShortcutControl>0</ShortcutControl>
+</PartyZone>
+</Operation>
+<NetUsb>
+<Control>1</Control>
+<Favorites>
+<Control>1</Control>
+<FuncName>Favorites</FuncName>
+<IconId>34</IconId>
+<SourcePath>root/NETWORK/Favorites</SourcePath>
+<ControlMethod>1</ControlMethod>
+<MaxFavorites>100</MaxFavorites>
+<Functions>
+<DeleteSource>1</DeleteSource>
+<BrowseScroll>1</BrowseScroll>
+<GoToPV>1</GoToPV>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</Favorites>
+<InternetRadio>
+<Control>1</Control>
+<FuncName>Internet Radio</FuncName>
+<IconId>26</IconId>
+<SourcePath>root/NETWORK/Internet Radio</SourcePath>
+<ControlMethod>1</ControlMethod>
+<MaxPresets>60</MaxPresets>
+<Functions>
+<AddToPreset>0</AddToPreset>
+<PresetCall>0</PresetCall>
+<AddToFavorite>1</AddToFavorite>
+<DeleteSource>1</DeleteSource>
+<BrowseScroll>0</BrowseScroll>
+<PbFuncSet>0000100</PbFuncSet>
+<PbModeSet>0</PbModeSet>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</InternetRadio>
+<SpotifyConnect>
+<Control>1</Control>
+<FuncName>SpotifyConnect</FuncName>
+<IconId>55</IconId>
+<SourcePath>root/NETWORK/SpotifyConnect</SourcePath>
+<ControlMethod>3</ControlMethod>
+<Functions>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</SpotifyConnect>
+<MediaServer>
+<Control>1</Control>
+<FuncName>Media Server</FuncName>
+<IconId>25</IconId>
+<SourcePath>root/NETWORK/Media Server</SourcePath>
+<ControlMethod>2</ControlMethod>
+<Functions>
+<AddToFavorite>1</AddToFavorite>
+<GaplessPb>1</GaplessPb>
+<DeleteSource>1</DeleteSource>
+<BrowseScroll>0</BrowseScroll>
+<PbFuncSet>1001100</PbFuncSet>
+<PbModeSet>1</PbModeSet>
+<Seek>1</Seek>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</MediaServer>
+<Flickr>
+<Control>1</Control>
+<FuncName>Flickr</FuncName>
+<IconId>29</IconId>
+<SourcePath>root/NETWORK/Flickr</SourcePath>
+<ControlMethod>1</ControlMethod>
+<Functions>
+<AddToFavorite>0</AddToFavorite>
+<DeleteSource>1</DeleteSource>
+<BrowseScroll>1</BrowseScroll>
+<PbFuncSet>1111100</PbFuncSet>
+<PbModeSet>0</PbModeSet>
+<PicPlayView>1</PicPlayView>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</Flickr>
+<iPod>
+<Control>1</Control>
+<FuncName>iPod/USB</FuncName>
+<IconId>22</IconId>
+<SourcePath>root/iPodUsb</SourcePath>
+<ControlMethod>1</ControlMethod>
+<Functions>
+<AddToFavorite>0</AddToFavorite>
+<DeleteSource>1</DeleteSource>
+<BrowseScroll>1</BrowseScroll>
+<PbFuncSet>1111111</PbFuncSet>
+<PbModeSet>1</PbModeSet>
+<PicPlayView>1</PicPlayView>
+<GoToPV>1</GoToPV>
+<TextSearch>1</TextSearch>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</iPod>
+</NetUsb>
+<iPodPlayer>
+<Control>1</Control>
+<IconId>28</IconId>
+<SourcePath>root/iPodPlayer</SourcePath>
+<ControlMethod>1</ControlMethod>
+<Functions>
+<PbFuncSet>1111100</PbFuncSet>
+<PbModeSet>1</PbModeSet>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</iPodPlayer>
+</DeviceZoneCapabilities>
+<DeviceZoneCapabilities>
+<Zone>
+<No>1</No>
+</Zone>
+<ShortcutControl>
+<Control>1</Control>
+<EntryList>
+<Shortcut>
+<Category>1</Category>
+<IconId>210</IconId>
+<DispName>Restorer</DispName>
+<FuncName>Restorer</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>1</Category>
+<IconId>204</IconId>
+<DispName>Sleep Timer</DispName>
+<FuncName>SleepTimer</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>2</Category>
+<IconId>110</IconId>
+<DispName>Cursor</DispName>
+<FuncName>Cursor</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>3</Category>
+<IconId>111</IconId>
+<DispName>Quick Select 1</DispName>
+<FuncName>Quick Select1</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>3</Category>
+<IconId>111</IconId>
+<DispName>Quick Select 2</DispName>
+<FuncName>Quick Select2</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>3</Category>
+<IconId>111</IconId>
+<DispName>Quick Select 3</DispName>
+<FuncName>Quick Select3</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>3</Category>
+<IconId>111</IconId>
+<DispName>Quick Select 4</DispName>
+<FuncName>Quick Select4</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>34</IconId>
+<DispName>Favorites</DispName>
+<FuncName>Favorites</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>26</IconId>
+<DispName>Internet Radio</DispName>
+<FuncName>Internet Radio</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>55</IconId>
+<DispName>Spotify</DispName>
+<FuncName>SpotifyConnect</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>25</IconId>
+<DispName>Media Server</DispName>
+<FuncName>Media Server</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>29</IconId>
+<DispName>Flickr</DispName>
+<FuncName>Flickr</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>4</IconId>
+<DispName>CBL/SAT</DispName>
+<FuncName>CBL/SAT</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>2</IconId>
+<DispName>DVD</DispName>
+<FuncName>DVD</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>1</IconId>
+<DispName>Blu-ray</DispName>
+<FuncName>Blu-ray</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>8</IconId>
+<DispName>Game</DispName>
+<FuncName>GAME</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>42</IconId>
+<DispName>AUX1</DispName>
+<FuncName>AUX1</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>43</IconId>
+<DispName>AUX2</DispName>
+<FuncName>AUX2</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>46</IconId>
+<DispName>Media Player</DispName>
+<FuncName>Media Player</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>22</IconId>
+<DispName>iPod/USB</DispName>
+<FuncName>iPod/USB</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>17</IconId>
+<DispName>CD</DispName>
+<FuncName>CD</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>19</IconId>
+<DispName>Tuner</DispName>
+<FuncName>TUNER</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>3</IconId>
+<DispName>TV Audio</DispName>
+<FuncName>TV AUDIO</FuncName>
+</Shortcut>
+<Shortcut>
+<Category>4</Category>
+<IconId>59</IconId>
+<DispName>Bluetooth</DispName>
+<FuncName>Bluetooth</FuncName>
+</Shortcut>
+</EntryList>
+<DefaultList>
+<Shortcut>
+<No>1</No>
+<Category>4</Category>
+<FuncName>Internet Radio</FuncName>
+</Shortcut>
+<Shortcut>
+<No>2</No>
+<Category>4</Category>
+<FuncName>iPod/USB</FuncName>
+</Shortcut>
+<Shortcut>
+<No>3</No>
+<Category>4</Category>
+<FuncName>TUNER</FuncName>
+</Shortcut>
+<Shortcut>
+<No>4</No>
+<Category>4</Category>
+<FuncName>Media Server</FuncName>
+</Shortcut>
+<Shortcut>
+<No>5</No>
+<Category>4</Category>
+<FuncName>CBL/SAT</FuncName>
+</Shortcut>
+<Shortcut>
+<No>6</No>
+<Category>4</Category>
+<FuncName>Blu-ray</FuncName>
+</Shortcut>
+<Shortcut>
+<No>7</No>
+<Category>4</Category>
+<FuncName>Media Player</FuncName>
+</Shortcut>
+<Shortcut>
+<No>8</No>
+<Category>4</Category>
+<FuncName>GAME</FuncName>
+</Shortcut>
+</DefaultList>
+</ShortcutControl>
+<Power>
+<Control>1</Control>
+</Power>
+<Volume>
+<Control>1</Control>
+<MaxValue>98.0</MaxValue>
+<StepValue>0.5</StepValue>
+<MaxVolumeList>
+<Param>
+<Absolute>OFF</Absolute>
+<Relative>OFF</Relative>
+<Value>98.0</Value>
+</Param>
+<Param>
+<Absolute>86.0</Absolute>
+<Relative>+6.0dB</Relative>
+<Value>86.0</Value>
+</Param>
+<Param>
+<Absolute>83.0</Absolute>
+<Relative>+3.0dB</Relative>
+<Value>83.0</Value>
+</Param>
+<Param>
+<Absolute>80.0</Absolute>
+<Relative>0.0dB</Relative>
+<Value>80.0</Value>
+</Param>
+<Param>
+<Absolute>74.0</Absolute>
+<Relative>-6.0dB</Relative>
+<Value>74.0</Value>
+</Param>
+<Param>
+<Absolute>68.0</Absolute>
+<Relative>-12.0dB</Relative>
+<Value>68.0</Value>
+</Param>
+<Param>
+<Absolute>60.0</Absolute>
+<Relative>-20.0dB</Relative>
+<Value>60.0</Value>
+</Param>
+<Param>
+<Absolute>50.0</Absolute>
+<Relative>-30.0dB</Relative>
+<Value>50.0</Value>
+</Param>
+<Param>
+<Absolute>40.0</Absolute>
+<Relative>-40.0dB</Relative>
+<Value>40.0</Value>
+</Param>
+</MaxVolumeList>
+<DefaultMaxVolumeValue>-6.0dB</DefaultMaxVolumeValue>
+<Functions>
+<SetMaxVolume>1</SetMaxVolume>
+</Functions>
+</Volume>
+<Mute>
+<Control>1</Control>
+</Mute>
+<InputSource>
+<Control>1</Control>
+<List>
+<Source>
+<IconId>34</IconId>
+<FuncName>Favorites</FuncName>
+<DefaultName>Favorites</DefaultName>
+<SourcePath>root/NETWORK/Favorites</SourcePath>
+<GroupNo>2</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>26</IconId>
+<FuncName>Internet Radio</FuncName>
+<DefaultName>Internet Radio</DefaultName>
+<SourcePath>root/NETWORK/Internet Radio</SourcePath>
+<GroupNo>2</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>25</IconId>
+<FuncName>Media Server</FuncName>
+<DefaultName>Media Server</DefaultName>
+<SourcePath>root/NETWORK/Media Server</SourcePath>
+<GroupNo>2</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>29</IconId>
+<FuncName>Flickr</FuncName>
+<DefaultName>Flickr</DefaultName>
+<SourcePath>root/NETWORK/Flickr</SourcePath>
+<GroupNo>2</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>0</IconId>
+<FuncName>SOURCE</FuncName>
+<DefaultName>SOURCE</DefaultName>
+<SourcePath>root/SOURCE</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>4</IconId>
+<FuncName>CBL/SAT</FuncName>
+<DefaultName>CBL/SAT</DefaultName>
+<SourcePath>root/CBLSAT</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>2</IconId>
+<FuncName>DVD</FuncName>
+<DefaultName>DVD</DefaultName>
+<SourcePath>root/DVD</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>1</IconId>
+<FuncName>Blu-ray</FuncName>
+<DefaultName>Blu-ray</DefaultName>
+<SourcePath>root/Blu-ray</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc>BdOperation</RelatedFunc>
+</Source>
+<Source>
+<IconId>8</IconId>
+<FuncName>GAME</FuncName>
+<DefaultName>Game</DefaultName>
+<SourcePath>root/GAME</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>42</IconId>
+<FuncName>AUX1</FuncName>
+<DefaultName>AUX1</DefaultName>
+<SourcePath>root/AUX1</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>43</IconId>
+<FuncName>AUX2</FuncName>
+<DefaultName>AUX2</DefaultName>
+<SourcePath>root/AUX2</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>46</IconId>
+<FuncName>Media Player</FuncName>
+<DefaultName>Media Player</DefaultName>
+<SourcePath>root/Media Player</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>22</IconId>
+<FuncName>iPod/USB</FuncName>
+<DefaultName>iPod/USB</DefaultName>
+<SourcePath>root/iPodUSB</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc>iPod</RelatedFunc>
+</Source>
+<Source>
+<IconId>17</IconId>
+<FuncName>CD</FuncName>
+<DefaultName>CD</DefaultName>
+<SourcePath>root/CD</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>19</IconId>
+<FuncName>TUNER</FuncName>
+<DefaultName>Tuner</DefaultName>
+<SourcePath>root/TUNER</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc>TunerOperation</RelatedFunc>
+</Source>
+<Source>
+<IconId>23</IconId>
+<FuncName>NETWORK</FuncName>
+<DefaultName>Online Music</DefaultName>
+<SourcePath>root/NETWORK</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc>NetUsb</RelatedFunc>
+</Source>
+<Source>
+<IconId>3</IconId>
+<FuncName>TV AUDIO</FuncName>
+<DefaultName>TV Audio</DefaultName>
+<SourcePath>root/TV AUDIO</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+<Source>
+<IconId>59</IconId>
+<FuncName>Bluetooth</FuncName>
+<DefaultName>Bluetooth</DefaultName>
+<SourcePath>root/Bluetooth</SourcePath>
+<GroupNo>3</GroupNo>
+<RelatedFunc></RelatedFunc>
+</Source>
+</List>
+<Functions>
+<SourceSelect>1</SourceSelect>
+<GetRenameSource>1</GetRenameSource>
+<GetDeleteSource>1</GetDeleteSource>
+</Functions>
+</InputSource>
+<SurroundMode>
+<Control>0</Control>
+</SurroundMode>
+<Setup>
+<Restorer>
+<Control>0</Control>
+<DispName>Restorer</DispName>
+<FuncName>Restorer</FuncName>
+<List>
+<Mode>
+<IconId>217</IconId>
+<Name>High</Name>
+<No>MODE1</No>
+</Mode>
+<Mode>
+<IconId>218</IconId>
+<Name>Medium</Name>
+<No>MODE2</No>
+</Mode>
+<Mode>
+<IconId>219</IconId>
+<Name>Low</Name>
+<No>MODE3</No>
+</Mode>
+<Mode>
+<IconId>216</IconId>
+<Name>OFF</Name>
+<No>OFF</No>
+</Mode>
+</List>
+<Functions>
+<ChangeRestorerMode>1</ChangeRestorerMode>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</Restorer>
+<ToneControl>
+<Control>0</Control>
+<FuncName>ToneControl</FuncName>
+</ToneControl>
+</Setup>
+<Operation>
+<Cursor>
+<Control>1</Control>
+<FuncName>Cursor</FuncName>
+<CursorType>1</CursorType>
+<ShortcutControl>1</ShortcutControl>
+</Cursor>
+<QuickSelect>
+<Control>1</Control>
+<MaxQuickSelect>4</MaxQuickSelect>
+<QuickSelect1>
+<Name>Quick Select 1</Name>
+<FuncName>Quick Select1</FuncName>
+<ShortcutControl>1</ShortcutControl>
+<No>1</No>
+</QuickSelect1>
+<QuickSelect2>
+<Name>Quick Select 2</Name>
+<FuncName>Quick Select2</FuncName>
+<ShortcutControl>1</ShortcutControl>
+<No>2</No>
+</QuickSelect2>
+<QuickSelect3>
+<Name>Quick Select 3</Name>
+<FuncName>Quick Select3</FuncName>
+<ShortcutControl>1</ShortcutControl>
+<No>3</No>
+</QuickSelect3>
+<QuickSelect4>
+<Name>Quick Select 4</Name>
+<FuncName>Quick Select4</FuncName>
+<ShortcutControl>1</ShortcutControl>
+<No>4</No>
+</QuickSelect4>
+<Functions>
+<SetQuickSelectMemory>1</SetQuickSelectMemory>
+<SetQuickSelect>1</SetQuickSelect>
+</Functions>
+</QuickSelect>
+<TunerOperation>
+<Control>1</Control>
+<TunerType>0</TunerType>
+<Name>TUNER</Name>
+<MaxPresets>56</MaxPresets>
+<BandList>
+<Band>
+<Name>FM</Name>
+</Band>
+<Band>
+<Name>AM</Name>
+</Band>
+</BandList>
+<ModeList>
+<Mode>
+<Name>Auto</Name>
+<Value>AUTO</Value>
+</Mode>
+<Mode>
+<Name>Manual</Name>
+<Value>MANUAL</Value>
+</Mode>
+</ModeList>
+<Functions>
+<SelectBand>1</SelectBand>
+<GetPresetList>1</GetPresetList>
+<PresetCall>1</PresetCall>
+<PresetUpDown>1</PresetUpDown>
+<TuneUpDown>1</TuneUpDown>
+<FreqDirect>1</FreqDirect>
+<GetPresetListPOST>1</GetPresetListPOST>
+<SetTunerTuneMode>1</SetTunerTuneMode>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</TunerOperation>
+<BdOperation>
+<Control>1</Control>
+<DispName>Blu-ray</DispName>
+<Functions>
+<OpeFuncSet>1</OpeFuncSet>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</BdOperation>
+<CdOperation>
+<Control>0</Control>
+<DispName>CD</DispName>
+<Functions>
+<OpeFuncSet>0</OpeFuncSet>
+</Functions>
+<ShortcutControl>0</ShortcutControl>
+</CdOperation>
+<DockOperation>
+<Control>0</Control>
+<DispName>Dock</DispName>
+<Functions>
+<OpeFuncSet>0</OpeFuncSet>
+</Functions>
+<ShortcutControl>0</ShortcutControl>
+</DockOperation>
+<PartyZone>
+<Capability>0</Capability>
+<ShortcutControl>0</ShortcutControl>
+</PartyZone>
+</Operation>
+<NetUsb>
+<Control>1</Control>
+<Favorites>
+<Control>1</Control>
+<FuncName>Favorites</FuncName>
+<IconId>34</IconId>
+<SourcePath>root/NETWORK/Favorites</SourcePath>
+<ControlMethod>1</ControlMethod>
+<MaxFavorites>100</MaxFavorites>
+<Functions>
+<DeleteSource>1</DeleteSource>
+<BrowseScroll>1</BrowseScroll>
+<GoToPV>1</GoToPV>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</Favorites>
+<InternetRadio>
+<Control>1</Control>
+<FuncName>Internet Radio</FuncName>
+<IconId>26</IconId>
+<SourcePath>root/NETWORK/Internet Radio</SourcePath>
+<ControlMethod>1</ControlMethod>
+<MaxPresets>60</MaxPresets>
+<Functions>
+<AddToPreset>0</AddToPreset>
+<PresetCall>0</PresetCall>
+<AddToFavorite>1</AddToFavorite>
+<DeleteSource>1</DeleteSource>
+<BrowseScroll>0</BrowseScroll>
+<PbFuncSet>0000100</PbFuncSet>
+<PbModeSet>0</PbModeSet>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</InternetRadio>
+<SpotifyConnect>
+<Control>1</Control>
+<FuncName>SpotifyConnect</FuncName>
+<IconId>55</IconId>
+<SourcePath>root/NETWORK/SpotifyConnect</SourcePath>
+<ControlMethod>3</ControlMethod>
+<Functions>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</SpotifyConnect>
+<MediaServer>
+<Control>1</Control>
+<FuncName>Media Server</FuncName>
+<IconId>25</IconId>
+<SourcePath>root/NETWORK/Media Server</SourcePath>
+<ControlMethod>2</ControlMethod>
+<Functions>
+<AddToFavorite>1</AddToFavorite>
+<GaplessPb>1</GaplessPb>
+<DeleteSource>1</DeleteSource>
+<BrowseScroll>0</BrowseScroll>
+<PbFuncSet>1001100</PbFuncSet>
+<PbModeSet>1</PbModeSet>
+<Seek>1</Seek>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</MediaServer>
+<Flickr>
+<Control>1</Control>
+<FuncName>Flickr</FuncName>
+<IconId>29</IconId>
+<SourcePath>root/NETWORK/Flickr</SourcePath>
+<ControlMethod>1</ControlMethod>
+<Functions>
+<AddToFavorite>0</AddToFavorite>
+<DeleteSource>1</DeleteSource>
+<BrowseScroll>1</BrowseScroll>
+<PbFuncSet>1111100</PbFuncSet>
+<PbModeSet>0</PbModeSet>
+<PicPlayView>1</PicPlayView>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</Flickr>
+<iPod>
+<Control>1</Control>
+<FuncName>iPod/USB</FuncName>
+<IconId>22</IconId>
+<SourcePath>root/iPodUsb</SourcePath>
+<ControlMethod>1</ControlMethod>
+<Functions>
+<AddToFavorite>0</AddToFavorite>
+<DeleteSource>1</DeleteSource>
+<BrowseScroll>1</BrowseScroll>
+<PbFuncSet>1111111</PbFuncSet>
+<PbModeSet>1</PbModeSet>
+<PicPlayView>1</PicPlayView>
+<GoToPV>1</GoToPV>
+<TextSearch>1</TextSearch>
+</Functions>
+<ShortcutControl>1</ShortcutControl>
+</iPod>
+</NetUsb>
+</DeviceZoneCapabilities>
+</Device_Info>
