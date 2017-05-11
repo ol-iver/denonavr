@@ -452,6 +452,9 @@ class DenonAVR(object):
         # Buffered XML not needed anymore: close
         body.close()
 
+        if 'Access Error: Data follows' in res:
+            return (renamed_sources, deleted_sources, False)
+
         try:
             # Return XML ElementTree
             root = ET.fromstring(res)
