@@ -56,6 +56,7 @@ SCPD_PRESENTATIONURL = "{xmlns}presentationURL".format(xmlns=SCPD_XMLNS)
 
 DEVICETYPE_DENON = "urn:schemas-upnp-org:device:MediaRenderer:1"
 
+SUPPORTED_MANUFACTURERS = ["Denon", "Marantz"]
 
 def identify_denonavr_receivers():
     """
@@ -161,7 +162,7 @@ def evaluate_scpd_xml(url):
             _LOGGER.debug("Device %s has manufacturer %s", url,
                           root.find(SCPD_DEVICE).find(SCPD_MANUFACTURER).text)
             if (root.find(SCPD_DEVICE).find(
-                    SCPD_MANUFACTURER).text == "Denon" and root.find(
+                    SCPD_MANUFACTURER).text in SUPPORTED_MANUFACTURERS and root.find(
                         SCPD_DEVICE).find(
                             SCPD_DEVICETYPE).text == DEVICETYPE_DENON):
                 device = {}
