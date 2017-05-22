@@ -162,9 +162,9 @@ def evaluate_scpd_xml(url):
             _LOGGER.debug("Device %s has manufacturer %s", url,
                           root.find(SCPD_DEVICE).find(SCPD_MANUFACTURER).text)
             if (root.find(SCPD_DEVICE).find(
-                    SCPD_MANUFACTURER).text in SUPPORTED_MANUFACTURERS and root.find(
-                        SCPD_DEVICE).find(
-                            SCPD_DEVICETYPE).text == DEVICETYPE_DENON):
+                    SCPD_MANUFACTURER).text in SUPPORTED_MANUFACTURERS and
+                    root.find(SCPD_DEVICE).find(
+                        SCPD_DEVICETYPE).text == DEVICETYPE_DENON):
                 device = {}
                 device["host"] = urlparse(
                     root.find(SCPD_DEVICE).find(
