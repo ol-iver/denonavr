@@ -58,6 +58,7 @@ DEVICETYPE_DENON = "urn:schemas-upnp-org:device:MediaRenderer:1"
 
 SUPPORTED_MANUFACTURERS = ["Denon", "Marantz"]
 
+
 def identify_denonavr_receivers():
     """
     Identify DenonAVR using SSDP and SCPD queries.

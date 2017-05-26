@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<Zone><value>LivingRoom</value></Zone>
+<Power><value>ON</value></Power>
+<InputFuncList>
+<value>TUNER</value>
+<value>CD</value>
+<value>NETWORK</value>
+<value>DVD</value>
+<value>Blu-ray</value>
+<value>TV AUDIO</value>
+<value>CBL/SAT</value>
+<value>GAME</value>
+<value>AUX</value>
+<value>Media Player</value>
+<value>iPod/USB</value>
+</InputFuncList>
+<RenameSource>
+<value><value>TUNER</value></value>
+<value><value>CCAUX       </value></value>
+<value><value>NETWORK</value></value>
+<value><value>DVD         </value></value>
+<value><value>Chromecast  </value></value>
+<value><value>TV AUDIO    </value></value>
+<value><value>HTPC        </value></value>
+<value><value>GAME        </value></value>
+<value><value>AUX         </value></value>
+<value><value>ROKU        </value></value>
+<value><value>iPod/USB</value></value>
+</RenameSource>
+<SourceDelete>
+<value>USE</value>
+<value>USE</value>
+<value></value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+</SourceDelete>
+<InputFuncSelect><value>SAT/CBL</value></InputFuncSelect>
+<VolumeDisplay><value>Absolute</value></VolumeDisplay>
+<RestorerMode><value>----</value></RestorerMode>
+<SurrMode><value>MULTI CH IN                    </value></SurrMode>
+<MasterVolume><value>-64.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<Model><value>21XX E3</value></Model>
+</item>

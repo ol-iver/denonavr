@@ -3,7 +3,7 @@ denonavr
 
 |Build Status|
 
-Automation Library for Denon AVR receivers - current version 0.4.1
+Automation Library for Denon AVR receivers - current version 0.4.2
 
 Installation
 ------------
@@ -137,6 +137,9 @@ Contributors
 ------------
 
 @soldag: https://github.com/soldag
+@shapiromatron: https://github.com/shapiromatron
+@glance-: https://github.com/glance-
+@p3dda: https://github.com/p3dda
 
 Users
 -----

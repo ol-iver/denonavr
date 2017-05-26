@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<chFlag>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+</chFlag>
+<szLine>
+<value>iPod/USB</value>
+<value>No Connection</value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value>   [    0/0  ]</value>
+<value></value>
+</szLine>
+<NetworkNewTop><value>0</value></NetworkNewTop>
+<iPodRemoteDirect><value>0</value></iPodRemoteDirect>
+<Art>
+<value>0</value>
+</Art>
+<Slideshow><value></value></Slideshow>
+<SlideshowLists>
+<value index='OFF'  table='OFF' param=''/>
+<value index='05'  table='05' param=''/>
+<value index='10'  table='10' param=''/>
+<value index='15'  table='15' param=''/>
+<value index='20'  table='20' param=''/>
+<value index='30'  table='30' param=''/>
+<value index='60'  table='60' param=''/>
+</SlideshowLists>
+<iRadio><value>0</value></iRadio>
+<iRadioSearch><value>0</value></iRadioSearch>
+<Flickr><value>0</value></Flickr>
+<FlickrSearch><value>0</value></FlickrSearch>
+<AddFlickrContact><value>0</value></AddFlickrContact>
+<ExitPopup><value>0</value></ExitPopup>
+<ExitPopupSPO><value>0</value></ExitPopupSPO>
+<ExitPopupLAS><value>0</value></ExitPopupLAS>
+<ModelId><value>4</value></ModelId>
+<BrandId><value>DENON_MODEL</value></BrandId>
+<SalesArea><value>0</value></SalesArea>
+<InputFuncSelect><value>HTPC</value></InputFuncSelect>
+<NetFuncSelect><value>FLICKR</value></NetFuncSelect>
+<selectSurround><value>MULTI CH IN                    </value></selectSurround>
+<VolumeDisplay><value>Absolute</value></VolumeDisplay>
+<MasterVolume><value>-64.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<RemoteMaintenance><value>OFF</value></RemoteMaintenance>
+<SubwooferDisplay><value>FALSE</value></SubwooferDisplay>
+<Zone2VolDisp><value>TRUE</value></Zone2VolDisp>
+</item>
