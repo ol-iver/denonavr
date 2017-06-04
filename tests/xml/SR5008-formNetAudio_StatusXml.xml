@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<item>
+<chFlag>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+</chFlag>
+<szLine>
+<value>Now Playing</value>
+<value>RTÉ Radio 1 Live</value>
+<value>RTÉ Radio 1 Live</value>
+<value/>
+<value/>
+<value/>
+<value/>
+<value/>
+<value/>
+<value/>
+</szLine>
+<NetworkNewTop><value>0</value></NetworkNewTop>
+<iPodRemoteDirect><value>0</value></iPodRemoteDirect>
+<Art>
+<value>2</value>
+</Art>
+<Slideshow><value/></Slideshow>
+<SlideshowLists>
+<value index="OFF" table="OFF" param=""/>
+<value index="05" table="05" param=""/>
+<value index="10" table="10" param=""/>
+<value index="15" table="15" param=""/>
+<value index="20" table="20" param=""/>
+<value index="30" table="30" param=""/>
+<value index="60" table="60" param=""/>
+</SlideshowLists>
+<iRadio><value>0</value></iRadio>
+<iRadioSearch><value>0</value></iRadioSearch>
+<Flickr><value>0</value></Flickr>
+<FlickrSearch><value>0</value></FlickrSearch>
+<AddFlickrContact><value>0</value></AddFlickrContact>
+<ExitPopup><value>0</value></ExitPopup>
+<ExitPopupSPO><value>0</value></ExitPopupSPO>
+<ExitPopupLAS><value>0</value></ExitPopupLAS>
+<ModelId><value>9</value></ModelId>
+<BrandId><value>MARANTZ_MODEL</value></BrandId>
+<SalesArea><value>1</value></SalesArea>
+<InputFuncSelect><value>NETWORK</value></InputFuncSelect>
+<NetFuncSelect><value>NET</value></NetFuncSelect>
+<selectSurround><value>STEREO                         </value></selectSurround>
+<VolumeDisplay><value>Absolute</value></VolumeDisplay>
+<MasterVolume><value>-45.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<RemoteMaintenance><value>OFF</value></RemoteMaintenance>
+<SubwooferDisplay><value>FALSE</value></SubwooferDisplay>
+<Zone2VolDisp><value>TRUE</value></Zone2VolDisp>
+</item>
