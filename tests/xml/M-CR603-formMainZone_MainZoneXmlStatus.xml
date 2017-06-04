@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<Zone><value>MainZone</value></Zone>
+<Power><value>ON</value></Power>
+<InputFuncList>
+<value>TUNER</value>
+<value>CD</value>
+<value>NAPSTER</value>
+<value>LASTFM</value>
+<value>IRADIO</value>
+<value>SERVER</value>
+<value>USB</value>
+<value>AUXA</value>
+<value>AUXB</value>
+<value>AUXC</value>
+<value>AUXD</value>
+<value>M-XPORT</value>
+</InputFuncList>
+<RenameSource>
+<value>Tuner</value>
+<value>CD</value>
+<value>Napster</value>
+<value>Last.fm</value>
+<value>Internet Radio</value>
+<value>Music Server</value>
+<value>iPod/USB</value>
+<value>AUX1</value>
+<value>AUX2</value>
+<value>AUX3</value>
+<value>AUX4(OPT)</value>
+<value>M-XPORT</value>
+</RenameSource>
+<Model><value>603 E2</value></Model>
+<InputFuncSelect><value>TUNER</value></InputFuncSelect>
+<MasterVolume><value>-72.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+</item>
