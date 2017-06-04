@@ -33,7 +33,7 @@ PLAYING_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
                    "HD Radio", "TUNER", "NET/USB", "HDRADIO", "Music Server")
 NETAUDIO_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
                     "Internet Radio", "Favorites", "Spotify", "Flickr",
-                    "NET/USB", "Music Server")
+                    "NET/USB", "Music Server", "NETWORK")
 
 APPCOMMAND_URL = "/goform/AppCommand.xml"
 STATUS_URL = "/goform/formMainZone_MainZoneXmlStatus.xml"
