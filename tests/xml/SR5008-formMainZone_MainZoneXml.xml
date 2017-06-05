@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<item>
+<FriendlyName><value>Marantz SR5008</value></FriendlyName>
+<Power><value>ON</value></Power>
+<ZonePower><value>ON</value></ZonePower>
+<RenameZone><value>MAIN ZONE 
+</value></RenameZone>
+<TopMenuLink><value>ON</value></TopMenuLink>
+<VideoSelectDisp><value>ON</value></VideoSelectDisp>
+<VideoSelect><value/></VideoSelect>
+<VideoSelectOnOff><value>OFF</value></VideoSelectOnOff>
+<VideoSelectLists>
+<value index="ON" table="On" param=""/>
+<value index="OFF" table="Off" param=""/>
+<value index="AUX2" table="AUX2" param=""/>
+<value index="MPLAY" table="MEDIA PLAYER" param=""/>
+<value index="CD" table="CD" param=""/>
+</VideoSelectLists>
+<ModelId><value>9</value></ModelId>
+<BrandId><value>MARANTZ_MODEL</value></BrandId>
+<SalesArea><value>1</value></SalesArea>
+<InputFuncSelect><value>NETWORK</value></InputFuncSelect>
+<NetFuncSelect><value>NET</value></NetFuncSelect>
+<selectSurround><value>STEREO                         </value></selectSurround>
+<VolumeDisplay><value>Absolute</value></VolumeDisplay>
+<MasterVolume><value>-45.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<RemoteMaintenance><value>OFF</value></RemoteMaintenance>
+<SubwooferDisplay><value>FALSE</value></SubwooferDisplay>
+<Zone2VolDisp><value>TRUE</value></Zone2VolDisp>
+</item>

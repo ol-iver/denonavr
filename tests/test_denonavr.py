@@ -14,7 +14,7 @@ import denonavr
 
 FAKE_IP = "10.0.0.0"
 TESTING_RECEIVERS = ("AVR-X4100W", "AVR-2312CI", "AVR-1912", "AVR-3311CI",
-                     "M-RC610", "AVR-X2100W-2", "AVR-X2000")
+                     "M-RC610", "AVR-X2100W-2", "AVR-X2000", "SR5008")
 
 APPCOMMAND_URL = "/goform/AppCommand.xml"
 STATUS_URL = "/goform/formMainZone_MainZoneXmlStatus.xml"
