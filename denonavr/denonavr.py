@@ -43,6 +43,7 @@ NETAUDIOSTATUS_URL = "/goform/formNetAudio_StatusXml.xml"
 TUNERSTATUS_URL = "/goform/formTuner_TunerXml.xml"
 HDTUNERSTATUS_URL = "/goform/formTuner_HdXml.xml"
 COMMAND_SEL_SRC_URL = "/goform/formiPhoneAppDirect.xml?SI"
+COMMAND_FAV_SRC_URL = "/goform/formiPhoneAppDirect.xml?ZM"
 COMMAND_POWER_ON_URL = "/goform/formiPhoneAppPower.xml?1+PowerOn"
 COMMAND_POWER_STANDBY_URL = "/goform/formiPhoneAppPower.xml?1+PowerStandby"
 COMMAND_VOLUME_UP_URL = "/goform/formiPhoneAppDirect.xml?MVUP"
@@ -86,6 +87,7 @@ class DenonAVR(object):
         self._input_func_list_rev = {}
         self._netaudio_func_list = []
         self._playing_func_list = []
+        self._favorite_func_list = []
         self._state = None
         self._power = None
         self._image_url = (
@@ -309,7 +311,7 @@ class DenonAVR(object):
                             renamed_sources[item[0]])
                 # Otherwise the default names are used
                 else:
-                    self._input_func_list[item[1]] = item[1]
+                    self._input_func_list[item[1]] = item[0]
                     self._input_func_list_rev[item[0]] = item[1]
                     # If the source is a netaudio source, save its name
                     if item[1] in NETAUDIO_SOURCES:
@@ -529,6 +531,14 @@ class DenonAVR(object):
             # "DefaultName" as value.
             receiver_sources = {}
             # Source determination from XML
+            favorites = root.find(".//FavoriteStation")
+            if favorites:
+                for child in favorites:
+                    if not child.tag.startswith('Favorite'):
+                        continue
+                    func_name = child.tag.upper()
+                    self._favorite_func_list.append(func_name)
+                    receiver_sources[func_name] = child.find('Name').text
             for xml_zonecapa in root.findall("DeviceZoneCapabilities"):
                 # Currently only Main Zone (No=0) supported
                 if xml_zonecapa.find("./Zone/No").text == "0":
@@ -914,7 +924,12 @@ class DenonAVR(object):
                 _LOGGER.error("No mapping for input source %s", input_func)
                 return False
         try:
-            if self.send_get_command(self._host, COMMAND_SEL_SRC_URL + linp):
+            if linp in self._favorite_func_list:
+                command_url = COMMAND_FAV_SRC_URL + linp
+            else:
+                command_url = COMMAND_SEL_SRC_URL + linp
+
+            if self.send_get_command(self._host, command_url):
                 self._input_func = input_func
                 return True
             else:
