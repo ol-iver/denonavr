@@ -497,7 +497,7 @@ class DenonAVR(object):
 
         # Test if receiver is a AVR-X
         try:
-            avr_x_pattern = re.compile(r'.*AVR-X.*')
+            avr_x_pattern = re.compile(r'(.*AVR-X.*|.*SR5008)')
             self._avr_x = bool(
                 avr_x_pattern.search(root.find("ModelName").text) is not None)
         except AttributeError:
