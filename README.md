@@ -1,7 +1,7 @@
 # denonavr
 [![Build Status](https://travis-ci.org/scarface-4711/denonavr.svg?branch=master)](https://travis-ci.org/scarface-4711/denonavr)
 
-Automation Library for Denon AVR receivers - current version 0.4.2
+Automation Library for Denon AVR receivers - current version 0.4.3
 
 ## Installation
 
@@ -117,10 +117,11 @@ MIT
 @scarface-4711: https://github.com/scarface-4711
 
 ## Contributors
-@soldag: https://github.com/soldag
-@shapiromatron: https://github.com/shapiromatron
-@glance-: https://github.com/glance-
-@p3dda: https://github.com/p3dda
+@soldag: https://github.com/soldag  
+@shapiromatron: https://github.com/shapiromatron  
+@glance-: https://github.com/glance-  
+@p3dda: https://github.com/p3dda  
+@russel: https://github.com/russell  
 
 ## Users
 Home Assistant: https://github.com/home-assistant/home-assistant/

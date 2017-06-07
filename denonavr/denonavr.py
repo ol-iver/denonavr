@@ -17,16 +17,18 @@ import html
 import xml.etree.ElementTree as ET
 import requests
 
-_LOGGER = logging.getLogger('DenonAVR')
+_LOGGER = logging.getLogger("DenonAVR")
 
-SOURCE_MAPPING = {'Internet Radio': 'IRP', 'Online Music': 'NET',
-                  'TV Audio': 'TV', 'DVD': 'DVD', 'Media Player': 'MPLAY',
-                  'CD': 'CD', 'Game': 'GAME', 'AUX1': 'AUX1', 'AUX2': 'AUX2',
-                  'iPod/USB': 'USB/IPOD', 'Bluetooth': 'BT', 'Blu-ray': 'BD',
-                  'CBL/SAT': 'SAT/CBL', 'Tuner': 'TUNER', 'Phono': 'PHONO',
-                  'Media Server': 'SERVER', 'HD Radio': 'HDRADIO',
-                  'DVD/Blu-ray': 'DVD', 'Spotify': 'SPOTIFY',
-                  'Flickr': 'FLICKR', 'Favorites': 'FAVORITES'}
+DEVICEINFO_AVR_X_PATTERN = r"(.*AVR-X.*|.*SR5008)"
+
+SOURCE_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
+                  "TV Audio": "TV", "DVD": "DVD", "Media Player": "MPLAY",
+                  "CD": "CD", "Game": "GAME", "AUX1": "AUX1", "AUX2": "AUX2",
+                  "iPod/USB": "USB/IPOD", "Bluetooth": "BT", "Blu-ray": "BD",
+                  "CBL/SAT": "SAT/CBL", "Tuner": "TUNER", "Phono": "PHONO",
+                  "Media Server": "SERVER", "HD Radio": "HDRADIO",
+                  "DVD/Blu-ray": "DVD", "Spotify": "SPOTIFY",
+                  "Flickr": "FLICKR", "Favorites": "FAVORITES"}
 
 PLAYING_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
                    "Internet Radio", "Favorites", "Spotify", "Flickr", "Tuner",
@@ -68,18 +70,22 @@ class DenonAVR(object):
     # pylint: disable=too-many-instance-attributes
     # pylint: disable=too-many-public-methods
 
-    def __init__(self, host, name=None):
+    def __init__(self, host, name=None, show_all_inputs=False):
         """
         Initialize MainZone of DenonAVR.
 
-        Variable definition:
-        host: IP or HOSTNAME.
-        name: string (Optional - otherwise FriendlyName of device is used).
+        :param host: IP or HOSTNAME.
+        :param name: Device name, if None FriendlyName of device is used.
+        :param show_all_inputs: If True deleted input functions are also shown
+        :type host: str
+        :type name: str
+        :type show_all_inputs: bool
         """
         self._name = name
         self._host = host
         # Initially assume receiver is a model like AVR-X...
         self._avr_x = True
+        self._show_all_inputs = show_all_inputs
         self._mute = STATE_OFF
         self._volume = "--"
         self._input_func = None
@@ -110,7 +116,7 @@ class DenonAVR(object):
             res = requests.get("http://{host}{command}"
                                .format(host=host, command=command), timeout=2)
         except requests.exceptions.ConnectionError:
-            _LOGGER.error("ConnectionError retrieving data from host %s",
+            _LOGGER.error("Connection error retrieving data from host %s",
                           host)
             raise ConnectionError
         except requests.exceptions.Timeout:
@@ -140,7 +146,7 @@ class DenonAVR(object):
             res = requests.get("http://{host}{command}"
                                .format(host=host, command=command), timeout=2)
         except requests.exceptions.ConnectionError:
-            _LOGGER.error("ConnectionError sending GET request to host %s",
+            _LOGGER.error("Connection error sending GET request to host %s",
                           host)
             raise ConnectionError
         except requests.exceptions.Timeout:
@@ -163,7 +169,7 @@ class DenonAVR(object):
                 "http://{host}{command}"
                 .format(host=host, command=command), data=body)
         except requests.exceptions.ConnectionError:
-            _LOGGER.error("ConnectionError sending POST request to host %s",
+            _LOGGER.error("Connection error sending POST request to host %s",
                           host)
             raise ConnectionError
         except requests.exceptions.Timeout:
@@ -192,8 +198,8 @@ class DenonAVR(object):
             return False
 
         # Set all tags to be evaluated
-        relevant_tags = {'Power': None, 'InputFuncSelect': None, 'Mute': None,
-                         'MasterVolume': None, 'FriendlyName': None}
+        relevant_tags = {"Power": None, "InputFuncSelect": None, "Mute": None,
+                         "MasterVolume": None, "FriendlyName": None}
 
         if self._name is not None:
             relevant_tags.pop("FriendlyName", None)
@@ -268,10 +274,11 @@ class DenonAVR(object):
         # pylint: disable=too-many-branches
         # Get all sources and renaming information from receiver
         # For structural information of the variables please see the methods
-        receiver_sources = self._get_receiver_sources()
-
-        # If no sources for the receiver could be found, update failed
-        if receiver_sources is None:
+        try:
+            receiver_sources = self._get_receiver_sources()
+        except ConnectionError:
+            # If connection error occurred, update failed
+            _LOGGER.error("Connection error: Receiver sources list empty")
             return False
 
         # First input_func_list determination of AVR-X receivers
@@ -285,9 +292,10 @@ class DenonAVR(object):
                     self._get_renamed_deleted_sources())
 
             # Remove all deleted sources
-            for deleted_source in deleted_sources.items():
-                if deleted_source[1] == "DEL":
-                    receiver_sources.pop(deleted_source[0], None)
+            if self._show_all_inputs is False:
+                for deleted_source in deleted_sources.items():
+                    if deleted_source[1] == "DEL":
+                        receiver_sources.pop(deleted_source[0], None)
 
             # Clear and rebuild the sources lists
             self._input_func_list.clear()
@@ -441,7 +449,7 @@ class DenonAVR(object):
         # Buffer XML body as binary IO
         body = BytesIO()
         post_tree = ET.ElementTree(post_root)
-        post_tree.write(body, encoding='utf-8', xml_declaration=True)
+        post_tree.write(body, encoding="utf-8", xml_declaration=True)
 
         # Query receivers AppCommand.xml
         try:
@@ -454,9 +462,6 @@ class DenonAVR(object):
         # Buffered XML not needed anymore: close
         body.close()
 
-        if 'Access Error: Data follows' in res:
-            return (renamed_sources, deleted_sources, False)
-
         try:
             # Return XML ElementTree
             root = ET.fromstring(res)
@@ -465,6 +470,12 @@ class DenonAVR(object):
                 "Host %s returned malformed XML after command: %s",
                 self._host, APPCOMMAND_URL)
             return (renamed_sources, deleted_sources, False)
+
+        # Detect "Document Error: Data follows" title if URL does not exist
+        document_error = root.find("./head/title")
+        if document_error is not None:
+            if document_error.text == "Document Error: Data follows":
+                return (renamed_sources, deleted_sources, False)
 
         for child in root.findall("./cmd/functionrename/list"):
             try:
@@ -490,16 +501,13 @@ class DenonAVR(object):
         Internal method which queries device via HTTP to get the receiver's
         input sources.
         """
+        # pylint: disable=too-many-branches
         # This XML is needed to get the sources of the receiver
-        try:
-            root = self.get_status_xml(self._host, DEVICEINFO_URL)
-        except ConnectionError:
-            _LOGGER.error("Connection Error: Receiver sources list empty")
-            return None
+        root = self.get_status_xml(self._host, DEVICEINFO_URL)
 
         # Test if receiver is a AVR-X
         try:
-            avr_x_pattern = re.compile(r'(.*AVR-X.*|.*SR5008)')
+            avr_x_pattern = re.compile(DEVICEINFO_AVR_X_PATTERN)
             self._avr_x = bool(
                 avr_x_pattern.search(root.find("ModelName").text) is not None)
         except AttributeError:
@@ -518,9 +526,10 @@ class DenonAVR(object):
                     self._get_renamed_deleted_sources())
 
             # Remove all deleted sources
-            for deleted_source in deleted_non_x_sources.items():
-                if deleted_source[1] == "DEL":
-                    non_x_sources.pop(deleted_source[0], None)
+            if self._show_all_inputs is False:
+                for deleted_source in deleted_non_x_sources.items():
+                    if deleted_source[1] == "DEL":
+                        non_x_sources.pop(deleted_source[0], None)
             # Invalid source "SOURCE" needs to be deleted
             non_x_sources.pop("SOURCE", None)
             return non_x_sources
@@ -534,11 +543,11 @@ class DenonAVR(object):
             favorites = root.find(".//FavoriteStation")
             if favorites:
                 for child in favorites:
-                    if not child.tag.startswith('Favorite'):
+                    if not child.tag.startswith("Favorite"):
                         continue
                     func_name = child.tag.upper()
                     self._favorite_func_list.append(func_name)
-                    receiver_sources[func_name] = child.find('Name').text
+                    receiver_sources[func_name] = child.find("Name").text
             for xml_zonecapa in root.findall("DeviceZoneCapabilities"):
                 # Currently only Main Zone (No=0) supported
                 if xml_zonecapa.find("./Zone/No").text == "0":
