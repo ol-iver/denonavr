@@ -32,7 +32,8 @@ SOURCE_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
 
 PLAYING_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
                    "Internet Radio", "Favorites", "Spotify", "Flickr", "Tuner",
-                   "HD Radio", "TUNER", "NET/USB", "HDRADIO", "Music Server")
+                   "HD Radio", "TUNER", "NET/USB", "HDRADIO", "Music Server",
+                   "NETWORK")
 NETAUDIO_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
                     "Internet Radio", "Favorites", "Spotify", "Flickr",
                     "NET/USB", "Music Server", "NETWORK")
