@@ -9,6 +9,7 @@ This module implements the interface to Denon AVR receivers.
 # pylint: disable=too-many-lines
 # pylint: disable=no-else-return
 
+from collections import namedtuple
 from io import BytesIO
 import logging
 import time
@@ -21,30 +22,33 @@ _LOGGER = logging.getLogger("DenonAVR")
 
 DEVICEINFO_AVR_X_PATTERN = r"(.*AVR-X.*|.*SR5008)"
 
-SOURCE_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
-                  "TV Audio": "TV", "DVD": "DVD", "Media Player": "MPLAY",
-                  "CD": "CD", "Game": "GAME", "AUX1": "AUX1", "AUX2": "AUX2",
-                  "iPod/USB": "USB/IPOD", "Bluetooth": "BT", "Blu-ray": "BD",
-                  "CBL/SAT": "SAT/CBL", "Tuner": "TUNER", "Phono": "PHONO",
-                  "Media Server": "SERVER", "HD Radio": "HDRADIO",
-                  "DVD/Blu-ray": "DVD", "Spotify": "SPOTIFY",
-                  "Flickr": "FLICKR", "Favorites": "FAVORITES"}
+SOURCE_MAPPING = {"TV AUDIO": "TV", "iPod/USB": "USB/IPOD", "Bluetooth": "BT",
+                  "Blu-ray": "BD", "CBL/SAT": "SAT/CBL"}
+
+CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
+                        "Media Player": "MPLAY", "Media Server": "SERVER",
+                        "Spotify": "SPOTIFY", "Flickr": "FLICKR",
+                        "Favorites": "FAVORITES"}
 
 PLAYING_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
-                   "Internet Radio", "Favorites", "Spotify", "Flickr", "Tuner",
-                   "HD Radio", "TUNER", "NET/USB", "HDRADIO", "Music Server",
-                   "NETWORK")
+                   "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
+                   "TUNER", "NET/USB", "HDRADIO", "Music Server", "NETWORK")
 NETAUDIO_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
-                    "Internet Radio", "Favorites", "Spotify", "Flickr",
+                    "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
                     "NET/USB", "Music Server", "NETWORK")
 
+# General URLs
 APPCOMMAND_URL = "/goform/AppCommand.xml"
-STATUS_URL = "/goform/formMainZone_MainZoneXmlStatus.xml"
-MAINZONE_URL = "/goform/formMainZone_MainZoneXml.xml"
 DEVICEINFO_URL = "/goform/Deviceinfo.xml"
 NETAUDIOSTATUS_URL = "/goform/formNetAudio_StatusXml.xml"
 TUNERSTATUS_URL = "/goform/formTuner_TunerXml.xml"
 HDTUNERSTATUS_URL = "/goform/formTuner_HdXml.xml"
+COMMAND_NETAUDIO_POST_URL = "/NetAudio/index.put.asp"
+
+
+# Main Zone URLs
+STATUS_URL = "/goform/formMainZone_MainZoneXmlStatus.xml"
+MAINZONE_URL = "/goform/formMainZone_MainZoneXml.xml"
 COMMAND_SEL_SRC_URL = "/goform/formiPhoneAppDirect.xml?SI"
 COMMAND_FAV_SRC_URL = "/goform/formiPhoneAppDirect.xml?ZM"
 COMMAND_POWER_ON_URL = "/goform/formiPhoneAppPower.xml?1+PowerOn"
@@ -54,7 +58,96 @@ COMMAND_VOLUME_DOWN_URL = "/goform/formiPhoneAppDirect.xml?MVDOWN"
 COMMAND_SET_VOLUME_URL = "/goform/formiPhoneAppVolume.xml?1+%.1f"
 COMMAND_MUTE_ON_URL = "/goform/formiPhoneAppMute.xml?1+MuteOn"
 COMMAND_MUTE_OFF_URL = "/goform/formiPhoneAppMute.xml?1+MuteOff"
-COMMAND_NETAUDIO_POST_URL = "/NetAudio/index.put.asp"
+
+# Zone 2 URLs
+STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
+MAINZONE_Z2_URL = None
+COMMAND_SEL_SRC_Z2_URL = "/goform/formiPhoneAppDirect.xml?Z2"
+COMMAND_FAV_SRC_Z2_URL = "/goform/formiPhoneAppDirect.xml?Z2"
+COMMAND_POWER_ON_Z2_URL = "/goform/formiPhoneAppPower.xml?2+PowerOn"
+COMMAND_POWER_STANDBY_Z2_URL = "/goform/formiPhoneAppPower.xml?2+PowerStandby"
+COMMAND_VOLUME_UP_Z2_URL = "/goform/formiPhoneAppDirect.xml?Z2UP"
+COMMAND_VOLUME_DOWN_Z2_URL = "/goform/formiPhoneAppDirect.xml?Z2DOWN"
+COMMAND_SET_VOLUME_Z2_URL = "/goform/formiPhoneAppVolume.xml?2+%.1f"
+COMMAND_MUTE_ON_Z2_URL = "/goform/formiPhoneAppMute.xml?2+MuteOn"
+COMMAND_MUTE_OFF_Z2_URL = "/goform/formiPhoneAppMute.xml?2+MuteOff"
+
+# Zone 3 URLs
+STATUS_Z3_URL = "/goform/formZone3_Zone3XmlStatus.xml"
+MAINZONE_Z3_URL = None
+COMMAND_SEL_SRC_Z3_URL = "/goform/formiPhoneAppDirect.xml?Z3"
+COMMAND_FAV_SRC_Z3_URL = "/goform/formiPhoneAppDirect.xml?Z3"
+COMMAND_POWER_ON_Z3_URL = "/goform/formiPhoneAppPower.xml?3+PowerOn"
+COMMAND_POWER_STANDBY_Z3_URL = "/goform/formiPhoneAppPower.xml?3+PowerStandby"
+COMMAND_VOLUME_UP_Z3_URL = "/goform/formiPhoneAppDirect.xml?Z3UP"
+COMMAND_VOLUME_DOWN_Z3_URL = "/goform/formiPhoneAppDirect.xml?Z3DOWN"
+COMMAND_SET_VOLUME_Z3_URL = "/goform/formiPhoneAppVolume.xml?3+%.1f"
+COMMAND_MUTE_ON_Z3_URL = "/goform/formiPhoneAppMute.xml?3+MuteOn"
+COMMAND_MUTE_OFF_Z3_URL = "/goform/formiPhoneAppMute.xml?3+MuteOff"
+
+
+ReceiverURLs = namedtuple(
+    "ReceiverURLs", ["appcommand", "status", "mainzone", "deviceinfo",
+                     "netaudiostatus", "tunerstatus", "hdtunerstatus",
+                     "command_sel_src", "command_fav_src", "command_power_on",
+                     "command_power_standby", "command_volume_up",
+                     "command_volume_down", "command_set_volume",
+                     "command_mute_on", "command_mute_off",
+                     "command_netaudio_post"])
+
+DENONAVR_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
+                             status=STATUS_URL,
+                             mainzone=MAINZONE_URL,
+                             deviceinfo=DEVICEINFO_URL,
+                             netaudiostatus=NETAUDIOSTATUS_URL,
+                             tunerstatus=TUNERSTATUS_URL,
+                             hdtunerstatus=HDTUNERSTATUS_URL,
+                             command_sel_src=COMMAND_SEL_SRC_URL,
+                             command_fav_src=COMMAND_FAV_SRC_URL,
+                             command_power_on=COMMAND_POWER_ON_URL,
+                             command_power_standby=COMMAND_POWER_STANDBY_URL,
+                             command_volume_up=COMMAND_VOLUME_UP_URL,
+                             command_volume_down=COMMAND_VOLUME_DOWN_URL,
+                             command_set_volume=COMMAND_SET_VOLUME_URL,
+                             command_mute_on=COMMAND_MUTE_ON_URL,
+                             command_mute_off=COMMAND_MUTE_OFF_URL,
+                             command_netaudio_post=COMMAND_NETAUDIO_POST_URL)
+
+ZONE2_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
+                          status=STATUS_Z2_URL,
+                          mainzone=MAINZONE_Z2_URL,
+                          deviceinfo=DEVICEINFO_URL,
+                          netaudiostatus=NETAUDIOSTATUS_URL,
+                          tunerstatus=TUNERSTATUS_URL,
+                          hdtunerstatus=HDTUNERSTATUS_URL,
+                          command_sel_src=COMMAND_SEL_SRC_Z2_URL,
+                          command_fav_src=COMMAND_FAV_SRC_Z2_URL,
+                          command_power_on=COMMAND_POWER_ON_Z2_URL,
+                          command_power_standby=COMMAND_POWER_STANDBY_Z2_URL,
+                          command_volume_up=COMMAND_VOLUME_UP_Z2_URL,
+                          command_volume_down=COMMAND_VOLUME_DOWN_Z2_URL,
+                          command_set_volume=COMMAND_SET_VOLUME_Z2_URL,
+                          command_mute_on=COMMAND_MUTE_ON_Z2_URL,
+                          command_mute_off=COMMAND_MUTE_OFF_Z2_URL,
+                          command_netaudio_post=COMMAND_NETAUDIO_POST_URL)
+
+ZONE3_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
+                          status=STATUS_Z3_URL,
+                          mainzone=MAINZONE_Z3_URL,
+                          deviceinfo=DEVICEINFO_URL,
+                          netaudiostatus=NETAUDIOSTATUS_URL,
+                          tunerstatus=TUNERSTATUS_URL,
+                          hdtunerstatus=HDTUNERSTATUS_URL,
+                          command_sel_src=COMMAND_SEL_SRC_Z3_URL,
+                          command_fav_src=COMMAND_FAV_SRC_Z3_URL,
+                          command_power_on=COMMAND_POWER_ON_Z3_URL,
+                          command_power_standby=COMMAND_POWER_STANDBY_Z3_URL,
+                          command_volume_up=COMMAND_VOLUME_UP_Z3_URL,
+                          command_volume_down=COMMAND_VOLUME_DOWN_Z3_URL,
+                          command_set_volume=COMMAND_SET_VOLUME_Z3_URL,
+                          command_mute_on=COMMAND_MUTE_ON_Z3_URL,
+                          command_mute_off=COMMAND_MUTE_OFF_Z3_URL,
+                          command_netaudio_post=COMMAND_NETAUDIO_POST_URL)
 
 POWER_ON = "ON"
 POWER_OFF = "OFF"
@@ -64,6 +157,11 @@ STATE_OFF = "off"
 STATE_PLAYING = "playing"
 STATE_PAUSED = "paused"
 
+NO_ZONES = None
+ZONE2 = {"Zone2": None}
+ZONE3 = {"Zone3": None}
+ZONE2_ZONE3 = {"Zone2": None, "Zone3": None}
+
 
 class DenonAVR(object):
     """Representing a Denon AVR Device."""
@@ -71,7 +169,7 @@ class DenonAVR(object):
     # pylint: disable=too-many-instance-attributes
     # pylint: disable=too-many-public-methods
 
-    def __init__(self, host, name=None, show_all_inputs=False):
+    def __init__(self, host, name=None, show_all_inputs=False, add_zones=None):
         """
         Initialize MainZone of DenonAVR.
 
@@ -84,6 +182,9 @@ class DenonAVR(object):
         """
         self._name = name
         self._host = host
+        self._zone = "Main"
+        self._zones = {self._zone: self}
+        self._urls = DENONAVR_URLS
         # Initially assume receiver is a model like AVR-X...
         self._avr_x = True
         self._show_all_inputs = show_all_inputs
@@ -98,7 +199,7 @@ class DenonAVR(object):
         self._state = None
         self._power = None
         self._image_url = (
-            "http://{host}/img/album%20art_S.png".format(host=host))
+            "http://{host}/img/album%20art_S.png".format(host=self._host))
         self._title = None
         self._artist = None
         self._album = None
@@ -108,6 +209,9 @@ class DenonAVR(object):
         # Fill variables with initial values
         self._update_input_func_list()
         self.update()
+        # Create instances of additional zones if requested
+        if add_zones is not None:
+            self.create_zones(add_zones)
 
     @classmethod
     def get_status_xml(cls, host, command):
@@ -184,6 +288,15 @@ class DenonAVR(object):
                 "send POST commands"), host, res.status_code)
             return False
 
+    def create_zones(self, add_zones):
+        """Create instances of additional zones for the receiver."""
+        for zone, zname in add_zones.items():
+            # Name either set explicitly or name of Main Zone with suffix
+            zonename = "{} {}".format(self._name, zone) if (
+                zname is None) else zname
+            zone_inst = DenonAVRZones(self, zone, zonename)
+            self._zones[zone] = zone_inst
+
     def update(self):
         """
         Get the latest status information from device.
@@ -192,36 +305,31 @@ class DenonAVR(object):
         Returns "True" on success and "False" on fail.
         """
         # pylint: disable=too-many-branches
-        # Get status XML from Denon receiver via HTTP
-        try:
-            root = self.get_status_xml(self._host, MAINZONE_URL)
-        except ConnectionError:
-            return False
+        # If name is not set yet, get it from Main Zone URL
+        if self._name is None and self._urls.mainzone is not None:
+            name_tag = {"FriendlyName": None}
+            try:
+                root = self.get_status_xml(self._host, self._urls.mainzone)
+                # Get the tags from this XML
+                name_tag = self._get_status_from_xml_tags(root, name_tag)
+            except ConnectionError:
+                _LOGGER.error("Receiver name could not be determined")
 
         # Set all tags to be evaluated
         relevant_tags = {"Power": None, "InputFuncSelect": None, "Mute": None,
-                         "MasterVolume": None, "FriendlyName": None}
+                         "MasterVolume": None}
 
-        if self._name is not None:
-            relevant_tags.pop("FriendlyName", None)
-
-        # Get the relevant tags from the XML structure and save them to
-        # internal attributes
-        relevant_tags = self._get_status_from_xml_tags(root, relevant_tags)
-
-        # If not all tags could be found try to find them in different XML
-        if relevant_tags:
-            try:
-                root = self.get_status_xml(self._host, STATUS_URL)
-            except ConnectionError:
-                return False
-
-            # Try to get the rest of the tags from this XML
+        # Get status XML from Denon receiver via HTTP
+        try:
+            root = self.get_status_xml(self._host, self._urls.status)
+            # Get the tags from this XML
             relevant_tags = self._get_status_from_xml_tags(root, relevant_tags)
+        except ConnectionError:
+            pass
 
-            if relevant_tags:
-                _LOGGER.error("Missing status information from XML for: %s",
-                              ", ".join(relevant_tags.keys()))
+        if relevant_tags:
+            _LOGGER.error("Missing status information from XML for: %s",
+                          ", ".join(relevant_tags.keys()))
 
         # Set state and media image URL based on current source
         # and power status
@@ -303,25 +411,35 @@ class DenonAVR(object):
             self._input_func_list_rev.clear()
             self._netaudio_func_list.clear()
             self._playing_func_list.clear()
+
+            # When switching between sources sometimes "NET" func appears
+            # for netaudio resources. This static mapping is to avoid errors.
+            self._input_func_list_rev["NET"] = "Online Music"
+
             for item in receiver_sources.items():
+                # Mapping of item[0] because some func names are inconsistant
+                # at AVR-X receivers
+
+                m_item_0 = SOURCE_MAPPING.get(item[0], item[0])
+
                 # For renamed sources use those names and save the default name
                 # for a later mapping
                 if item[0] in renamed_sources:
-                    self._input_func_list[renamed_sources[item[0]]] = item[1]
+                    self._input_func_list[renamed_sources[item[0]]] = m_item_0
                     self._input_func_list_rev[
-                        item[0]] = renamed_sources[item[0]]
+                        m_item_0] = renamed_sources[item[0]]
                     # If the source is a netaudio source, save its renamed name
-                    if item[1] in NETAUDIO_SOURCES:
+                    if item[0] in NETAUDIO_SOURCES:
                         self._netaudio_func_list.append(
                             renamed_sources[item[0]])
                     # If the source is a playing source, save its renamed name
-                    if item[1] in PLAYING_SOURCES:
+                    if item[0] in PLAYING_SOURCES:
                         self._playing_func_list.append(
                             renamed_sources[item[0]])
                 # Otherwise the default names are used
                 else:
-                    self._input_func_list[item[1]] = item[0]
-                    self._input_func_list_rev[item[0]] = item[1]
+                    self._input_func_list[item[1]] = m_item_0
+                    self._input_func_list_rev[m_item_0] = item[1]
                     # If the source is a netaudio source, save its name
                     if item[1] in NETAUDIO_SOURCES:
                         self._netaudio_func_list.append(item[1])
@@ -340,10 +458,10 @@ class DenonAVR(object):
                 self._input_func_list[item[1]] = item[0]
                 self._input_func_list_rev[item[0]] = item[1]
                 # If the source is a netaudio source, save its name
-                if item[1] in NETAUDIO_SOURCES:
+                if item[0] in NETAUDIO_SOURCES:
                     self._netaudio_func_list.append(item[1])
                 # If the source is a playing source, save its name
-                if item[1] in PLAYING_SOURCES:
+                if item[0] in PLAYING_SOURCES:
                     self._playing_func_list.append(item[1])
 
         # Finished
@@ -370,9 +488,12 @@ class DenonAVR(object):
             # AVR-X and AVR-nonX using different XMLs to provide info about
             # deleted sources
             if self._avr_x is True:
-                root = self.get_status_xml(self._host, STATUS_URL)
+                root = self.get_status_xml(self._host, self._urls.status)
+            # URL only available for Main Zone.
+            elif self._urls.mainzone is not None:
+                root = self.get_status_xml(self._host, self._urls.mainzone)
             else:
-                root = self.get_status_xml(self._host, MAINZONE_URL)
+                return (renamed_sources, deleted_sources)
         except ConnectionError:
             return (renamed_sources, deleted_sources)
 
@@ -455,7 +576,7 @@ class DenonAVR(object):
         # Query receivers AppCommand.xml
         try:
             res = self.send_post_command(
-                self._host, APPCOMMAND_URL, body.getvalue())
+                self._host, self._urls.appcommand, body.getvalue())
         except ConnectionError:
             body.close()
             return (renamed_sources, deleted_sources, False)
@@ -469,7 +590,7 @@ class DenonAVR(object):
         except (ET.ParseError, TypeError):
             _LOGGER.error(
                 "Host %s returned malformed XML after command: %s",
-                self._host, APPCOMMAND_URL)
+                self._host, self._urls.appcommand)
             return (renamed_sources, deleted_sources, False)
 
         # Detect "Document Error: Data follows" title if URL does not exist
@@ -504,7 +625,7 @@ class DenonAVR(object):
         """
         # pylint: disable=too-many-branches
         # This XML is needed to get the sources of the receiver
-        root = self.get_status_xml(self._host, DEVICEINFO_URL)
+        root = self.get_status_xml(self._host, self._urls.deviceinfo)
 
         # Test if receiver is a AVR-X
         try:
@@ -562,71 +683,6 @@ class DenonAVR(object):
 
             return receiver_sources
 
-    def _get_active_input_func(self, input_func, net_func):
-        """
-        Get active input function from receiver.
-
-        Internal method which determines the currently active input function.
-        Handling of AVR-X and AVR-nonX receivers is different. AVR-X receivers
-        are returning the renamed value whereas AVR-nonX receivers are
-        returning the original value of input_func
-        Additionally for AVR-X receivers a special handling is necessary
-        because network audio sources could not be completely determined
-        by the input_func field.
-        """
-        # pylint: disable=too-many-branches
-        # pylint: disable=too-many-return-statements
-        # input_func handling of AVR-X receivers
-        if self._avr_x is True:
-            if input_func in self._netaudio_func_list:
-                # Get status XML from Denon receiver via HTTP
-                try:
-                    root = self.get_status_xml(self._host, STATUS_URL)
-                except ConnectionError:
-                    return input_func
-
-                tmp_input_func = root.find("InputFuncSelect")[0].text
-
-                try:
-                    new_input_func = self._input_func_list_rev[tmp_input_func]
-                except KeyError:
-                    source_found = False
-                    for k, i in SOURCE_MAPPING.items():
-                        if i == tmp_input_func:
-                            new_input_func = k
-                            source_found = True
-
-                    if source_found is False:
-                        _LOGGER.error(
-                            "No mapping for network audio source %s",
-                            tmp_input_func)
-                        return input_func
-
-                return new_input_func
-
-            # Not a network audio function -> output = input
-            else:
-                return input_func
-
-        # input_func handling of AVR-nonX receivers
-        else:
-            if input_func == "NET":
-                try:
-                    new_input_func = self._input_func_list_rev[net_func]
-                except KeyError:
-                    _LOGGER.error(
-                        "No mapping for network audio source %s", net_func)
-                    return net_func
-            else:
-                try:
-                    new_input_func = self._input_func_list_rev[input_func]
-                except KeyError:
-                    _LOGGER.error(
-                        "No mapping for audio source %s", input_func)
-                    return input_func
-
-            return new_input_func
-
     def _update_media_data(self):
         """
         Update media data for playing devices.
@@ -640,8 +696,7 @@ class DenonAVR(object):
         if self._input_func in self._netaudio_func_list:
             try:
                 root = self.get_status_xml(
-                    self._host, "{url}?ZoneName=MAIN+ZONE"
-                    .format(url=NETAUDIOSTATUS_URL))
+                    self._host, self._urls.netaudiostatus)
             except ConnectionError:
                 return False
 
@@ -674,9 +729,7 @@ class DenonAVR(object):
 
         elif self._input_func == "Tuner" or self._input_func == "TUNER":
             try:
-                root = self.get_status_xml(self._host,
-                                           "{url}?ZoneName=MAIN+ZONE"
-                                           .format(url=TUNERSTATUS_URL))
+                root = self.get_status_xml(self._host, self._urls.tunerstatus)
             except ConnectionError:
                 return False
 
@@ -703,8 +756,7 @@ class DenonAVR(object):
         elif self._input_func == "HD Radio" or self._input_func == "HDRADIO":
             try:
                 root = self.get_status_xml(
-                    self._host, "{url}?ZoneName=MAIN+ZONE"
-                    .format(url=HDTUNERSTATUS_URL))
+                    self._host, self._urls.hdtunerstatus)
             except ConnectionError:
                 return False
 
@@ -768,9 +820,15 @@ class DenonAVR(object):
                 self._power = child[0].text
                 relevant_tags.pop(child.tag, None)
             elif child.tag == "InputFuncSelect":
-                self._input_func = self._get_active_input_func(
-                    child[0].text, root.find("NetFuncSelect")[0].text)
-                relevant_tags.pop(child.tag, None)
+                input_func = child[0].text
+                try:
+                    self._input_func = self._input_func_list_rev[input_func]
+                except KeyError:
+                    _LOGGER.error(
+                        "No mapping for source %s", input_func)
+                    self._input_func = input_func
+                finally:
+                    relevant_tags.pop(child.tag, None)
             elif child.tag == "MasterVolume":
                 self._volume = child[0].text
                 relevant_tags.pop(child.tag, None)
@@ -782,6 +840,16 @@ class DenonAVR(object):
                 relevant_tags.pop(child.tag, None)
 
         return relevant_tags
+
+    @property
+    def zone(self):
+        """Return Zone of this instance."""
+        return self._zone
+
+    @property
+    def zones(self):
+        """Return all Zone instances of the device."""
+        return self._zones
 
     @property
     def name(self):
@@ -920,7 +988,7 @@ class DenonAVR(object):
         if self._avr_x is True:
             direct_mapping = False
             try:
-                linp = SOURCE_MAPPING[self._input_func_list[input_func]]
+                linp = CHANGE_INPUT_MAPPING[self._input_func_list[input_func]]
             except KeyError:
                 direct_mapping = True
         else:
@@ -933,11 +1001,12 @@ class DenonAVR(object):
             except KeyError:
                 _LOGGER.error("No mapping for input source %s", input_func)
                 return False
+        # Create command URL and send command via HTTP GET
         try:
             if linp in self._favorite_func_list:
-                command_url = COMMAND_FAV_SRC_URL + linp
+                command_url = self._urls.command_fav_src + linp
             else:
-                command_url = COMMAND_SEL_SRC_URL + linp
+                command_url = self._urls.command_sel_src + linp
 
             if self.send_get_command(self._host, command_url):
                 self._input_func = input_func
@@ -965,7 +1034,7 @@ class DenonAVR(object):
                     "ZoneName": "MAIN ZONE"}
             try:
                 if self.send_post_command(
-                        self._host, COMMAND_NETAUDIO_POST_URL, body):
+                        self._host, self._urls.command_netaudio_post, body):
                     self._state = STATE_PLAYING
                     return True
                 else:
@@ -982,7 +1051,7 @@ class DenonAVR(object):
                     "ZoneName": "MAIN ZONE"}
             try:
                 if self.send_post_command(
-                        self._host, COMMAND_NETAUDIO_POST_URL, body):
+                        self._host, self._urls.command_netaudio_post, body):
                     self._state = STATE_PAUSED
                     return True
                 else:
@@ -999,7 +1068,7 @@ class DenonAVR(object):
                     "ZoneName": "MAIN ZONE"}
             try:
                 return bool(self.send_post_command(
-                    self._host, COMMAND_NETAUDIO_POST_URL, body))
+                    self._host, self._urls.command_netaudio_post, body))
             except ConnectionError:
                 return False
 
@@ -1012,14 +1081,14 @@ class DenonAVR(object):
                     "ZoneName": "MAIN ZONE"}
             try:
                 return bool(self.send_post_command(
-                    self._host, COMMAND_NETAUDIO_POST_URL, body))
+                    self._host, self._urls.command_netaudio_post, body))
             except ConnectionError:
                 return False
 
     def power_on(self):
         """Turn off receiver via HTTP get command."""
         try:
-            if self.send_get_command(self._host, COMMAND_POWER_ON_URL):
+            if self.send_get_command(self._host, self._urls.command_power_on):
                 self._power = POWER_ON
                 self._state = STATE_ON
                 return True
@@ -1031,7 +1100,8 @@ class DenonAVR(object):
     def power_off(self):
         """Turn off receiver via HTTP get command."""
         try:
-            if self.send_get_command(self._host, COMMAND_POWER_STANDBY_URL):
+            if self.send_get_command(self._host,
+                                     self._urls.command_power_standby):
                 self._power = POWER_STANDBY
                 self._state = STATE_OFF
                 return True
@@ -1044,7 +1114,7 @@ class DenonAVR(object):
         """Volume up receiver via HTTP get command."""
         try:
             return bool(self.send_get_command(
-                self._host, COMMAND_VOLUME_UP_URL))
+                self._host, self._urls.command_volume_up))
         except ConnectionError:
             return False
 
@@ -1052,7 +1122,7 @@ class DenonAVR(object):
         """Volume down receiver via HTTP get command."""
         try:
             return bool(self.send_get_command(
-                self._host, COMMAND_VOLUME_DOWN_URL))
+                self._host, self._urls.command_volume_down))
         except ConnectionError:
             return False
 
@@ -1064,11 +1134,11 @@ class DenonAVR(object):
         Minimum is -80.0, maximum at 18.0
         """
         if volume < -80 or volume > 18:
-            raise ValueError("Invalid volume!")
+            raise ValueError("Invalid volume")
 
         try:
             return bool(self.send_get_command(
-                self._host, COMMAND_SET_VOLUME_URL % volume))
+                self._host, self._urls.command_set_volume % volume))
         except ConnectionError:
             return False
 
@@ -1076,16 +1146,97 @@ class DenonAVR(object):
         """Mute receiver via HTTP get command."""
         try:
             if mute:
-                if self.send_get_command(self._host, COMMAND_MUTE_ON_URL):
+                if self.send_get_command(self._host,
+                                         self._urls.command_mute_on):
                     self._mute = STATE_ON
                     return True
                 else:
                     return False
             else:
-                if self.send_get_command(self._host, COMMAND_MUTE_OFF_URL):
+                if self.send_get_command(self._host,
+                                         self._urls.command_mute_off):
                     self._mute = STATE_OFF
                     return True
                 else:
                     return False
         except ConnectionError:
             return False
+
+
+class DenonAVRZones(DenonAVR):
+    """Representing an additional zone of a Denon AVR Device."""
+
+    # pylint: disable=too-many-instance-attributes
+
+    def __init__(self, parent_avr, zone, name):
+        """
+        Initialize additional zones of DenonAVR.
+
+        :param parent_avr: Instance of parent DenonAVR.
+        :param name: Device name, if None FriendlyName of device is used.
+        :type parent_avr: denonavr.DenonAVR
+        :type name: str
+        """
+        # pylint: disable=super-init-not-called
+        # pylint: disable=protected-access
+        self._parent_avr = parent_avr
+        self._zone = zone
+
+        if self._zone == "Zone2":
+            self._urls = ZONE2_URLS
+        elif self._zone == "Zone3":
+            self._urls = ZONE3_URLS
+        else:
+            raise ValueError("Invalid zone {}".format(self._zone))
+
+        self._name = name
+        self._host = self._parent_avr.host
+        # Initially assume receiver is a model like AVR-X...
+        self._avr_x = self._parent_avr._avr_x
+        self._show_all_inputs = self._parent_avr._show_all_inputs
+        self._mute = STATE_OFF
+        self._volume = "--"
+        self._input_func = None
+        # Get func lists from parent receiver
+        self._input_func_list = self._parent_avr._input_func_list
+        self._input_func_list_rev = self._parent_avr._input_func_list_rev
+        self._netaudio_func_list = self._parent_avr._netaudio_func_list
+        self._playing_func_list = self._parent_avr._playing_func_list
+        self._favorite_func_list = self._parent_avr._favorite_func_list
+        self._state = None
+        self._power = None
+        self._image_url = (
+            "http://{host}/img/album%20art_S.png".format(host=self._host))
+        self._title = None
+        self._artist = None
+        self._album = None
+        self._band = None
+        self._frequency = None
+        self._station = None
+        # Fill variables with initial values
+        self.update()
+
+    def create_zones(self, add_zones):
+        """Only call this method from parent AVR (Main Zone)."""
+        raise NotImplementedError(
+            "Only call this method at parent AVR (Main Zone).")
+
+    def _update_input_func_list(self):
+        """Only call this method at parent AVR (Main Zone)."""
+        raise NotImplementedError(
+            "Only call this method at parent AVR (Main Zone).")
+
+    def _get_renamed_deleted_sources(self):
+        """Only call this method from parent AVR (Main Zone)."""
+        raise NotImplementedError(
+            "Only call this method at parent AVR (Main Zone).")
+
+    def _get_renamed_deleted_sourcesapp(self):
+        """Only call this method from parent AVR (Main Zone)."""
+        raise NotImplementedError(
+            "Only call this method at parent AVR (Main Zone).")
+
+    def _get_receiver_sources(self):
+        """Only call this method from parent AVR (Main Zone)."""
+        raise NotImplementedError(
+            "Only call this method at parent AVR (Main Zone).")
