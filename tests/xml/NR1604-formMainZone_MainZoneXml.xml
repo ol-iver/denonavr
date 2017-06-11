@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <item>
-<FriendlyName><value>Denon AVR-X2000</value></FriendlyName>
+<FriendlyName><value>Marantz NR1604</value></FriendlyName>
 <Power><value>ON</value></Power>
 <ZonePower><value>ON</value></ZonePower>
-<RenameZone><value>LivingRoom</value></RenameZone>
+<RenameZone><value>MAIN ZONE </value></RenameZone>
 <TopMenuLink><value>ON</value></TopMenuLink>
-<VideoSelectDisp><value>OFF</value></VideoSelectDisp>
+<VideoSelectDisp><value>ON</value></VideoSelectDisp>
 <VideoSelect><value></value></VideoSelect>
 <VideoSelectOnOff><value>OFF</value></VideoSelectOnOff>
 <VideoSelectLists>
@@ -15,19 +15,20 @@
 <value index='DVD'  table='DVD' param=''/>
 <value index='BD'  table='Blu-ray' param=''/>
 <value index='GAME'  table='GAME' param=''/>
-<value index='AUX1'  table='AUX' param=''/>
+<value index='AUX1'  table='AUX1' param=''/>
+<value index='AUX2'  table='AUX2' param=''/>
 <value index='MPLAY'  table='MEDIA PLAYER' param=''/>
 <value index='TV'  table='TV AUDIO ' param=''/>
 <value index='CD'  table='CD' param=''/>
 </VideoSelectLists>
-<ModelId><value>4</value></ModelId>
-<BrandId><value>DENON_MODEL</value></BrandId>
-<SalesArea><value>0</value></SalesArea>
-<InputFuncSelect><value>HTPC</value></InputFuncSelect>
-<NetFuncSelect><value>FLICKR</value></NetFuncSelect>
-<selectSurround><value>MULTI CH IN                    </value></selectSurround>
+<ModelId><value>8</value></ModelId>
+<BrandId><value>MARANTZ_MODEL</value></BrandId>
+<SalesArea><value>1</value></SalesArea>
+<InputFuncSelect><value>NETWORK</value></InputFuncSelect>
+<NetFuncSelect><value>IRADIO</value></NetFuncSelect>
+<selectSurround><value>STEREO                         </value></selectSurround>
 <VolumeDisplay><value>Absolute</value></VolumeDisplay>
-<MasterVolume><value>-55.0</value></MasterVolume>
+<MasterVolume><value>-56.5</value></MasterVolume>
 <Mute><value>off</value></Mute>
 <RemoteMaintenance><value>OFF</value></RemoteMaintenance>
 <SubwooferDisplay><value>FALSE</value></SubwooferDisplay>

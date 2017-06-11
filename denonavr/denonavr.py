@@ -20,10 +20,10 @@ import requests
 
 _LOGGER = logging.getLogger("DenonAVR")
 
-DEVICEINFO_AVR_X_PATTERN = r"(.*AVR-X.*|.*SR5008)"
+DEVICEINFO_AVR_X_PATTERN = r"(.*AVR-X.*|.*SR5008|.*NR1604)"
 
 SOURCE_MAPPING = {"TV AUDIO": "TV", "iPod/USB": "USB/IPOD", "Bluetooth": "BT",
-                  "Blu-ray": "BD", "CBL/SAT": "SAT/CBL"}
+                  "Blu-ray": "BD", "CBL/SAT": "SAT/CBL", "NETWORK": "NET"}
 
 CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
                         "Media Player": "MPLAY", "Media Server": "SERVER",
@@ -32,10 +32,11 @@ CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
 
 PLAYING_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
                    "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
-                   "TUNER", "NET/USB", "HDRADIO", "Music Server", "NETWORK")
+                   "TUNER", "NET/USB", "HDRADIO", "Music Server", "NETWORK",
+                   "NET")
 NETAUDIO_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
                     "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
-                    "NET/USB", "Music Server", "NETWORK")
+                    "NET/USB", "Music Server", "NETWORK", "NET")
 
 # General URLs
 APPCOMMAND_URL = "/goform/AppCommand.xml"
@@ -169,16 +170,22 @@ class DenonAVR(object):
     # pylint: disable=too-many-instance-attributes
     # pylint: disable=too-many-public-methods
 
-    def __init__(self, host, name=None, show_all_inputs=False, add_zones=None):
+    def __init__(self, host, name=None, show_all_inputs=False,
+                 add_zones=NO_ZONES):
         """
         Initialize MainZone of DenonAVR.
 
         :param host: IP or HOSTNAME.
-        :param name: Device name, if None FriendlyName of device is used.
-        :param show_all_inputs: If True deleted input functions are also shown
         :type host: str
-        :type name: str
+
+        :param name: Device name, if None FriendlyName of device is used.
+        :type name: str or None
+
+        :param show_all_inputs: If True deleted input functions are also shown
         :type show_all_inputs: bool
+
+        :param add_zones: Additional Zones for which an instance are created
+        :type add_zones: dict [str, str] or None
         """
         self._name = name
         self._host = host
@@ -328,8 +335,8 @@ class DenonAVR(object):
             pass
 
         if relevant_tags:
-            _LOGGER.error("Missing status information from XML for: %s",
-                          ", ".join(relevant_tags.keys()))
+            _LOGGER.error("Missing status information from XML of %s for: %s",
+                          self._zone, ", ".join(relevant_tags.keys()))
 
         # Set state and media image URL based on current source
         # and power status
@@ -338,8 +345,9 @@ class DenonAVR(object):
             if self._update_media_data():
                 pass
             else:
-                _LOGGER.error("Update of media data for source %s failed",
-                              self._input_func)
+                _LOGGER.error(
+                    "Update of media data for source %s in %s failed",
+                    self._input_func, self._zone)
         elif self._power == POWER_ON:
             self._state = STATE_ON
             self._title = None
@@ -362,13 +370,14 @@ class DenonAVR(object):
             self._station = None
 
         # Get/update sources list if current source is not known yet
-        if self._input_func not in self._input_func_list:
+        if (self._input_func not in self._input_func_list
+                and self._input_func is not None):
             if self._update_input_func_list():
-                pass
+                _LOGGER.info("List of input functions refreshed.")
             else:
                 _LOGGER.error((
                     "Input function list for Denon receiver at host %s "
-                    "could not be updated"), self._host)
+                    "could not be updated."), self._host)
 
         # Finished
         return True
@@ -411,10 +420,6 @@ class DenonAVR(object):
             self._input_func_list_rev.clear()
             self._netaudio_func_list.clear()
             self._playing_func_list.clear()
-
-            # When switching between sources sometimes "NET" func appears
-            # for netaudio resources. This static mapping is to avoid errors.
-            self._input_func_list_rev["NET"] = "Online Music"
 
             for item in receiver_sources.items():
                 # Mapping of item[0] because some func names are inconsistant
@@ -820,15 +825,16 @@ class DenonAVR(object):
                 self._power = child[0].text
                 relevant_tags.pop(child.tag, None)
             elif child.tag == "InputFuncSelect":
-                input_func = child[0].text
-                try:
-                    self._input_func = self._input_func_list_rev[input_func]
-                except KeyError:
-                    _LOGGER.error(
-                        "No mapping for source %s", input_func)
-                    self._input_func = input_func
-                finally:
-                    relevant_tags.pop(child.tag, None)
+                inputfunc = child[0].text
+                if inputfunc is not None:
+                    try:
+                        self._input_func = self._input_func_list_rev[inputfunc]
+                    except KeyError:
+                        _LOGGER.error(
+                            "No mapping for source %s", inputfunc)
+                        self._input_func = inputfunc
+                    finally:
+                        relevant_tags.pop(child.tag, None)
             elif child.tag == "MasterVolume":
                 self._volume = child[0].text
                 relevant_tags.pop(child.tag, None)
@@ -1173,8 +1179,12 @@ class DenonAVRZones(DenonAVR):
         Initialize additional zones of DenonAVR.
 
         :param parent_avr: Instance of parent DenonAVR.
-        :param name: Device name, if None FriendlyName of device is used.
         :type parent_avr: denonavr.DenonAVR
+
+        :param zone: Zone name of this instance
+        :type zone: str
+
+        :param name: Device name, if None FriendlyName of device is used.
         :type name: str
         """
         # pylint: disable=super-init-not-called
@@ -1216,13 +1226,18 @@ class DenonAVRZones(DenonAVR):
         # Fill variables with initial values
         self.update()
 
+    def _update_input_func_list(self):
+        """
+        Update sources list from receiver.
+
+        Input func list is prepared by parent receiver.
+        Thus calling its method instead.
+        """
+        # pylint: disable=protected-access
+        return self._parent_avr._update_input_func_list()
+
     def create_zones(self, add_zones):
         """Only call this method from parent AVR (Main Zone)."""
-        raise NotImplementedError(
-            "Only call this method at parent AVR (Main Zone).")
-
-    def _update_input_func_list(self):
-        """Only call this method at parent AVR (Main Zone)."""
         raise NotImplementedError(
             "Only call this method at parent AVR (Main Zone).")
 

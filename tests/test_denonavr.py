@@ -13,12 +13,23 @@ import requests_mock
 import denonavr
 
 FAKE_IP = "10.0.0.0"
-TESTING_RECEIVERS = ("AVR-X4100W", "AVR-2312CI", "AVR-1912", "AVR-3311CI",
-                     "M-RC610", "AVR-X2100W-2", "AVR-X2000", "SR5008",
-                     "M-CR603")
+
+NO_ZONES = None
+ZONE2 = {"Zone2": None}
+ZONE3 = {"Zone3": None}
+ZONE2_ZONE3 = {"Zone2": None, "Zone3": None}
+
+TESTING_RECEIVERS = {"AVR-X4100W": NO_ZONES, "AVR-2312CI": NO_ZONES,
+                     "AVR-1912": NO_ZONES, "AVR-3311CI": NO_ZONES,
+                     "M-RC610": NO_ZONES, "AVR-X2100W-2": NO_ZONES,
+                     "AVR-X2000": ZONE2_ZONE3, "AVR-X2000-2": NO_ZONES,
+                     "SR5008": NO_ZONES, "M-CR603": NO_ZONES,
+                     "NR1604": ZONE2_ZONE3}
 
 APPCOMMAND_URL = "/goform/AppCommand.xml"
 STATUS_URL = "/goform/formMainZone_MainZoneXmlStatus.xml"
+STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
+STATUS_Z3_URL = "/goform/formZone3_Zone3XmlStatus.xml"
 MAINZONE_URL = "/goform/formMainZone_MainZoneXml.xml"
 DEVICEINFO_URL = "/goform/Deviceinfo.xml"
 NETAUDIOSTATUS_URL = "/goform/formNetAudio_StatusXml.xml"
@@ -39,16 +50,22 @@ class TestMainFunctions(testtools.TestCase):
     @requests_mock.mock()
     def setUp(self, m):
         """Setup method, using the first receiver from list"""
-        self._testing_receiver = TESTING_RECEIVERS[0]
         super(TestMainFunctions, self).setUp()
-        m.add_matcher(self.custom_matcher)
-        self.denon = denonavr.DenonAVR(FAKE_IP)
+        self.denon = None
 
     def custom_matcher(self, request):
         """Match URLs to sample files"""
         if request.path_url == STATUS_URL:
             content = get_sample_content(
                         "{receiver}-formMainZone_MainZoneXmlStatus.xml"
+                        .format(receiver=self._testing_receiver))
+        elif request.path_url == STATUS_Z2_URL:
+            content = get_sample_content(
+                        "{receiver}-formZone2_Zone2XmlStatus.xml"
+                        .format(receiver=self._testing_receiver))
+        elif request.path_url == STATUS_Z3_URL:
+            content = get_sample_content(
+                        "{receiver}-formZone3_Zone3XmlStatus.xml"
                         .format(receiver=self._testing_receiver))
         elif request.path_url == MAINZONE_URL:
             content = get_sample_content(
@@ -87,13 +104,15 @@ class TestMainFunctions(testtools.TestCase):
     def test_input_func_switch(self, m):
         """Switch through all input functions of all tested receivers"""
         m.add_matcher(self.custom_matcher)
-        for receiver in TESTING_RECEIVERS:
+        for receiver, zones in TESTING_RECEIVERS.items():
             # Switch receiver and update to load new sample files
             self._testing_receiver = receiver
-            self.denon.update()
+            self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=zones)
             # Switch through all functions and check if successful
-            for input_func in self.denon.input_func_list:
-                self.denon.set_input_func(input_func)
-                self.assertEqual(input_func, self.denon.input_func,
-                                 "Input function change to {func} not \
-                                 successful".format(func=input_func))
+            for zone in self.denon.zones.values():
+                for input_func in zone.input_func_list:
+                    self.denon.set_input_func(input_func)
+                    self.assertEqual(
+                        input_func, self.denon.input_func,
+                        ("Input function change to {func} "
+                         "not successful").format(func=input_func))

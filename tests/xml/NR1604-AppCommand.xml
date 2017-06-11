@@ -8,7 +8,11 @@
 </list>
 <list>
 <name>CD</name>
-<rename>CCAUX       </rename>
+<rename>CD          </rename>
+</list>
+<list>
+<name>M-XPORT</name>
+<rename>M-XPort     </rename>
 </list>
 <list>
 <name>NETWORK</name>
@@ -20,7 +24,7 @@
 </list>
 <list>
 <name>Blu-ray</name>
-<rename>Chromecast  </rename>
+<rename>Blu-ray     </rename>
 </list>
 <list>
 <name>TV AUDIO</name>
@@ -28,19 +32,23 @@
 </list>
 <list>
 <name>CBL/SAT</name>
-<rename>HTPC        </rename>
+<rename>CBL/SAT     </rename>
 </list>
 <list>
 <name>GAME</name>
 <rename>GAME        </rename>
 </list>
 <list>
-<name>AUX</name>
-<rename>AUX         </rename>
+<name>AUX1</name>
+<rename>AUX1        </rename>
+</list>
+<list>
+<name>AUX2</name>
+<rename>AUX2        </rename>
 </list>
 <list>
 <name>Media Player</name>
-<rename>ROKU        </rename>
+<rename>MEDIA PLAYER</rename>
 </list>
 <list>
 <name>iPod/USB</name>
@@ -58,6 +66,11 @@
 <list>
 <name>CD</name>
 <FuncName>CD</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>M-XPort</name>
+<FuncName>M-XPort</FuncName>
 <use>1</use>
 </list>
 <list>
@@ -90,8 +103,13 @@
 <use>1</use>
 </list>
 <list>
-<name>AUX</name>
-<FuncName>AUX</FuncName>
+<name>AUX1</name>
+<FuncName>AUX1</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>AUX2</name>
+<FuncName>AUX2</FuncName>
 <use>1</use>
 </list>
 <list>

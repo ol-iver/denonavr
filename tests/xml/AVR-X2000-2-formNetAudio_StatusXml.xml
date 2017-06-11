@@ -54,7 +54,7 @@
 <NetFuncSelect><value>FLICKR</value></NetFuncSelect>
 <selectSurround><value>MULTI CH IN                    </value></selectSurround>
 <VolumeDisplay><value>Absolute</value></VolumeDisplay>
-<MasterVolume><value>-55.0</value></MasterVolume>
+<MasterVolume><value>-64.0</value></MasterVolume>
 <Mute><value>off</value></Mute>
 <RemoteMaintenance><value>OFF</value></RemoteMaintenance>
 <SubwooferDisplay><value>FALSE</value></SubwooferDisplay>

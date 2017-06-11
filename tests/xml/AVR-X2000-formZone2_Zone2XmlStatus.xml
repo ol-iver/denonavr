@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <item>
-<Zone><value>LivingRoom</value></Zone>
+<Zone><value>Outside   </value></Zone>
 <Power><value>ON</value></Power>
 <InputFuncList>
 <value>TUNER</value>
@@ -41,11 +41,8 @@
 <value>USE</value>
 <value>USE</value>
 </SourceDelete>
-<InputFuncSelect><value>SAT/CBL</value></InputFuncSelect>
+<InputFuncSelect><value>CD</value></InputFuncSelect>
 <VolumeDisplay><value>Absolute</value></VolumeDisplay>
-<RestorerMode><value>----</value></RestorerMode>
-<SurrMode><value>MULTI CH IN                    </value></SurrMode>
-<MasterVolume><value>-55.0</value></MasterVolume>
+<MasterVolume><value>-26</value></MasterVolume>
 <Mute><value>off</value></Mute>
-<Model><value>21XX E3</value></Model>
 </item>

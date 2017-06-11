@@ -13,21 +13,21 @@
 <value>0</value>
 </chFlag>
 <szLine>
-<value>iPod/USB</value>
-<value>No Connection</value>
+<value>Now Playing</value>
+<value>Ihr hört 1LIVE Go * Mit Jan-Christian Zeller, Philipp Isterewicz * bis 01:00 Uhr * Mit Philipp Isterewicz und Jan</value>
+<value>1LIVE Live</value>
 <value></value>
 <value></value>
 <value></value>
 <value></value>
 <value></value>
 <value></value>
-<value>   [    0/0  ]</value>
 <value></value>
 </szLine>
 <NetworkNewTop><value>0</value></NetworkNewTop>
 <iPodRemoteDirect><value>0</value></iPodRemoteDirect>
 <Art>
-<value>0</value>
+<value>1</value>
 </Art>
 <Slideshow><value></value></Slideshow>
 <SlideshowLists>
@@ -47,14 +47,14 @@
 <ExitPopup><value>0</value></ExitPopup>
 <ExitPopupSPO><value>0</value></ExitPopupSPO>
 <ExitPopupLAS><value>0</value></ExitPopupLAS>
-<ModelId><value>4</value></ModelId>
-<BrandId><value>DENON_MODEL</value></BrandId>
-<SalesArea><value>0</value></SalesArea>
-<InputFuncSelect><value>HTPC</value></InputFuncSelect>
-<NetFuncSelect><value>FLICKR</value></NetFuncSelect>
-<selectSurround><value>MULTI CH IN                    </value></selectSurround>
+<ModelId><value>8</value></ModelId>
+<BrandId><value>MARANTZ_MODEL</value></BrandId>
+<SalesArea><value>1</value></SalesArea>
+<InputFuncSelect><value>NETWORK</value></InputFuncSelect>
+<NetFuncSelect><value>IRADIO</value></NetFuncSelect>
+<selectSurround><value>STEREO                         </value></selectSurround>
 <VolumeDisplay><value>Absolute</value></VolumeDisplay>
-<MasterVolume><value>-55.0</value></MasterVolume>
+<MasterVolume><value>-56.5</value></MasterVolume>
 <Mute><value>off</value></Mute>
 <RemoteMaintenance><value>OFF</value></RemoteMaintenance>
 <SubwooferDisplay><value>FALSE</value></SubwooferDisplay>
