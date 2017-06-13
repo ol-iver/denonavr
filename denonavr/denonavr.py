@@ -241,7 +241,7 @@ class DenonAVR(object):
                 return ET.fromstring(res.text)
             except ET.ParseError:
                 _LOGGER.error(
-                    "Host %s returned malformed XML after command: %s",
+                    "Host %s returned malformed XML for: %s",
                     host, command)
                 raise ConnectionError
         else:
@@ -594,7 +594,7 @@ class DenonAVR(object):
             root = ET.fromstring(res)
         except (ET.ParseError, TypeError):
             _LOGGER.error(
-                "Host %s returned malformed XML after command: %s",
+                "Host %s returned malformed XML for: %s",
                 self._host, self._urls.appcommand)
             return (renamed_sources, deleted_sources, False)
 

@@ -1,7 +1,7 @@
 # denonavr
 [![Build Status](https://travis-ci.org/scarface-4711/denonavr.svg?branch=master)](https://travis-ci.org/scarface-4711/denonavr)
 
-Automation Library for Denon AVR receivers - current version 0.4.4
+Automation Library for Denon AVR receivers - current version 0.5.0
 
 ## Installation
 
@@ -31,7 +31,20 @@ discovered_devices = denonavr.discover()
 instanced_devices = denonavr.init_all_receivers()
 ```
 
-Some code examples:
+In addition to the Main Zone which is always started, Zone2 and Zone3 of the receiver can be started assigning a dictionary to the add_zones parameter when creating the instance of the receiver.
+```
+import denonavr
+zones = {"Zone2": "Name of Zone2", "Zone3": "Name of Zone 3"}
+d = denonavr.DenonAVR("192.168.0.250", name="Name of Main Zone", add_zones=zones)
+```
+
+Each Zone is represented by an own instance which is assigned to the device instance by the zones attribute with type dictionary.
+```
+d.zones
+{'Zone2': <denonavr.denonavr.DenonAVRZones object at 0x000001F893EB7630>, 'Main': <denonavr.denonavr.DenonAVR object at 0x000001F8964155F8>, 'Zone3': <denonavr.denonavr.DenonAVRZones object at 0x000001F896415320>}
+```
+
+Some code examples for the Main Zone:
 ```
 >>> import denonavr
 >>> d = denonavr.DenonAVR("192.168.0.250")
@@ -108,6 +121,24 @@ True
 True
 >>> instanced_devices[0].power
 'STANDBY'
+```
+
+The code examples for the Main Zone instance d from above are working for all zones. The other zones (and Main Zone as well) could be accessed via zones attribute.
+```
+d.zones['Zone2'].power
+'OFF'
+d.zones['Zone2'].power_on()
+True
+d.zones['Zone2'].update()
+True
+d.zones['Zone2'].power
+'ON'
+d.zones['Zone2'].power_off()
+True
+d.zones['Zone2'].update()
+True
+d.zones['Zone2'].power
+'OFF
 ```
 
 ## License
