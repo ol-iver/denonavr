@@ -20,7 +20,7 @@ import requests
 
 _LOGGER = logging.getLogger("DenonAVR")
 
-DEVICEINFO_AVR_X_PATTERN = r"(.*AVR-X.*|.*SR500[6-9]|.*SR6008|.*NR1604)"
+DEVICEINFO_AVR_X_PATTERN = r"(.*AVR-X.*|.*SR500[6-9]|.*SR60(08|09|10)|.*NR1604)"
 
 SOURCE_MAPPING = {"TV AUDIO": "TV", "iPod/USB": "USB/IPOD", "Bluetooth": "BT",
                   "Blu-ray": "BD", "CBL/SAT": "SAT/CBL", "NETWORK": "NET",
