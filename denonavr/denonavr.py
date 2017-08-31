@@ -20,7 +20,9 @@ import requests
 
 _LOGGER = logging.getLogger("DenonAVR")
 
-DEVICEINFO_AVR_X_PATTERN = r"(.*AVR-X.*|.*SR500[6-9]|.*SR60(07|08|09|10)|.*NR1604)"
+DEVICEINFO_AVR_X_PATTERN = re.compile(
+    r"(.*AVR-X.*|.*SR500[6-9]|.*SR60(07|08|09|10)|.*NR1604)")
+DEVICEINFO_COMMAPI_PATTERN = re.compile(r"(0210|0300)")
 
 SOURCE_MAPPING = {"TV AUDIO": "TV", "iPod/USB": "USB/IPOD", "Bluetooth": "BT",
                   "Blu-ray": "BD", "CBL/SAT": "SAT/CBL", "NETWORK": "NET",
@@ -170,7 +172,7 @@ class DenonAVR(object):
     # pylint: disable=too-many-instance-attributes
     # pylint: disable=too-many-public-methods
 
-    def __init__(self, host, name=None, show_all_inputs=False,
+    def __init__(self, host, name=None, show_all_inputs=False, timeout=2.0,
                  add_zones=NO_ZONES):
         """
         Initialize MainZone of DenonAVR.
@@ -187,11 +189,14 @@ class DenonAVR(object):
         :param add_zones: Additional Zones for which an instance are created
         :type add_zones: dict [str, str] or None
         """
+        # pylint: disable=too-many-arguments
         self._name = name
         self._host = host
         self._zone = "Main"
         self._zones = {self._zone: self}
         self._urls = DENONAVR_URLS
+        # Timeout for HTTP calls to receiver
+        self.timeout = timeout
         # Initially assume receiver is a model like AVR-X...
         self._avr_x = True
         self._show_all_inputs = show_all_inputs
@@ -220,12 +225,11 @@ class DenonAVR(object):
         if add_zones is not None:
             self.create_zones(add_zones)
 
-    @classmethod
-    def get_status_xml(cls, host, command):
+    def get_status_xml(self, command):
         """Get status XML via HTTP and return it as XML ElementTree."""
         # Get XML structure via HTTP get
         res = requests.get("http://{host}{command}".format(
-            host=host, command=command), timeout=2)
+            host=self._host, command=command), timeout=self.timeout)
         # Continue with XML processing only if HTTP status code = 200
         if res.status_code == 200:
             try:
@@ -234,40 +238,39 @@ class DenonAVR(object):
             except ET.ParseError:
                 _LOGGER.error(
                     "Host %s returned malformed XML for: %s",
-                    host, command)
+                    self._host, command)
                 raise ValueError
         else:
             _LOGGER.error((
                 "Host %s returned HTTP status code %s "
-                "when trying to receive data"), host, res.status_code)
+                "when trying to receive data"), self._host, res.status_code)
             raise ValueError
 
-    @classmethod
-    def send_get_command(cls, host, command):
+    def send_get_command(self, command):
         """Send command via HTTP get to receiver."""
         # Send commands via HTTP get
         res = requests.get("http://{host}{command}".format(
-            host=host, command=command), timeout=2)
+            host=self._host, command=command), timeout=self.timeout)
         if res.status_code == 200:
             return True
         else:
             _LOGGER.error((
                 "Host %s returned HTTP status code %s "
-                "when trying to send GET commands"), host, res.status_code)
+                "when trying to send GET commands"),
+                          self._host, res.status_code)
             return False
 
-    @classmethod
-    def send_post_command(cls, host, command, body):
+    def send_post_command(self, command, body):
         """Send command via HTTP post to receiver."""
         # Send commands via HTTP post
         res = requests.post("http://{host}{command}".format(
-            host=host, command=command), data=body)
+            host=self._host, command=command), data=body)
         if res.status_code == 200:
             return res.text
         else:
             _LOGGER.error((
                 "Host %s returned HTTP status code %s when trying to "
-                "send POST commands"), host, res.status_code)
+                "send POST commands"), self._host, res.status_code)
             return False
 
     def create_zones(self, add_zones):
@@ -291,7 +294,7 @@ class DenonAVR(object):
         if self._name is None and self._urls.mainzone is not None:
             name_tag = {"FriendlyName": None}
             try:
-                root = self.get_status_xml(self._host, self._urls.mainzone)
+                root = self.get_status_xml(self._urls.mainzone)
                 # Get the tags from this XML
                 name_tag = self._get_status_from_xml_tags(root, name_tag)
             except (ValueError, requests.exceptions.ConnectionError,
@@ -304,7 +307,7 @@ class DenonAVR(object):
 
         # Get status XML from Denon receiver via HTTP
         try:
-            root = self.get_status_xml(self._host, self._urls.status)
+            root = self.get_status_xml(self._urls.status)
             # Get the tags from this XML
             relevant_tags = self._get_status_from_xml_tags(root, relevant_tags)
         except ValueError:
@@ -475,10 +478,10 @@ class DenonAVR(object):
             # AVR-X and AVR-nonX using different XMLs to provide info about
             # deleted sources
             if self._avr_x is True:
-                root = self.get_status_xml(self._host, self._urls.status)
+                root = self.get_status_xml(self._urls.status)
             # URL only available for Main Zone.
             elif self._urls.mainzone is not None:
-                root = self.get_status_xml(self._host, self._urls.mainzone)
+                root = self.get_status_xml(self._urls.mainzone)
             else:
                 return (renamed_sources, deleted_sources)
         except (ValueError, requests.exceptions.ConnectionError,
@@ -564,7 +567,7 @@ class DenonAVR(object):
         # Query receivers AppCommand.xml
         try:
             res = self.send_post_command(
-                self._host, self._urls.appcommand, body.getvalue())
+                self._urls.appcommand, body.getvalue())
         except (requests.exceptions.ConnectionError,
                 requests.exceptions.Timeout):
             _LOGGER.error("No connection to host %s. Renamed and deleted "
@@ -616,17 +619,27 @@ class DenonAVR(object):
         """
         # pylint: disable=too-many-branches
         # This XML is needed to get the sources of the receiver
-        root = self.get_status_xml(self._host, self._urls.deviceinfo)
+        root = self.get_status_xml(self._urls.deviceinfo)
 
         # Test if receiver is a AVR-X
+        # First test by CommApiVers
         try:
-            avr_x_pattern = re.compile(DEVICEINFO_AVR_X_PATTERN)
-            self._avr_x = bool(
-                avr_x_pattern.search(root.find("ModelName").text) is not None)
+            self._avr_x = bool(DEVICEINFO_COMMAPI_PATTERN.search(
+                root.find("CommApiVers").text) is not None)
         except AttributeError:
             # AttributeError occurs when ModelName tag is not found.
             # In this case there is no AVR-X device
             self._avr_x = False
+
+        # if first test did not find AVR-X device, check by model name
+        if self._avr_x is False:
+            try:
+                self._avr_x = bool(DEVICEINFO_AVR_X_PATTERN.search(
+                    root.find("ModelName").text) is not None)
+            except AttributeError:
+                # AttributeError occurs when ModelName tag is not found.
+                # In this case there is no AVR-X device
+                self._avr_x = False
 
         if self._avr_x is False:
             # Sources list is equal to list of renamed sources.
@@ -686,8 +699,7 @@ class DenonAVR(object):
         # Use different query URL based on selected source
         if self._input_func in self._netaudio_func_list:
             try:
-                root = self.get_status_xml(
-                    self._host, self._urls.netaudiostatus)
+                root = self.get_status_xml(self._urls.netaudiostatus)
             except (ValueError, requests.exceptions.ConnectionError,
                     requests.exceptions.Timeout):
                 return False
@@ -721,7 +733,7 @@ class DenonAVR(object):
 
         elif self._input_func == "Tuner" or self._input_func == "TUNER":
             try:
-                root = self.get_status_xml(self._host, self._urls.tunerstatus)
+                root = self.get_status_xml(self._urls.tunerstatus)
             except (ValueError, requests.exceptions.ConnectionError,
                     requests.exceptions.Timeout):
                 return False
@@ -748,8 +760,7 @@ class DenonAVR(object):
                                    .format(host=self._host))
         elif self._input_func == "HD Radio" or self._input_func == "HDRADIO":
             try:
-                root = self.get_status_xml(
-                    self._host, self._urls.hdtunerstatus)
+                root = self.get_status_xml(self._urls.hdtunerstatus)
             except (ValueError, requests.exceptions.ConnectionError,
                     requests.exceptions.Timeout):
                 return False
@@ -1003,7 +1014,7 @@ class DenonAVR(object):
             else:
                 command_url = self._urls.command_sel_src + linp
 
-            if self.send_get_command(self._host, command_url):
+            if self.send_get_command(command_url):
                 self._input_func = input_func
                 return True
             else:
@@ -1032,7 +1043,7 @@ class DenonAVR(object):
                     "ZoneName": "MAIN ZONE"}
             try:
                 if self.send_post_command(
-                        self._host, self._urls.command_netaudio_post, body):
+                        self._urls.command_netaudio_post, body):
                     self._state = STATE_PLAYING
                     return True
                 else:
@@ -1051,7 +1062,7 @@ class DenonAVR(object):
                     "ZoneName": "MAIN ZONE"}
             try:
                 if self.send_post_command(
-                        self._host, self._urls.command_netaudio_post, body):
+                        self._urls.command_netaudio_post, body):
                     self._state = STATE_PAUSED
                     return True
                 else:
@@ -1070,7 +1081,7 @@ class DenonAVR(object):
                     "ZoneName": "MAIN ZONE"}
             try:
                 return bool(self.send_post_command(
-                    self._host, self._urls.command_netaudio_post, body))
+                    self._urls.command_netaudio_post, body))
             except (requests.exceptions.ConnectionError,
                     requests.exceptions.Timeout):
                 _LOGGER.error(
@@ -1086,7 +1097,7 @@ class DenonAVR(object):
                     "ZoneName": "MAIN ZONE"}
             try:
                 return bool(self.send_post_command(
-                    self._host, self._urls.command_netaudio_post, body))
+                    self._urls.command_netaudio_post, body))
             except (requests.exceptions.ConnectionError,
                     requests.exceptions.Timeout):
                 _LOGGER.error("Connection error: next track command not sent")
@@ -1095,7 +1106,7 @@ class DenonAVR(object):
     def power_on(self):
         """Turn off receiver via HTTP get command."""
         try:
-            if self.send_get_command(self._host, self._urls.command_power_on):
+            if self.send_get_command(self._urls.command_power_on):
                 self._power = POWER_ON
                 self._state = STATE_ON
                 return True
@@ -1109,8 +1120,7 @@ class DenonAVR(object):
     def power_off(self):
         """Turn off receiver via HTTP get command."""
         try:
-            if self.send_get_command(self._host,
-                                     self._urls.command_power_standby):
+            if self.send_get_command(self._urls.command_power_standby):
                 self._power = POWER_STANDBY
                 self._state = STATE_OFF
                 return True
@@ -1124,8 +1134,7 @@ class DenonAVR(object):
     def volume_up(self):
         """Volume up receiver via HTTP get command."""
         try:
-            return bool(self.send_get_command(
-                self._host, self._urls.command_volume_up))
+            return bool(self.send_get_command(self._urls.command_volume_up))
         except (requests.exceptions.ConnectionError,
                 requests.exceptions.Timeout):
             _LOGGER.error("Connection error: volume up command not sent")
@@ -1134,8 +1143,7 @@ class DenonAVR(object):
     def volume_down(self):
         """Volume down receiver via HTTP get command."""
         try:
-            return bool(self.send_get_command(
-                self._host, self._urls.command_volume_down))
+            return bool(self.send_get_command(self._urls.command_volume_down))
         except (requests.exceptions.ConnectionError,
                 requests.exceptions.Timeout):
             _LOGGER.error("Connection error: volume down command not sent")
@@ -1153,7 +1161,7 @@ class DenonAVR(object):
 
         try:
             return bool(self.send_get_command(
-                self._host, self._urls.command_set_volume % volume))
+                self._urls.command_set_volume % volume))
         except (requests.exceptions.ConnectionError,
                 requests.exceptions.Timeout):
             _LOGGER.error("Connection error: set volume command not sent")
@@ -1163,15 +1171,13 @@ class DenonAVR(object):
         """Mute receiver via HTTP get command."""
         try:
             if mute:
-                if self.send_get_command(self._host,
-                                         self._urls.command_mute_on):
+                if self.send_get_command(self._urls.command_mute_on):
                     self._mute = STATE_ON
                     return True
                 else:
                     return False
             else:
-                if self.send_get_command(self._host,
-                                         self._urls.command_mute_off):
+                if self.send_get_command(self._urls.command_mute_off):
                     self._mute = STATE_OFF
                     return True
                 else:
@@ -1214,6 +1220,7 @@ class DenonAVRZones(DenonAVR):
 
         self._name = name
         self._host = self._parent_avr.host
+        self.timeout = self._parent_avr.timeout
         # Initially assume receiver is a model like AVR-X...
         self._avr_x = self._parent_avr._avr_x
         self._show_all_inputs = self._parent_avr._show_all_inputs
