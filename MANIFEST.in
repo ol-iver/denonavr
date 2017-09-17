@@ -1,0 +1,5 @@
+exclude .*
+exclude MANIFEST.in
+graft tests
+global-exclude __pycache__
+global-exclude *.py[co]
