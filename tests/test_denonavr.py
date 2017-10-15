@@ -24,7 +24,7 @@ TESTING_RECEIVERS = {"AVR-X4100W": NO_ZONES, "AVR-2312CI": NO_ZONES,
                      "M-RC610": NO_ZONES, "AVR-X2100W-2": NO_ZONES,
                      "AVR-X2000": ZONE2_ZONE3, "AVR-X2000-2": NO_ZONES,
                      "SR5008": NO_ZONES, "M-CR603": NO_ZONES,
-                     "NR1604": ZONE2_ZONE3}
+                     "NR1604": ZONE2_ZONE3, "AVR-4810": NO_ZONES}
 
 APPCOMMAND_URL = "/goform/AppCommand.xml"
 STATUS_URL = "/goform/formMainZone_MainZoneXmlStatus.xml"

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<Band><value></value></Band>
+<StationNameSh><value></value></StationNameSh>
+<Title><value></value></Title>
+<Artist><value></value></Artist>
+<Quality><value></value></Quality>
+<StationNameLo><value></value></StationNameLo>
+<PrgType><value></value></PrgType>
+<Album><value></value></Album>
+<Genre><value></value></Genre>
+<MltCurrch><value></value></MltCurrch>
+<SubChannel><value></value></SubChannel>
+<Preset><value></value></Preset>
+<PresetLists>
+<value index='0' skip='OFF' table='OFF' param=''/>
+<value index='1' skip='' table='A1' param=''/>
+<value index='2' skip='' table='A2' param=''/>
+<value index='3' skip='' table='A3' param=''/>
+<value index='4' skip='' table='A4' param=''/>
+<value index='5' skip='' table='A5' param=''/>
+<value index='6' skip='' table='A6' param=''/>
+<value index='7' skip='' table='A7' param=''/>
+<value index='8' skip='' table='A8' param=''/>
+<value index='9' skip='' table='B1' param=''/>
+<value index='10' skip='' table='B2' param=''/>
+<value index='11' skip='' table='B3' param=''/>
+<value index='12' skip='' table='B4' param=''/>
+<value index='13' skip='' table='B5' param=''/>
+<value index='14' skip='' table='B6' param=''/>
+<value index='15' skip='' table='B7' param=''/>
+<value index='16' skip='' table='B8' param=''/>
+<value index='17' skip='' table='C1' param=''/>
+<value index='18' skip='' table='C2' param=''/>
+<value index='19' skip='' table='C3' param=''/>
+<value index='20' skip='' table='C4' param=''/>
+<value index='21' skip='' table='C5' param=''/>
+<value index='22' skip='' table='C6' param=''/>
+<value index='23' skip='' table='C7' param=''/>
+<value index='24' skip='' table='C8' param=''/>
+<value index='25' skip='' table='D1' param=''/>
+<value index='26' skip='' table='D2' param=''/>
+<value index='27' skip='' table='D3' param=''/>
+<value index='28' skip='' table='D4' param=''/>
+<value index='29' skip='' table='D5' param=''/>
+<value index='30' skip='' table='D6' param=''/>
+<value index='31' skip='' table='D7' param=''/>
+<value index='32' skip='' table='D8' param=''/>
+<value index='33' skip='' table='E1' param=''/>
+<value index='34' skip='' table='E2' param=''/>
+<value index='35' skip='' table='E3' param=''/>
+<value index='36' skip='' table='E4' param=''/>
+<value index='37' skip='' table='E5' param=''/>
+<value index='38' skip='' table='E6' param=''/>
+<value index='39' skip='' table='E7' param=''/>
+<value index='40' skip='' table='E8' param=''/>
+<value index='41' skip='' table='F1' param=''/>
+<value index='42' skip='' table='F2' param=''/>
+<value index='43' skip='' table='F3' param=''/>
+<value index='44' skip='' table='F4' param=''/>
+<value index='45' skip='' table='F5' param=''/>
+<value index='46' skip='' table='F6' param=''/>
+<value index='47' skip='' table='F7' param=''/>
+<value index='48' skip='' table='F8' param=''/>
+<value index='49' skip='' table='G1' param=''/>
+<value index='50' skip='' table='G2' param=''/>
+<value index='51' skip='' table='G3' param=''/>
+<value index='52' skip='' table='G4' param=''/>
+<value index='53' skip='' table='G5' param=''/>
+<value index='54' skip='' table='G6' param=''/>
+<value index='55' skip='' table='G7' param=''/>
+<value index='56' skip='' table='G8' param=''/>
+</PresetLists>
+<Frequency><value> 0.00</value></Frequency>
+<Area><value>EUR</value></Area>
+<Mode><value></value></Mode>
+<ModelId><value>3</value></ModelId>
+<SalesArea><value>1</value></SalesArea>
+<InputFuncSelect><value>DVD</value></InputFuncSelect>
+<NetFuncSelect><value></value></NetFuncSelect>
+<InputFuncSelectMain><value>DVD</value></InputFuncSelectMain>
+<VolumeDisplay><value>Relative</value></VolumeDisplay>
+<MasterVolume><value>-25.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<RemoteMaintenance><value>OFF</value></RemoteMaintenance>
+</item>

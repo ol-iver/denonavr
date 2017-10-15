@@ -40,6 +40,10 @@ NETAUDIO_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
                     "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
                     "NET/USB", "Music Server", "NETWORK", "NET")
 
+# Image URLs
+STATIC_ALBUM_URL = "http://{host}/img/album%20art_S.png"
+ALBUM_COVERS_URL = "http://{host}/NetAudio/art.asp-jpg?{time}"
+
 # General URLs
 APPCOMMAND_URL = "/goform/AppCommand.xml"
 DEVICEINFO_URL = "/goform/Deviceinfo.xml"
@@ -169,8 +173,7 @@ ZONE2_ZONE3 = {"Zone2": None, "Zone3": None}
 class DenonAVR(object):
     """Representing a Denon AVR Device."""
 
-    # pylint: disable=too-many-instance-attributes
-    # pylint: disable=too-many-public-methods
+    # pylint: disable=too-many-instance-attributes,too-many-public-methods
 
     def __init__(self, host, name=None, show_all_inputs=False, timeout=2.0,
                  add_zones=NO_ZONES):
@@ -210,8 +213,7 @@ class DenonAVR(object):
         self._favorite_func_list = []
         self._state = None
         self._power = None
-        self._image_url = (
-            "http://{host}/img/album%20art_S.png".format(host=self._host))
+        self._image_url = (STATIC_ALBUM_URL.format(host=self._host))
         self._title = None
         self._artist = None
         self._album = None
@@ -289,17 +291,18 @@ class DenonAVR(object):
         Method queries device via HTTP and updates instance attributes.
         Returns "True" on success and "False" on fail.
         """
-        # pylint: disable=too-many-branches
+        # pylint: disable=too-many-branches,too-many-statements
         # If name is not set yet, get it from Main Zone URL
         if self._name is None and self._urls.mainzone is not None:
             name_tag = {"FriendlyName": None}
             try:
                 root = self.get_status_xml(self._urls.mainzone)
+            except (ValueError,
+                    requests.exceptions.RequestException):
+                _LOGGER.error("Receiver name could not be determined.")
+            else:
                 # Get the tags from this XML
                 name_tag = self._get_status_from_xml_tags(root, name_tag)
-            except (ValueError, requests.exceptions.ConnectionError,
-                    requests.exceptions.Timeout):
-                _LOGGER.error("Receiver name could not be determined")
 
         # Set all tags to be evaluated
         relevant_tags = {"Power": None, "InputFuncSelect": None, "Mute": None,
@@ -308,15 +311,28 @@ class DenonAVR(object):
         # Get status XML from Denon receiver via HTTP
         try:
             root = self.get_status_xml(self._urls.status)
-            # Get the tags from this XML
-            relevant_tags = self._get_status_from_xml_tags(root, relevant_tags)
         except ValueError:
             pass
-        except (requests.exceptions.ConnectionError,
-                requests.exceptions.Timeout):
+        except requests.exceptions.RequestException:
             # On timeout and connection error, the device is probably off
             self._power = POWER_OFF
+        else:
+            # Get the tags from this XML
+            relevant_tags = self._get_status_from_xml_tags(root, relevant_tags)
 
+        # Second option to update variables from different source
+        if relevant_tags and self._power != POWER_OFF:
+            try:
+                root = self.get_status_xml(self._urls.mainzone)
+            except (ValueError,
+                    requests.exceptions.RequestException):
+                pass
+            else:
+                # Get the tags from this XML
+                relevant_tags = self._get_status_from_xml_tags(root,
+                                                               relevant_tags)
+
+        # Error message if still some variables are not updated yet
         if relevant_tags and self._power != POWER_OFF:
             _LOGGER.error("Missing status information from XML of %s for: %s",
                           self._zone, ", ".join(relevant_tags.keys()))
@@ -339,10 +355,7 @@ class DenonAVR(object):
             self._band = None
             self._frequency = None
             self._station = None
-            if self._image_url != ("http://{host}/img/album%20art_S.png"
-                                   .format(host=self._host)):
-                self._image_url = ("http://{host}/img/album%20art_S.png"
-                                   .format(host=self._host))
+            self._image_url = (STATIC_ALBUM_URL.format(host=self._host))
         else:
             self._state = STATE_OFF
             self._title = None
@@ -377,8 +390,7 @@ class DenonAVR(object):
         # For structural information of the variables please see the methods
         try:
             receiver_sources = self._get_receiver_sources()
-        except (ValueError, requests.exceptions.ConnectionError,
-                requests.exceptions.Timeout):
+        except (ValueError, requests.exceptions.RequestException):
             # If connection error occurred, update failed
             _LOGGER.error("Connection error: Receiver sources list empty. "
                           "Please check if device is powered on.")
@@ -484,8 +496,7 @@ class DenonAVR(object):
                 root = self.get_status_xml(self._urls.mainzone)
             else:
                 return (renamed_sources, deleted_sources)
-        except (ValueError, requests.exceptions.ConnectionError,
-                requests.exceptions.Timeout):
+        except (ValueError, requests.exceptions.RequestException):
             return (renamed_sources, deleted_sources)
 
         # Get the relevant tags from XML structure
@@ -568,8 +579,7 @@ class DenonAVR(object):
         try:
             res = self.send_post_command(
                 self._urls.appcommand, body.getvalue())
-        except (requests.exceptions.ConnectionError,
-                requests.exceptions.Timeout):
+        except requests.exceptions.RequestException:
             _LOGGER.error("No connection to host %s. Renamed and deleted "
                           "sources could not be determined.", self._host)
             body.close()
@@ -641,6 +651,7 @@ class DenonAVR(object):
                 # In this case there is no AVR-X device
                 self._avr_x = False
 
+        # Not an AVR-X device, start determination of sources
         if self._avr_x is False:
             # Sources list is equal to list of renamed sources.
             non_x_sources, deleted_non_x_sources, status_success = (
@@ -660,8 +671,8 @@ class DenonAVR(object):
             non_x_sources.pop("SOURCE", None)
             return non_x_sources
 
+        # Following source determination of AVR-X receivers
         else:
-            # Following source determination of AVR-X receivers
             # receiver_sources is of type dict with "FuncName" as key and
             # "DefaultName" as value.
             receiver_sources = {}
@@ -694,14 +705,12 @@ class DenonAVR(object):
         Internal method which queries device via HTTP to update media
         information (title, artist, etc.) and URL of cover image.
         """
-        # pylint: disable=too-many-branches
-        # pylint: disable=too-many-statements
+        # pylint: disable=too-many-branches,too-many-statements
         # Use different query URL based on selected source
         if self._input_func in self._netaudio_func_list:
             try:
                 root = self.get_status_xml(self._urls.netaudiostatus)
-            except (ValueError, requests.exceptions.ConnectionError,
-                    requests.exceptions.Timeout):
+            except (ValueError, requests.exceptions.RequestException):
                 return False
 
             # Get the relevant tags from XML structure
@@ -715,10 +724,8 @@ class DenonAVR(object):
                                 child[4].text is not None) else None):
                         # Refresh cover with a new time stamp for media URL
                         # when track is changing
-                        self._image_url = (
-                            "http://{host}/NetAudio/art.asp-jpg?{time}"
-                            .format(host=self._host, time=int(time.time()))
-                            )
+                        self._image_url = (ALBUM_COVERS_URL.format(
+                            host=self._host, time=int(time.time())))
                         # On track change assume device is PLAYING
                         self._state = STATE_PLAYING
                     self._title = html.unescape(child[1].text) if (
@@ -734,8 +741,7 @@ class DenonAVR(object):
         elif self._input_func == "Tuner" or self._input_func == "TUNER":
             try:
                 root = self.get_status_xml(self._urls.tunerstatus)
-            except (ValueError, requests.exceptions.ConnectionError,
-                    requests.exceptions.Timeout):
+            except (ValueError, requests.exceptions.RequestException):
                 return False
 
             # Get the relevant tags from XML structure
@@ -754,15 +760,12 @@ class DenonAVR(object):
             self._state = STATE_PLAYING
 
             # No special cover, using a static one
-            if self._image_url != ("http://{host}/img/album%20art_S.png"
-                                   .format(host=self._host)):
-                self._image_url = ("http://{host}/img/album%20art_S.png"
-                                   .format(host=self._host))
+            self._image_url = (STATIC_ALBUM_URL.format(host=self._host))
+
         elif self._input_func == "HD Radio" or self._input_func == "HDRADIO":
             try:
                 root = self.get_status_xml(self._urls.hdtunerstatus)
-            except (ValueError, requests.exceptions.ConnectionError,
-                    requests.exceptions.Timeout):
+            except (ValueError, requests.exceptions.RequestException):
                 return False
 
             # Get the relevant tags from XML structure
@@ -790,10 +793,8 @@ class DenonAVR(object):
             self._state = STATE_PLAYING
 
             # No special cover, using a static one
-            if self._image_url != ("http://{host}/img/album%20art_S.png"
-                                   .format(host=self._host)):
-                self._image_url = ("http://{host}/img/album%20art_S.png"
-                                   .format(host=self._host))
+            self._image_url = (STATIC_ALBUM_URL.format(host=self._host))
+
         # No behavior implemented, so reset all variables for that source
         else:
             self._band = None
@@ -805,8 +806,7 @@ class DenonAVR(object):
             # Assume PLAYING_DEVICE is always PLAYING
             self._state = STATE_PLAYING
             # No special cover, using a static one
-            self._image_url = (
-                "http://{host}/img/album%20art_S.png".format(host=self._host))
+            self._image_url = (STATIC_ALBUM_URL.format(host=self._host))
 
         # Finished
         return True
@@ -1019,9 +1019,8 @@ class DenonAVR(object):
                 return True
             else:
                 return False
-        except (requests.exceptions.ConnectionError,
-                requests.exceptions.Timeout):
-            _LOGGER.error("Connection error: input function %s not set",
+        except requests.exceptions.RequestException:
+            _LOGGER.error("Connection error: input function %s not set.",
                           input_func)
             return False
 
@@ -1048,9 +1047,8 @@ class DenonAVR(object):
                     return True
                 else:
                     return False
-            except (requests.exceptions.ConnectionError,
-                    requests.exceptions.Timeout):
-                _LOGGER.error("Connection error: play command not sent")
+            except requests.exceptions.RequestException:
+                _LOGGER.error("Connection error: play command not sent.")
                 return False
 
     def _pause(self):
@@ -1067,9 +1065,8 @@ class DenonAVR(object):
                     return True
                 else:
                     return False
-            except (requests.exceptions.ConnectionError,
-                    requests.exceptions.Timeout):
-                _LOGGER.error("Connection error: pause command not sent")
+            except requests.exceptions.RequestException:
+                _LOGGER.error("Connection error: pause command not sent.")
                 return False
 
     def previous_track(self):
@@ -1082,10 +1079,9 @@ class DenonAVR(object):
             try:
                 return bool(self.send_post_command(
                     self._urls.command_netaudio_post, body))
-            except (requests.exceptions.ConnectionError,
-                    requests.exceptions.Timeout):
+            except requests.exceptions.RequestException:
                 _LOGGER.error(
-                    "Connection error: previous track command not sent")
+                    "Connection error: previous track command not sent.")
                 return False
 
     def next_track(self):
@@ -1098,9 +1094,8 @@ class DenonAVR(object):
             try:
                 return bool(self.send_post_command(
                     self._urls.command_netaudio_post, body))
-            except (requests.exceptions.ConnectionError,
-                    requests.exceptions.Timeout):
-                _LOGGER.error("Connection error: next track command not sent")
+            except requests.exceptions.RequestException:
+                _LOGGER.error("Connection error: next track command not sent.")
                 return False
 
     def power_on(self):
@@ -1112,9 +1107,8 @@ class DenonAVR(object):
                 return True
             else:
                 return False
-        except (requests.exceptions.ConnectionError,
-                requests.exceptions.Timeout):
-            _LOGGER.error("Connection error: power on command not sent")
+        except requests.exceptions.RequestException:
+            _LOGGER.error("Connection error: power on command not sent.")
             return False
 
     def power_off(self):
@@ -1126,27 +1120,24 @@ class DenonAVR(object):
                 return True
             else:
                 return False
-        except (requests.exceptions.ConnectionError,
-                requests.exceptions.Timeout):
-            _LOGGER.error("Connection error: power off command not sent")
+        except requests.exceptions.RequestException:
+            _LOGGER.error("Connection error: power off command not sent.")
             return False
 
     def volume_up(self):
         """Volume up receiver via HTTP get command."""
         try:
             return bool(self.send_get_command(self._urls.command_volume_up))
-        except (requests.exceptions.ConnectionError,
-                requests.exceptions.Timeout):
-            _LOGGER.error("Connection error: volume up command not sent")
+        except requests.exceptions.RequestException:
+            _LOGGER.error("Connection error: volume up command not sent.")
             return False
 
     def volume_down(self):
         """Volume down receiver via HTTP get command."""
         try:
             return bool(self.send_get_command(self._urls.command_volume_down))
-        except (requests.exceptions.ConnectionError,
-                requests.exceptions.Timeout):
-            _LOGGER.error("Connection error: volume down command not sent")
+        except requests.exceptions.RequestException:
+            _LOGGER.error("Connection error: volume down command not sent.")
             return False
 
     def set_volume(self, volume):
@@ -1162,9 +1153,8 @@ class DenonAVR(object):
         try:
             return bool(self.send_get_command(
                 self._urls.command_set_volume % volume))
-        except (requests.exceptions.ConnectionError,
-                requests.exceptions.Timeout):
-            _LOGGER.error("Connection error: set volume command not sent")
+        except requests.exceptions.RequestException:
+            _LOGGER.error("Connection error: set volume command not sent.")
             return False
 
     def mute(self, mute):
@@ -1182,9 +1172,8 @@ class DenonAVR(object):
                     return True
                 else:
                     return False
-        except (requests.exceptions.ConnectionError,
-                requests.exceptions.Timeout):
-            _LOGGER.error("Connection error: mute command not sent")
+        except requests.exceptions.RequestException:
+            _LOGGER.error("Connection error: mute command not sent.")
             return False
 
 
@@ -1235,8 +1224,7 @@ class DenonAVRZones(DenonAVR):
         self._favorite_func_list = self._parent_avr._favorite_func_list
         self._state = None
         self._power = None
-        self._image_url = (
-            "http://{host}/img/album%20art_S.png".format(host=self._host))
+        self._image_url = (STATIC_ALBUM_URL.format(host=self._host))
         self._title = None
         self._artist = None
         self._album = None

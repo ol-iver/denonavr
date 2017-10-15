@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<Power><value>ON</value></Power>
+<ZonePower><value>ON</value></ZonePower>
+<InputFuncList>
+<value>SOURCE</value>
+<value>TUNER</value>
+<value>PHONO</value>
+<value>CD</value>
+<value>DVD</value>
+<value>HDP</value>
+<value>TV</value>
+<value>SAT/CBL</value>
+<value>VCR</value>
+<value>DVR</value>
+<value>V.AUX</value>
+<value>NET/USB</value>
+<value>XM</value>
+<value>SIRIUS</value>
+<value>HDRADIO</value>
+</InputFuncList>
+<RenameSource>
+<value></value>
+<value>TUNER   </value>
+<value>PHONO   </value>
+<value>CD      </value>
+<value>PhonoPre</value>
+<value>HDP     </value>
+<value>TV      </value>
+<value>WeTek   </value>
+<value>XBox One</value>
+<value>AirPlay </value>
+<value>V.AUX   </value>
+<value>NET/USB </value>
+<value></value>
+<value></value>
+<value></value>
+</RenameSource>
+<RenameZone><value>MAIN ZONE </value></RenameZone>
+<SourceDelete>
+<value></value>
+<value>DEL</value>
+<value>DEL</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value></value>
+<value></value>
+<value></value>
+</SourceDelete>
+<TopMenuLink><value>ON</value></TopMenuLink>
+<ModelId><value>3</value></ModelId>
+<SalesArea><value>1</value></SalesArea>
+<InputFuncSelect><value>DVD</value></InputFuncSelect>
+<NetFuncSelect><value></value></NetFuncSelect>
+<InputFuncSelectMain><value>DVD</value></InputFuncSelectMain>
+<VolumeDisplay><value>Relative</value></VolumeDisplay>
+<MasterVolume><value>-25.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<RemoteMaintenance><value>OFF</value></RemoteMaintenance>
+</item>
