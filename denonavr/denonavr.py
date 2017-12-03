@@ -221,6 +221,7 @@ class DenonAVR(object):
         self._frequency = None
         self._station = None
         # Fill variables with initial values
+        self.get_receiver_name()
         self._update_input_func_list()
         self.update()
         # Create instances of additional zones if requested
@@ -292,18 +293,6 @@ class DenonAVR(object):
         Returns "True" on success and "False" on fail.
         """
         # pylint: disable=too-many-branches,too-many-statements
-        # If name is not set yet, get it from Main Zone URL
-        if self._name is None and self._urls.mainzone is not None:
-            name_tag = {"FriendlyName": None}
-            try:
-                root = self.get_status_xml(self._urls.mainzone)
-            except (ValueError,
-                    requests.exceptions.RequestException):
-                _LOGGER.error("Receiver name could not be determined.")
-            else:
-                # Get the tags from this XML
-                name_tag = self._get_status_from_xml_tags(root, name_tag)
-
         # Set all tags to be evaluated
         relevant_tags = {"Power": None, "InputFuncSelect": None, "Mute": None,
                          "MasterVolume": None}
@@ -468,6 +457,26 @@ class DenonAVR(object):
 
         # Finished
         return True
+
+    def get_receiver_name(self):
+        """Get name of receiver from web interface if not set."""
+        # If name is not set yet, get it from Main Zone URL
+        if self._name is None and self._urls.mainzone is not None:
+            name_tag = {"FriendlyName": None}
+            try:
+                root = self.get_status_xml(self._urls.mainzone)
+            except (ValueError,
+                    requests.exceptions.RequestException):
+                _LOGGER.warning("Receiver name could not be determined. "
+                                "Using standard name: Denon AVR.")
+                self._name = "Denon AVR"
+            else:
+                # Get the tags from this XML
+                name_tag = self._get_status_from_xml_tags(root, name_tag)
+                if name_tag:
+                    _LOGGER.warning("Receiver name could not be determined. "
+                                    "Using standard name: Denon AVR.")
+                    self._name = "Denon AVR"
 
     def _get_renamed_deleted_sources(self):
         """

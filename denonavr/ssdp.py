@@ -80,10 +80,7 @@ def identify_denonavr_receivers():
         if receiver:
             receivers.append(receiver)
 
-    if receivers:
-        return receivers
-    else:
-        return None
+    return receivers
 
 
 def send_ssdp_broadcast():

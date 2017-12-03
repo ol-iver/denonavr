@@ -31,7 +31,7 @@ DATA
     __title__ = 'denonavr'
 
 VERSION
-    0.5.3
+    0.5.5
 
 ====================================================================================
 
@@ -74,6 +74,12 @@ CLASSES
      |  create_zones(self, add_zones)
      |      Create instances of additional zones for the receiver.
      |  
+     |  get_receiver_name(self)
+     |      Get name of receiver from web interface if not set.
+     |  
+     |  get_status_xml(self, command) from builtins.type
+     |      Get status XML via HTTP and return it as XML ElementTree.
+     |  
      |  mute(self, mute)
      |      Mute receiver via HTTP get command.
      |  
@@ -88,6 +94,12 @@ CLASSES
      |  
      |  previous_track(self)
      |      Send previous track command to receiver command via HTTP post.
+     |  
+     |  send_get_command(self, command) from builtins.type
+     |      Send command via HTTP get to receiver.
+     |  
+     |  send_post_command(self, command, body) from builtins.type
+     |      Send command via HTTP post to receiver.
      |  
      |  set_input_func(self, input_func)
      |      Set input_func of device.
@@ -116,18 +128,6 @@ CLASSES
      |  
      |  volume_up(self)
      |      Volume up receiver via HTTP get command.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Class methods defined here:
-     |  
-     |  get_status_xml(host, command) from builtins.type
-     |      Get status XML via HTTP and return it as XML ElementTree.
-     |  
-     |  send_get_command(host, command) from builtins.type
-     |      Send command via HTTP get to receiver.
-     |  
-     |  send_post_command(host, command, body) from builtins.type
-     |      Send command via HTTP post to receiver.
      |  
      |  ----------------------------------------------------------------------
      |  Data descriptors defined here:
@@ -240,6 +240,12 @@ CLASSES
      |  ----------------------------------------------------------------------
      |  Methods inherited from DenonAVR:
      |  
+     |  get_receiver_name(self)
+     |      Get name of receiver from web interface if not set.
+     |  
+     |  get_status_xml(self, command) from builtins.type
+     |      Get status XML via HTTP and return it as XML ElementTree.
+     |  
      |  mute(self, mute)
      |      Mute receiver via HTTP get command.
      |  
@@ -254,6 +260,12 @@ CLASSES
      |  
      |  previous_track(self)
      |      Send previous track command to receiver command via HTTP post.
+     |  
+     |  send_get_command(self, command) from builtins.type
+     |      Send command via HTTP get to receiver.
+     |  
+     |  send_post_command(self, command, body) from builtins.type
+     |      Send command via HTTP post to receiver.
      |  
      |  set_input_func(self, input_func)
      |      Set input_func of device.
@@ -282,18 +294,6 @@ CLASSES
      |  
      |  volume_up(self)
      |      Volume up receiver via HTTP get command.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Class methods inherited from DenonAVR:
-     |  
-     |  get_status_xml(host, command) from builtins.type
-     |      Get status XML via HTTP and return it as XML ElementTree.
-     |  
-     |  send_get_command(host, command) from builtins.type
-     |      Send command via HTTP get to receiver.
-     |  
-     |  send_post_command(host, command, body) from builtins.type
-     |      Send command via HTTP post to receiver.
      |  
      |  ----------------------------------------------------------------------
      |  Data descriptors inherited from DenonAVR:

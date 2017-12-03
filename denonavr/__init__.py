@@ -18,7 +18,7 @@ from . import ssdp
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 __title__ = "denonavr"
-__version__ = "0.5.4"
+__version__ = "0.5.5"
 
 
 def discover():
@@ -43,11 +43,8 @@ def init_all_receivers():
     """
     receivers = discover()
 
-    if receivers is None:
-        return None
-    else:
-        init_receivers = []
-        for receiver in receivers:
-            init_receiver = DenonAVR(receiver["host"])
-            init_receivers.append(init_receiver)
-        return init_receivers
+    init_receivers = []
+    for receiver in receivers:
+        init_receiver = DenonAVR(receiver["host"])
+        init_receivers.append(init_receiver)
+    return init_receivers
