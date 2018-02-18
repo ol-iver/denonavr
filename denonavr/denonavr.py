@@ -436,17 +436,33 @@ class DenonAVR(object):
 
         zone = self._get_own_zone()
 
-        self._power = root[0].find(zone).text
-        self._mute = root[3].find(zone).text
-        self._volume = root.find("./cmd/{zone}/volume".format(zone=zone)).text
-
-        input_func = root.find(
-            "./cmd/{zone}/source".format(zone=zone)).text
         try:
-            self._input_func = self._input_func_list_rev[input_func]
-        except KeyError:
-            _LOGGER.error("No mapping for input function %s found", input_func)
-            return False
+            self._power = root[0].find(zone).text
+        except AttributeError:
+            _LOGGER.error("No PowerStatus found for zone %s", self.zone)
+
+        try:
+            self._mute = root[3].find(zone).text
+        except AttributeError:
+            _LOGGER.error("No MuteStatus found for zone %s", self.zone)
+
+        try:
+            self._volume = root.find(
+                "./cmd/{zone}/volume".format(zone=zone)).text
+        except AttributeError:
+            _LOGGER.error("No VolumeStatus found for zone %s", self.zone)
+
+        try:
+            input_func = root.find(
+                "./cmd/{zone}/source".format(zone=zone)).text
+        except AttributeError:
+            _LOGGER.error("No Source found for zone %s", self.zone)
+        else:
+            try:
+                self._input_func = self._input_func_list_rev[input_func]
+            except KeyError:
+                _LOGGER.error(
+                    "No mapping for input function %s found", input_func)
 
         return True
 
