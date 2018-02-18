@@ -204,8 +204,6 @@ class DenonAVR(object):
         self._receiver_type = None
         # Port 80 for avr and avr-x, Port 8080 port avr-x-2016
         self._receiver_port = None
-        # Receiver update method
-        self.update = self._update_avr
 
         self._show_all_inputs = show_all_inputs
 
@@ -293,6 +291,17 @@ class DenonAVR(object):
                 zname is None) else zname
             zone_inst = DenonAVRZones(self, zone, zonename)
             self._zones[zone] = zone_inst
+
+    def update(self):
+        """
+        Get the latest status information from device.
+
+        Method executes the update method for the current receiver type.
+        """
+        if self._receiver_type == 'avr-x-2016':
+            return self._update_avr_2016()
+        else:
+            return self._update_avr()
 
     def _update_avr(self):
         """
@@ -793,13 +802,10 @@ class DenonAVR(object):
         if self._receiver_type is None:
             self._receiver_type = 'avr'
             self._receiver_port = 80
-            self.update = self._update_avr
         elif self._receiver_type == 'avr-x-2016':
             self._receiver_port = 8080
-            self.update = self._update_avr_2016
         else:
             self._receiver_port = 80
-            self.update = self._update_avr
 
         # Not an AVR-X device, start determination of sources
         if self._receiver_type == 'avr':
@@ -1375,14 +1381,6 @@ class DenonAVRZones(DenonAVR):
         self._receiver_type = self._parent_avr._receiver_type
         self._receiver_port = self._parent_avr._receiver_port
 
-        # Set update method
-        if self._receiver_type == 'avr':
-            self.update = self._update_avr
-        elif self._receiver_type == 'avr-x-2016':
-            self.update = self._update_avr_2016
-        else:
-            self.update = self._update_avr
-
         self._show_all_inputs = self._parent_avr._show_all_inputs
         self._mute = STATE_OFF
         self._volume = "--"
@@ -1418,14 +1416,6 @@ class DenonAVRZones(DenonAVR):
         # Reset receiver type and port
         self._receiver_type = self._parent_avr._receiver_type
         self._receiver_port = self._parent_avr._receiver_port
-
-        # Set update method
-        if self._receiver_type == 'avr':
-            self.update = self._update_avr
-        elif self._receiver_type == 'avr-x-2016':
-            self.update = self._update_avr_2016
-        else:
-            self.update = self._update_avr
 
         return upd_success
 
