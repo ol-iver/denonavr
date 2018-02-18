@@ -200,9 +200,15 @@ class DenonAVR(object):
         self._urls = DENONAVR_URLS
         # Timeout for HTTP calls to receiver
         self.timeout = timeout
-        # Initially assume receiver is a model like AVR-X...
-        self._avr_x = True
+        # Receiver types could be avr, avr-x, avr-x-2016 after being determined
+        self._receiver_type = None
+        # Port 80 for avr and avr-x, Port 8080 port avr-x-2016
+        self._receiver_port = None
+        # Receiver update method
+        self.update = self._update_avr
+
         self._show_all_inputs = show_all_inputs
+
         self._mute = STATE_OFF
         self._volume = "--"
         self._input_func = None
@@ -221,8 +227,8 @@ class DenonAVR(object):
         self._frequency = None
         self._station = None
         # Fill variables with initial values
-        self.get_receiver_name()
         self._update_input_func_list()
+        self.get_receiver_name()
         self.update()
         # Create instances of additional zones if requested
         if add_zones is not None:
@@ -231,8 +237,9 @@ class DenonAVR(object):
     def get_status_xml(self, command):
         """Get status XML via HTTP and return it as XML ElementTree."""
         # Get XML structure via HTTP get
-        res = requests.get("http://{host}{command}".format(
-            host=self._host, command=command), timeout=self.timeout)
+        res = requests.get("http://{host}:{port}{command}".format(
+            host=self._host, port=self._receiver_port, command=command),
+            timeout=self.timeout)
         # Continue with XML processing only if HTTP status code = 200
         if res.status_code == 200:
             try:
@@ -252,8 +259,9 @@ class DenonAVR(object):
     def send_get_command(self, command):
         """Send command via HTTP get to receiver."""
         # Send commands via HTTP get
-        res = requests.get("http://{host}{command}".format(
-            host=self._host, command=command), timeout=self.timeout)
+        res = requests.get("http://{host}:{port}{command}".format(
+            host=self._host, port=self._receiver_port, command=command),
+            timeout=self.timeout)
         if res.status_code == 200:
             return True
         else:
@@ -266,8 +274,9 @@ class DenonAVR(object):
     def send_post_command(self, command, body):
         """Send command via HTTP post to receiver."""
         # Send commands via HTTP post
-        res = requests.post("http://{host}{command}".format(
-            host=self._host, command=command), data=body)
+        res = requests.post("http://{host}:{port}{command}".format(
+            host=self._host, port=self._receiver_port, command=command),
+            data=body, timeout=self.timeout)
         if res.status_code == 200:
             return res.text
         else:
@@ -285,12 +294,13 @@ class DenonAVR(object):
             zone_inst = DenonAVRZones(self, zone, zonename)
             self._zones[zone] = zone_inst
 
-    def update(self):
+    def _update_avr(self):
         """
         Get the latest status information from device.
 
         Method queries device via HTTP and updates instance attributes.
         Returns "True" on success and "False" on fail.
+        This method is for pre 2016 AVR(-X) devices
         """
         # pylint: disable=too-many-branches,too-many-statements
         # Set all tags to be evaluated
@@ -367,6 +377,79 @@ class DenonAVR(object):
         # Finished
         return True
 
+    def _update_avr_2016(self):
+        """
+        Get the latest status information from device.
+
+        Method queries device via HTTP and updates instance attributes.
+        Returns "True" on success and "False" on fail.
+        This method is for AVR-X  devices built in 2016 and later.
+        """
+        # Prepare POST XML body for AppCommand.xml
+        post_root = ET.Element("tx")
+        # Append tag for AllZonePowerStatus
+        item = ET.Element("cmd")
+        item.set("id", "1")
+        item.text = "GetAllZonePowerStatus"
+        post_root.append(item)
+        # Append tag for GetAllZoneSource
+        item = ET.Element("cmd")
+        item.set("id", "1")
+        item.text = "GetAllZoneSource"
+        post_root.append(item)
+        # Append tag for GetAllZoneVolume
+        item = ET.Element("cmd")
+        item.set("id", "1")
+        item.text = "GetAllZoneVolume"
+        post_root.append(item)
+        # Append tag for GetAllZoneMuteStatus
+        item = ET.Element("cmd")
+        item.set("id", "1")
+        item.text = "GetAllZoneMuteStatus"
+        post_root.append(item)
+        # Buffer XML body as binary IO
+        body = BytesIO()
+        post_tree = ET.ElementTree(post_root)
+        post_tree.write(body, encoding="utf-8", xml_declaration=True)
+
+        # Query receivers AppCommand.xml
+        try:
+            res = self.send_post_command(
+                self._urls.appcommand, body.getvalue())
+        except requests.exceptions.RequestException:
+            _LOGGER.error("No connection to host %s. Update failed.",
+                          self._host)
+            body.close()
+            return False
+
+        # Buffered XML not needed anymore: close
+        body.close()
+
+        try:
+            # Return XML ElementTree
+            root = ET.fromstring(res)
+        except (ET.ParseError, TypeError):
+            _LOGGER.error(
+                "Host %s returned malformed XML for: %s",
+                self._host, self._urls.appcommand)
+            return False
+
+        zone = self._get_own_zone()
+
+        self._power = root[0].find(zone).text
+        self._mute = root[3].find(zone).text
+        self._volume = root.find("./cmd/{zone}/volume".format(zone=zone)).text
+
+        input_func = root.find(
+            "./cmd/{zone}/source".format(zone=zone)).text
+        try:
+            self._input_func = self._input_func_list_rev[input_func]
+        except KeyError:
+            _LOGGER.error("No mapping for input function %s found", input_func)
+            return False
+
+        return True
+
     def _update_input_func_list(self):
         """
         Update sources list from receiver.
@@ -386,7 +469,7 @@ class DenonAVR(object):
             return False
 
         # First input_func_list determination of AVR-X receivers
-        if self._avr_x is True:
+        if self._receiver_type in ['avr-x', 'avr-x-2016']:
             renamed_sources, deleted_sources, status_success = (
                 self._get_renamed_deleted_sourcesapp())
 
@@ -439,7 +522,7 @@ class DenonAVR(object):
                         self._playing_func_list.append(item[1])
 
         # Determination of input_func_list for non AVR-nonX receivers
-        else:
+        elif self._receiver_type == 'avr':
             # Clear and rebuild the sources lists
             self._input_func_list.clear()
             self._input_func_list_rev.clear()
@@ -454,6 +537,9 @@ class DenonAVR(object):
                 # If the source is a playing source, save its name
                 if item[0] in PLAYING_SOURCES:
                     self._playing_func_list.append(item[1])
+        else:
+            _LOGGER.error('Receiver type not set yet.')
+            return False
 
         # Finished
         return True
@@ -498,10 +584,11 @@ class DenonAVR(object):
         try:
             # AVR-X and AVR-nonX using different XMLs to provide info about
             # deleted sources
-            if self._avr_x is True:
+            if self._receiver_type == 'avr-x':
                 root = self.get_status_xml(self._urls.status)
             # URL only available for Main Zone.
-            elif self._urls.mainzone is not None:
+            elif (self._receiver_type == 'avr'
+                  and self._urls.mainzone is not None):
                 root = self.get_status_xml(self._urls.mainzone)
             else:
                 return (renamed_sources, deleted_sources)
@@ -635,33 +722,71 @@ class DenonAVR(object):
 
         Internal method which queries device via HTTP to get the receiver's
         input sources.
+        This method also determines the type of the receiver
+        (avr, avr-x, avr-x-2016).
         """
         # pylint: disable=too-many-branches
-        # This XML is needed to get the sources of the receiver
-        root = self.get_status_xml(self._urls.deviceinfo)
 
-        # Test if receiver is a AVR-X
-        # First test by CommApiVers
-        try:
-            self._avr_x = bool(DEVICEINFO_COMMAPI_PATTERN.search(
-                root.find("CommApiVers").text) is not None)
-        except AttributeError:
-            # AttributeError occurs when ModelName tag is not found.
-            # In this case there is no AVR-X device
-            self._avr_x = False
+        connection_failed = False
+        # Test if receiver is a AVR-X with port 80 for pre 2016 devices and
+        # port 8080 devices 2016 and later
+        r_types = {'avr-x': 80, 'avr-x-2016': 8080}
+        for r_type, port in r_types.items():
+            self._receiver_port = port
 
-        # if first test did not find AVR-X device, check by model name
-        if self._avr_x is False:
+            # This XML is needed to get the sources of the receiver
+
             try:
-                self._avr_x = bool(DEVICEINFO_AVR_X_PATTERN.search(
-                    root.find("ModelName").text) is not None)
-            except AttributeError:
-                # AttributeError occurs when ModelName tag is not found.
-                # In this case there is no AVR-X device
-                self._avr_x = False
+                root = self.get_status_xml(self._urls.deviceinfo)
+            except requests.exceptions.RequestException:
+                self._receiver_type = None
+                connection_failed = True
+            else:
+                connection_failed = False
+                # First test by CommApiVers
+                try:
+                    if bool(DEVICEINFO_COMMAPI_PATTERN.search(
+                            root.find("CommApiVers").text) is not None):
+                        self._receiver_type = r_type
+                        # receiver found break the loop
+                        break
+                except AttributeError:
+                    # AttributeError occurs when ModelName tag is not found.
+                    # In this case there is no AVR-X device
+                    self._receiver_type = None
+
+                # if first test did not find AVR-X device, check by model name
+                if self._receiver_type is None:
+                    try:
+                        if bool(DEVICEINFO_AVR_X_PATTERN.search(
+                                root.find("ModelName").text) is not None):
+                            self._receiver_type = r_type
+                            # receiver found break the loop
+                            break
+                    except AttributeError:
+                        # AttributeError occurs when ModelName tag is not found
+                        # In this case there is no AVR-X device
+                        self._receiver_type = None
+
+        # If connections to port 80 and 8080 failed,
+        # the whole device is probably offline
+        if connection_failed:
+            raise requests.exceptions.RequestException
+
+        # Set ports and update method
+        if self._receiver_type is None:
+            self._receiver_type = 'avr'
+            self._receiver_port = 80
+            self.update = self._update_avr
+        elif self._receiver_type == 'avr-x-2016':
+            self._receiver_port = 8080
+            self.update = self._update_avr_2016
+        else:
+            self._receiver_port = 80
+            self.update = self._update_avr
 
         # Not an AVR-X device, start determination of sources
-        if self._avr_x is False:
+        if self._receiver_type == 'avr':
             # Sources list is equal to list of renamed sources.
             non_x_sources, deleted_non_x_sources, status_success = (
                 self._get_renamed_deleted_sourcesapp())
@@ -706,6 +831,17 @@ class DenonAVR(object):
                                     "DefaultName").text
 
             return receiver_sources
+
+    def _get_own_zone(self):
+        """ Get zone from actual instance.
+
+            These zone information are used to evaluate responses of HTTP POST
+            commands.
+        """
+        if self._zone == "Main":
+            return "zone1"
+        else:
+            return self.zone.lower()
 
     def _update_media_data(self):
         """
@@ -1000,7 +1136,7 @@ class DenonAVR(object):
         # For selection of sources other names then at receiving sources
         # have to be used
         # AVR-X receiver needs source mapping to set input_func
-        if self._avr_x is True:
+        if self._receiver_type in ['avr-x', 'avr-x-2016']:
             direct_mapping = False
             try:
                 linp = CHANGE_INPUT_MAPPING[self._input_func_list[input_func]]
@@ -1219,8 +1355,18 @@ class DenonAVRZones(DenonAVR):
         self._name = name
         self._host = self._parent_avr.host
         self.timeout = self._parent_avr.timeout
-        # Initially assume receiver is a model like AVR-X...
-        self._avr_x = self._parent_avr._avr_x
+        # Receiver type and port
+        self._receiver_type = self._parent_avr._receiver_type
+        self._receiver_port = self._parent_avr._receiver_port
+
+        # Set update method
+        if self._receiver_type == 'avr':
+            self.update = self._update_avr
+        elif self._receiver_type == 'avr-x-2016':
+            self.update = self._update_avr_2016
+        else:
+            self.update = self._update_avr
+
         self._show_all_inputs = self._parent_avr._show_all_inputs
         self._mute = STATE_OFF
         self._volume = "--"
@@ -1251,7 +1397,21 @@ class DenonAVRZones(DenonAVR):
         Thus calling its method instead.
         """
         # pylint: disable=protected-access
-        return self._parent_avr._update_input_func_list()
+        upd_success = self._parent_avr._update_input_func_list()
+
+        # Reset receiver type and port
+        self._receiver_type = self._parent_avr._receiver_type
+        self._receiver_port = self._parent_avr._receiver_port
+
+        # Set update method
+        if self._receiver_type == 'avr':
+            self.update = self._update_avr
+        elif self._receiver_type == 'avr-x-2016':
+            self.update = self._update_avr_2016
+        else:
+            self.update = self._update_avr
+
+        return upd_success
 
     def create_zones(self, add_zones):
         """Only call this method from parent AVR (Main Zone)."""
