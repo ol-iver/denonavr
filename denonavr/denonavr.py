@@ -447,12 +447,12 @@ class DenonAVR(object):
 
         try:
             self._power = root[0].find(zone).text
-        except AttributeError:
+        except (AttributeError, IndexError):
             _LOGGER.error("No PowerStatus found for zone %s", self.zone)
 
         try:
             self._mute = root[3].find(zone).text
-        except AttributeError:
+        except (AttributeError, IndexError):
             _LOGGER.error("No MuteStatus found for zone %s", self.zone)
 
         try:
