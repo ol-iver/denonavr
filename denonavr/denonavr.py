@@ -232,7 +232,7 @@ class DenonAVR(object):
         if add_zones is not None:
             self.create_zones(add_zones)
 
-    def get_status_xml(self, command):
+    def get_status_xml(self, command, suppress_errors=False):
         """Get status XML via HTTP and return it as XML ElementTree."""
         # Get XML structure via HTTP get
         res = requests.get("http://{host}:{port}{command}".format(
@@ -244,14 +244,17 @@ class DenonAVR(object):
                 # Return XML ElementTree
                 return ET.fromstring(res.text)
             except ET.ParseError:
-                _LOGGER.error(
-                    "Host %s returned malformed XML for: %s",
-                    self._host, command)
+                if not suppress_errors:
+                    _LOGGER.error(
+                        "Host %s returned malformed XML for: %s",
+                        self._host, command)
                 raise ValueError
         else:
-            _LOGGER.error((
-                "Host %s returned HTTP status code %s "
-                "when trying to receive data"), self._host, res.status_code)
+            if not suppress_errors:
+                _LOGGER.error((
+                    "Host %s returned HTTP status code %s "
+                    "when trying to receive data"), self._host,
+                    res.status_code)
             raise ValueError
 
     def send_get_command(self, command):
@@ -755,15 +758,16 @@ class DenonAVR(object):
         connection_failed = False
         # Test if receiver is a AVR-X with port 80 for pre 2016 devices and
         # port 8080 devices 2016 and later
-        r_types = {'avr-x': 80, 'avr-x-2016': 8080}
-        for r_type, port in r_types.items():
+        r_types = [('avr-x', 80), ('avr-x-2016', 8080)]
+        for r_type, port in r_types:
             self._receiver_port = port
 
             # This XML is needed to get the sources of the receiver
 
             try:
-                root = self.get_status_xml(self._urls.deviceinfo)
-            except requests.exceptions.RequestException:
+                root = self.get_status_xml(self._urls.deviceinfo,
+                                           suppress_errors=True)
+            except (ValueError, requests.exceptions.RequestException):
                 self._receiver_type = None
                 connection_failed = True
             else:
