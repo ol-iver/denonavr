@@ -24,6 +24,11 @@ DEVICEINFO_AVR_X_PATTERN = re.compile(
     r"(.*AVR-X.*|.*SR500[6-9]|.*SR60(07|08|09|10)|.*NR1604)")
 DEVICEINFO_COMMAPI_PATTERN = re.compile(r"(0210|0300)")
 
+ReceiverType = namedtuple('ReceiverType', ["type", "port"])
+AVR = ReceiverType(type="avr", port=80)
+AVR_X = ReceiverType(type="avr-x", port=80)
+AVR_X_2016 = ReceiverType(type="avr-x-2016", port=8080)
+
 SOURCE_MAPPING = {"TV AUDIO": "TV", "iPod/USB": "USB/IPOD", "Bluetooth": "BT",
                   "Blu-ray": "BD", "CBL/SAT": "SAT/CBL", "NETWORK": "NET",
                   "Media Player": "MPLAY", "AUX": "AUX1"}
@@ -224,13 +229,62 @@ class DenonAVR(object):
         self._band = None
         self._frequency = None
         self._station = None
-        # Fill variables with initial values
+
+        # Determine receiver type and input functions
         self._update_input_func_list()
-        self.get_receiver_name()
+
+        if self._receiver_type == AVR_X_2016.type:
+            self._get_zone_name()
+        else:
+            self._get_receiver_name()
+        # Get initial setting of values
         self.update()
         # Create instances of additional zones if requested
         if add_zones is not None:
             self.create_zones(add_zones)
+
+    def exec_appcommand_post(self, attribute_list):
+        """
+        Prepare and execute a HTTP POST call to AppCommand.xml end point.
+
+        Returns XML ElementTree on success and None on fail.
+        """
+        # Prepare POST XML body for AppCommand.xml
+        post_root = ET.Element("tx")
+
+        for attribute in attribute_list:
+            # Append tags for each attribute
+            item = ET.Element("cmd")
+            item.set("id", "1")
+            item.text = attribute
+            post_root.append(item)
+
+        # Buffer XML body as binary IO
+        body = BytesIO()
+        post_tree = ET.ElementTree(post_root)
+        post_tree.write(body, encoding="utf-8", xml_declaration=True)
+
+        # Query receivers AppCommand.xml
+        try:
+            res = self.send_post_command(
+                self._urls.appcommand, body.getvalue())
+        except requests.exceptions.RequestException:
+            _LOGGER.error("No connection to %s end point on host %s",
+                          self._urls.appcommand, self._host)
+            body.close()
+        else:
+            # Buffered XML not needed anymore: close
+            body.close()
+
+            try:
+                # Return XML ElementTree
+                root = ET.fromstring(res)
+            except (ET.ParseError, TypeError):
+                _LOGGER.error(
+                    "End point %s on host %s returned malformed XML.",
+                    self._urls.appcommand, self._host)
+            else:
+                return root
 
     def get_status_xml(self, command, suppress_errors=False):
         """Get status XML via HTTP and return it as XML ElementTree."""
@@ -246,15 +300,14 @@ class DenonAVR(object):
             except ET.ParseError:
                 if not suppress_errors:
                     _LOGGER.error(
-                        "Host %s returned malformed XML for: %s",
+                        "Host %s returned malformed XML for end point %s",
                         self._host, command)
                 raise ValueError
         else:
             if not suppress_errors:
                 _LOGGER.error((
-                    "Host %s returned HTTP status code %s "
-                    "when trying to receive data"), self._host,
-                    res.status_code)
+                    "Host %s returned HTTP status code %s to GET request at "
+                    "end point %s"), self._host, res.status_code, command)
             raise ValueError
 
     def send_get_command(self, command):
@@ -267,9 +320,8 @@ class DenonAVR(object):
             return True
         else:
             _LOGGER.error((
-                "Host %s returned HTTP status code %s "
-                "when trying to send GET commands"),
-                          self._host, res.status_code)
+                "Host %s returned HTTP status code %s to GET command at "
+                "end point %s"), self._host, res.status_code, command)
             return False
 
     def send_post_command(self, command, body):
@@ -282,8 +334,8 @@ class DenonAVR(object):
             return res.text
         else:
             _LOGGER.error((
-                "Host %s returned HTTP status code %s when trying to "
-                "send POST commands"), self._host, res.status_code)
+                "Host %s returned HTTP status code %s to POST command at "
+                "end point %s"), self._host, res.status_code, command)
             return False
 
     def create_zones(self, add_zones):
@@ -301,7 +353,7 @@ class DenonAVR(object):
 
         Method executes the update method for the current receiver type.
         """
-        if self._receiver_type == 'avr-x-2016':
+        if self._receiver_type == AVR_X_2016.type:
             return self._update_avr_2016()
         else:
             return self._update_avr()
@@ -381,6 +433,12 @@ class DenonAVR(object):
                 and self._input_func is not None):
             if self._update_input_func_list():
                 _LOGGER.info("List of input functions refreshed.")
+                # If input function is still not known, create new entry.
+                if (self._input_func not in self._input_func_list
+                        and self._input_func is not None):
+                    inputfunc = self._input_func
+                    self._input_func_list_rev[inputfunc] = inputfunc
+                    self._input_func_list[inputfunc] = inputfunc
             else:
                 _LOGGER.error((
                     "Input function list for Denon receiver at host %s "
@@ -397,55 +455,17 @@ class DenonAVR(object):
         Returns "True" on success and "False" on fail.
         This method is for AVR-X  devices built in 2016 and later.
         """
-        # Prepare POST XML body for AppCommand.xml
-        post_root = ET.Element("tx")
-        # Append tag for AllZonePowerStatus
-        item = ET.Element("cmd")
-        item.set("id", "1")
-        item.text = "GetAllZonePowerStatus"
-        post_root.append(item)
-        # Append tag for GetAllZoneSource
-        item = ET.Element("cmd")
-        item.set("id", "1")
-        item.text = "GetAllZoneSource"
-        post_root.append(item)
-        # Append tag for GetAllZoneVolume
-        item = ET.Element("cmd")
-        item.set("id", "1")
-        item.text = "GetAllZoneVolume"
-        post_root.append(item)
-        # Append tag for GetAllZoneMuteStatus
-        item = ET.Element("cmd")
-        item.set("id", "1")
-        item.text = "GetAllZoneMuteStatus"
-        post_root.append(item)
-        # Buffer XML body as binary IO
-        body = BytesIO()
-        post_tree = ET.ElementTree(post_root)
-        post_tree.write(body, encoding="utf-8", xml_declaration=True)
-
-        # Query receivers AppCommand.xml
-        try:
-            res = self.send_post_command(
-                self._urls.appcommand, body.getvalue())
-        except requests.exceptions.RequestException:
-            _LOGGER.error("No connection to host %s. Update failed.",
-                          self._host)
-            body.close()
+        # Collect tags for AppCommand.xml call
+        tags = ["GetAllZonePowerStatus", "GetAllZoneSource",
+                "GetAllZoneVolume", "GetAllZoneMuteStatus"]
+        # Execute call
+        root = self.exec_appcommand_post(tags)
+        # Check result
+        if root is None:
+            _LOGGER.error("Update failed.")
             return False
 
-        # Buffered XML not needed anymore: close
-        body.close()
-
-        try:
-            # Return XML ElementTree
-            root = ET.fromstring(res)
-        except (ET.ParseError, TypeError):
-            _LOGGER.error(
-                "Host %s returned malformed XML for: %s",
-                self._host, self._urls.appcommand)
-            return False
-
+        # Extract relevant information
         zone = self._get_own_zone()
 
         try:
@@ -465,16 +485,28 @@ class DenonAVR(object):
             _LOGGER.error("No VolumeStatus found for zone %s", self.zone)
 
         try:
-            input_func = root.find(
+            inputfunc = root.find(
                 "./cmd/{zone}/source".format(zone=zone)).text
         except AttributeError:
             _LOGGER.error("No Source found for zone %s", self.zone)
         else:
             try:
-                self._input_func = self._input_func_list_rev[input_func]
+                self._input_func = self._input_func_list_rev[inputfunc]
             except KeyError:
-                _LOGGER.error(
-                    "No mapping for input function %s found", input_func)
+                _LOGGER.info("No mapping for source %s found", inputfunc)
+                self._input_func = inputfunc
+                # Get/update sources list if current source is not known yet
+                if self._update_input_func_list():
+                    _LOGGER.info("List of input functions refreshed.")
+                    # If input function is still not known, create new entry.
+                    if (inputfunc not in self._input_func_list
+                            and inputfunc is not None):
+                        self._input_func_list_rev[inputfunc] = inputfunc
+                        self._input_func_list[inputfunc] = inputfunc
+                else:
+                    _LOGGER.error((
+                        "Input function list for Denon receiver at host %s "
+                        "could not be updated."), self._host)
 
         return True
 
@@ -497,7 +529,7 @@ class DenonAVR(object):
             return False
 
         # First input_func_list determination of AVR-X receivers
-        if self._receiver_type in ['avr-x', 'avr-x-2016']:
+        if self._receiver_type in [AVR_X.type, AVR_X_2016.type]:
             renamed_sources, deleted_sources, status_success = (
                 self._get_renamed_deleted_sourcesapp())
 
@@ -550,7 +582,7 @@ class DenonAVR(object):
                         self._playing_func_list.append(item[1])
 
         # Determination of input_func_list for non AVR-nonX receivers
-        elif self._receiver_type == 'avr':
+        elif self._receiver_type == AVR.type:
             # Clear and rebuild the sources lists
             self._input_func_list.clear()
             self._input_func_list_rev.clear()
@@ -572,7 +604,7 @@ class DenonAVR(object):
         # Finished
         return True
 
-    def get_receiver_name(self):
+    def _get_receiver_name(self):
         """Get name of receiver from web interface if not set."""
         # If name is not set yet, get it from Main Zone URL
         if self._name is None and self._urls.mainzone is not None:
@@ -591,6 +623,27 @@ class DenonAVR(object):
                     _LOGGER.warning("Receiver name could not be determined. "
                                     "Using standard name: Denon AVR.")
                     self._name = "Denon AVR"
+
+    def _get_zone_name(self):
+        """Get receivers zone name if not set yet."""
+        if self._name is None:
+            # Collect tags for AppCommand.xml call
+            tags = ["GetZoneName"]
+            # Execute call
+            root = self.exec_appcommand_post(tags)
+            # Check result
+            if root is None:
+                _LOGGER.error("Getting ZoneName failed.")
+            else:
+                zone = self._get_own_zone()
+
+                try:
+                    name = root.find(
+                        "./cmd/{zone}".format(zone=zone)).text
+                except AttributeError:
+                    _LOGGER.error("No ZoneName found for zone %s", self.zone)
+                else:
+                    self._name = name.strip()
 
     def _get_renamed_deleted_sources(self):
         """
@@ -612,10 +665,10 @@ class DenonAVR(object):
         try:
             # AVR-X and AVR-nonX using different XMLs to provide info about
             # deleted sources
-            if self._receiver_type == 'avr-x':
+            if self._receiver_type == AVR_X.type:
                 root = self.get_status_xml(self._urls.status)
             # URL only available for Main Zone.
-            elif (self._receiver_type == 'avr'
+            elif (self._receiver_type == AVR.type
                   and self._urls.mainzone is not None):
                 root = self.get_status_xml(self._urls.mainzone)
             else:
@@ -682,43 +735,13 @@ class DenonAVR(object):
         renamed_sources = {}
         deleted_sources = {}
 
-        # Prepare POST XML body for AppCommand.xml
-        post_root = ET.Element("tx")
-        # Append tag for renamed sources
-        item = ET.Element("cmd")
-        item.set("id", "1")
-        item.text = "GetRenameSource"
-        post_root.append(item)
-        # Append tag for deleted sources
-        item = ET.Element("cmd")
-        item.set("id", "1")
-        item.text = "GetDeletedSource"
-        post_root.append(item)
-        # Buffer XML body as binary IO
-        body = BytesIO()
-        post_tree = ET.ElementTree(post_root)
-        post_tree.write(body, encoding="utf-8", xml_declaration=True)
-
-        # Query receivers AppCommand.xml
-        try:
-            res = self.send_post_command(
-                self._urls.appcommand, body.getvalue())
-        except requests.exceptions.RequestException:
-            _LOGGER.error("No connection to host %s. Renamed and deleted "
-                          "sources could not be determined.", self._host)
-            body.close()
-            return (renamed_sources, deleted_sources, False)
-
-        # Buffered XML not needed anymore: close
-        body.close()
-
-        try:
-            # Return XML ElementTree
-            root = ET.fromstring(res)
-        except (ET.ParseError, TypeError):
-            _LOGGER.error(
-                "Host %s returned malformed XML for: %s",
-                self._host, self._urls.appcommand)
+        # Collect tags for AppCommand.xml call
+        tags = ["GetRenameSource", "GetDeletedSource"]
+        # Execute call
+        root = self.exec_appcommand_post(tags)
+        # Check result
+        if root is None:
+            _LOGGER.error("Getting renamed and deleted sources failed.")
             return (renamed_sources, deleted_sources, False)
 
         # Detect "Document Error: Data follows" title if URL does not exist
@@ -758,7 +781,7 @@ class DenonAVR(object):
         connection_failed = False
         # Test if receiver is a AVR-X with port 80 for pre 2016 devices and
         # port 8080 devices 2016 and later
-        r_types = [('avr-x', 80), ('avr-x-2016', 8080)]
+        r_types = [AVR_X, AVR_X_2016]
         for r_type, port in r_types:
             self._receiver_port = port
 
@@ -804,15 +827,17 @@ class DenonAVR(object):
 
         # Set ports and update method
         if self._receiver_type is None:
-            self._receiver_type = 'avr'
-            self._receiver_port = 80
-        elif self._receiver_type == 'avr-x-2016':
-            self._receiver_port = 8080
+            self._receiver_type = AVR.type
+            self._receiver_port = AVR.port
+        elif self._receiver_type == AVR_X_2016.type:
+            self._receiver_port = AVR_X_2016.port
         else:
-            self._receiver_port = 80
+            self._receiver_port = AVR_X.port
+
+        _LOGGER.info("Identified receiver type: %s", self._receiver_type)
 
         # Not an AVR-X device, start determination of sources
-        if self._receiver_type == 'avr':
+        if self._receiver_type == AVR.type:
             # Sources list is equal to list of renamed sources.
             non_x_sources, deleted_non_x_sources, status_success = (
                 self._get_renamed_deleted_sourcesapp())
@@ -1001,8 +1026,8 @@ class DenonAVR(object):
                     try:
                         self._input_func = self._input_func_list_rev[inputfunc]
                     except KeyError:
-                        _LOGGER.error(
-                            "No mapping for source %s", inputfunc)
+                        _LOGGER.info(
+                            "No mapping for source %s found", inputfunc)
                         self._input_func = inputfunc
                     finally:
                         relevant_tags.pop(child.tag, None)
@@ -1162,7 +1187,7 @@ class DenonAVR(object):
         # For selection of sources other names then at receiving sources
         # have to be used
         # AVR-X receiver needs source mapping to set input_func
-        if self._receiver_type in ['avr-x', 'avr-x-2016']:
+        if self._receiver_type in [AVR_X.type, AVR_X_2016.type]:
             direct_mapping = False
             try:
                 linp = CHANGE_INPUT_MAPPING[self._input_func_list[input_func]]
