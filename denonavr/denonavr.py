@@ -291,7 +291,7 @@ class DenonAVR(object):
         # Get XML structure via HTTP get
         res = requests.get("http://{host}:{port}{command}".format(
             host=self._host, port=self._receiver_port, command=command),
-            timeout=self.timeout)
+                           timeout=self.timeout)
         # Continue with XML processing only if HTTP status code = 200
         if res.status_code == 200:
             try:
@@ -315,7 +315,7 @@ class DenonAVR(object):
         # Send commands via HTTP get
         res = requests.get("http://{host}:{port}{command}".format(
             host=self._host, port=self._receiver_port, command=command),
-            timeout=self.timeout)
+                           timeout=self.timeout)
         if res.status_code == 200:
             return True
         else:
@@ -329,7 +329,7 @@ class DenonAVR(object):
         # Send commands via HTTP post
         res = requests.post("http://{host}:{port}{command}".format(
             host=self._host, port=self._receiver_port, command=command),
-            data=body, timeout=self.timeout)
+                            data=body, timeout=self.timeout)
         if res.status_code == 200:
             return res.text
         else:
@@ -776,7 +776,7 @@ class DenonAVR(object):
         This method also determines the type of the receiver
         (avr, avr-x, avr-x-2016).
         """
-        # pylint: disable=too-many-branches
+        # pylint: disable=too-many-branches,too-many-locals,too-many-statements
 
         connection_failed = False
         # Test if receiver is a AVR-X with port 80 for pre 2016 devices and
@@ -884,10 +884,11 @@ class DenonAVR(object):
             return receiver_sources
 
     def _get_own_zone(self):
-        """ Get zone from actual instance.
+        """
+        Get zone from actual instance.
 
-            These zone information are used to evaluate responses of HTTP POST
-            commands.
+        These zone information are used to evaluate responses of HTTP POST
+        commands.
         """
         if self._zone == "Main":
             return "zone1"

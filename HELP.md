@@ -17,21 +17,19 @@ FUNCTIONS
         
         Returns a list of dictionaries which includes all discovered Denon AVR
         devices with keys "host", "modelName", "friendlyName", "presentationURL".
-        Returns "None" if no Denon AVR receiver was found.
         By default SSDP broadcasts are sent up to 3 times with a 2 seconds timeout.
     
     init_all_receivers()
         Initialize all discovered Denon AVR receivers in LAN zone.
         
         Returns a list of created Denon AVR instances.
-        Returns "None" if no Denon AVR receiver was found.
         By default SSDP broadcasts are sent up to 3 times with a 2 seconds timeout.
 
 DATA
     __title__ = 'denonavr'
 
 VERSION
-    0.5.5
+    0.6.0
 
 ====================================================================================
 
@@ -49,6 +47,7 @@ CLASSES
         DenonAVR
             DenonAVRZones
     builtins.tuple(builtins.object)
+        ReceiverType
         ReceiverURLs
     
     class DenonAVR(builtins.object)
@@ -56,7 +55,7 @@ CLASSES
      |  
      |  Methods defined here:
      |  
-     |  __init__(self, host, name=None, show_all_inputs=False, add_zones=None)
+     |  __init__(self, host, name=None, show_all_inputs=False, timeout=2.0, add_zones=None)
      |      Initialize MainZone of DenonAVR.
      |      
      |      :param host: IP or HOSTNAME.
@@ -74,10 +73,12 @@ CLASSES
      |  create_zones(self, add_zones)
      |      Create instances of additional zones for the receiver.
      |  
-     |  get_receiver_name(self)
-     |      Get name of receiver from web interface if not set.
+     |  exec_appcommand_post(self, attribute_list)
+     |      Prepare and execute a HTTP POST call to AppCommand.xml end point.
+     |      
+     |      Returns XML ElementTree on success and None on fail.
      |  
-     |  get_status_xml(self, command) from builtins.type
+     |  get_status_xml(self, command, suppress_errors=False)
      |      Get status XML via HTTP and return it as XML ElementTree.
      |  
      |  mute(self, mute)
@@ -95,10 +96,10 @@ CLASSES
      |  previous_track(self)
      |      Send previous track command to receiver command via HTTP post.
      |  
-     |  send_get_command(self, command) from builtins.type
+     |  send_get_command(self, command)
      |      Send command via HTTP get to receiver.
      |  
-     |  send_post_command(self, command, body) from builtins.type
+     |  send_post_command(self, command, body)
      |      Send command via HTTP post to receiver.
      |  
      |  set_input_func(self, input_func)
@@ -120,8 +121,7 @@ CLASSES
      |  update(self)
      |      Get the latest status information from device.
      |      
-     |      Method queries device via HTTP and updates instance attributes.
-     |      Returns "True" on success and "False" on fail.
+     |      Method executes the update method for the current receiver type.
      |  
      |  volume_down(self)
      |      Volume down receiver via HTTP get command.
@@ -240,10 +240,12 @@ CLASSES
      |  ----------------------------------------------------------------------
      |  Methods inherited from DenonAVR:
      |  
-     |  get_receiver_name(self)
-     |      Get name of receiver from web interface if not set.
+     |  exec_appcommand_post(self, attribute_list)
+     |      Prepare and execute a HTTP POST call to AppCommand.xml end point.
+     |      
+     |      Returns XML ElementTree on success and None on fail.
      |  
-     |  get_status_xml(self, command) from builtins.type
+     |  get_status_xml(self, command, suppress_errors=False)
      |      Get status XML via HTTP and return it as XML ElementTree.
      |  
      |  mute(self, mute)
@@ -261,10 +263,10 @@ CLASSES
      |  previous_track(self)
      |      Send previous track command to receiver command via HTTP post.
      |  
-     |  send_get_command(self, command) from builtins.type
+     |  send_get_command(self, command)
      |      Send command via HTTP get to receiver.
      |  
-     |  send_post_command(self, command, body) from builtins.type
+     |  send_post_command(self, command, body)
      |      Send command via HTTP post to receiver.
      |  
      |  set_input_func(self, input_func)
@@ -286,8 +288,7 @@ CLASSES
      |  update(self)
      |      Get the latest status information from device.
      |      
-     |      Method queries device via HTTP and updates instance attributes.
-     |      Returns "True" on success and "False" on fail.
+     |      Method executes the update method for the current receiver type.
      |  
      |  volume_down(self)
      |      Volume down receiver via HTTP get command.
@@ -401,7 +402,6 @@ FUNCTIONS
         
         Returns a list of dictionaries which includes all discovered Denon AVR
         devices with keys "host", "modelName", "friendlyName", "presentationURL".
-        Returns "None" if no Denon AVR receiver was found.
     
     send_ssdp_broadcast()
         Send SSDP broadcast message to discover UPnP devices.

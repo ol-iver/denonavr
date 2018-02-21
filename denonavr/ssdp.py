@@ -65,7 +65,6 @@ def identify_denonavr_receivers():
 
     Returns a list of dictionaries which includes all discovered Denon AVR
     devices with keys "host", "modelName", "friendlyName", "presentationURL".
-    Returns "None" if no Denon AVR receiver was found.
     """
     # Sending SSDP broadcast message to get devices
     devices = send_ssdp_broadcast()
