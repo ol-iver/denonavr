@@ -297,11 +297,12 @@ class DenonAVR(object):
             try:
                 # Return XML ElementTree
                 return ET.fromstring(res.text)
-            except ET.ParseError:
+            except ET.ParseError as err:
                 if not suppress_errors:
                     _LOGGER.error(
                         "Host %s returned malformed XML for end point %s",
                         self._host, command)
+                    _LOGGER.error(err)
                 raise ValueError
         else:
             if not suppress_errors:
@@ -520,11 +521,10 @@ class DenonAVR(object):
         # pylint: disable=too-many-branches
         # Get all sources and renaming information from receiver
         # For structural information of the variables please see the methods
-        try:
-            receiver_sources = self._get_receiver_sources()
-        except (ValueError, requests.exceptions.RequestException):
-            # If connection error occurred, update failed
-            _LOGGER.error("Connection error: Receiver sources list empty. "
+        receiver_sources = self._get_receiver_sources()
+
+        if not receiver_sources:
+            _LOGGER.error("Receiver sources list empty. "
                           "Please check if device is powered on.")
             return False
 
@@ -778,7 +778,6 @@ class DenonAVR(object):
         """
         # pylint: disable=too-many-branches,too-many-locals,too-many-statements
 
-        connection_failed = False
         # Test if receiver is a AVR-X with port 80 for pre 2016 devices and
         # port 8080 devices 2016 and later
         r_types = [AVR_X, AVR_X_2016]
@@ -786,15 +785,12 @@ class DenonAVR(object):
             self._receiver_port = port
 
             # This XML is needed to get the sources of the receiver
-
             try:
                 root = self.get_status_xml(self._urls.deviceinfo,
                                            suppress_errors=True)
             except (ValueError, requests.exceptions.RequestException):
                 self._receiver_type = None
-                connection_failed = True
             else:
-                connection_failed = False
                 # First test by CommApiVers
                 try:
                     if bool(DEVICEINFO_COMMAPI_PATTERN.search(
@@ -819,11 +815,6 @@ class DenonAVR(object):
                         # AttributeError occurs when ModelName tag is not found
                         # In this case there is no AVR-X device
                         self._receiver_type = None
-
-        # If connections to port 80 and 8080 failed,
-        # the whole device is probably offline
-        if connection_failed:
-            raise requests.exceptions.RequestException
 
         # Set ports and update method
         if self._receiver_type is None:
