@@ -9,7 +9,7 @@ This module implements the interface to Denon AVR receivers.
 # pylint: disable=too-many-lines
 # pylint: disable=no-else-return
 
-from collections import namedtuple
+from collections import (namedtuple, OrderedDict)
 from io import BytesIO
 import logging
 import time
@@ -36,6 +36,15 @@ SOURCE_MAPPING = {"TV AUDIO": "TV", "iPod/USB": "USB/IPOD", "Bluetooth": "BT",
 CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
                         "Media Server": "SERVER", "Spotify": "SPOTIFY",
                         "Flickr": "FLICKR", "Favorites": "FAVORITES"}
+
+SOUND_MODE_MAPPING = OrderedDict([('MUSIC', ['PLII MUSIC']),
+                                  ('MOVIE', ['PLII MOVIE']),
+                                  ('GAME', ['PLII GAME']),
+                                  ('PURE DIRECT', ['DIRECT']),
+                                  ('AUTO', ['None']),
+                                  ('DOLBY DIGITAL', ['DOLBY DIGITAL']),
+                                  ('MCH STEREO', ['MULTI CH STEREO']),
+                                  ('STEREO', ['STEREO'])])
 
 PLAYING_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
                    "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
@@ -70,6 +79,7 @@ COMMAND_VOLUME_DOWN_URL = "/goform/formiPhoneAppDirect.xml?MVDOWN"
 COMMAND_SET_VOLUME_URL = "/goform/formiPhoneAppVolume.xml?1+%.1f"
 COMMAND_MUTE_ON_URL = "/goform/formiPhoneAppMute.xml?1+MuteOn"
 COMMAND_MUTE_OFF_URL = "/goform/formiPhoneAppMute.xml?1+MuteOff"
+COMMAND_SEL_SM_URL = "/goform/formiPhoneAppDirect.xml?MS"
 
 # Zone 2 URLs
 STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
@@ -105,7 +115,7 @@ ReceiverURLs = namedtuple(
                      "command_power_standby", "command_volume_up",
                      "command_volume_down", "command_set_volume",
                      "command_mute_on", "command_mute_off",
-                     "command_netaudio_post"])
+                     "command_sel_sound_mode", "command_netaudio_post"])
 
 DENONAVR_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                              status=STATUS_URL,
@@ -123,6 +133,7 @@ DENONAVR_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                              command_set_volume=COMMAND_SET_VOLUME_URL,
                              command_mute_on=COMMAND_MUTE_ON_URL,
                              command_mute_off=COMMAND_MUTE_OFF_URL,
+                             command_sel_sound_mode=COMMAND_SEL_SM_URL,
                              command_netaudio_post=COMMAND_NETAUDIO_POST_URL)
 
 ZONE2_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
@@ -141,6 +152,7 @@ ZONE2_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                           command_set_volume=COMMAND_SET_VOLUME_Z2_URL,
                           command_mute_on=COMMAND_MUTE_ON_Z2_URL,
                           command_mute_off=COMMAND_MUTE_OFF_Z2_URL,
+                          command_sel_sound_mode=COMMAND_SEL_SM_URL,
                           command_netaudio_post=COMMAND_NETAUDIO_POST_URL)
 
 ZONE3_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
@@ -159,6 +171,7 @@ ZONE3_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                           command_set_volume=COMMAND_SET_VOLUME_Z3_URL,
                           command_mute_on=COMMAND_MUTE_ON_Z3_URL,
                           command_mute_off=COMMAND_MUTE_OFF_Z3_URL,
+                          command_sel_sound_mode=COMMAND_SEL_SM_URL,
                           command_netaudio_post=COMMAND_NETAUDIO_POST_URL)
 
 POWER_ON = "ON"
@@ -217,6 +230,9 @@ class DenonAVR(object):
         self._input_func = None
         self._input_func_list = {}
         self._input_func_list_rev = {}
+        self._sound_mode = None
+        self._sound_mode_raw = None
+        self._sound_mode_dict = SOUND_MODE_MAPPING
         self._netaudio_func_list = []
         self._playing_func_list = []
         self._favorite_func_list = []
@@ -370,7 +386,7 @@ class DenonAVR(object):
         # pylint: disable=too-many-branches,too-many-statements
         # Set all tags to be evaluated
         relevant_tags = {"Power": None, "InputFuncSelect": None, "Mute": None,
-                         "MasterVolume": None}
+                         "MasterVolume": None, "selectSurround": None, "SurrMode": None}
 
         # Get status XML from Denon receiver via HTTP
         try:
@@ -1032,6 +1048,14 @@ class DenonAVR(object):
             elif child.tag == "FriendlyName" and self._name is None:
                 self._name = child[0].text
                 relevant_tags.pop(child.tag, None)
+            elif (child.tag == "selectSurround" or child.tag == "SurrMode"):
+                sound_mode_raw = child[0].text.rstrip()
+                self._sound_mode = self.match_sound_mode(sound_mode_raw)
+                self._sound_mode_raw = sound_mode_raw
+                if "selectSurround" in relevant_tags.keys():
+                    relevant_tags.pop("selectSurround", None)
+                if "SurrMode" in relevant_tags.keys():
+                    relevant_tags.pop("SurrMode", None)
 
         return relevant_tags
 
@@ -1106,6 +1130,26 @@ class DenonAVR(object):
     def input_func_list(self):
         """Return a list of available input sources as string."""
         return sorted(self._input_func_list.keys())
+
+    @property
+    def sound_mode(self):
+        """Return the matched current sound mode as a string."""
+        return self._sound_mode
+
+    @property
+    def sound_mode_list(self):
+        """Return a list of available sound modes as string."""
+        return self._sound_mode_dict.keys()
+
+    @property
+    def sound_mode_dict(self):
+        """Return a list of available sound modes as string."""
+        return self._sound_mode_dict
+
+    @property
+    def sound_mode_raw(self):
+        """Return the current sound mode as string as received from the AVR."""
+        return self._sound_mode_raw
 
     @property
     def image_url(self):
@@ -1211,6 +1255,69 @@ class DenonAVR(object):
             _LOGGER.error("Connection error: input function %s not set.",
                           input_func)
             return False
+
+    @sound_mode.setter
+    def sound_mode(self, sound_mode):
+        """Setter function for sound_mode to switch sound_mode of device."""
+        self.set_sound_mode(sound_mode)
+
+    def set_sound_mode(self, sound_mode):
+        """
+        Set sound_mode of device.
+
+        Valid values depend on the device and should be taken from
+        "sound_mode_list".
+        Return "True" on success and "False" on fail.
+        """
+        # For selection of sound mode other names then at receiving sound modes
+        # have to be used
+        # Therefore source mapping is needed to get sound_mode
+        # Create command URL and send command via HTTP GET
+        command_url = self._urls.command_sel_sound_mode + sound_mode
+        # sent command
+        try:
+            if self.send_get_command(command_url):
+                self._sound_mode = sound_mode
+                return True
+            else:
+                return False
+        except requests.exceptions.RequestException:
+            _LOGGER.error("Connection error: sound mode function %s not set.",
+                          sound_mode)
+            return False
+
+    def set_sound_mode_dict(self, sound_mode_dict):
+        Error_msg = "Syntax of sound mode dictionary not valid, use: OrderedDict([('COMMAND', ['VALUE1','VALUE2'])])"
+        if type(sound_mode_dict) == OrderedDict:
+            mode_list = list(sound_mode_dict.values())
+            for sublist in mode_list:
+                if type(sublist) == list:
+                    for element in sublist:
+                        if type(element) != str:
+                            _LOGGER.error(Error_msg)
+                            return False
+                else:
+                    _LOGGER.error(Error_msg)
+                    return False
+        else:
+            _LOGGER.error(Error_msg)
+            return False
+        
+        self._sound_mode_dict = sound_mode_dict
+        return True
+
+    def match_sound_mode(self, sound_mode_raw):
+        try:
+            mode_list = list(self._sound_mode_dict.values())
+            for sublist in mode_list:
+                if sound_mode_raw.upper() in sublist:
+                    mode_index = mode_list.index(sublist)
+                    sound_mode = list(self._sound_mode_dict.keys())[mode_index]
+                    return sound_mode
+        except ValueError:
+            pass
+        _LOGGER.warning("Not able to match sound mode, returning raw sound mode.")
+        return sound_mode_raw
 
     def toggle_play_pause(self):
         """Toggle play pause media player."""
