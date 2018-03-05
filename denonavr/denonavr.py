@@ -1288,8 +1288,8 @@ class DenonAVR(object):
             return False
 
     def set_sound_mode_dict(self, sound_mode_dict):
-        Error_msg = "Syntax of sound mode dictionary not valid, "
-                    "use: OrderedDict([('COMMAND', ['VALUE1','VALUE2'])])"
+        Error_msg = ("Syntax of sound mode dictionary not valid, "
+                    "use: OrderedDict([('COMMAND', ['VALUE1','VALUE2'])])")
         if type(sound_mode_dict) == OrderedDict:
             mode_list = list(sound_mode_dict.values())
             for sublist in mode_list:
