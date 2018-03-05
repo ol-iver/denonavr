@@ -386,7 +386,8 @@ class DenonAVR(object):
         # pylint: disable=too-many-branches,too-many-statements
         # Set all tags to be evaluated
         relevant_tags = {"Power": None, "InputFuncSelect": None, "Mute": None,
-                         "MasterVolume": None, "selectSurround": None, "SurrMode": None}
+                         "MasterVolume": None, "selectSurround": None,
+                         "SurrMode": None}
 
         # Get status XML from Denon receiver via HTTP
         try:
@@ -1287,7 +1288,8 @@ class DenonAVR(object):
             return False
 
     def set_sound_mode_dict(self, sound_mode_dict):
-        Error_msg = "Syntax of sound mode dictionary not valid, use: OrderedDict([('COMMAND', ['VALUE1','VALUE2'])])"
+        Error_msg = "Syntax of sound mode dictionary not valid, "
+                    "use: OrderedDict([('COMMAND', ['VALUE1','VALUE2'])])"
         if type(sound_mode_dict) == OrderedDict:
             mode_list = list(sound_mode_dict.values())
             for sublist in mode_list:
@@ -1302,7 +1304,6 @@ class DenonAVR(object):
         else:
             _LOGGER.error(Error_msg)
             return False
-        
         self._sound_mode_dict = sound_mode_dict
         return True
 
@@ -1316,7 +1317,8 @@ class DenonAVR(object):
                     return sound_mode
         except ValueError:
             pass
-        _LOGGER.warning("Not able to match sound mode, returning raw sound mode.")
+        _LOGGER.warning("Not able to match sound mode, "
+                        "returning raw sound mode.")
         return sound_mode_raw
 
     def toggle_play_pause(self):
