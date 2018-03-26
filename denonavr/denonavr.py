@@ -38,12 +38,14 @@ CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
                         "Flickr": "FLICKR", "Favorites": "FAVORITES"}
 
 SOUND_MODE_MAPPING = OrderedDict([('MUSIC', ['PLII MUSIC']),
-                                  ('MOVIE', ['PLII MOVIE']),
+                                  ('MOVIE', ['PLII MOVIE','PLII CINEMA',
+                                             'DTS NEO:X CINEMA']),
                                   ('GAME', ['PLII GAME']),
                                   ('PURE DIRECT', ['DIRECT']),
                                   ('AUTO', ['None']),
                                   ('DOLBY DIGITAL', ['DOLBY DIGITAL']),
-                                  ('MCH STEREO', ['MULTI CH STEREO']),
+                                  ('MCH STEREO', ['MULTI CH STEREO',
+                                                  'MULTI CH IN']),
                                   ('STEREO', ['STEREO'])])
 
 PLAYING_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
