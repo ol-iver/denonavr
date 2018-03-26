@@ -38,7 +38,7 @@ CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
                         "Flickr": "FLICKR", "Favorites": "FAVORITES"}
 
 SOUND_MODE_MAPPING = OrderedDict([('MUSIC', ['PLII MUSIC']),
-                                  ('MOVIE', ['PLII MOVIE','PLII CINEMA',
+                                  ('MOVIE', ['PLII MOVIE', 'PLII CINEMA',
                                              'DTS NEO:X CINEMA']),
                                   ('GAME', ['PLII GAME']),
                                   ('PURE DIRECT', ['DIRECT']),
