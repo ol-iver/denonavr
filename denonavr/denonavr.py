@@ -232,8 +232,6 @@ class DenonAVR(object):
         self._input_func = None
         self._input_func_list = {}
         self._input_func_list_rev = {}
-        self._sound_mode = None
-        self._sound_mode_match_warning = False
         self._sound_mode_raw = None
         self._sound_mode_dict = SOUND_MODE_MAPPING
         self._netaudio_func_list = []
@@ -1053,9 +1051,7 @@ class DenonAVR(object):
                 self._name = child[0].text
                 relevant_tags.pop(child.tag, None)
             elif (child.tag == "selectSurround" or child.tag == "SurrMode"):
-                sound_mode_raw = child[0].text.rstrip()
-                self._sound_mode = self.match_sound_mode(sound_mode_raw)
-                self._sound_mode_raw = sound_mode_raw
+                self._sound_mode_raw = child[0].text.rstrip()
                 if "selectSurround" in relevant_tags.keys():
                     relevant_tags.pop("selectSurround", None)
                 if "SurrMode" in relevant_tags.keys():
@@ -1138,10 +1134,8 @@ class DenonAVR(object):
     @property
     def sound_mode(self):
         """Return the matched current sound mode as a string."""
-        if self._sound_mode_match_warning:
-            _LOGGER.warning("Not able to match sound mode, "
-                            "returning raw sound mode.")
-        return self._sound_mode
+        sound_mode_matched = self.match_sound_mode(self._sound_mode_raw)
+        return sound_mode_matched
 
     @property
     def sound_mode_list(self):
@@ -1320,11 +1314,11 @@ class DenonAVR(object):
                 if sound_mode_raw.upper() in sublist:
                     mode_index = mode_list.index(sublist)
                     sound_mode = list(self._sound_mode_dict.keys())[mode_index]
-                    self._sound_mode_match_warning = False
                     return sound_mode
         except ValueError:
             pass
-        self._sound_mode_match_warning = True
+        _LOGGER.warning("Not able to match sound mode, "
+                        "returning raw sound mode.")
         return sound_mode_raw
 
     def toggle_play_pause(self):
