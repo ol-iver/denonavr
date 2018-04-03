@@ -236,6 +236,7 @@ class DenonAVR(object):
         self._input_func_list_rev = {}
         self._sound_mode_raw = None
         self._sound_mode_dict = SOUND_MODE_MAPPING
+        self._SM_match_dict = self.construct_SM_match_dict(SOUND_MODE_MAPPING)
         self._netaudio_func_list = []
         self._playing_func_list = []
         self._favorite_func_list = []
@@ -1144,8 +1145,13 @@ class DenonAVR(object):
 
     @property
     def sound_mode_dict(self):
-        """Return a list of available sound modes as string."""
+        """Return a dictionary of available sound modes with their mapping values."""
         return self._sound_mode_dict
+
+    @property
+    def sound_mode_match_dict(self):
+        """Return a dictionary that is used to map each sound_mode_raw to it's matched sound_mode."""
+        return self._SM_match_dict
 
     @property
     def sound_mode_raw(self):
@@ -1290,7 +1296,7 @@ class DenonAVR(object):
     def set_sound_mode_dict(self, sound_mode_dict):
         Error_msg = ("Syntax of sound mode dictionary not valid, "
                      "use: OrderedDict([('COMMAND', ['VALUE1','VALUE2'])])")
-        if type(sound_mode_dict) == OrderedDict:
+        if (type(sound_mode_dict) == OrderedDict or type(sound_mode_dict) == dict):
             mode_list = list(sound_mode_dict.values())
             for sublist in mode_list:
                 if type(sublist) == list:
@@ -1305,17 +1311,22 @@ class DenonAVR(object):
             _LOGGER.error(Error_msg)
             return False
         self._sound_mode_dict = sound_mode_dict
+        self._SM_match_dict = self.construct_SM_match_dict(sound_mode_dict)
         return True
+
+    def construct_SM_match_dic(self, sound_mode_dict):
+        mode_dict = list(sound_mode_dict.items())
+        match_mode_dict = {}
+        for matched_mode, sublist in mode_dict:
+            for raw_mode in sublist:
+                match_mode_dict[raw_mode] = matched_mode
+        return match_mode_dict
 
     def match_sound_mode(self, sound_mode_raw):
         try:
-            mode_list = list(self._sound_mode_dict.values())
-            for sublist in mode_list:
-                if sound_mode_raw.upper() in sublist:
-                    mode_index = mode_list.index(sublist)
-                    sound_mode = list(self._sound_mode_dict.keys())[mode_index]
-                    return sound_mode
-        except ValueError:
+            sound_mode = self._SM_match_dict[sound_mode_raw.upper()]
+            return sound_mode
+        except KeyError:
             pass
         _LOGGER.warning("Not able to match sound mode, "
                         "returning raw sound mode.")
