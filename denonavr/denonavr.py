@@ -1145,12 +1145,18 @@ class DenonAVR(object):
 
     @property
     def sound_mode_dict(self):
-        """Return a dictionary of available sound modes with their mapping values."""
+        """
+        Return a dictionary of available sound modes
+        with their mapping values.
+        """
         return self._sound_mode_dict
 
     @property
     def SM_match_dict(self):
-        """Return a dictionary that is used to map each sound_mode_raw to it's matched sound_mode."""
+        """
+        Return a dictionary that is used to 
+        map each sound_mode_raw to it's matched sound_mode.
+        """
         return self._SM_match_dict
 
     @property
@@ -1296,7 +1302,8 @@ class DenonAVR(object):
     def set_sound_mode_dict(self, sound_mode_dict):
         Error_msg = ("Syntax of sound mode dictionary not valid, "
                      "use: OrderedDict([('COMMAND', ['VALUE1','VALUE2'])])")
-        if (type(sound_mode_dict) == OrderedDict or type(sound_mode_dict) == dict):
+        if (type(sound_mode_dict) == OrderedDict or\
+            type(sound_mode_dict) == dict):
             mode_list = list(sound_mode_dict.values())
             for sublist in mode_list:
                 if type(sublist) == list:
