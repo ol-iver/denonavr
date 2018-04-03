@@ -1149,7 +1149,7 @@ class DenonAVR(object):
         return self._sound_mode_dict
 
     @property
-    def sound_mode_match_dict(self):
+    def SM_match_dict(self):
         """Return a dictionary that is used to map each sound_mode_raw to it's matched sound_mode."""
         return self._SM_match_dict
 
@@ -1314,7 +1314,7 @@ class DenonAVR(object):
         self._SM_match_dict = self.construct_SM_match_dict(sound_mode_dict)
         return True
 
-    def construct_SM_match_dic(self, sound_mode_dict):
+    def construct_SM_match_dict(self, sound_mode_dict):
         mode_dict = list(sound_mode_dict.items())
         match_mode_dict = {}
         for matched_mode, sublist in mode_dict:
