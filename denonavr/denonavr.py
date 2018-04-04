@@ -38,17 +38,17 @@ CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
                         "Flickr": "FLICKR", "Favorites": "FAVORITES"}
 
 SOUND_MODE_MAPPING = OrderedDict\
-  ([('MUSIC', ['PLII MUSIC', 'DTS NEO:6 MUSIC', 'DOLBY D +NEO:X M',
-               'ROCK ARENA', 'JAZZ CLUB', 'MATRIX']),
-    ('MOVIE', ['PLII MOVIE', 'PLII CINEMA', 'DTS NEO:X CINEMA',
-               'DTS NEO:6 CINEMA', 'DOLBY D +NEO:X C', 'MONO MOVIE']),
-    ('GAME', ['PLII GAME', 'DOLBY D +NEO:X G', 'VIDEO GAME']),
-    ('AUTO', ['None']),
-    ('VIRTUAL', ['VIRTUAL']),
-    ('PURE DIRECT', ['DIRECT']),
-    ('DOLBY DIGITAL', ['DOLBY DIGITAL', 'DOLBY D + DOLBY SURROUND']),
-    ('MCH STEREO', ['MULTI CH STEREO', 'MULTI CH IN']),
-    ('STEREO', ['STEREO'])])
+([('MUSIC', ['PLII MUSIC', 'DTS NEO:6 MUSIC', 'DOLBY D +NEO:X M',
+             'ROCK ARENA', 'JAZZ CLUB', 'MATRIX']),
+  ('MOVIE', ['PLII MOVIE', 'PLII CINEMA', 'DTS NEO:X CINEMA',
+             'DTS NEO:6 CINEMA', 'DOLBY D +NEO:X C', 'MONO MOVIE']),
+  ('GAME', ['PLII GAME', 'DOLBY D +NEO:X G', 'VIDEO GAME']),
+  ('AUTO', ['None']),
+  ('VIRTUAL', ['VIRTUAL']),
+  ('PURE DIRECT', ['DIRECT']),
+  ('DOLBY DIGITAL', ['DOLBY DIGITAL', 'DOLBY D + DOLBY SURROUND']),
+  ('MCH STEREO', ['MULTI CH STEREO', 'MULTI CH IN']),
+  ('STEREO', ['STEREO'])])
 
 PLAYING_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
                    "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
@@ -236,7 +236,7 @@ class DenonAVR(object):
         self._input_func_list_rev = {}
         self._sound_mode_raw = None
         self._sound_mode_dict = SOUND_MODE_MAPPING
-        self._SM_match_dict = self.construct_SM_match_dict(SOUND_MODE_MAPPING)
+        self._sm_match_dict = self.construct_sm_match_dict()
         self._netaudio_func_list = []
         self._playing_func_list = []
         self._favorite_func_list = []
@@ -1053,7 +1053,7 @@ class DenonAVR(object):
             elif child.tag == "FriendlyName" and self._name is None:
                 self._name = child[0].text
                 relevant_tags.pop(child.tag, None)
-            elif (child.tag == "selectSurround" or child.tag == "SurrMode"):
+            elif child.tag == "selectSurround" or child.tag == "SurrMode":
                 self._sound_mode_raw = child[0].text.rstrip()
                 relevant_tags.pop("selectSurround", None)
                 relevant_tags.pop("SurrMode", None)
@@ -1145,19 +1145,13 @@ class DenonAVR(object):
 
     @property
     def sound_mode_dict(self):
-        """
-        Return a dictionary of available sound modes
-        with their mapping values.
-        """
+        """Return a dict of available sound modes with their mapping values."""
         return self._sound_mode_dict
 
     @property
-    def SM_match_dict(self):
-        """
-        Return a dictionary that is used to
-        map each sound_mode_raw to it's matched sound_mode.
-        """
-        return self._SM_match_dict
+    def sm_match_dict(self):
+        """Dict to map each sound_mode_raw to it's matched sound_mode."""
+        return self._sm_match_dict
 
     @property
     def sound_mode_raw(self):
@@ -1290,7 +1284,7 @@ class DenonAVR(object):
         # sent command
         try:
             if self.send_get_command(command_url):
-                self._sound_mode = sound_mode
+                self.sound_mode() = sound_mode
                 return True
             else:
                 return False
@@ -1300,29 +1294,38 @@ class DenonAVR(object):
             return False
 
     def set_sound_mode_dict(self, sound_mode_dict):
-        Error_msg = ("Syntax of sound mode dictionary not valid, "
+        """set the matching dictionary used to match the raw sound mode."""
+        error_msg = ("Syntax of sound mode dictionary not valid, "
                      "use: OrderedDict([('COMMAND', ['VALUE1','VALUE2'])])")
-        if (type(sound_mode_dict) == OrderedDict or
-            type(sound_mode_dict) == dict):
-                mode_list = list(sound_mode_dict.values())
-                for sublist in mode_list:
-                    if type(sublist) == list:
-                        for element in sublist:
-                            if type(element) != str:
-                                _LOGGER.error(Error_msg)
-                                return False
-                    else:
-                        _LOGGER.error(Error_msg)
-                        return False
+        if (isinstance(sound_mode_dict, OrderedDict) or
+                isinstance(sound_mode_dict, dict)):
+            mode_list = list(sound_mode_dict.values())
+            for sublist in mode_list:
+                if isinstance(sublist, list):
+                    for element in sublist:
+                        if not isinstance(element, str):
+                            _LOGGER.error(error_msg)
+                            return False
+                else:
+                    _LOGGER.error(error_msg)
+                    return False
         else:
-            _LOGGER.error(Error_msg)
+            _LOGGER.error(error_msg)
             return False
         self._sound_mode_dict = sound_mode_dict
-        self._SM_match_dict = self.construct_SM_match_dict(sound_mode_dict)
+        self._sm_match_dict = self.construct_sm_match_dict()
         return True
 
-    def construct_SM_match_dict(self, sound_mode_dict):
-        mode_dict = list(sound_mode_dict.items())
+    def construct_sm_match_dict(self):
+        """
+        Internal method to construct the sm_match_dict.
+
+        Reverse the key value structure. The sm_match_dict is bigger,
+        but allows for direct matching using a dictionary key access.
+        The sound_mode_dict is uses externally to set this dictionary
+        because that has a nicer syntax
+        """
+        mode_dict = list(self._sound_mode_dict.items())
         match_mode_dict = {}
         for matched_mode, sublist in mode_dict:
             for raw_mode in sublist:
@@ -1330,8 +1333,9 @@ class DenonAVR(object):
         return match_mode_dict
 
     def match_sound_mode(self, sound_mode_raw):
+        """Match the raw_sound_mode to its corresponding sound_mode."""
         try:
-            sound_mode = self._SM_match_dict[sound_mode_raw.upper()]
+            sound_mode = self._sm_match_dict[sound_mode_raw.upper()]
             return sound_mode
         except KeyError:
             pass
