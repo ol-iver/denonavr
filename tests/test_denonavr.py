@@ -38,23 +38,23 @@ HDTUNERSTATUS_URL = "/goform/formTuner_HdXml.xml"
 
 
 def get_sample_content(filename):
-    """Returns sample content form file"""
+    """Return sample content form file."""
     with open("tests/xml/{filename}".format(filename=filename),
               encoding="utf-8") as file:
         return file.read()
 
 
 class TestMainFunctions(testtools.TestCase):
-    """Test case for main functions of Denon AVR"""
+    """Test case for main functions of Denon AVR."""
 
     @requests_mock.mock()
     def setUp(self, m):
-        """Setup method, using the first receiver from list"""
+        """Setup method, using the first receiver from list."""
         super(TestMainFunctions, self).setUp()
         self.denon = None
 
     def custom_matcher(self, request):
-        """Match URLs to sample files"""
+        """Match URLs to sample files."""
         if request.path_url == STATUS_URL:
             content = get_sample_content(
                         "{receiver}-formMainZone_MainZoneXmlStatus.xml"
@@ -102,7 +102,7 @@ class TestMainFunctions(testtools.TestCase):
 
     @requests_mock.mock()
     def test_input_func_switch(self, m):
-        """Switch through all input functions of all tested receivers"""
+        """Switch through all input functions of all tested receivers."""
         m.add_matcher(self.custom_matcher)
         for receiver, zones in TESTING_RECEIVERS.items():
             # Switch receiver and update to load new sample files

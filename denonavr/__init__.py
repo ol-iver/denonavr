@@ -6,7 +6,6 @@ Automation Library for Denon AVR receivers.
 :copyright: (c) 2016 by Oliver Goetz.
 :license: MIT, see LICENSE for more details.
 """
-# pylint: disable=no-else-return
 
 # Set default logging handler to avoid "No handler found" warnings.
 import logging
@@ -18,7 +17,7 @@ from . import ssdp
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 __title__ = "denonavr"
-__version__ = "0.6.1"
+__version__ = "0.7.0"
 
 
 def discover():

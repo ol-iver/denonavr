@@ -29,7 +29,7 @@ DATA
     __title__ = 'denonavr'
 
 VERSION
-    0.6.0
+    0.7.0
 
 ====================================================================================
 
@@ -70,6 +70,14 @@ CLASSES
      |      :param add_zones: Additional Zones for which an instance are created
      |      :type add_zones: dict [str, str] or None
      |  
+     |  construct_sm_match_dict(self)
+     |      Construct the sm_match_dict.
+     |      
+     |      Reverse the key value structure. The sm_match_dict is bigger,
+     |      but allows for direct matching using a dictionary key access.
+     |      The sound_mode_dict is uses externally to set this dictionary
+     |      because that has a nicer syntax.
+     |  
      |  create_zones(self, add_zones)
      |      Create instances of additional zones for the receiver.
      |  
@@ -80,6 +88,9 @@ CLASSES
      |  
      |  get_status_xml(self, command, suppress_errors=False)
      |      Get status XML via HTTP and return it as XML ElementTree.
+     |  
+     |  match_sound_mode(self, sound_mode_raw)
+     |      Match the raw_sound_mode to its corresponding sound_mode.
      |  
      |  mute(self, mute)
      |      Mute receiver via HTTP get command.
@@ -108,6 +119,16 @@ CLASSES
      |      Valid values depend on the device and should be taken from
      |      "input_func_list".
      |      Return "True" on success and "False" on fail.
+     |  
+     |  set_sound_mode(self, sound_mode)
+     |      Set sound_mode of device.
+     |      
+     |      Valid values depend on the device and should be taken from
+     |      "sound_mode_list".
+     |      Return "True" on success and "False" on fail.
+     |  
+     |  set_sound_mode_dict(self, sound_mode_dict)
+     |      Set the matching dictionary used to match the raw sound mode.
      |  
      |  set_volume(self, volume)
      |      Set receiver volume via HTTP get command.
@@ -187,6 +208,21 @@ CLASSES
      |      
      |      Possible values are: "ON", "STANDBY" and "OFF"
      |  
+     |  sm_match_dict
+     |      Return a dict to map each sound_mode_raw to matching sound_mode.
+     |  
+     |  sound_mode
+     |      Return the matched current sound mode as a string.
+     |  
+     |  sound_mode_dict
+     |      Return a dict of available sound modes with their mapping values.
+     |  
+     |  sound_mode_list
+     |      Return a list of available sound modes as string.
+     |  
+     |  sound_mode_raw
+     |      Return the current sound mode as string as received from the AVR.
+     |  
      |  state
      |      Return the state of the device.
      |      
@@ -240,6 +276,14 @@ CLASSES
      |  ----------------------------------------------------------------------
      |  Methods inherited from DenonAVR:
      |  
+     |  construct_sm_match_dict(self)
+     |      Construct the sm_match_dict.
+     |      
+     |      Reverse the key value structure. The sm_match_dict is bigger,
+     |      but allows for direct matching using a dictionary key access.
+     |      The sound_mode_dict is uses externally to set this dictionary
+     |      because that has a nicer syntax.
+     |  
      |  exec_appcommand_post(self, attribute_list)
      |      Prepare and execute a HTTP POST call to AppCommand.xml end point.
      |      
@@ -247,6 +291,9 @@ CLASSES
      |  
      |  get_status_xml(self, command, suppress_errors=False)
      |      Get status XML via HTTP and return it as XML ElementTree.
+     |  
+     |  match_sound_mode(self, sound_mode_raw)
+     |      Match the raw_sound_mode to its corresponding sound_mode.
      |  
      |  mute(self, mute)
      |      Mute receiver via HTTP get command.
@@ -275,6 +322,16 @@ CLASSES
      |      Valid values depend on the device and should be taken from
      |      "input_func_list".
      |      Return "True" on success and "False" on fail.
+     |  
+     |  set_sound_mode(self, sound_mode)
+     |      Set sound_mode of device.
+     |      
+     |      Valid values depend on the device and should be taken from
+     |      "sound_mode_list".
+     |      Return "True" on success and "False" on fail.
+     |  
+     |  set_sound_mode_dict(self, sound_mode_dict)
+     |      Set the matching dictionary used to match the raw sound mode.
      |  
      |  set_volume(self, volume)
      |      Set receiver volume via HTTP get command.
@@ -353,6 +410,21 @@ CLASSES
      |      Return the power state of the device.
      |      
      |      Possible values are: "ON", "STANDBY" and "OFF"
+     |  
+     |  sm_match_dict
+     |      Return a dict to map each sound_mode_raw to matching sound_mode.
+     |  
+     |  sound_mode
+     |      Return the matched current sound mode as a string.
+     |  
+     |  sound_mode_dict
+     |      Return a dict of available sound modes with their mapping values.
+     |  
+     |  sound_mode_list
+     |      Return a list of available sound modes as string.
+     |  
+     |  sound_mode_raw
+     |      Return the current sound mode as string as received from the AVR.
      |  
      |  state
      |      Return the state of the device.

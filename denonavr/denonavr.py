@@ -6,8 +6,6 @@ This module implements the interface to Denon AVR receivers.
 :copyright: (c) 2016 by Oliver Goetz.
 :license: MIT, see LICENSE for more details.
 """
-# pylint: disable=too-many-lines
-# pylint: disable=no-else-return
 
 from collections import (namedtuple, OrderedDict)
 from io import BytesIO
@@ -195,8 +193,6 @@ ZONE2_ZONE3 = {"Zone2": None, "Zone3": None}
 class DenonAVR(object):
     """Representing a Denon AVR Device."""
 
-    # pylint: disable=too-many-instance-attributes,too-many-public-methods
-
     def __init__(self, host, name=None, show_all_inputs=False, timeout=2.0,
                  add_zones=NO_ZONES):
         """
@@ -214,7 +210,6 @@ class DenonAVR(object):
         :param add_zones: Additional Zones for which an instance are created
         :type add_zones: dict [str, str] or None
         """
-        # pylint: disable=too-many-arguments
         self._name = name
         self._host = host
         self._zone = "Main"
@@ -387,7 +382,6 @@ class DenonAVR(object):
         Returns "True" on success and "False" on fail.
         This method is for pre 2016 AVR(-X) devices
         """
-        # pylint: disable=too-many-branches,too-many-statements
         # Set all tags to be evaluated
         relevant_tags = {"Power": None, "InputFuncSelect": None, "Mute": None,
                          "MasterVolume": None, "selectSurround": None,
@@ -539,7 +533,6 @@ class DenonAVR(object):
         Internal method which updates sources list of receiver after getting
         sources and potential renaming information from receiver.
         """
-        # pylint: disable=too-many-branches
         # Get all sources and renaming information from receiver
         # For structural information of the variables please see the methods
         receiver_sources = self._get_receiver_sources()
@@ -673,7 +666,6 @@ class DenonAVR(object):
         Internal method which queries device via HTTP to get names of renamed
         input sources.
         """
-        # pylint: disable=too-many-branches
         # renamed_sources and deleted_sources are dicts with "source" as key
         # and "renamed_source" or deletion flag as value.
         renamed_sources = {}
@@ -797,8 +789,6 @@ class DenonAVR(object):
         This method also determines the type of the receiver
         (avr, avr-x, avr-x-2016).
         """
-        # pylint: disable=too-many-branches,too-many-locals,too-many-statements
-
         # Test if receiver is a AVR-X with port 80 for pre 2016 devices and
         # port 8080 devices 2016 and later
         r_types = [AVR_X, AVR_X_2016]
@@ -914,7 +904,6 @@ class DenonAVR(object):
         Internal method which queries device via HTTP to update media
         information (title, artist, etc.) and URL of cover image.
         """
-        # pylint: disable=too-many-branches,too-many-statements
         # Use different query URL based on selected source
         if self._input_func in self._netaudio_func_list:
             try:
@@ -1141,16 +1130,16 @@ class DenonAVR(object):
     @property
     def sound_mode_list(self):
         """Return a list of available sound modes as string."""
-        return self._sound_mode_dict.keys()
+        return list(self._sound_mode_dict.keys())
 
     @property
     def sound_mode_dict(self):
         """Return a dict of available sound modes with their mapping values."""
-        return self._sound_mode_dict
+        return dict(self._sound_mode_dict)
 
     @property
     def sm_match_dict(self):
-        """Dict to map each sound_mode_raw to it's matched sound_mode."""
+        """Return a dict to map each sound_mode_raw to matching sound_mode."""
         return self._sm_match_dict
 
     @property
@@ -1294,11 +1283,10 @@ class DenonAVR(object):
             return False
 
     def set_sound_mode_dict(self, sound_mode_dict):
-        """set the matching dictionary used to match the raw sound mode."""
+        """Set the matching dictionary used to match the raw sound mode."""
         error_msg = ("Syntax of sound mode dictionary not valid, "
                      "use: OrderedDict([('COMMAND', ['VALUE1','VALUE2'])])")
-        if (isinstance(sound_mode_dict, OrderedDict) or
-                isinstance(sound_mode_dict, dict)):
+        if isinstance(sound_mode_dict, dict):
             mode_list = list(sound_mode_dict.values())
             for sublist in mode_list:
                 if isinstance(sublist, list):
@@ -1318,12 +1306,12 @@ class DenonAVR(object):
 
     def construct_sm_match_dict(self):
         """
-        Internal method to construct the sm_match_dict.
+        Construct the sm_match_dict.
 
         Reverse the key value structure. The sm_match_dict is bigger,
         but allows for direct matching using a dictionary key access.
         The sound_mode_dict is uses externally to set this dictionary
-        because that has a nicer syntax
+        because that has a nicer syntax.
         """
         mode_dict = list(self._sound_mode_dict.items())
         match_mode_dict = {}
@@ -1499,8 +1487,6 @@ class DenonAVR(object):
 class DenonAVRZones(DenonAVR):
     """Representing an additional zone of a Denon AVR Device."""
 
-    # pylint: disable=too-many-instance-attributes
-
     def __init__(self, parent_avr, zone, name):
         """
         Initialize additional zones of DenonAVR.
@@ -1514,8 +1500,7 @@ class DenonAVRZones(DenonAVR):
         :param name: Device name, if None FriendlyName of device is used.
         :type name: str
         """
-        # pylint: disable=super-init-not-called
-        # pylint: disable=protected-access
+        # pylint: disable=super-init-not-called, protected-access
         self._parent_avr = parent_avr
         self._zone = zone
 
