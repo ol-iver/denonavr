@@ -37,18 +37,18 @@ CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
                         "Media Server": "SERVER", "Spotify": "SPOTIFY",
                         "Flickr": "FLICKR", "Favorites": "FAVORITES"}
 
-SOUND_MODE_MAPPING = OrderedDict\
-([('MUSIC', ['PLII MUSIC', 'DTS NEO:6 MUSIC', 'DOLBY D +NEO:X M',
-             'ROCK ARENA', 'JAZZ CLUB', 'MATRIX']),
-  ('MOVIE', ['PLII MOVIE', 'PLII CINEMA', 'DTS NEO:X CINEMA',
-             'DTS NEO:6 CINEMA', 'DOLBY D +NEO:X C', 'MONO MOVIE']),
-  ('GAME', ['PLII GAME', 'DOLBY D +NEO:X G', 'VIDEO GAME']),
-  ('AUTO', ['None']),
-  ('VIRTUAL', ['VIRTUAL']),
-  ('PURE DIRECT', ['DIRECT']),
-  ('DOLBY DIGITAL', ['DOLBY DIGITAL', 'DOLBY D + DOLBY SURROUND']),
-  ('MCH STEREO', ['MULTI CH STEREO', 'MULTI CH IN']),
-  ('STEREO', ['STEREO'])])
+SOUND_MODE_MAPPING = OrderedDict(\
+    [('MUSIC', ['PLII MUSIC', 'DTS NEO:6 MUSIC', 'DOLBY D +NEO:X M',
+                'ROCK ARENA', 'JAZZ CLUB', 'MATRIX']),
+     ('MOVIE', ['PLII MOVIE', 'PLII CINEMA', 'DTS NEO:X CINEMA',
+                'DTS NEO:6 CINEMA', 'DOLBY D +NEO:X C', 'MONO MOVIE']),
+     ('GAME', ['PLII GAME', 'DOLBY D +NEO:X G', 'VIDEO GAME']),
+     ('AUTO', ['None']),
+     ('VIRTUAL', ['VIRTUAL']),
+     ('PURE DIRECT', ['DIRECT']),
+     ('DOLBY DIGITAL', ['DOLBY DIGITAL', 'DOLBY D + DOLBY SURROUND']),
+     ('MCH STEREO', ['MULTI CH STEREO', 'MULTI CH IN']),
+     ('STEREO', ['STEREO'])])
 
 PLAYING_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
                    "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
@@ -1284,7 +1284,7 @@ class DenonAVR(object):
         # sent command
         try:
             if self.send_get_command(command_url):
-                self.sound_mode() = sound_mode
+                self._sound_mode_raw = self._sound_mode_dict[sound_mode][0]
                 return True
             else:
                 return False
