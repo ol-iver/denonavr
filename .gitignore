@@ -94,3 +94,4 @@ ENV/
 .project
 .pydevproject
 .pypirc
+.pytest_cache
