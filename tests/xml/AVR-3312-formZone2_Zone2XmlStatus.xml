@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<Zone><value>WZ Stereo </value></Zone>
+<Power><value>OFF</value></Power>
+<InputFuncList>
+<value>SOURCE</value>
+<value>TUNER</value>
+<value>HDRADIO</value>
+<value>CD</value>
+<value>PHONO</value>
+<value>NET/USB</value>
+<value>DVD</value>
+<value>BD</value>
+<value>TV</value>
+<value>SAT/CBL</value>
+<value>DVR</value>
+<value>DOCK</value>
+<value>GAME2</value>
+<value>GAME</value>
+<value>V.AUX</value>
+</InputFuncList>
+<RenameSource>
+<value></value>
+<value>TUNER   </value>
+<value></value>
+<value>CD      </value>
+<value>PHONO   </value>
+<value>NET/USB </value>
+<value>DVD     </value>
+<value>BD      </value>
+<value>TV      </value>
+<value>SAT/CBL </value>
+<value>DVR     </value>
+<value>DOCK    </value>
+<value>GAME2   </value>
+<value>GAME1   </value>
+<value>V.AUX   </value>
+</RenameSource>
+<InputFuncSelect><value>GAME2</value></InputFuncSelect>
+<VolumeDisplay><value>Absolute</value></VolumeDisplay>
+<MasterVolume><value>-10</value></MasterVolume>
+<Mute><value>off</value></Mute>
+</item>

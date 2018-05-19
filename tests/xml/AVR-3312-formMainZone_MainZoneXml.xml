@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<Power><value>ON</value></Power>
+<ZonePower><value>ON</value></ZonePower>
+<InputFuncList>
+<value>SOURCE</value>
+<value>TUNER</value>
+<value>HDRADIO</value>
+<value>CD</value>
+<value>PHONO</value>
+<value>NET/USB</value>
+<value>DVD</value>
+<value>BD</value>
+<value>TV</value>
+<value>SAT/CBL</value>
+<value>DVR</value>
+<value>DOCK</value>
+<value>GAME2</value>
+<value>GAME</value>
+<value>V.AUX</value>
+</InputFuncList>
+<RenameSource>
+<value></value>
+<value>TUNER   </value>
+<value></value>
+<value>CD      </value>
+<value>PHONO   </value>
+<value>NET/USB </value>
+<value>DVD     </value>
+<value>BD      </value>
+<value>TV      </value>
+<value>SAT/CBL </value>
+<value>DVR     </value>
+<value>DOCK    </value>
+<value>GAME2   </value>
+<value>GAME1   </value>
+<value>V.AUX   </value>
+</RenameSource>
+<RenameZone><value>WZ Surr.  </value></RenameZone>
+<SourceDelete>
+<value>DEL</value>
+<value>USE</value>
+<value>DEL</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+</SourceDelete>
+<TopMenuLink><value>ON</value></TopMenuLink>
+<ModelId><value>4</value></ModelId>
+<SalesArea><value>1</value></SalesArea>
+<InputFuncSelect><value>Internet Radio</value></InputFuncSelect>
+<NetFuncSelect><value>IRADIO</value></NetFuncSelect>
+<InputFuncSelectMain><value>NET/USB</value></InputFuncSelectMain>
+<selectSurround><value>STEREO                         </value></selectSurround>
+<SurroundLists>
+<value index=''  table='' param=''/>
+<value index='DOLBY DIGITAL'  table='Standard(Dolby)' param=''/>
+<value index='DTS SURROUND'  table='Standard(DTS)' param=''/>
+<value index='DIRECT'  table='Direct' param=''/>
+<value index='PURE DIRECT'  table='Pure Direct' param=''/>
+<value index='STEREO'  table='Stereo' param=''/>
+<value index='MCH STEREO'  table='Multi CH Stereo' param=''/>
+<value index='VIRTUAL'  table='Virtual' param=''/>
+<value index='ROCK ARENA'  table='Rock Arena' param=''/>
+<value index='JAZZ CLUB'  table='Jazz Club' param=''/>
+<value index='MONO MOVIE'  table='Mono Movie' param=''/>
+<value index='VIDEO GAME'  table='Video Game' param=''/>
+<value index='MATRIX'  table='Matrix' param=''/>
+</SurroundLists>
+<VolumeDisplay><value>Absolute</value></VolumeDisplay>
+<MasterVolume><value>-64.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<RemoteMaintenance><value>OFF</value></RemoteMaintenance>
+<GameSourceDisplay><value>TRUE</value></GameSourceDisplay>
+<LastfmDisplay><value>FALSE</value></LastfmDisplay>
+<SubwooferDisplay><value>TRUE</value></SubwooferDisplay>
+<SW><value>ON</value></SW>
+<Zone2VolDisp><value>TRUE</value></Zone2VolDisp>
+</item>

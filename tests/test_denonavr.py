@@ -24,7 +24,8 @@ TESTING_RECEIVERS = {"AVR-X4100W": NO_ZONES, "AVR-2312CI": NO_ZONES,
                      "M-RC610": NO_ZONES, "AVR-X2100W-2": NO_ZONES,
                      "AVR-X2000": ZONE2_ZONE3, "AVR-X2000-2": NO_ZONES,
                      "SR5008": NO_ZONES, "M-CR603": NO_ZONES,
-                     "NR1604": ZONE2_ZONE3, "AVR-4810": NO_ZONES}
+                     "NR1604": ZONE2_ZONE3, "AVR-4810": NO_ZONES,
+                     "AVR-3312": NO_ZONES}
 
 APPCOMMAND_URL = "/goform/AppCommand.xml"
 STATUS_URL = "/goform/formMainZone_MainZoneXmlStatus.xml"
@@ -47,63 +48,70 @@ def get_sample_content(filename):
 class TestMainFunctions(testtools.TestCase):
     """Test case for main functions of Denon AVR."""
 
+    def __init__(self, *args, **kwargs):
+        """Constructor."""
+        super().__init__(*args, **kwargs)
+        self._testing_receiver = None
+
     @requests_mock.mock()
-    def setUp(self, m):
-        """Setup method, using the first receiver from list."""
-        super(TestMainFunctions, self).setUp()
+    # pylint: disable=arguments-differ
+    def setUp(self, mocker):
+        """Initialize test functions, using the first receiver from list."""
+        super().setUp()
         self.denon = None
 
     def custom_matcher(self, request):
         """Match URLs to sample files."""
         if request.path_url == STATUS_URL:
             content = get_sample_content(
-                        "{receiver}-formMainZone_MainZoneXmlStatus.xml"
-                        .format(receiver=self._testing_receiver))
+                "{receiver}-formMainZone_MainZoneXmlStatus.xml".format(
+                    receiver=self._testing_receiver))
         elif request.path_url == STATUS_Z2_URL:
             content = get_sample_content(
-                        "{receiver}-formZone2_Zone2XmlStatus.xml"
-                        .format(receiver=self._testing_receiver))
+                "{receiver}-formZone2_Zone2XmlStatus.xml".format(
+                    receiver=self._testing_receiver))
         elif request.path_url == STATUS_Z3_URL:
             content = get_sample_content(
-                        "{receiver}-formZone3_Zone3XmlStatus.xml"
-                        .format(receiver=self._testing_receiver))
+                "{receiver}-formZone3_Zone3XmlStatus.xml".format(
+                    receiver=self._testing_receiver))
         elif request.path_url == MAINZONE_URL:
             content = get_sample_content(
-                        "{receiver}-formMainZone_MainZoneXml.xml"
-                        .format(receiver=self._testing_receiver))
+                "{receiver}-formMainZone_MainZoneXml.xml".format(
+                    receiver=self._testing_receiver))
         elif request.path_url == DEVICEINFO_URL:
             content = get_sample_content(
-                        "{receiver}-Deviceinfo.xml"
-                        .format(receiver=self._testing_receiver))
+                "{receiver}-Deviceinfo.xml".format(
+                    receiver=self._testing_receiver))
         elif request.path_url == NETAUDIOSTATUS_URL:
             content = get_sample_content(
-                        "{receiver}-formNetAudio_StatusXml.xml"
-                        .format(receiver=self._testing_receiver))
+                "{receiver}-formNetAudio_StatusXml.xml".format(
+                    receiver=self._testing_receiver))
         elif request.path_url == TUNERSTATUS_URL:
             content = get_sample_content(
-                        "{receiver}-formTuner_TunerXml.xml"
-                        .format(receiver=self._testing_receiver))
+                "{receiver}-formTuner_TunerXml.xml".format(
+                    receiver=self._testing_receiver))
         elif request.path_url == HDTUNERSTATUS_URL:
             content = get_sample_content(
-                        "{receiver}-formTuner_HdXml.xml"
-                        .format(receiver=self._testing_receiver))
+                "{receiver}-formTuner_HdXml.xml".format(
+                    receiver=self._testing_receiver))
         elif request.path_url == APPCOMMAND_URL:
             content = get_sample_content(
-                        "{receiver}-AppCommand.xml"
-                        .format(receiver=self._testing_receiver))
+                "{receiver}-AppCommand.xml".format(
+                    receiver=self._testing_receiver))
         else:
             content = "DATA"
 
         resp = requests.Response()
         resp.encoding = "utf-8"
+        # pylint: disable=protected-access
         resp._content = content.encode()
         resp.status_code = 200
         return resp
 
     @requests_mock.mock()
-    def test_input_func_switch(self, m):
+    def test_input_func_switch(self, mock):
         """Switch through all input functions of all tested receivers."""
-        m.add_matcher(self.custom_matcher)
+        mock.add_matcher(self.custom_matcher)
         for receiver, zones in TESTING_RECEIVERS.items():
             # Switch receiver and update to load new sample files
             self._testing_receiver = receiver

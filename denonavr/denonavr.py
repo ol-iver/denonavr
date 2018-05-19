@@ -29,7 +29,7 @@ AVR_X_2016 = ReceiverType(type="avr-x-2016", port=8080)
 
 SOURCE_MAPPING = {"TV AUDIO": "TV", "iPod/USB": "USB/IPOD", "Bluetooth": "BT",
                   "Blu-ray": "BD", "CBL/SAT": "SAT/CBL", "NETWORK": "NET",
-                  "Media Player": "MPLAY", "AUX": "AUX1"}
+                  "Media Player": "MPLAY", "AUX": "AUX1", "Tuner": "TUNER"}
 
 CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
                         "Media Server": "SERVER", "Spotify": "SPOTIFY",
@@ -57,8 +57,8 @@ NETAUDIO_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
                     "NET/USB", "Music Server", "NETWORK", "NET")
 
 # Image URLs
-STATIC_ALBUM_URL = "http://{host}/img/album%20art_S.png"
-ALBUM_COVERS_URL = "http://{host}/NetAudio/art.asp-jpg?{time}"
+STATIC_ALBUM_URL = "http://{host}:{port}/img/album%20art_S.png"
+ALBUM_COVERS_URL = "http://{host}:{port}/NetAudio/art.asp-jpg?{time}"
 
 # General URLs
 APPCOMMAND_URL = "/goform/AppCommand.xml"
@@ -212,9 +212,20 @@ class DenonAVR(object):
         """
         self._name = name
         self._host = host
-        self._zone = "Main"
+        # Main zone just set for DenonAVR class
+        if self.__class__.__name__ == "DenonAVR":
+            self._zone = "Main"
         self._zones = {self._zone: self}
-        self._urls = DENONAVR_URLS
+
+        if self._zone == "Main":
+            self._urls = DENONAVR_URLS
+        elif self._zone == "Zone2":
+            self._urls = ZONE2_URLS
+        elif self._zone == "Zone3":
+            self._urls = ZONE3_URLS
+        else:
+            raise ValueError("Invalid zone {}".format(self._zone))
+
         # Timeout for HTTP calls to receiver
         self.timeout = timeout
         # Receiver types could be avr, avr-x, avr-x-2016 after being determined
@@ -237,7 +248,8 @@ class DenonAVR(object):
         self._favorite_func_list = []
         self._state = None
         self._power = None
-        self._image_url = (STATIC_ALBUM_URL.format(host=self._host))
+        self._image_url = None
+        self._image_available = None
         self._title = None
         self._artist = None
         self._album = None
@@ -255,7 +267,7 @@ class DenonAVR(object):
         # Get initial setting of values
         self.update()
         # Create instances of additional zones if requested
-        if add_zones is not None:
+        if self._zone == "Main" and add_zones is not None:
             self.create_zones(add_zones)
 
     def exec_appcommand_post(self, attribute_list):
@@ -434,7 +446,7 @@ class DenonAVR(object):
             self._band = None
             self._frequency = None
             self._station = None
-            self._image_url = (STATIC_ALBUM_URL.format(host=self._host))
+            self._image_url = None
         else:
             self._state = STATE_OFF
             self._title = None
@@ -445,13 +457,13 @@ class DenonAVR(object):
             self._station = None
 
         # Get/update sources list if current source is not known yet
-        if (self._input_func not in self._input_func_list
-                and self._input_func is not None):
+        if (self._input_func not in self._input_func_list and
+                self._input_func is not None):
             if self._update_input_func_list():
                 _LOGGER.info("List of input functions refreshed.")
                 # If input function is still not known, create new entry.
-                if (self._input_func not in self._input_func_list
-                        and self._input_func is not None):
+                if (self._input_func not in self._input_func_list and
+                        self._input_func is not None):
                     inputfunc = self._input_func
                     self._input_func_list_rev[inputfunc] = inputfunc
                     self._input_func_list[inputfunc] = inputfunc
@@ -515,8 +527,8 @@ class DenonAVR(object):
                 if self._update_input_func_list():
                     _LOGGER.info("List of input functions refreshed.")
                     # If input function is still not known, create new entry.
-                    if (inputfunc not in self._input_func_list
-                            and inputfunc is not None):
+                    if (inputfunc not in self._input_func_list and
+                            inputfunc is not None):
                         self._input_func_list_rev[inputfunc] = inputfunc
                         self._input_func_list[inputfunc] = inputfunc
                 else:
@@ -681,8 +693,8 @@ class DenonAVR(object):
             if self._receiver_type == AVR_X.type:
                 root = self.get_status_xml(self._urls.status)
             # URL only available for Main Zone.
-            elif (self._receiver_type == AVR.type
-                  and self._urls.mainzone is not None):
+            elif (self._receiver_type == AVR.type and
+                  self._urls.mainzone is not None):
                 root = self.get_status_xml(self._urls.mainzone)
             else:
                 return (renamed_sources, deleted_sources)
@@ -773,8 +785,8 @@ class DenonAVR(object):
         for child in root.findall("./cmd/functiondelete/list"):
             try:
                 deleted_sources[child.find("FuncName").text.strip(
-                    )] = "DEL" if (
-                        child.find("use").text.strip() == "0") else None
+                )] = "DEL" if (
+                    child.find("use").text.strip() == "0") else None
             except AttributeError:
                 continue
 
@@ -836,7 +848,8 @@ class DenonAVR(object):
         else:
             self._receiver_port = AVR_X.port
 
-        _LOGGER.info("Identified receiver type: %s", self._receiver_type)
+        _LOGGER.info("Identified receiver type: '%s' on port: '%s'",
+                     self._receiver_type, self._receiver_port)
 
         # Not an AVR-X device, start determination of sources
         if self._receiver_type == AVR.type:
@@ -923,7 +936,8 @@ class DenonAVR(object):
                         # Refresh cover with a new time stamp for media URL
                         # when track is changing
                         self._image_url = (ALBUM_COVERS_URL.format(
-                            host=self._host, time=int(time.time())))
+                            host=self._host, port=self._receiver_port,
+                            time=int(time.time())))
                         # On track change assume device is PLAYING
                         self._state = STATE_PLAYING
                     self._title = html.unescape(child[1].text) if (
@@ -958,7 +972,9 @@ class DenonAVR(object):
             self._state = STATE_PLAYING
 
             # No special cover, using a static one
-            self._image_url = (STATIC_ALBUM_URL.format(host=self._host))
+            self._image_url = (
+                STATIC_ALBUM_URL.format(
+                    host=self._host, port=self._receiver_port))
 
         elif self._input_func == "HD Radio" or self._input_func == "HDRADIO":
             try:
@@ -991,7 +1007,9 @@ class DenonAVR(object):
             self._state = STATE_PLAYING
 
             # No special cover, using a static one
-            self._image_url = (STATIC_ALBUM_URL.format(host=self._host))
+            self._image_url = (
+                STATIC_ALBUM_URL.format(
+                    host=self._host, port=self._receiver_port))
 
         # No behavior implemented, so reset all variables for that source
         else:
@@ -1004,7 +1022,29 @@ class DenonAVR(object):
             # Assume PLAYING_DEVICE is always PLAYING
             self._state = STATE_PLAYING
             # No special cover, using a static one
-            self._image_url = (STATIC_ALBUM_URL.format(host=self._host))
+            self._image_url = (
+                STATIC_ALBUM_URL.format(
+                    host=self._host, port=self._receiver_port))
+
+        # Test if image URL is accessable
+        if self._image_available is None and self._image_url is not None:
+            try:
+                imgres = requests.get(self._image_url, timeout=self.timeout)
+            except requests.exceptions.RequestException:
+                # No result set image URL to None
+                self._image_url = None
+            else:
+                if imgres.status_code == 200:
+                    self._image_available = True
+                else:
+                    _LOGGER.info('No album art available for your receiver')
+                    # No image available. Save this status.
+                    self._image_available = False
+                    #  Set image URL to None.
+                    self._image_url = None
+        # Already tested that image URL is not accessible
+        elif self._image_available is False:
+            self._image_url = None
 
         # Finished
         return True
@@ -1202,6 +1242,21 @@ class DenonAVR(object):
         (e.g. title, artist, album, band, frequency, station, image_url).
         """
         return self._playing_func_list
+
+    @property
+    def receiver_port(self):
+        """Return the receiver's port."""
+        return self._receiver_port
+
+    @property
+    def receiver_type(self):
+        """Return the receiver's type."""
+        return self._receiver_type
+
+    @property
+    def show_all_inputs(self):
+        """Indicate if all inputs are shown or just active one."""
+        return self._show_all_inputs
 
     @input_func.setter
     def input_func(self, input_func):
@@ -1500,78 +1555,8 @@ class DenonAVRZones(DenonAVR):
         :param name: Device name, if None FriendlyName of device is used.
         :type name: str
         """
-        # pylint: disable=super-init-not-called, protected-access
         self._parent_avr = parent_avr
         self._zone = zone
-
-        if self._zone == "Zone2":
-            self._urls = ZONE2_URLS
-        elif self._zone == "Zone3":
-            self._urls = ZONE3_URLS
-        else:
-            raise ValueError("Invalid zone {}".format(self._zone))
-
-        self._name = name
-        self._host = self._parent_avr.host
-        self.timeout = self._parent_avr.timeout
-        # Receiver type and port
-        self._receiver_type = self._parent_avr._receiver_type
-        self._receiver_port = self._parent_avr._receiver_port
-
-        self._show_all_inputs = self._parent_avr._show_all_inputs
-        self._mute = STATE_OFF
-        self._volume = "--"
-        self._input_func = None
-        # Get func lists from parent receiver
-        self._input_func_list = self._parent_avr._input_func_list
-        self._input_func_list_rev = self._parent_avr._input_func_list_rev
-        self._netaudio_func_list = self._parent_avr._netaudio_func_list
-        self._playing_func_list = self._parent_avr._playing_func_list
-        self._favorite_func_list = self._parent_avr._favorite_func_list
-        self._state = None
-        self._power = None
-        self._image_url = (STATIC_ALBUM_URL.format(host=self._host))
-        self._title = None
-        self._artist = None
-        self._album = None
-        self._band = None
-        self._frequency = None
-        self._station = None
-        # Fill variables with initial values
-        self.update()
-
-    def _update_input_func_list(self):
-        """
-        Update sources list from receiver.
-
-        Input func list is prepared by parent receiver.
-        Thus calling its method instead.
-        """
-        # pylint: disable=protected-access
-        upd_success = self._parent_avr._update_input_func_list()
-
-        # Reset receiver type and port
-        self._receiver_type = self._parent_avr._receiver_type
-        self._receiver_port = self._parent_avr._receiver_port
-
-        return upd_success
-
-    def create_zones(self, add_zones):
-        """Only call this method from parent AVR (Main Zone)."""
-        raise NotImplementedError(
-            "Only call this method at parent AVR (Main Zone).")
-
-    def _get_renamed_deleted_sources(self):
-        """Only call this method from parent AVR (Main Zone)."""
-        raise NotImplementedError(
-            "Only call this method at parent AVR (Main Zone).")
-
-    def _get_renamed_deleted_sourcesapp(self):
-        """Only call this method from parent AVR (Main Zone)."""
-        raise NotImplementedError(
-            "Only call this method at parent AVR (Main Zone).")
-
-    def _get_receiver_sources(self):
-        """Only call this method from parent AVR (Main Zone)."""
-        raise NotImplementedError(
-            "Only call this method at parent AVR (Main Zone).")
+        super().__init__(self._parent_avr.host, name=name,
+                         show_all_inputs=self._parent_avr.show_all_inputs,
+                         timeout=self._parent_avr.timeout)
