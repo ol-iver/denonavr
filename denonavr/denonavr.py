@@ -396,8 +396,12 @@ class DenonAVR(object):
         """
         # Set all tags to be evaluated
         relevant_tags = {"Power": None, "InputFuncSelect": None, "Mute": None,
-                         "MasterVolume": None, "selectSurround": None,
-                         "SurrMode": None}
+                         "MasterVolume": None}
+
+        # Sound mode information only available in main zone
+        if self._zone == "Main":
+            relevant_tags["selectSurround"] = None
+            relevant_tags["SurrMode"] = None
 
         # Get status XML from Denon receiver via HTTP
         try:
@@ -1560,3 +1564,45 @@ class DenonAVRZones(DenonAVR):
         super().__init__(self._parent_avr.host, name=name,
                          show_all_inputs=self._parent_avr.show_all_inputs,
                          timeout=self._parent_avr.timeout)
+
+    @property
+    def sound_mode(self):
+        """Return the matched current sound mode as a string."""
+        sound_mode_matched = self._parent_avr.match_sound_mode(
+            self._parent_avr.sound_mode_raw)
+        return sound_mode_matched
+
+    @property
+    def sound_mode_list(self):
+        """Return a list of available sound modes as string."""
+        return list(self._parent_avr.sound_mode_dict.keys())
+
+    @property
+    def sound_mode_dict(self):
+        """Return a dict of available sound modes with their mapping values."""
+        return dict(self._parent_avr.sound_mode_dict)
+
+    @property
+    def sm_match_dict(self):
+        """Return a dict to map each sound_mode_raw to matching sound_mode."""
+        return self._parent_avr.sm_match_dict
+
+    @property
+    def sound_mode_raw(self):
+        """Return the current sound mode as string as received from the AVR."""
+        return self._parent_avr.sound_mode_raw
+
+    @sound_mode.setter
+    def sound_mode(self, sound_mode):
+        """Setter function for sound_mode to switch sound_mode of device."""
+        self.set_sound_mode(sound_mode)
+
+    def set_sound_mode(self, sound_mode):
+        """
+        Set sound_mode of device.
+
+        Valid values depend on the device and should be taken from
+        "sound_mode_list".
+        Return "True" on success and "False" on fail.
+        """
+        return self._parent_avr.set_sound_mode(sound_mode)

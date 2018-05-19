@@ -3,7 +3,7 @@ denonavr
 
 |Build Status|
 
-Automation Library for Denon AVR receivers - current version 0.7.1
+Automation Library for Denon AVR receivers - current version 0.7.2
 
 Installation
 ------------
