@@ -540,6 +540,13 @@ class DenonAVR(object):
                         "Input function list for Denon receiver at host %s "
                         "could not be updated."), self._host)
 
+        # Now playing information is not implemented for 2016+ models, because
+        # a HEOS API query needed. So only sync the power state for now.
+        if self._power == POWER_ON:
+            self._state = STATE_ON
+        else:
+            self._state = STATE_OFF
+
         return True
 
     def _update_input_func_list(self):
