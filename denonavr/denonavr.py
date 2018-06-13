@@ -682,6 +682,44 @@ class DenonAVR(object):
                 else:
                     self._name = name.strip()
 
+    def _get_support_sound_mode(self):
+        """
+        Get if sound mode is supported from device.
+
+        Method queries device via HTTP.
+        Returns "True" if sound mode supported and "False" if not.
+        This method is for pre 2016 AVR(-X) devices
+        """
+        # Set sound mode tags to be checked if available
+        relevant_tags = {"selectSurround": None, "SurrMode": None}
+
+        # Get status XML from Denon receiver via HTTP
+        try:
+            root = self.get_status_xml(self._urls.status)
+        except (ValueError, requests.exceptions.RequestException):
+            pass
+        else:
+            # Process the tags from this XML
+            relevant_tags = self._get_status_from_xml_tags(root, relevant_tags)
+
+        # Second option to update variables from different source
+        if relevant_tags:
+            try:
+                root = self.get_status_xml(self._urls.mainzone)
+            except (ValueError,
+                    requests.exceptions.RequestException):
+                pass
+            else:
+                # Get the tags from this XML
+                relevant_tags = self._get_status_from_xml_tags(root,
+                                                               relevant_tags)
+
+        # if sound mode not found in the status XML, return False
+        if relevant_tags:
+            return False
+        # if sound mode found, the relevant_tags are empty: return True.
+        return True
+
     def _get_renamed_deleted_sources(self):
         """
         Get renamed and deleted sources lists from receiver .
@@ -1171,6 +1209,11 @@ class DenonAVR(object):
     def input_func_list(self):
         """Return a list of available input sources as string."""
         return sorted(self._input_func_list.keys())
+
+    @property
+    def support_sound_mode(self):
+        """Return Boolean if sound mode supported."""
+        return self._get_support_sound_mode()
 
     @property
     def sound_mode(self):
