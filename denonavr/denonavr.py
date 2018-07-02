@@ -242,6 +242,7 @@ class DenonAVR(object):
         self._input_func_list_rev = {}
         self._sound_mode_raw = None
         self._sound_mode_dict = SOUND_MODE_MAPPING
+        self._support_sound_mode = None
         self._sm_match_dict = self.construct_sm_match_dict()
         self._netaudio_func_list = []
         self._playing_func_list = []
@@ -264,6 +265,8 @@ class DenonAVR(object):
             self._get_zone_name()
         else:
             self._get_receiver_name()
+        # Determine if sound mode is supported    
+        self._get_support_sound_mode()
         # Get initial setting of values
         self.update()
         # Create instances of additional zones if requested
@@ -399,7 +402,7 @@ class DenonAVR(object):
                          "MasterVolume": None}
 
         # Sound mode information only available in main zone
-        if self._zone == "Main":
+        if (self._zone == "Main" and self._support_sound_mode == True):
             relevant_tags["selectSurround"] = None
             relevant_tags["SurrMode"] = None
 
@@ -716,8 +719,10 @@ class DenonAVR(object):
 
         # if sound mode not found in the status XML, return False
         if relevant_tags:
+            self._support_sound_mode = False
             return False
         # if sound mode found, the relevant_tags are empty: return True.
+        self._support_sound_mode = True
         return True
 
     def _get_renamed_deleted_sources(self):
