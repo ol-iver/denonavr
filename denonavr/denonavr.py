@@ -265,7 +265,7 @@ class DenonAVR(object):
             self._get_zone_name()
         else:
             self._get_receiver_name()
-        # Determine if sound mode is supported    
+        # Determine if sound mode is supported
         self._get_support_sound_mode()
         # Get initial setting of values
         self.update()
@@ -402,7 +402,7 @@ class DenonAVR(object):
                          "MasterVolume": None}
 
         # Sound mode information only available in main zone
-        if (self._zone == "Main" and self._support_sound_mode == True):
+        if (self._zone == "Main" and self._support_sound_mode):
             relevant_tags["selectSurround"] = None
             relevant_tags["SurrMode"] = None
 
