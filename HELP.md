@@ -29,7 +29,7 @@ DATA
     __title__ = 'denonavr'
 
 VERSION
-    0.7.3
+    0.7.4
 
 ====================================================================================
 
@@ -210,6 +210,9 @@ CLASSES
      |  
      |  sm_match_dict
      |      Return a dict to map each sound_mode_raw to matching sound_mode.
+     |  
+     |  support_sound_mode
+     |      Return True if sound mode supported.
      |  
      |  sound_mode
      |      Return the matched current sound mode as a string.

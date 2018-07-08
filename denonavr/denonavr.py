@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This module implements the interface to Denon AVR receivers.
@@ -402,7 +402,7 @@ class DenonAVR(object):
                          "MasterVolume": None}
 
         # Sound mode information only available in main zone
-        if (self._zone == "Main" and self._support_sound_mode):
+        if self._zone == "Main" and self._support_sound_mode:
             relevant_tags["selectSurround"] = None
             relevant_tags["SurrMode"] = None
 
@@ -1217,7 +1217,7 @@ class DenonAVR(object):
 
     @property
     def support_sound_mode(self):
-        """Return Boolean if sound mode supported."""
+        """Return True if sound mode supported."""
         return self._get_support_sound_mode()
 
     @property

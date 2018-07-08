@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # encoding: utf-8
 """Automation Library for Denon AVR receivers."""
 from setuptools import find_packages, setup
 
 setup(name='denonavr',
-      version='0.7.3',
+      version='0.7.4',
       description='Automation Library for Denon AVR receivers',
       long_description='Automation Library for Denon AVR receivers',
       url='https://github.com/scarface-4711/denonavr',
