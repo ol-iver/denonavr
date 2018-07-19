@@ -1441,8 +1441,8 @@ class DenonAVR(object):
             return sound_mode
         except KeyError:
             pass
-        _LOGGER.warning("Not able to match sound mode, "
-                        "returning raw sound mode.")
+        _LOGGER.warning("Not able to match sound mode: '%s', "
+                        "returning raw sound mode.", sound_mode_raw)
         return sound_mode_raw
 
     def toggle_play_pause(self):
