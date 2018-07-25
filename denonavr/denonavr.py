@@ -244,6 +244,7 @@ class DenonAVR(object):
         self._sound_mode_dict = SOUND_MODE_MAPPING
         self._support_sound_mode = None
         self._sm_match_dict = self.construct_sm_match_dict()
+        self._error_list = []
         self._netaudio_func_list = []
         self._playing_func_list = []
         self._favorite_func_list = []
@@ -1441,8 +1442,10 @@ class DenonAVR(object):
             return sound_mode
         except KeyError:
             pass
-        _LOGGER.warning("Not able to match sound mode: '%s', "
-                        "returning raw sound mode.", sound_mode_raw)
+        if sound_mode_raw not in self._error_list:
+            self._error_list.append(sound_mode_raw);
+            _LOGGER.warning("Not able to match sound mode: '%s', "
+                            "returning raw sound mode.", sound_mode_raw)
         return sound_mode_raw
 
     def toggle_play_pause(self):
