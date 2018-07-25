@@ -44,7 +44,8 @@ SOUND_MODE_MAPPING = OrderedDict(
      ('AUTO', ['None']),
      ('VIRTUAL', ['VIRTUAL']),
      ('PURE DIRECT', ['DIRECT']),
-     ('DOLBY DIGITAL', ['DOLBY DIGITAL', 'DOLBY D + DOLBY SURROUND', 'DTS Neural:X']),
+     ('DOLBY DIGITAL', ['DOLBY DIGITAL', 'DOLBY D + DOLBY SURROUND',
+                        'DTS Neural:X']),
      ('MCH STEREO', ['MULTI CH STEREO', 'MULTI CH IN']),
      ('STEREO', ['STEREO'])])
 
