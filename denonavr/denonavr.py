@@ -1443,7 +1443,7 @@ class DenonAVR(object):
         except KeyError:
             pass
         if sound_mode_raw not in self._error_list:
-            self._error_list.append(sound_mode_raw);
+            self._error_list.append(sound_mode_raw)
             _LOGGER.warning("Not able to match sound mode: '%s', "
                             "returning raw sound mode.", sound_mode_raw)
         return sound_mode_raw
