@@ -1441,7 +1441,8 @@ class DenonAVR(object):
             sound_mode = self._sm_match_dict[sound_mode_raw.upper()]
             return sound_mode
         except KeyError:
-            self._sound_mode_dict[sound_mode_raw.upper()] = [sound_mode_raw.upper()]
+            smr_up = sound_mode_raw.upper()
+            self._sound_mode_dict[smr_up] = [smr_up]
             self._sm_match_dict = self.construct_sm_match_dict()
             _LOGGER.warning("Not able to match sound mode: '%s', "
                             "returning raw sound mode.", sound_mode_raw)
