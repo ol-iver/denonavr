@@ -45,7 +45,8 @@ SOUND_MODE_MAPPING = OrderedDict(
      ('VIRTUAL', ['VIRTUAL']),
      ('PURE DIRECT', ['DIRECT']),
      ('DOLBY DIGITAL', ['DOLBY DIGITAL', 'DOLBY D + DOLBY SURROUND',
-                        'DOLBY DIGITAL +']),
+                        'DOLBY DIGITAL +', 'DTS NEURAL:X', 'STANDARD(DOLBY)',
+                        'DOLBY SURROUND']),
      ('MCH STEREO', ['MULTI CH STEREO', 'MULTI CH IN']),
      ('STEREO', ['STEREO'])])
 
@@ -1432,7 +1433,7 @@ class DenonAVR(object):
         match_mode_dict = {}
         for matched_mode, sublist in mode_dict:
             for raw_mode in sublist:
-                match_mode_dict[raw_mode] = matched_mode
+                match_mode_dict[raw_mode.upper()] = matched_mode
         return match_mode_dict
 
     def match_sound_mode(self, sound_mode_raw):
@@ -1441,9 +1442,11 @@ class DenonAVR(object):
             sound_mode = self._sm_match_dict[sound_mode_raw.upper()]
             return sound_mode
         except KeyError:
-            pass
-        _LOGGER.warning("Not able to match sound mode, "
-                        "returning raw sound mode.")
+            smr_up = sound_mode_raw.upper()
+            self._sound_mode_dict[smr_up] = [smr_up]
+            self._sm_match_dict = self.construct_sm_match_dict()
+            _LOGGER.warning("Not able to match sound mode: '%s', "
+                            "returning raw sound mode.", sound_mode_raw)
         return sound_mode_raw
 
     def toggle_play_pause(self):
