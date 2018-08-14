@@ -43,11 +43,13 @@ SOUND_MODE_MAPPING = OrderedDict(
      ('GAME', ['PLII GAME', 'DOLBY D +NEO:X G', 'VIDEO GAME']),
      ('AUTO', ['None']),
      ('VIRTUAL', ['VIRTUAL']),
-     ('PURE DIRECT', ['DIRECT']),
+     ('PURE DIRECT', ['DIRECT', 'PURE_DIRECT']),
      ('DOLBY DIGITAL', ['DOLBY DIGITAL', 'DOLBY D + DOLBY SURROUND',
                         'DOLBY DIGITAL +', 'DTS NEURAL:X', 'STANDARD(DOLBY)',
-                        'DOLBY SURROUND']),
-     ('MCH STEREO', ['MULTI CH STEREO', 'MULTI CH IN']),
+                        'DOLBY SURROUND', 'STANDARD(DTS)', 'DTS SURROUND',
+                        'DTS + NEURAL:X', 'DOLBY D + +DOLBY SURROUND',
+                        'NEURAL', 'MULTI IN + NEURAL:X']),
+     ('MCH STEREO', ['MULTI CH STEREO', 'MULTI CH IN', 'MULTI_CH_STEREO']),
      ('STEREO', ['STEREO'])])
 
 PLAYING_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
