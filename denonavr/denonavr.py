@@ -64,6 +64,7 @@ ALBUM_COVERS_URL = "http://{host}:{port}/NetAudio/art.asp-jpg?{time}"
 
 # General URLs
 APPCOMMAND_URL = "/goform/AppCommand.xml"
+APPCOMMAND_0300_URL = "/goform/AppCommand0300.xml"
 DEVICEINFO_URL = "/goform/Deviceinfo.xml"
 NETAUDIOSTATUS_URL = "/goform/formNetAudio_StatusXml.xml"
 TUNERSTATUS_URL = "/goform/formTuner_TunerXml.xml"
@@ -343,6 +344,31 @@ class DenonAVR(object):
                     "end point %s"), self._host, res.status_code, command)
             raise ValueError
 
+    def get_app_command_0300_xml(self):
+        root = ET.fromstring('<?xml version="1.0" encoding="utf-8"?><tx><cmd id="3"><name>GetActiveSpeaker</name><list><param name="activespall"></param></list></cmd><cmd id="3"><name>GetAudioInfo</name><list><param name="sound"></param></list></cmd></tx>')
+        body = BytesIO()
+        post_tree = ET.ElementTree(root)
+        post_tree.write(body, encoding="utf-8", xml_declaration=True)
+        try:
+            res = self.send_post_command(APPCOMMAND_0300_URL, body.getvalue())
+        except requests.exceptions.RequestException:
+            _LOGGER.error("No connection to %s end point on host %s",
+                          APPCOMMAND_0300_URL, self._host)
+            body.close()
+        else:
+          # Buffered XML not needed anymore: close
+          body.close()
+
+          try:
+              # Return XML ElementTree
+              root = ET.fromstring(res)
+          except (ET.ParseError, TypeError):
+              _LOGGER.error(
+                  "End point %s on host %s returned malformed XML.",
+                  APPCOMMAND_0300_URL, self._host)
+          else:
+              return root
+
     def send_get_command(self, command):
         """Send command via HTTP get to receiver."""
         # Send commands via HTTP get
@@ -544,6 +570,11 @@ class DenonAVR(object):
                     _LOGGER.error((
                         "Input function list for Denon receiver at host %s "
                         "could not be updated."), self._host)
+        try:
+            self._sound_mode_raw = self.get_app_command_0300_xml()[1][1][0].text.rstrip()
+        except AttributeError:
+            _LOGGER.error("No SoundModeRaw found")
+
 
         # Now playing information is not implemented for 2016+ models, because
         # a HEOS API query needed. So only sync the power state for now.
