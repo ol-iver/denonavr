@@ -17,7 +17,7 @@ from . import ssdp
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 __title__ = "denonavr"
-__version__ = "0.7.5"
+__version__ = "0.7.6"
 
 
 def discover():

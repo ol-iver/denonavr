@@ -195,7 +195,7 @@ ZONE3 = {"Zone3": None}
 ZONE2_ZONE3 = {"Zone2": None, "Zone3": None}
 
 
-class DenonAVR(object):
+class DenonAVR:
     """Representing a Denon AVR Device."""
 
     def __init__(self, host, name=None, show_all_inputs=False, timeout=2.0,
