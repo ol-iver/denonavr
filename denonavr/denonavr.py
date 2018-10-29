@@ -1426,8 +1426,9 @@ class DenonAVR:
         try:
             return self.send_get_command(command_url)
         except requests.exceptions.RequestException:
-            _LOGGER.error("Connection error: unable to set All Zone Stereo to %s",
-                          zst_on)
+            _LOGGER.error(
+                "Connection error: unable to set All Zone Stereo to %s",
+                zst_on)
             return False
 
     def set_sound_mode(self, sound_mode):
