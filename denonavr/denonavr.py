@@ -559,7 +559,7 @@ class DenonAVR:
         try:
             self._sound_mode_raw = root[4][0].text.rstrip()
         except (AttributeError, IndexError):
-            _LOGGER.error("No SoundMode found for the main zone", self.zone)
+            _LOGGER.error("No SoundMode found for the main zone %s", self.zone)
 
         # Now playing information is not implemented for 2016+ models, because
         # a HEOS API query needed. So only sync the power state for now.
@@ -1410,15 +1410,15 @@ class DenonAVR:
         """Setter function for sound_mode to switch sound_mode of device."""
         self.set_sound_mode(sound_mode)
 
-    def _set_all_zone_stereo(self, on):
+    def _set_all_zone_stereo(self, zst_on):
         """
-        Sets the All Zone Stereo option on the device.
+        Set All Zone Stereo option on the device.
 
         Calls command to activate/deactivate the mode
         Return "True" when successfully sent.
         """
         command_url = self._urls.command_set_all_zone_stereo
-        if on:
+        if zst_on:
             command_url += "ZST ON"
         else:
             command_url += "ZST OFF"
@@ -1426,7 +1426,8 @@ class DenonAVR:
         try:
             return self.send_get_command(command_url)
         except requests.exceptions.RequestException:
-            _LOGGER.error("Connection error: unable to set All Zone Stereo to %s", on)
+            _LOGGER.error("Connection error: unable to set All Zone Stereo to %s",
+                          zst_on)
             return False
 
     def set_sound_mode(self, sound_mode):
