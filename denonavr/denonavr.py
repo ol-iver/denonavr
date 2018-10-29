@@ -497,7 +497,8 @@ class DenonAVR:
         """
         # Collect tags for AppCommand.xml call
         tags = ["GetAllZonePowerStatus", "GetAllZoneSource",
-                "GetAllZoneVolume", "GetAllZoneMuteStatus"]
+                "GetAllZoneVolume", "GetAllZoneMuteStatus",
+                "GetSurroundModeStatus"]
         # Execute call
         root = self.exec_appcommand_post(tags)
         # Check result
@@ -547,6 +548,10 @@ class DenonAVR:
                     _LOGGER.error((
                         "Input function list for Denon receiver at host %s "
                         "could not be updated."), self._host)
+        try:
+            self._sound_mode_raw = root[4][0].text.rstrip()
+        except (AttributeError, IndexError):
+            _LOGGER.error("No SoundMode found for the main zone", self.zone)
 
         # Now playing information is not implemented for 2016+ models, because
         # a HEOS API query needed. So only sync the power state for now.
@@ -694,6 +699,17 @@ class DenonAVR:
         """
         Get if sound mode is supported from device.
 
+        Method executes the method for the current receiver type.
+        """
+        if self._receiver_type == AVR_X_2016.type:
+            return self._get_support_sound_mode_avr_2016()
+        else:
+            return self._get_support_sound_mode_avr()
+
+    def _get_support_sound_mode_avr(self):
+        """
+        Get if sound mode is supported from device.
+
         Method queries device via HTTP.
         Returns "True" if sound mode supported and "False" if not.
         This method is for pre 2016 AVR(-X) devices
@@ -727,6 +743,16 @@ class DenonAVR:
             self._support_sound_mode = False
             return False
         # if sound mode found, the relevant_tags are empty: return True.
+        self._support_sound_mode = True
+        return True
+
+    def _get_support_sound_mode_avr_2016(self):
+        """
+        Get if sound mode is supported from device.
+
+        Method enables sound mode.
+        Returns "True" in all cases for 2016 AVR(-X) devices
+        """
         self._support_sound_mode = True
         return True
 
