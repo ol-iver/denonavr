@@ -49,8 +49,8 @@ SOUND_MODE_MAPPING = OrderedDict(
                         'DOLBY D + +DOLBY SURROUND', 'NEURAL',
                         'MULTI IN + NEURAL:X', 'DOLBY D + NEURAL:X']),
      ('DTS SURROUND', ['DTS SURROUND', 'DTS NEURAL:X', 'STANDARD(DTS)',
-                       'DTS + NEURAL:X']),
-     ('MCH STEREO', ['MULTI CH STEREO', 'MULTI CH IN', 'MULTI_CH_STEREO']),
+                       'DTS + NEURAL:X', 'MULTI CH IN']),
+     ('MCH STEREO', ['MULTI CH STEREO', 'MULTI_CH_STEREO']),
      ('STEREO', ['STEREO'])])
 
 PLAYING_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
