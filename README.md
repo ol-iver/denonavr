@@ -1,7 +1,7 @@
 # denonavr
 [![Build Status](https://travis-ci.org/scarface-4711/denonavr.svg?branch=master)](https://travis-ci.org/scarface-4711/denonavr)
 
-Automation Library for Denon AVR receivers - current version 0.7.6
+Automation Library for Denon AVR receivers - current version 0.7.7
 
 ## Installation
 
@@ -154,6 +154,7 @@ MIT
 @p3dda: https://github.com/p3dda  
 @russel: https://github.com/russell
 @starkillerOG: https://github.com/starkillerOG
+@andrewsayre: https://github.com/andrewsayre
 
 ## Users
 Home Assistant: https://github.com/home-assistant/home-assistant/
