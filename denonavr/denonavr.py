@@ -19,7 +19,7 @@ import requests
 _LOGGER = logging.getLogger("DenonAVR")
 
 DEVICEINFO_AVR_X_PATTERN = re.compile(
-    r"(.*AVR-X.*|.*SR500[6-9]|.*SR60(07|08|09|10)|.*NR1604)")
+    r"(.*AVR-X.*|.*SR500[6-9]|.*SR60(07|08|09|10|11|12|13)|.*NR1604)")
 DEVICEINFO_COMMAPI_PATTERN = re.compile(r"(0210|0300)")
 
 ReceiverType = namedtuple('ReceiverType', ["type", "port"])
@@ -34,6 +34,8 @@ SOURCE_MAPPING = {"TV AUDIO": "TV", "iPod/USB": "USB/IPOD", "Bluetooth": "BT",
 CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
                         "Media Server": "SERVER", "Spotify": "SPOTIFY",
                         "Flickr": "FLICKR", "Favorites": "FAVORITES"}
+
+ALL_ZONE_STEREO = "ALL ZONE STEREO"
 
 SOUND_MODE_MAPPING = OrderedDict(
     [('MUSIC', ['PLII MUSIC', 'DTS NEO:6 MUSIC', 'DOLBY D +NEO:X M',
@@ -51,9 +53,11 @@ SOUND_MODE_MAPPING = OrderedDict(
                         'DOLBY DIGITAL + NEURAL:X',
                         'DOLBY DIGITAL + + NEURAL:X']),
      ('DTS SURROUND', ['DTS SURROUND', 'DTS NEURAL:X', 'STANDARD(DTS)',
+
                        'DTS + NEURAL:X', 'MULTI CH IN']),
      ('MCH STEREO', ['MULTI CH STEREO', 'MULTI_CH_STEREO']),
-     ('STEREO', ['STEREO'])])
+     ('STEREO', ['STEREO']),
+     (ALL_ZONE_STEREO, [ALL_ZONE_STEREO])])
 
 PLAYING_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
                    "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
@@ -89,6 +93,7 @@ COMMAND_SET_VOLUME_URL = "/goform/formiPhoneAppVolume.xml?1+%.1f"
 COMMAND_MUTE_ON_URL = "/goform/formiPhoneAppMute.xml?1+MuteOn"
 COMMAND_MUTE_OFF_URL = "/goform/formiPhoneAppMute.xml?1+MuteOff"
 COMMAND_SEL_SM_URL = "/goform/formiPhoneAppDirect.xml?MS"
+COMMAND_SET_ZST_URL = "/goform/formiPhoneAppDirect.xml?MN"
 
 # Zone 2 URLs
 STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
@@ -124,7 +129,8 @@ ReceiverURLs = namedtuple(
                      "command_power_standby", "command_volume_up",
                      "command_volume_down", "command_set_volume",
                      "command_mute_on", "command_mute_off",
-                     "command_sel_sound_mode", "command_netaudio_post"])
+                     "command_sel_sound_mode", "command_netaudio_post",
+                     "command_set_all_zone_stereo"])
 
 DENONAVR_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                              status=STATUS_URL,
@@ -143,7 +149,8 @@ DENONAVR_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                              command_mute_on=COMMAND_MUTE_ON_URL,
                              command_mute_off=COMMAND_MUTE_OFF_URL,
                              command_sel_sound_mode=COMMAND_SEL_SM_URL,
-                             command_netaudio_post=COMMAND_NETAUDIO_POST_URL)
+                             command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
+                             command_set_all_zone_stereo=COMMAND_SET_ZST_URL)
 
 ZONE2_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                           status=STATUS_Z2_URL,
@@ -162,7 +169,8 @@ ZONE2_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                           command_mute_on=COMMAND_MUTE_ON_Z2_URL,
                           command_mute_off=COMMAND_MUTE_OFF_Z2_URL,
                           command_sel_sound_mode=COMMAND_SEL_SM_URL,
-                          command_netaudio_post=COMMAND_NETAUDIO_POST_URL)
+                          command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
+                          command_set_all_zone_stereo=COMMAND_SET_ZST_URL)
 
 ZONE3_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                           status=STATUS_Z3_URL,
@@ -181,7 +189,8 @@ ZONE3_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                           command_mute_on=COMMAND_MUTE_ON_Z3_URL,
                           command_mute_off=COMMAND_MUTE_OFF_Z3_URL,
                           command_sel_sound_mode=COMMAND_SEL_SM_URL,
-                          command_netaudio_post=COMMAND_NETAUDIO_POST_URL)
+                          command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
+                          command_set_all_zone_stereo=COMMAND_SET_ZST_URL)
 
 POWER_ON = "ON"
 POWER_OFF = "OFF"
@@ -499,7 +508,8 @@ class DenonAVR:
         """
         # Collect tags for AppCommand.xml call
         tags = ["GetAllZonePowerStatus", "GetAllZoneSource",
-                "GetAllZoneVolume", "GetAllZoneMuteStatus"]
+                "GetAllZoneVolume", "GetAllZoneMuteStatus",
+                "GetSurroundModeStatus"]
         # Execute call
         root = self.exec_appcommand_post(tags)
         # Check result
@@ -549,6 +559,10 @@ class DenonAVR:
                     _LOGGER.error((
                         "Input function list for Denon receiver at host %s "
                         "could not be updated."), self._host)
+        try:
+            self._sound_mode_raw = root[4][0].text.rstrip()
+        except (AttributeError, IndexError):
+            _LOGGER.error("No SoundMode found for the main zone %s", self.zone)
 
         # Now playing information is not implemented for 2016+ models, because
         # a HEOS API query needed. So only sync the power state for now.
@@ -696,6 +710,17 @@ class DenonAVR:
         """
         Get if sound mode is supported from device.
 
+        Method executes the method for the current receiver type.
+        """
+        if self._receiver_type == AVR_X_2016.type:
+            return self._get_support_sound_mode_avr_2016()
+        else:
+            return self._get_support_sound_mode_avr()
+
+    def _get_support_sound_mode_avr(self):
+        """
+        Get if sound mode is supported from device.
+
         Method queries device via HTTP.
         Returns "True" if sound mode supported and "False" if not.
         This method is for pre 2016 AVR(-X) devices
@@ -729,6 +754,16 @@ class DenonAVR:
             self._support_sound_mode = False
             return False
         # if sound mode found, the relevant_tags are empty: return True.
+        self._support_sound_mode = True
+        return True
+
+    def _get_support_sound_mode_avr_2016(self):
+        """
+        Get if sound mode is supported from device.
+
+        Method enables sound mode.
+        Returns "True" in all cases for 2016 AVR(-X) devices
+        """
         self._support_sound_mode = True
         return True
 
@@ -1378,6 +1413,27 @@ class DenonAVR:
         """Setter function for sound_mode to switch sound_mode of device."""
         self.set_sound_mode(sound_mode)
 
+    def _set_all_zone_stereo(self, zst_on):
+        """
+        Set All Zone Stereo option on the device.
+
+        Calls command to activate/deactivate the mode
+        Return "True" when successfully sent.
+        """
+        command_url = self._urls.command_set_all_zone_stereo
+        if zst_on:
+            command_url += "ZST ON"
+        else:
+            command_url += "ZST OFF"
+
+        try:
+            return self.send_get_command(command_url)
+        except requests.exceptions.RequestException:
+            _LOGGER.error(
+                "Connection error: unable to set All Zone Stereo to %s",
+                zst_on)
+            return False
+
     def set_sound_mode(self, sound_mode):
         """
         Set sound_mode of device.
@@ -1386,6 +1442,15 @@ class DenonAVR:
         "sound_mode_list".
         Return "True" on success and "False" on fail.
         """
+        if sound_mode == ALL_ZONE_STEREO:
+            if self._set_all_zone_stereo(True):
+                self._sound_mode_raw = ALL_ZONE_STEREO
+                return True
+            else:
+                return False
+        if self._sound_mode_raw == ALL_ZONE_STEREO:
+            if not self._set_all_zone_stereo(False):
+                return False
         # For selection of sound mode other names then at receiving sound modes
         # have to be used
         # Therefore source mapping is needed to get sound_mode
