@@ -45,7 +45,7 @@ SOUND_MODE_MAPPING = OrderedDict(
      ('GAME', ['PLII GAME', 'DOLBY D +NEO:X G', 'VIDEO GAME']),
      ('AUTO', ['None']),
      ('VIRTUAL', ['VIRTUAL']),
-     ('PURE DIRECT', ['DIRECT', 'PURE_DIRECT']),
+     ('PURE DIRECT', ['DIRECT', 'PURE_DIRECT', 'PURE DIRECT']),
      ('DOLBY DIGITAL', ['DOLBY DIGITAL', 'DOLBY D + DOLBY SURROUND',
                         'DOLBY DIGITAL +', 'STANDARD(DOLBY)', 'DOLBY SURROUND',
                         'DOLBY D + +DOLBY SURROUND', 'NEURAL',
