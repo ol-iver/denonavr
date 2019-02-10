@@ -57,7 +57,7 @@ SOUND_MODE_MAPPING = OrderedDict(
      ('DTS SURROUND', ['DTS SURROUND', 'DTS NEURAL:X', 'STANDARD(DTS)',
                        'DTS + NEURAL:X', 'MULTI CH IN', 'DTS-HD MSTR',
                        'DTS VIRTUAL:X']),
-     ('MCH STEREO', ['MULTI CH STEREO', 'MULTI_CH_STEREO']),
+     ('MCH STEREO', ['MULTI CH STEREO', 'MULTI_CH_STEREO', 'MCH STEREO']),
      ('STEREO', ['STEREO']),
      (ALL_ZONE_STEREO, [ALL_ZONE_STEREO])])
 
