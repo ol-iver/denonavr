@@ -141,6 +141,11 @@ d.zones['Zone2'].power
 'OFF
 ```
 
+## Example Windows GUI
+denonGui.py outlines how a simple native Windows GUI can be built by leveraging on the infi.systray package. 
+Double-Click to turn Power On, right-click for Power Off and Volume Options.
+Easily extendable.
+
 ## License
 MIT
 
