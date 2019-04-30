@@ -53,7 +53,7 @@ SOUND_MODE_MAPPING = OrderedDict(
                         'MULTI IN + NEURAL:X', 'DOLBY D + NEURAL:X',
                         'DOLBY DIGITAL + NEURAL:X',
                         'DOLBY DIGITAL + + NEURAL:X',
-                        'DOLBY AUDIO - DOLBY SURROUND']),
+                        'DOLBY AUDIO - DOLBY SURROUND', 'DOLBY TRUEHD']),
      ('DTS SURROUND', ['DTS SURROUND', 'DTS NEURAL:X', 'STANDARD(DTS)',
                        'DTS + NEURAL:X', 'MULTI CH IN', 'DTS-HD MSTR',
                        'DTS VIRTUAL:X']),
