@@ -792,10 +792,10 @@ class DenonAVR:
                 root = self.get_status_xml(self._urls.status)
             # URL only available for Main Zone.
             elif (self._receiver_type == AVR.type):
-              if (self._urls.mainzone is not None):
-                root = self.get_status_xml(self._urls.mainzone)
-              else:
-                root = self.get_status_xml(self._urls.status)
+                if (self._urls.mainzone is not None):
+                    root = self.get_status_xml(self._urls.mainzone)
+                else:
+                    root = self.get_status_xml(self._urls.status)
             else:
                 return (renamed_sources, deleted_sources)
         except (ValueError, requests.exceptions.RequestException):
