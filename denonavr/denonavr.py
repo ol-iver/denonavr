@@ -791,8 +791,8 @@ class DenonAVR:
             if self._receiver_type == AVR_X.type:
                 root = self.get_status_xml(self._urls.status)
             # URL only available for Main Zone.
-            elif (self._receiver_type == AVR.type):
-                if (self._urls.mainzone is not None):
+            elif self._receiver_type == AVR.type:
+                if self._urls.mainzone is not None:
                     root = self.get_status_xml(self._urls.mainzone)
                 else:
                     root = self.get_status_xml(self._urls.status)
@@ -829,7 +829,7 @@ class DenonAVR:
                     xml_deletesource.append(value.text)
 
         # If the deleted source list is empty then use all sources.
-        if len(xml_deletesource) == 0:
+        if not xml_deletesource:
             xml_deletesource = ['USE'] * len(xml_inputfunclist)
 
         # Renamed and deleted sources are in the same row as the default ones
