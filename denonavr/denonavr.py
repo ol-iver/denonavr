@@ -19,7 +19,7 @@ import requests
 _LOGGER = logging.getLogger("DenonAVR")
 
 DEVICEINFO_AVR_X_PATTERN = re.compile(
-    r"(.*AVR-X.*|.*SR500[6-9]|.*SR60(07|08|09|10|11|12|13)|.*NR1604)")
+    r"(.*AVR-(X|S).*|.*SR500[6-9]|.*SR60(07|08|09|10|11|12|13)|.*NR1604)")
 DEVICEINFO_COMMAPI_PATTERN = re.compile(r"(0210|0300)")
 
 ReceiverType = namedtuple('ReceiverType', ["type", "port"])
@@ -49,10 +49,10 @@ SOUND_MODE_MAPPING = OrderedDict(
      ('PURE DIRECT', ['DIRECT', 'PURE_DIRECT', 'PURE DIRECT']),
      ('DOLBY DIGITAL', ['DOLBY DIGITAL', 'DOLBY D + DOLBY SURROUND',
                         'DOLBY DIGITAL +', 'STANDARD(DOLBY)', 'DOLBY SURROUND',
-                        'DOLBY D + +DOLBY SURROUND', 'NEURAL',
+                        'DOLBY D + +DOLBY SURROUND', 'NEURAL', 'DOLBY HD',
                         'MULTI IN + NEURAL:X', 'DOLBY D + NEURAL:X',
                         'DOLBY DIGITAL + NEURAL:X',
-                        'DOLBY DIGITAL + + NEURAL:X',
+                        'DOLBY DIGITAL + + NEURAL:X', 'DOLBY ATMOS',
                         'DOLBY AUDIO - DOLBY SURROUND', 'DOLBY TRUEHD']),
      ('DTS SURROUND', ['DTS SURROUND', 'DTS NEURAL:X', 'STANDARD(DTS)',
                        'DTS + NEURAL:X', 'MULTI CH IN', 'DTS-HD MSTR',
@@ -791,9 +791,11 @@ class DenonAVR:
             if self._receiver_type == AVR_X.type:
                 root = self.get_status_xml(self._urls.status)
             # URL only available for Main Zone.
-            elif (self._receiver_type == AVR.type and
-                  self._urls.mainzone is not None):
-                root = self.get_status_xml(self._urls.mainzone)
+            elif self._receiver_type == AVR.type:
+                if self._urls.mainzone is not None:
+                    root = self.get_status_xml(self._urls.mainzone)
+                else:
+                    root = self.get_status_xml(self._urls.status)
             else:
                 return (renamed_sources, deleted_sources)
         except (ValueError, requests.exceptions.RequestException):
@@ -825,6 +827,10 @@ class DenonAVR:
             if child.tag == "SourceDelete":
                 for value in child:
                     xml_deletesource.append(value.text)
+
+        # If the deleted source list is empty then use all sources.
+        if not xml_deletesource:
+            xml_deletesource = ['USE'] * len(xml_inputfunclist)
 
         # Renamed and deleted sources are in the same row as the default ones
         # Only values which are not None are considered. Otherwise translation
