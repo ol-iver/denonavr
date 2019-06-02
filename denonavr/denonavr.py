@@ -19,7 +19,7 @@ import requests
 _LOGGER = logging.getLogger("DenonAVR")
 
 DEVICEINFO_AVR_X_PATTERN = re.compile(
-    r"(.*AVR-X.*|.*SR500[6-9]|.*SR60(07|08|09|10|11|12|13)|.*NR1604)")
+    r"(.*AVR-(X|S).*|.*SR500[6-9]|.*SR60(07|08|09|10|11|12|13)|.*NR1604)")
 DEVICEINFO_COMMAPI_PATTERN = re.compile(r"(0210|0300)")
 
 ReceiverType = namedtuple('ReceiverType', ["type", "port"])
