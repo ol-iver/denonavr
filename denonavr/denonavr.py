@@ -44,6 +44,7 @@ SOUND_MODE_MAPPING = OrderedDict(
                 'PLIIX CINEMA']),
      ('GAME', ['PLII GAME', 'DOLBY D +NEO:X G']),
      ('AUTO', ['None']),
+     ('STANDARD', ['None2']),
      ('VIRTUAL', ['VIRTUAL']),
      ('MATRIX', ['MATRIX']),
      ('ROCK ARENA', ['ROCK ARENA']),
