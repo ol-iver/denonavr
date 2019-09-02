@@ -1,0 +1,463 @@
+Network captures from Denon X1500H 25 Aug 2019
+Commands sent with Denon 2016 AVR Remote Version 3.2.0
+on an iPhone 6
+
+The endpoint is /goform/AppCommand.xml unless the entry is 
+tagged with 0300, then it is /goform/AppCommand0300.xml
+
+The 0300 endpoint seems to correspond to the markup <cmd id="3">
+whereas the regular endpoint seems to correspond to <cmd id="1">
+
+My Wireshark filter (set destination to your AVR's IP address)
+http and xml and ip.dst==192.168.0.119 and !(xml.cdata contains "GetAllZoneSource"  
+or xml.cdata contains "GetAllZone" or xml.cdata contains "GetActive" 
+or xml.cdata contains "GetInput" or xml.cdata contains "GetVideo")
+Eventually I got annoyed and simply set:
+!(xml.cdata contains "Get")
+though this will need to be revisited for updating state.
+
+A Linux VM was sufficient to handle MITM:
+sudo sysctl -w net.ipv4.ip_forward=1
+sudo arpspoof -i eth0 -t 192.168.0.101 -r 192.168.0.119
+    where the first IP is your phone and second IP is your AVR
+
+Command structure:
+<tx>  <-------------------------- begin command
+  <cmd id=%d>  <----------------- id="1" for /AppCommand.xml endpoint and    
+                                  id="3" for /AppCommand0300.xml endpoint
+    <name>Set%s</name>  <-------- %s CamelCase string to name target ex
+                                  SetSurroundParameter
+    <list or value>  <----------- For simple binary commands or setting
+                                  levels value is used.
+
+Example list:
+
+<list>  <------------------------ set the parameter "dynamicvol" to 0
+  <param name="dynamicvol">0</param> 
+</list>
+
+Example value:
+
+    <value>24</value>
+  
+  </cmd>
+</tx>
+
+Upon success the AVR replies with: (needs more testing)
+<rx>OK</rx>
+
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="1">GetAllZonePowerStatus</cmd>
+</tx>
+
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>GetSourceRename</name>
+    <list/>
+  </cmd>
+</tx>
+
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="1">GetZoneName</cmd>
+</tx>
+
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>GetSoundMode</name>
+    <list>
+      <param name="movie"></param>
+      <param name="music"></param>
+      <param name="game"></param>
+      <param name="pure"></param>
+    </list>
+  </cmd>
+</tx>
+
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="1">GetAllZoneSource</cmd>
+</tx>
+
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>GetAudioInfo</name>
+    <list>
+      <param name="inputmode"></param>
+      <param name="output"></param>
+      <param name="signal"></param>
+      <param name="sound"></param>
+      <param name="fs"></param>
+    </list>
+  </cmd>
+</tx>
+
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>GetInputSignal</name>
+    <list>
+      <param name="inputsigall"></param>
+    </list>
+  </cmd>
+</tx>
+
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>GetActiveSpeaker</name>
+    <list>
+      <param name="activespall"></param>
+    </list>
+  </cmd>
+</tx>
+
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>GetVideoInfo</name>
+    <list>
+      <param name="videooutput"></param>
+      <param name="hdmisigin"></param>
+      <param name="hdmisigout"></param>
+    </list>
+  </cmd>
+</tx>
+
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="1">GetAllZoneVolume</cmd>
+</tx>
+
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="1">GetAllZoneStereo</cmd>
+</tx>
+
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="1">GetAllZoneMuteStatus</cmd>
+</tx>
+
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="1">GetECO</cmd>
+</tx>
+
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="1">GetQuickSelectName</cmd>
+  <zone>Main</zone>
+</tx>
+
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>GetAudyssyInfo</name>
+    <list>
+      <param name="eqname"></param>
+      <param name="eqvalue"></param>
+      <param name="dynamiceq"></param>
+      <param name="dynamicvol"></param>
+    </list>
+  </cmd>
+</tx>
+
+The following command raised the Center channel "C"
+by 2dB.  Lowering back to 0 was value 24.  
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="1">SetChLevel</cmd>
+  <name>C</name>
+  <value>28</value>
+</tx>
+
+Confirmed that -12dB = 0, 0dB = 24, +12dB = 48
+Confirmed uses conventional names:
+FL, FR, SL, SR, SW, C (probably RL and RR for 7.1)
+Someone would need to check Atmos naming conventions
+but manually setting Atmos channels isn't really desirable.
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="1">SetChLevel</cmd>
+  <name>SR</name>
+  <value>24</value>
+</tx>
+
+Enable Loudness Management for Dolby TrueHD
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetSurroundParameter</name>
+    <list>
+      <param name="loudness">1</param>
+    </list>
+  </cmd>
+</tx>
+
+Disable Loudness Management
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetSurroundParameter</name>
+    <list>
+      <param name="loudness">0</param>
+    </list>
+  </cmd>
+</tx>
+
+DCO setting can take 0: off, 1: low, 2:med, 3: high
+This setting will only work for Dolby tracks that contain
+the dynamic range metadata but the effect is much better 
+than traditional dynamic range compression.
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetSurroundParameter</name>
+    <list>
+      <param name="dyncomp">3</param>
+    </list>
+  </cmd>
+</tx>
+
+Low Frequency Effect takes settings from 0 (normal) down 
+to -10 (-10dB).  This is a useful addition for night mode
+macros.
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetSurroundParameter</name>
+    <list>
+      <param name="lfe">-10</param>
+    </list>
+  </cmd>
+</tx>
+
+From here on we are assuming that the 1 (on) and 0 (off)
+syntax will remain consistent.
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetSurroundParameter</name>
+    <list>
+      <param name="cspread">1</param>
+    </list>
+  </cmd>
+</tx>
+
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetAudyssey</name>
+    <list>
+      <param name="dynamiceq">1</param>
+    </list>
+  </cmd>
+</tx>
+
+Ref Level Offset (3 = 15dB 0 = Off)
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetAudyssey</name>
+    <list>
+      <param name="reflevoffset">3</param>
+    </list>
+  </cmd>
+</tx>
+
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetAudyssey</name>
+    <list>
+      <param name="multeq">1</param>
+    </list>
+  </cmd>
+</tx>
+
+Dynamic Range Compression when Dolby DCO
+is not supported
+0=off, 1=light, 2=medium, 3=heavy
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetAudyssey</name>
+    <list>
+      <param name=dynamicvol>0</param>
+    </list>
+  </cmd>
+</tx>
+
+Dialog Level (center channel adjust) from
+0 (-12dB) to 48 (+12dB)
+Note that this was probably calibrated by Audyssey.
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="1">SetDialogLevel</cmd>
+  <value>17</value>
+</tx>
+
+Would you like to rename a source with Python? ;>
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetSourceRename</name>
+    <list>
+      <param name="DVD">Test</param>
+    </list>
+  </cmd>
+</tx>
+
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetFirmware</name>
+    <list>
+      <param name="timezone">38</param>
+    </list>
+  </cmd>
+</tx>
+
+Quick Select takes values 1,2,3,4
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="1">SetQuickSelect</cmd>
+  <zone>Main</zone>
+  <value>1</value>
+</tx>
+
+Change input 
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="1">SetInputFunction</cmd>
+  <zone>Main</zone>
+  <value>TV</value>
+</tx>
+
+Enable Pure Direct
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetSoundMode</name>
+    <list>
+      <param name="genre">4</param>
+    </list>
+  </cmd>
+</tx>
+
+Pure Direct "Direct"
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetSoundModeList</name>
+    <list>
+      <param name="listno">1</param>
+    </list>
+  </cmd>
+</tx>
+
+Pure Direct "Pure Direct"
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetSoundModeList</name>
+    <list>
+      <param name="listno">2</param>
+    </list>
+  </cmd>
+</tx>
+
+Pure Direct "Auto"
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetSoundModeList</name>
+    <list>
+      <param name="listno">3</param>
+    </list>
+  </cmd>
+</tx>
+
+Set to Movie Mode:
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetSoundMode</name>
+    <list>
+      <param name="genre">1</param>
+    </list>
+  </cmd>
+</tx>
+
+Set to Stereo Mode:
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetSoundModeList</name>
+    <list>
+      <param name="listno">1</param>
+    </list>
+  </cmd>
+</tx>
+
+Dolby Digital
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetSoundModeList</name>
+    <list>
+      <param name="listno">2</param>
+    </list>
+  </cmd>
+</tx>
+
+DTS 
+0300
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>SetSoundModeList</name>
+    <list>
+      <param name="listno">3</param>
+    </list>
+  </cmd>
+</tx>
+
+
+
+
+
+
+
+
+
+
