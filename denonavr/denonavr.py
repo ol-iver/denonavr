@@ -29,7 +29,8 @@ AVR_X_2016 = ReceiverType(type="avr-x-2016", port=8080)
 
 SOURCE_MAPPING = {"TV AUDIO": "TV", "iPod/USB": "USB/IPOD", "Bluetooth": "BT",
                   "Blu-ray": "BD", "CBL/SAT": "SAT/CBL", "NETWORK": "NET",
-                  "Media Player": "MPLAY", "AUX": "AUX1", "Tuner": "TUNER"}
+                  "Media Player": "MPLAY", "AUX": "AUX1", "Tuner": "TUNER",
+                  "FM": "TUNER"}
 
 CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
                         "Media Server": "SERVER", "Spotify": "SPOTIFY",
