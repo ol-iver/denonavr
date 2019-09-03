@@ -15,6 +15,9 @@ import re
 import html
 import xml.etree.ElementTree as ET
 import requests
+from denonavr.helpers import make_xml_command
+from denonavr.commands import *
+
 
 _LOGGER = logging.getLogger("DenonAVR")
 
@@ -82,6 +85,7 @@ ALBUM_COVERS_URL = "http://{host}:{port}/NetAudio/art.asp-jpg?{time}"
 
 # General URLs
 APPCOMMAND_URL = "/goform/AppCommand.xml"
+APPCOMMAND0300_URL = "/goform/AppCommand0300.xml"
 DEVICEINFO_URL = "/goform/Deviceinfo.xml"
 NETAUDIOSTATUS_URL = "/goform/formNetAudio_StatusXml.xml"
 TUNERSTATUS_URL = "/goform/formTuner_TunerXml.xml"
@@ -331,6 +335,45 @@ class DenonAVR:
             # Buffered XML not needed anymore: close
             body.close()
 
+            try:
+                # Return XML ElementTree
+                root = ET.fromstring(res)
+            except (ET.ParseError, TypeError):
+                _LOGGER.error(
+                    "End point %s on host %s returned malformed XML.",
+                    self._urls.appcommand, self._host)
+            else:
+                return root
+
+    def exec_xml_appcommand_post(self, command, value=None):
+        """
+        Prepare and execute a HTTP POST call to AppCommand.xml end point.
+
+        Returns XML ElementTree on success and None on fail.
+        """
+        # Prepare POST XML body for AppCommand.xml or AppCommand0300.xml
+        try:
+            if command.cmd_id is "1":
+                _url = APPCOMMAND_URL
+            elif command.cmd_id is "3":
+                _url = APPCOMMAND0300_URL
+            else:
+                _LOGGER.error(
+                    "cmd_id value not valid, must be '1' or '3'.")
+        except AttributeError:
+            _LOGGER.error(
+                "Arg: command must be an instance of XmlCommand1 or XmlCommand3\
+                class.")
+
+        body = make_xml_command(command, value)
+
+        # Query receivers AppCommand.xml
+        try:
+            res = self.send_post_command(_url, body)
+        except requests.exceptions.RequestException:
+            _LOGGER.error("No connection to %s end point on host %s",
+                          self._urls.appcommand, self._host)
+        else:
             try:
                 # Return XML ElementTree
                 root = ET.fromstring(res)
@@ -1686,6 +1729,13 @@ class DenonAVR:
             _LOGGER.error("Connection error: mute command not sent.")
             return False
 
+    def set_dynamic_range(self, value):
+        """Set Dynamic Range amount via HTTP post command."""
+        try:
+            response = self.exec_xml_appcommand_post(SET_DYNAMIC_VOL, value)
+        except requests.exceptions.RequestException:
+            _LOGGER.error("Connection error: mute command not sent.")
+            return response
 
 class DenonAVRZones(DenonAVR):
     """Representing an additional zone of a Denon AVR Device."""
