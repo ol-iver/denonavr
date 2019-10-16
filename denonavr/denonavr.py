@@ -16,6 +16,8 @@ import html
 import xml.etree.ElementTree as ET
 import requests
 
+import denonavr.ir_code as ir
+
 _LOGGER = logging.getLogger("DenonAVR")
 
 DEVICEINFO_AVR_X_PATTERN = re.compile(
@@ -87,7 +89,7 @@ NETAUDIOSTATUS_URL = "/goform/formNetAudio_StatusXml.xml"
 TUNERSTATUS_URL = "/goform/formTuner_TunerXml.xml"
 HDTUNERSTATUS_URL = "/goform/formTuner_HdXml.xml"
 COMMAND_NETAUDIO_POST_URL = "/NetAudio/index.put.asp"
-
+IPHONE_APP_DIRECT = "/goform/formiPhoneAppDirect.xml?"
 
 # Main Zone URLs
 STATUS_URL = "/goform/formMainZone_MainZoneXmlStatus.xml"
@@ -393,6 +395,18 @@ class DenonAVR:
                 "Host %s returned HTTP status code %s to POST command at "
                 "end point %s"), self._host, res.status_code, command)
             return False
+
+    def send_post_ir(self, command):
+        """Send IR command via HTTP post to receiver."""
+        res = requests.post("http://{host}:{port}{uri}{command}".format(
+            host=self._host, port=self._receiver_port, uri=IPHONE_APP_DIRECT,
+            command=command), timeout=self.timeout)
+        if not res.status_code == 200:
+            _LOGGER.error((
+                "Host %s returned HTTP status code %s to POST command at "
+                "end point %s"), self._host, res.status_code, command)
+            return False
+        return True
 
     def create_zones(self, add_zones):
         """Create instances of additional zones for the receiver."""
@@ -1682,6 +1696,15 @@ class DenonAVR:
                     return True
                 else:
                     return False
+        except requests.exceptions.RequestException:
+            _LOGGER.error("Connection error: mute command not sent.")
+            return False
+
+    def mute_toggle_main(self):
+        """Toggle mute in main zone."""
+        try:
+            self.send_post_ir(ir.Mute)
+            return True
         except requests.exceptions.RequestException:
             _LOGGER.error("Connection error: mute command not sent.")
             return False

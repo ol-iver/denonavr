@@ -1,0 +1,584 @@
+RCKSK0410001 1 0 0 0 0 0 0 0 0 0 * * * * * * * * * * ALL POWER ON/OFF
+RCKSK0410002 0 1 0 0 0 0 0 0 0 0 * * * * * * * * * * ALL POWER ON
+RCKSK0410003 1 1 0 0 0 0 0 0 0 0 * * * * * * * * * * ALL POWER OFF
+RCKSK0410005 1 0 1 0 0 0 0 0 0 0 * * * * * * * * * * MAIN ZONE ON/OFF
+RCKSK0410006 0 1 1 0 0 0 0 0 0 0 * * * * * * * * * * MAIN ZONE ON
+RCKSK0410007 1 1 1 0 0 0 0 0 0 0 * * * * * * * * * * MAIN ZONE OFF
+RCKSK0410012 0 0 1 1 0 0 0 0 0 0 * * * * * * * * * * TRIGGER-1 ON
+RCKSK0410013 1 0 1 1 0 0 0 0 0 0 * * * * * * * * * * TRIGGER-1 OFF
+RCKSK0410014 0 1 1 1 0 0 0 0 0 0 * * * * * * * * * * TRIGGER-2 ON
+RCKSK0410015 1 1 1 1 0 0 0 0 0 0 * * * * * * * * * * TRIGGER-2 OFF
+RCKSK0410016 0 0 0 0 1 0 0 0 0 0 * * * * * * * * * * KEY1
+RCKSK0410017 1 0 0 0 1 0 0 0 0 0 * * * * * * * * * * KEY2
+RCKSK0410018 0 1 0 0 1 0 0 0 0 0 * * * * * * * * * * KEY3
+RCKSK0410019 1 1 0 0 1 0 0 0 0 0 * * * * * * * * * * KEY4
+RCKSK0410020 0 0 1 0 1 0 0 0 0 0 * * * * * * * * * * KEY5
+RCKSK0410021 1 0 1 0 1 0 0 0 0 0 * * * * * * * * * * KEY6
+RCKSK0410022 0 1 1 0 1 0 0 0 0 0 * * * * * * * * * * KEY7
+RCKSK0410023 1 1 1 0 1 0 0 0 0 0 * * * * * * * * * * KEY8
+RCKSK0410024 0 0 0 1 1 0 0 0 0 0 * * * * * * * * * * KEY9
+RCKSK0410025 1 0 0 1 1 0 0 0 0 0 * * * * * * * * * * KEY0
+RCKSK0410027 1 1 0 1 1 0 0 0 0 0 * * * * * * * * * * CURSOR UP
+RCKSK0410028 0 0 1 1 1 0 0 0 0 0 * * * * * * * * * * CURSOR DOWN
+RCKSK0410029 1 0 1 1 1 0 0 0 0 0 * * * * * * * * * * CURSOR LEFT
+11
+RCKSK0410030 0 1 1 1 1 0 0 0 0 0 * * * * * * * * * * CURSOR RIGHT
+RCKSK0410031 1 1 1 1 1 0 0 0 0 0 * * * * * * * * * * ENTER
+RCKSK0410034 0 1 0 0 0 1 0 0 0 0 * * * * * * * * * * RETURN
+RCKSK0410035 1 1 0 0 0 1 0 0 0 0 * * * * * * * * * * SETUP MENU
+RCKSK0410036 0 0 1 0 0 1 0 0 0 0 * * * * * * * * * * MEMORY
+RCKSK0410042 0 1 0 1 0 1 0 0 0 0 * * * * * * * * * * UPGRADE ID ON
+RCKSK0410045 1 0 1 1 0 1 0 0 0 0 * * * * * * * * * * Bilingual Mode(toggle) (JP only)
+RCKSK0410112 0 0 0 0 1 1 1 0 0 0 * * * * * * * * * * VIDEO SELECT
+RCKSK0410242 0 1 0 0 1 1 1 1 0 0 * * * * * * * * * * FAVORITE STATION 1
+RCKSK0410243 1 1 0 0 1 1 1 1 0 0 * * * * * * * * * * FAVORITE STATION 2
+RCKSK0410244 0 0 1 0 1 1 1 1 0 0 * * * * * * * * * * FAVORITE STATION 3
+RCKSK0410245 1 0 1 0 1 1 1 1 0 0 * * * * * * * * * * FAVORITE STATION 4
+RCKSK0410292 0 0 1 0 0 1 0 0 1 0 * * * * * * * * * * QUICK SELECT 1
+RCKSK0410293 1 0 1 0 0 1 0 0 1 0 * * * * * * * * * * QUICK SELECT 2
+RCKSK0410294 0 1 1 0 0 1 0 0 1 0 * * * * * * * * * * QUICK SELECT 3
+RCKSK0410295 1 1 1 0 0 1 0 0 1 0 * * * * * * * * * * QUICK SELECT 4
+RCKSK0410296 0 0 0 1 0 1 0 0 1 0 * * * * * * * * * * QUICK SELECT 5
+RCKSK0410304 0 0 0 0 1 1 0 0 1 0 * * * * * * * * * * STEREO
+RCKSK0410305 1 0 0 0 1 1 0 0 1 0 * * * * * * * * * * DIRECT/STEREO
+RCKSK0410306 0 1 0 0 1 1 0 0 1 0 * * * * * * * * * * DIRECT
+RCKSK0410307 1 1 0 0 1 1 0 0 1 0 * * * * * * * * * * PURE DIRECT
+RCKSK0410308 0 0 1 0 1 1 0 0 1 0 * * * * * * * * * * STANDARD
+RCKSK0410309 1 0 1 0 1 1 0 0 1 0 * * * * * * * * * * DIRECT/PURE DIRECT
+RCKSK0410314 0 1 0 1 1 1 0 0 1 0 * * * * * * * * * * DOLBY PL II CINEMA
+RCKSK0410315 1 1 0 1 1 1 0 0 1 0 * * * * * * * * * * DOLBY PL II MUSIC
+RCKSK0410316 0 0 1 1 1 1 0 0 1 0 * * * * * * * * * * DOLBY PROLOGIC
+RCKSK0410320 0 0 0 0 0 0 1 0 1 0 * * * * * * * * * * DTS SURROUND
+RCKSK0410322 0 1 0 0 0 0 1 0 1 0 * * * * * * * * * * DTS NEO6 CINEMA
+RCKSK0410323 1 1 0 0 0 0 1 0 1 0 * * * * * * * * * * DTS NEO6 MUSIC
+RCKSK0410329 1 0 0 1 0 0 1 0 1 0 * * * * * * * * * * MOVIE SURROUND
+RCKSK0410330 0 1 0 1 0 0 1 0 1 0 * * * * * * * * * * MUSIC SURROUND
+RCKSK0410331 1 1 0 1 0 0 1 0 1 0 * * * * * * * * * * GAME SURROUND
+RCKSK0410336 0 0 0 0 1 0 1 0 1 0 * * * * * * * * * * DSP SIMULATION
+RCKSK0410337 1 0 0 0 1 0 1 0 1 0 * * * * * * * * * * MULTI CH STEREO
+RCKSK0410340 0 0 1 0 1 0 1 0 1 0 * * * * * * * * * * ROCK ARENA
+RCKSK0410341 1 0 1 0 1 0 1 0 1 0 * * * * * * * * * * JAZZ CLUB
+RCKSK0410343 1 1 1 0 1 0 1 0 1 0 * * * * * * * * * * MONO MOVIE
+RCKSK0410344 0 0 0 1 1 0 1 0 1 0 * * * * * * * * * * MATRIX
+RCKSK0410345 1 0 0 1 1 0 1 0 1 0 * * * * * * * * * * VIDEO GAME
+RCKSK0410346 0 1 0 1 1 0 1 0 1 0 * * * * * * * * * * VIRTUAL
+RCKSK0410352 0 0 0 0 0 1 1 0 1 0 * * * * * * * * * * INPUT MODE SELECT
+RCKSK0410353 1 0 0 0 0 1 1 0 1 0 * * * * * * * * * * INPUT MODE:ANALOG
+12
+RCKSK0410357 1 0 1 0 0 1 1 0 1 0 * * * * * * * * * * INPUT MODE HDMI
+RCKSK0410358 0 1 1 0 0 1 1 0 1 0 * * * * * * * * * * INPUT MODE:AUTO
+RCKSK0410359 1 1 1 0 0 1 1 0 1 0 * * * * * * * * * * INPUT MODE DIGITAL
+RCKSK0410364 0 0 1 1 0 1 1 0 1 0 * * * * * * * * * * DECODE MODE
+RCKSK0410368 0 0 0 0 1 1 1 0 1 0 * * * * * * * * * * Volume Up
+RCKSK0410369 1 0 0 0 1 1 1 0 1 0 * * * * * * * * * * Volume Down
+RCKSK0410370 0 1 0 0 1 1 1 0 1 0 * * * * * * * * * * Mute
+RCKSK0410372 0 0 1 0 1 1 1 0 1 0 * * * * * * * * * * M.VR PRESET1(0dB)
+RCKSK0410373 1 0 1 0 1 1 1 0 1 0 * * * * * * * * * * M.VR PRESET2(-20dB)
+RCKSK0410374 0 1 1 0 1 1 1 0 1 0 * * * * * * * * * * M.VR PRESET3(-40dB)
+RCKSK0410378 0 1 0 1 1 1 1 0 1 0 * * * * * * * * * * Channel Level
+RCKSK0410384 0 0 0 0 0 0 0 1 1 0 * * * * * * * * * * FL LEVEL UP
+RCKSK0410385 1 0 0 0 0 0 0 1 1 0 * * * * * * * * * * FL LEVEL DOWN
+RCKSK0410386 0 1 0 0 0 0 0 1 1 0 * * * * * * * * * * FR LEVEL UP
+RCKSK0410387 1 1 0 0 0 0 0 1 1 0 * * * * * * * * * * FR LEVEL DOWN
+RCKSK0410388 0 0 1 0 0 0 0 1 1 0 * * * * * * * * * * C LEVEL UP
+RCKSK0410389 1 0 1 0 0 0 0 1 1 0 * * * * * * * * * * C LEVEL DOWN
+RCKSK0410390 0 1 1 0 0 0 0 1 1 0 * * * * * * * * * * SW LEVEL UP
+RCKSK0410391 1 1 1 0 0 0 0 1 1 0 * * * * * * * * * * SW LEVEL DOWN
+RCKSK0410392 0 0 0 1 0 0 0 1 1 0 * * * * * * * * * * SL LEVEL UP
+RCKSK0410393 1 0 0 1 0 0 0 1 1 0 * * * * * * * * * * SL LEVEL DOWN
+RCKSK0410394 0 1 0 1 0 0 0 1 1 0 * * * * * * * * * * SR LEVEL UP
+RCKSK0410395 1 1 0 1 0 0 0 1 1 0 * * * * * * * * * * SR LEVEL DOWN
+RCKSK0410396 0 0 1 1 0 0 0 1 1 0 * * * * * * * * * * SBL LEVEL UP
+RCKSK0410397 1 0 1 1 0 0 0 1 1 0 * * * * * * * * * * SBL LEVEL DOWN
+RCKSK0410398 0 1 1 1 0 0 0 1 1 0 * * * * * * * * * * SBR LEVEL UP
+RCKSK0410399 1 1 1 1 0 0 0 1 1 0 * * * * * * * * * * SBR LEVEL DOWN
+RCKSK0410400 0 0 0 0 1 0 0 1 1 0 * * * * * * * * * * ALL TREBLE UP
+RCKSK0410401 1 0 0 0 1 0 0 1 1 0 * * * * * * * * * * ALL TREBLE DOWN
+RCKSK0410403 1 1 0 0 1 0 0 1 1 0 * * * * * * * * * * ALL BASS UP
+RCKSK0410404 0 0 1 0 1 0 0 1 1 0 * * * * * * * * * * ALL BASS DOWN
+RCKSK0410406 0 1 1 0 1 0 0 1 1 0 * * * * * * * * * * TONE CONTROL ON/OFF
+RCKSK0410407 1 1 1 0 1 0 0 1 1 0 * * * * * * * * * * TONE CONTROL OFF
+RCKSK0410408 0 0 0 1 1 0 0 1 1 0 * * * * * * * * * * TONE CONTROL ON
+RCKSK0410518 0 1 0 1 0 0 0 0 0 1 * * * * * * * * * * FRONT SPEAKER
+RCKSK0410529 1 0 0 0 1 0 0 0 0 1 * * * * * * * * * * Audyssey DSX Select
+RCKSK0410533 1 0 1 0 1 0 0 0 0 1 * * * * * * * * * * FRONT HEIGHT ON/OFF
+RCKSK0410542 0 1 1 1 1 0 0 0 0 1 * * * * * * * * * * DYNAMIC VOLUME OFF
+RCKSK0410545 1 0 0 0 0 1 0 0 0 1 * * * * * * * * * * DYNAMIC VOLUME SELECT
+RCKSK0410547 1 1 0 0 0 1 0 0 0 1 * * * * * * * * * * DYNAMIC EQ SELECT
+RCKSK0410548 0 0 1 0 0 1 0 0 0 1 * * * * * * * * * * AUDIO RESTORER SELECT
+RCKSK0410549 1 0 1 0 0 1 0 0 0 1 * * * * * * * * * * DYNAMIC EQ/VOLUME SELECT
+13
+RCKSK0410556 0 0 1 1 0 1 0 0 0 1 * * * * * * * * * * RESTORER(OFF)
+RCKSK0410557 1 0 1 1 0 1 0 0 0 1 * * * * * * * * * * RESTORER(Mode1)
+RCKSK0410558 0 1 1 1 0 1 0 0 0 1 * * * * * * * * * * RESTORER(Mode2)
+RCKSK0410559 1 1 1 1 0 1 0 0 0 1 * * * * * * * * * * RESTORER(Mode3)
+RCKSK0410605 1 0 1 1 1 0 1 0 0 1 * * * * * * * * * * FRONTSP A ON/OFF
+RCKSK0410606 0 1 1 1 1 0 1 0 0 1 * * * * * * * * * * FRONTSP B ON/OFF
+RCKSK0410620 0 0 1 1 0 1 1 0 0 1 * * * * * * * * * * AUDIO DELAY MODE
+RCKSK0410621 1 0 1 1 0 1 1 0 0 1 * * * * * * * * * * AUDIO DELAY UP
+RCKSK0410622 0 1 1 1 0 1 1 0 0 1 * * * * * * * * * * AUDIO DELAY DOWN
+RCKSK0410624 0 0 0 0 1 1 1 0 0 1 * * * * * * * * * * INFO
+RCKSK0410635 1 1 0 1 1 1 1 0 0 1 * * * * * * * * * * FWL LEVEL UP
+RCKSK0410636 0 0 1 1 1 1 1 0 0 1 * * * * * * * * * * FWL LEVEL DOWN
+RCKSK0410637 1 0 1 1 1 1 1 0 0 1 * * * * * * * * * * FWR LEVEL UP
+RCKSK0410638 0 1 1 1 1 1 1 0 0 1 * * * * * * * * * * FWR LEVEL DOWN
+RCKSK0410640 0 0 0 0 0 0 0 1 0 1 * * * * * * * * * * FLD STATUS
+RCKSK0410642 0 1 0 0 0 0 0 1 0 1 * * * * * * * * * * Audyssey DSX ON(Height)
+RCKSK0410643 1 1 0 0 0 0 0 1 0 1 * * * * * * * * * * Audyssey DSX ON(Wide)
+RCKSK0410644 0 0 1 0 0 0 0 1 0 1 * * * * * * * * * * Audyssey DSX OFF
+RCKSK0410649 1 0 0 1 0 0 0 1 0 1 * * * * * * * * * * FHL LEVEL UP
+RCKSK0410650 0 1 0 1 0 0 0 1 0 1 * * * * * * * * * * FHL LEVEL DOWN
+RCKSK0410651 1 1 0 1 0 0 0 1 0 1 * * * * * * * * * * FHR LEVEL UP
+RCKSK0410652 0 0 1 1 0 0 0 1 0 1 * * * * * * * * * * FHR LEVEL DOWN
+RCKSK0410656 0 0 0 0 1 0 0 1 0 1 * * * * * * * * * * Front Display(Dimmer)
+RCKSK0410667 1 1 0 1 1 0 0 1 0 1 * * * * * * * * * * iPod Play
+RCKSK0410669 1 0 1 1 1 0 0 1 0 1 * * * * * * * * * * HDMI Monitor Select 1
+RCKSK0410670 0 1 1 1 1 0 0 1 0 1 * * * * * * * * * * HDMI Monitor Select 2
+RCKSK0410671 1 1 1 1 1 0 0 1 0 1 * * * * * * * * * * HDMI Monitor Select Auto(Dual)
+RCKSK0410691 1 1 0 0 1 1 0 1 0 1 * * * * * * * * * * Internet Radio
+RCKSK0410697 1 0 0 1 1 1 0 1 0 1 * * * * * * * * * * Flickr SELECT
+RCKSK0410698 0 1 0 1 1 1 0 1 0 1 * * * * * * * * * * CD / PHONO (CD)
+RCKSK0410699 1 1 0 1 1 1 0 1 0 1 * * * * * * * * * * Media Server
+RCKSK0410704 0 0 0 0 0 0 1 1 0 1 * * * * * * * * * * PHONO
+RCKSK0410705 1 0 0 0 0 0 1 1 0 1 * * * * * * * * * * FM TUNER
+RCKSK0410706 0 1 0 0 0 0 1 1 0 1 * * * * * * * * * * CD
+RCKSK0410711 1 1 1 0 0 0 1 1 0 1 * * * * * * * * * * NETWORK
+RCKSK0410714 0 1 0 1 0 0 1 1 0 1 * * * * * * * * * * SIRIUSXM (NA only)
+RCKSK0410715 1 1 0 1 0 0 1 1 0 1 * * * * * * * * * * HD RADIO
+RCKSK0410716 0 0 1 1 0 0 1 1 0 1 * * * * * * * * * * NETWORK
+RCKSK0410717 1 0 1 1 0 0 1 1 0 1 * * * * * * * * * * DOCK
+RCKSK0410718 0 1 1 1 0 0 1 1 0 1 * * * * * * * * * * iPod/USB
+RCKSK0410719 1 1 1 1 0 0 1 1 0 1 * * * * * * * * * * FM TUNER
+RCKSK0410720 0 0 0 0 1 0 1 1 0 1 * * * * * * * * * * DVD
+14
+RCKSK0410721 1 0 0 0 1 0 1 1 0 1 * * * * * * * * * * Blu-ray
+RCKSK0410722 0 1 0 0 1 0 1 1 0 1 * * * * * * * * * * TV AUDIO
+RCKSK0410723 1 1 0 0 1 0 1 1 0 1 * * * * * * * * * * CBL/SAT
+RCKSK0410725 1 0 1 0 1 0 1 1 0 1 * * * * * * * * * * GAME
+RCKSK0410726 0 1 1 0 1 0 1 1 0 1 * * * * * * * * * * MEDIA PLAYER
+RCKSK0410727 1 1 1 0 1 0 1 1 0 1 * * * * * * * * * * GAME2
+RCKSK0410729 1 0 0 1 1 0 1 1 0 1 * * * * * * * * * * AUX1
+RCKSK0410730 0 1 0 1 1 0 1 1 0 1 * * * * * * * * * * AUX2
+RCKSK0410732 0 0 1 1 1 0 1 1 0 1 * * * * * * * * * * DVD/Blu-ray
+RCKSK0410735 1 1 1 1 1 0 1 1 0 1 * * * * * * * * * * MEDIA PLAYER
+RCKSK0410736 0 0 0 0 0 1 1 1 0 1 * * * * * * * * * * MultEQ/MultEQ XT
+RCKSK0410741 1 0 1 0 0 1 1 1 0 1 * * * * * * * * * * INTERNET RADIO(Recent Play)
+RCKSK0410746 0 1 0 1 0 1 1 1 0 1 * * * * * * * * * * DYNAMIC EQ ON
+RCKSK0410747 1 1 0 1 0 1 1 1 0 1 * * * * * * * * * * DYNAMIC EQ OFF
+RCKSK0410748 0 0 1 1 0 1 1 1 0 1 * * * * * * * * * * DYNAMIC VOLUME(Heavy)
+RCKSK0410749 1 0 1 1 0 1 1 1 0 1 * * * * * * * * * * DYNAMIC VOLUME(Medium)
+RCKSK0410750 0 1 1 1 0 1 1 1 0 1 * * * * * * * * * * DYNAMIC VOLUME(Light)
+RCKSK0410752 0 0 0 0 1 1 1 1 0 1 * * * * * * * * * * RESOLUTION
+RCKSK0410753 1 0 0 0 1 1 1 1 0 1 * * * * * * * * * * Monitor Select
+RCKSK0410754 0 1 0 0 1 1 1 1 0 1 * * * * * * * * * * RESOLUTION(HDMI)
+RCKSK0410760 0 0 0 1 1 1 1 1 0 1 * * * * * * * * * * Reference Level Offset (0dB) for Dynamic EQ
+RCKSK0410761 1 0 0 1 1 1 1 1 0 1 * * * * * * * * * * Reference Level Offset (5dB) for Dynamic EQ
+RCKSK0410762 0 1 0 1 1 1 1 1 0 1 * * * * * * * * * * Reference Level Offset (10dB) for Dynamic EQ
+RCKSK0410763 1 1 0 1 1 1 1 1 0 1 * * * * * * * * * * Reference Level Offset (15dB) for Dynamic EQ
+RCKSK0410765 1 0 1 1 1 1 1 1 0 1 * * * * * * * * * * Pandora (NA only)
+RCKSK0410767 1 1 1 1 1 1 1 1 0 1 * * * * * * * * * * Last.fm (EU only)
+RCKSK0410787 1 1 0 0 1 0 0 0 1 1 * * * * * * * * * * INPUT SOURCE SELECT Right
+RCKSK0410788 0 0 1 0 1 0 0 0 1 1 * * * * * * * * * * INPUT SOURCE SELECT Left
+RCKSK0410826 0 1 0 1 1 1 0 0 1 1 * * * * * * * * * * HDMI(CEC)Control ON
+RCKSK0410827 1 1 0 1 1 1 0 0 1 1 * * * * * * * * * * HDMI(CEC)Control OFF
+RCKSK0410829 1 0 1 1 1 1 0 0 1 1 * * * * * * * * * * HDMI Audio Out Select
+RCKSK0410830 0 1 1 1 1 1 0 0 1 1 * * * * * * * * * * HDMI Audio Out TV
+RCKSK0410831 1 1 1 1 1 1 0 0 1 1 * * * * * * * * * * HDMI Audio Out AMP
+RCKSK0410835 1 1 0 0 0 0 1 0 1 1 * * * * * * * * * * PARTY MODE
+RCKSK0410836 0 0 1 0 0 0 1 0 1 1 * * * * * * * * * * SLEEP MODE
+RCKSK0410849 1 0 0 0 1 0 1 0 1 1 * * * * * * * * * * Video Mode Select
+RCKSK0410850 0 1 0 0 1 0 1 0 1 1 * * * * * * * * * * Video Mode Select Auto
+RCKSK0410851 1 1 0 0 1 0 1 0 1 1 * * * * * * * * * * Video Mode Select Movie
+RCKSK0410852 0 0 1 0 1 0 1 0 1 1 * * * * * * * * * * Video Mode Select Game
+RCKSK0410857 1 0 0 1 1 0 1 0 1 1 * * * * * * * * * * Loudness Management ON/OFF
+RCKSK0410947 1 1 0 0 1 1 0 1 1 1 * * * * * * * * * * Pause
+RCKSK0410949 1 0 1 0 1 1 0 1 1 1 * * * * * * * * * * OPTION
+15
+RCKSK0410950 0 1 1 0 1 1 0 1 1 1 * * * * * * * * * * PAGE Previous
+RCKSK0410951 1 1 1 0 1 1 0 1 1 1 * * * * * * * * * * PAGE Next
+RCKSK0410956 0 0 1 1 1 1 0 1 1 1 * * * * * * * * * * MAIN ZONE REPEAT
+RCKSK0410957 1 0 1 1 1 1 0 1 1 1 * * * * * * * * * * MAIN ZONE RANDOM/SHUFFLE
+RCKSK0410958 0 1 1 1 1 1 0 1 1 1 * * * * * * * * * * MAIN ZONE USB DIRECT PLAY
+RCKSK0410959 1 1 1 1 1 1 0 1 1 1 * * * * * * * * * * MAIN ZONE FAVORITE DIRECT PLAY
+RCKSK0410970 0 1 0 1 0 0 1 1 1 1 * * * * * * * * * * MAIN ZONE TUNING UP
+RCKSK0410971 1 1 0 1 0 0 1 1 1 1 * * * * * * * * * * MAIN ZONE TUNING DOWN
+RCKSK0410972 0 0 1 1 0 0 1 1 1 1 * * * * * * * * * * MAIN ZONE PRESET CH UP
+RCKSK0410973 1 0 1 1 0 0 1 1 1 1 * * * * * * * * * * MAIN ZONE PRESET CH DOWN
+RCKSK0410976 0 0 0 0 1 0 1 1 1 1 * * * * * * * * * * MAIN ZONE Rewind
+RCKSK0410977 1 0 0 0 1 0 1 1 1 1 * * * * * * * * * * MAIN ZONE BAND FM
+RCKSK0410978 0 1 0 0 1 0 1 1 1 1 * * * * * * * * * * MAIN ZONE BAND AM
+RCKSK0410979 1 1 0 0 1 0 1 1 1 1 * * * * * * * * * * MAIN ZONE TUNING MODE /Forward
+RCKSK0410983 1 1 1 0 1 0 1 1 1 1 * * * * * * * * * * MAIN ZONE SEARCH(RDS)
+RCKSK0410992 0 0 0 0 0 1 1 1 1 1 * * * * * * * * * * MAIN ZONE PLAY/PAUSE
+RCKSK0410993 1 0 0 0 0 1 1 1 1 1 * * * * * * * * * * MAIN ZONE STOP
+RCKSK0410994 0 1 0 0 0 1 1 1 1 1 * * * * * * * * * * MAIN ZONE PAUSE
+RCKSK0410995 1 1 0 0 0 1 1 1 1 1 * * * * * * * * * * MAIN ZONE SKIP MINUS/ TUNING DOWN
+RCKSK0410996 0 0 1 0 0 1 1 1 1 1 * * * * * * * * * * MAIN ZONE SKIP PLUS/TUNING UP
+RCKSK0410997 1 0 1 0 0 1 1 1 1 1 * * * * * * * * * * MAIN ZONE TUNING ▼
+RCKSK0410998 0 1 1 0 0 1 1 1 1 1 * * * * * * * * * * MAIN ZONE TUNING ▲
+16
+ZONE2
+REMOTE ID SET: 1
+DENON CODE Parity GENRE1 GENRE2
+４ ５ ２ ３ ０ 4 3
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+0 0 1 0 1 0 1 0 0 1 0 0 1 1 0 0 0 0 0 0 0 0 1 0 1 1 0 0
+REMOTE ID SET: 2-4
+DENON CODE Parity GENRE1 GENRE2
+４ ５ ２ ３ ０ 4 4
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+0 0 1 0 1 0 1 0 0 1 0 0 1 1 0 0 0 0 0 0 0 0 1 0 0 0 1 0
+No. Data ID parity Key Name
+29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48
+RCKSK0430005 1 0 1 0 0 0 0 0 0 0 * * * * * * * * * * ZONE2 POWER ON/OFF
+RCKSK0430006 0 1 1 0 0 0 0 0 0 0 * * * * * * * * * * ZONE2 POWER ON
+RCKSK0430007 1 1 1 0 0 0 0 0 0 0 * * * * * * * * * * ZONE2 POWER OFF
+RCKSK0430016 0 0 0 0 1 0 0 0 0 0 * * * * * * * * * * ZONE2 KEY1
+RCKSK0430017 1 0 0 0 1 0 0 0 0 0 * * * * * * * * * * ZONE2 KEY2
+RCKSK0430018 0 1 0 0 1 0 0 0 0 0 * * * * * * * * * * ZONE2 KEY3
+RCKSK0430019 1 1 0 0 1 0 0 0 0 0 * * * * * * * * * * ZONE2 KEY4
+RCKSK0430020 0 0 1 0 1 0 0 0 0 0 * * * * * * * * * * ZONE2 KEY5
+RCKSK0430021 1 0 1 0 1 0 0 0 0 0 * * * * * * * * * * ZONE2 KEY6
+RCKSK0430022 0 1 1 0 1 0 0 0 0 0 * * * * * * * * * * ZONE2 KEY7
+RCKSK0430023 1 1 1 0 1 0 0 0 0 0 * * * * * * * * * * ZONE2 KEY8
+RCKSK0430024 0 0 0 1 1 0 0 0 0 0 * * * * * * * * * * ZONE2 KEY9
+RCKSK0430025 1 0 0 1 1 0 0 0 0 0 * * * * * * * * * * ZONE2 KEY0
+RCKSK0430027 1 1 0 1 1 0 0 0 0 0 * * * * * * * * * * ZONE2 CURSOR UP
+RCKSK0430028 0 0 1 1 1 0 0 0 0 0 * * * * * * * * * * ZONE2 CURSOR DOWN
+RCKSK0430029 1 0 1 1 1 0 0 0 0 0 * * * * * * * * * * ZONE2 CURSOR LEFT
+RCKSK0430030 0 1 1 1 1 0 0 0 0 0 * * * * * * * * * * ZONE2 CURSOR RIGHT
+RCKSK0430031 1 1 1 1 1 0 0 0 0 0 * * * * * * * * * * ZONE2 ENTER
+RCKSK0430034 0 1 0 0 0 1 0 0 0 0 * * * * * * * * * * ZONE2 RETURN
+RCKSK0430036 0 0 1 0 0 1 0 0 0 0 * * * * * * * * * * ZONE2 MEMORY
+RCKSK0430242 0 1 0 0 1 1 1 1 0 0 * * * * * * * * * * ZONE2 FAVORITE STATION 1
+RCKSK0430243 1 1 0 0 1 1 1 1 0 0 * * * * * * * * * * ZONE2 FAVORITE STATION 2
+RCKSK0430244 0 0 1 0 1 1 1 1 0 0 * * * * * * * * * * ZONE2 FAVORITE STATION 3
+RCKSK0430245 0 0 1 0 1 1 1 1 0 0 * * * * * * * * * * ZONE2 FAVORITE STATION 4
+17
+RCKSK0430292 0 0 1 0 0 1 0 0 1 0 * * * * * * * * * * ZONE2 QUICK SELECT 1
+RCKSK0430293 1 0 1 0 0 1 0 0 1 0 * * * * * * * * * * ZONE2 QUICK SELECT 2
+RCKSK0430294 0 1 1 0 0 1 0 0 1 0 * * * * * * * * * * ZONE2 QUICK SELECT 3
+RCKSK0430295 1 1 1 0 0 1 0 0 1 0 * * * * * * * * * * ZONE2 QUICK SELECT 4
+RCKSK0430296 0 0 0 1 0 1 0 0 1 0 * * * * * * * * * * ZONE2 QUICK SELECT 5
+RCKSK0430368 0 0 0 0 1 1 1 0 1 0 * * * * * * * * * * ZONE2 VOLUME UP
+RCKSK0430369 1 0 0 0 1 1 1 0 1 0 * * * * * * * * * * ZONE2 VOLUME DOWN
+RCKSK0430370 0 1 0 0 1 1 1 0 1 0 * * * * * * * * * * ZONE2 VOLUME MUTE
+RCKSK0430370 1 1 0 0 1 1 1 0 1 0 * * * * * * * * * * ZONE2 VR MUTE
+RCKSK0430372 0 0 1 0 1 1 1 0 1 0 * * * * * * * * * * ZONE2 VR PRESET1(0dB)
+RCKSK0430373 1 0 1 0 1 1 1 0 1 0 * * * * * * * * * * ZONE2 VR PRESET2(-20dB)
+RCKSK0430374 0 1 1 0 1 1 1 0 1 0 * * * * * * * * * * ZONE2 VR PRESET3(-40dB)
+RCKSK0430667 1 1 0 1 1 0 0 1 0 1 * * * * * * * * * * ZONE2 iPod PLAY
+RCKSK0430691 1 1 0 0 1 1 0 1 0 1 * * * * * * * * * * ZONE2 Internet Radio
+RCKSK0430692 0 0 1 0 1 1 0 1 0 1 * * * * * * * * * * Main Zone Source CALL
+RCKSK0430697 1 0 0 1 1 1 0 1 0 1 * * * * * * * * * * ZONE2 Flickr
+RCKSK0430698 0 1 0 1 1 1 0 1 0 1 * * * * * * * * * * ZONE2 CD / PHONO
+RCKSK0430699 1 1 0 1 1 1 0 1 0 1 * * * * * * * * * * ZONE2 Media Server
+RCKSK0430704 0 0 0 0 0 0 1 1 0 1 * * * * * * * * * * ZONE2 PHONO
+RCKSK0430705 1 0 0 0 0 0 1 1 0 1 * * * * * * * * * * ZONE2 FM TUNER
+RCKSK0430706 0 1 0 0 0 0 1 1 0 1 * * * * * * * * * * ZONE2 CD
+RCKSK0430711 1 1 1 0 0 0 1 1 0 1 * * * * * * * * * * ZONE2 NETWORK
+RCKSK0430714 0 1 0 1 0 0 1 1 0 1 * * * * * * * * * * ZONE2 SIRIUSXM (NA only)
+RCKSK0430715 1 1 0 1 0 0 1 1 0 1 * * * * * * * * * * ZONE2 FM TUNER
+RCKSK0430716 0 0 1 1 0 0 1 1 0 1 * * * * * * * * * * ZONE2 NETWORK
+RCKSK0430717 1 0 1 1 0 0 1 1 0 1 * * * * * * * * * * ZONE2 DOCK
+RCKSK0430718 0 1 1 1 0 0 1 1 0 1 * * * * * * * * * * ZONE2 iPod/USB
+RCKSK0430719 1 1 1 1 0 0 1 1 0 1 * * * * * * * * * * ZONE2 FM TUNER
+RCKSK0430720 0 0 0 0 1 0 1 1 0 1 * * * * * * * * * * ZONE2 DVD
+RCKSK0430721 1 0 0 0 1 0 1 1 0 1 * * * * * * * * * * ZONE2 Blu-ray
+RCKSK0430722 0 1 0 0 1 0 1 1 0 1 * * * * * * * * * * ZONE2 TV AUDIO
+RCKSK0430723 1 1 0 0 1 0 1 1 0 1 * * * * * * * * * * ZONE2 CBL/SAT
+RCKSK0430725 1 0 1 0 1 0 1 1 0 1 * * * * * * * * * * ZONE2 GAME
+RCKSK0430726 0 1 1 0 1 0 1 1 0 1 * * * * * * * * * * ZONE2 MEDIA PLAYER
+RCKSK0430727 1 1 1 0 1 0 1 1 0 1 * * * * * * * * * * ZONE2 GAME2
+RCKSK0430729 1 0 0 1 1 0 1 1 0 1 * * * * * * * * * * ZONE2 AUX1
+RCKSK0430732 0 0 1 1 1 0 1 1 0 1 * * * * * * * * * * ZONE2 DVD/Blu-ray
+RCKSK0430735 1 1 1 1 1 0 1 1 0 1 * * * * * * * * * * ZONE2 MEDIA PLAYER
+RCKSK0430741 1 0 1 0 0 1 1 1 0 1 * * * * * * * * * * ZONE2 INTERNET RADIO(Recent Play)
+RCKSK0430765 1 0 1 1 1 1 1 1 0 1 * * * * * * * * * * ZONE2 Pandora (NA only)
+RCKSK0430767 1 1 1 1 1 1 1 1 0 1 * * * * * * * * * * ZONE2 Last.fm (EU only)
+RCKSK0430787 1 1 0 0 1 0 0 0 1 1 * * * * * * * * * * ZONE2 INPUT SOURCE SELECT Right
+18
+RCKSK0430788 0 0 1 0 1 0 0 0 1 1 * * * * * * * * * * ZONE2 INPUT SOURCE SELECT Left
+RCKSK0430788 0 0 1 0 0 0 1 0 1 1 * * * * * * * * * * ZONE2 SLEEP
+RCKSK0430947 1 1 0 0 1 1 0 1 1 1 * * * * * * * * * * ZONE2 PAUSE
+RCKSK0430950 0 1 1 0 1 1 0 1 1 1 * * * * * * * * * * ZONE2 PAGE Previous
+RCKSK0430951 1 1 1 0 1 1 0 1 1 1 * * * * * * * * * * ZONE2 PAGE Next
+RCKSK0430954 0 1 0 1 1 1 0 1 1 1 * * * * * * * * * * ZONE2 iPod dock iPod direct
+RCKSK0430956 0 0 1 1 1 1 0 1 1 1 * * * * * * * * * * ZONE2 REPEAT
+RCKSK0430957 1 0 1 1 1 1 0 1 1 1 * * * * * * * * * * ZONE2 RANDOM/SHUFFLE
+RCKSK0430958 0 1 1 1 1 1 0 1 1 1 * * * * * * * * * * ZONE2 USB DIRECT PLAY
+RCKSK0430959 1 1 1 1 1 1 0 1 1 1 * * * * * * * * * * ZONE2 FAVORITE DIRECT PLAY
+RCKSK0430970 0 1 0 1 0 0 1 1 1 1 * * * * * * * * * * ZONE2 TUNING UP
+RCKSK0430971 1 1 0 1 0 0 1 1 1 1 * * * * * * * * * * ZONE2 TUNING DOWN
+RCKSK0430972 0 0 1 1 0 0 1 1 1 1 * * * * * * * * * * ZONE2 PRESET CH UP
+RCKSK0430973 1 0 1 1 0 0 1 1 1 1 * * * * * * * * * * ZONE2 PRESET CH DOWN
+RCKSK0430974 0 1 1 1 0 0 1 1 1 1 * * * * * * * * * * ZONE2 PRESET CH SHIFT
+RCKSK0430976 0 0 0 0 1 0 1 1 1 1 * * * * * * * * * * ZONE2 TUNER Rewind
+RCKSK0430977 1 0 0 0 1 0 1 1 1 1 * * * * * * * * * * ZONE2 BAND FM
+RCKSK0430978 0 1 0 0 1 0 1 1 1 1 * * * * * * * * * * ZONE2 BAND AM
+RCKSK0430979 1 1 0 0 1 0 1 1 1 1 * * * * * * * * * * ZONE2 TUNER MODE / Fast Forward
+RCKSK0430983 1 1 1 0 1 0 1 1 1 1 * * * * * * * * * * ZONE2 SEARCH(RDS)
+RCKSK0430992 0 0 0 0 0 1 1 1 1 1 * * * * * * * * * * ZONE2 PLAY/PAUSE
+RCKSK0430993 1 0 0 0 0 1 1 1 1 1 * * * * * * * * * * ZONE2 STOP
+RCKSK0430994 0 1 0 0 0 1 1 1 1 1 * * * * * * * * * * ZONE2 PAUSE
+RCKSK0430995 1 1 0 0 0 1 1 1 1 1 * * * * * * * * * * ZONE2 SKIP MINUS/TUNING DOWN
+RCKSK0430996 0 0 1 0 0 1 1 1 1 1 * * * * * * * * * * ZONE2 SKIP PLUS/TUNING UP
+RCKSK0430997 1 0 1 0 0 1 1 1 1 1 * * * * * * * * * * ZONE2 TUNING ▼
+RCKSK0430998 0 1 1 0 0 1 1 1 1 1 * * * * * * * * * * ZONE2 TUNING ▲
+19
+ZONE3
+REMOTE ID SET: 1
+DENON CODE Parity GENRE1 GENRE2
+４ ５ ２ ３ ０ 4 5
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+0 0 1 0 1 0 1 0 0 1 0 0 1 1 0 0 0 0 0 0 0 0 1 0 1 1 0 0
+REMOTE ID SET: 2-4
+DENON CODE Parity GENRE1 GENRE2
+４ ５ ２ ３ ０ 4 6
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+0 0 1 0 1 0 1 0 0 1 0 0 1 1 0 0 0 0 0 0 0 0 1 0 0 0 1 0
+No. Data ID parity Key Name
+29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48
+RCKSK0450005 1 0 1 0 0 0 0 0 0 0 * * * * * * * * * * ZONE3 POWER ON/OFF
+RCKSK0450006 0 1 1 0 0 0 0 0 0 0 * * * * * * * * * * ZONE3 POWER ON
+RCKSK0450007 1 1 1 0 0 0 0 0 0 0 * * * * * * * * * * ZONE3 POWER OFF
+RCKSK0450016 0 0 0 0 1 0 0 0 0 0 * * * * * * * * * * ZONE3 KEY1
+RCKSK0450017 1 0 0 0 1 0 0 0 0 0 * * * * * * * * * * ZONE3 KEY2
+RCKSK0450018 0 1 0 0 1 0 0 0 0 0 * * * * * * * * * * ZONE3 KEY3
+RCKSK0450019 1 1 0 0 1 0 0 0 0 0 * * * * * * * * * * ZONE3 KEY4
+RCKSK0450020 0 0 1 0 1 0 0 0 0 0 * * * * * * * * * * ZONE3 KEY5
+RCKSK0450021 1 0 1 0 1 0 0 0 0 0 * * * * * * * * * * ZONE3 KEY6
+RCKSK0450022 0 1 1 0 1 0 0 0 0 0 * * * * * * * * * * ZONE3 KEY7
+RCKSK0450023 1 1 1 0 1 0 0 0 0 0 * * * * * * * * * * ZONE3 KEY8
+RCKSK0450024 0 0 0 1 1 0 0 0 0 0 * * * * * * * * * * ZONE3 KEY9
+RCKSK0450025 1 0 0 1 1 0 0 0 0 0 * * * * * * * * * * ZONE3 KEY0
+RCKSK0450027 1 1 0 1 1 0 0 0 0 0 * * * * * * * * * * ZONE3 CURSOR UP
+RCKSK0450028 0 0 1 1 1 0 0 0 0 0 * * * * * * * * * * ZONE3 CURSOR DOWN
+RCKSK0450029 1 0 1 1 1 0 0 0 0 0 * * * * * * * * * * ZONE3 CURSOR LEFT
+RCKSK0450030 0 1 1 1 1 0 0 0 0 0 * * * * * * * * * * ZONE3 CURSOR RIGHT
+RCKSK0450031 1 1 1 1 1 0 0 0 0 0 * * * * * * * * * * ZONE3 ENTER
+RCKSK0450034 0 1 0 0 0 1 0 0 0 0 * * * * * * * * * * ZONE3 RETURN
+RCKSK0450036 0 0 1 0 0 1 0 0 0 0 * * * * * * * * * * ZONE3 MEMORY
+RCKSK0450242 0 1 0 0 1 1 1 1 0 0 * * * * * * * * * * ZONE3 FAVORITE STATION 1
+RCKSK0450243 1 1 0 0 1 1 1 1 0 0 * * * * * * * * * * ZONE3 FAVORITE STATION 2
+RCKSK0450244 0 0 1 0 1 1 1 1 0 0 * * * * * * * * * * ZONE3 FAVORITE STATION 3
+RCKSK0450245 0 0 1 0 1 1 1 1 0 0 * * * * * * * * * * ZONE3 FAVORITE STATION 4
+20
+RCKSK0450292 0 0 1 0 0 1 0 0 1 0 * * * * * * * * * * ZONE3 QUICK SELECT 1
+RCKSK0450293 1 0 1 0 0 1 0 0 1 0 * * * * * * * * * * ZONE3 QUICK SELECT 2
+RCKSK0450294 0 1 1 0 0 1 0 0 1 0 * * * * * * * * * * ZONE3 QUICK SELECT 3
+RCKSK0450295 1 1 1 0 0 1 0 0 1 0 * * * * * * * * * * ZONE3 QUICK SELECT 4
+RCKSK0450296 0 0 0 1 0 1 0 0 1 0 * * * * * * * * * * ZONE3 QUICK SELECT 5
+RCKSK0450368 0 0 0 0 1 1 1 0 1 0 * * * * * * * * * * ZONE3 VOLUME UP
+RCKSK0450369 1 0 0 0 1 1 1 0 1 0 * * * * * * * * * * ZONE3 VOLUME DOWN
+RCKSK0450370 0 1 0 0 1 1 1 0 1 0 * * * * * * * * * * ZONE3 VOLUME MUTE
+RCKSK0450370 1 1 0 0 1 1 1 0 1 0 * * * * * * * * * * ZONE3 VR MUTE
+RCKSK0450372 0 0 1 0 1 1 1 0 1 0 * * * * * * * * * * ZONE3 VR PRESET1(0dB)
+RCKSK0450373 1 0 1 0 1 1 1 0 1 0 * * * * * * * * * * ZONE3 VR PRESET2(-20dB)
+RCKSK0450374 0 1 1 0 1 1 1 0 1 0 * * * * * * * * * * ZONE3 VR PRESET3(-40dB)
+RCKSK0450667 1 1 0 1 1 0 0 1 0 1 * * * * * * * * * * ZONE3 iPod PLAY
+RCKSK0450691 1 1 0 0 1 1 0 1 0 1 * * * * * * * * * * ZONE3 Internet Radio
+RCKSK0450692 0 0 1 0 1 1 0 1 0 1 * * * * * * * * * * Main Zone Source CALL
+RCKSK0450697 1 0 0 1 1 1 0 1 0 1 * * * * * * * * * * ZONE3 Flickr
+RCKSK0450698 0 1 0 1 1 1 0 1 0 1 * * * * * * * * * * ZONE3 CD / PHONO
+RCKSK0450699 1 1 0 1 1 1 0 1 0 1 * * * * * * * * * * ZONE3 Media Server
+RCKSK0450704 0 0 0 0 0 0 1 1 0 1 * * * * * * * * * * ZONE3 PHONO
+RCKSK0450705 1 0 0 0 0 0 1 1 0 1 * * * * * * * * * * ZONE3 FM TUNER
+RCKSK0450706 0 1 0 0 0 0 1 1 0 1 * * * * * * * * * * ZONE3 CD
+RCKSK0450711 1 1 1 0 0 0 1 1 0 1 * * * * * * * * * * ZONE3 NETWORK
+RCKSK0450714 0 1 0 1 0 0 1 1 0 1 * * * * * * * * * * ZONE3 SIRIUSXM (NA only)
+RCKSK0450715 1 1 0 1 0 0 1 1 0 1 * * * * * * * * * * ZONE3 FM TUNER
+RCKSK0450716 0 0 1 1 0 0 1 1 0 1 * * * * * * * * * * ZONE3 NETWORK
+RCKSK0450717 1 0 1 1 0 0 1 1 0 1 * * * * * * * * * * ZONE3 DOCK
+RCKSK0450718 0 1 1 1 0 0 1 1 0 1 * * * * * * * * * * ZONE3 iPod/USB
+RCKSK0450719 1 1 1 1 0 0 1 1 0 1 * * * * * * * * * * ZONE3 FM TUNER
+RCKSK0450720 0 0 0 0 1 0 1 1 0 1 * * * * * * * * * * ZONE3 DVD
+RCKSK0450721 1 0 0 0 1 0 1 1 0 1 * * * * * * * * * * ZONE3 Blu-ray
+RCKSK0450722 0 1 0 0 1 0 1 1 0 1 * * * * * * * * * * ZONE3 TV AUDIO
+RCKSK0450723 1 1 0 0 1 0 1 1 0 1 * * * * * * * * * * ZONE3 CBL/SAT
+RCKSK0450725 1 0 1 0 1 0 1 1 0 1 * * * * * * * * * * ZONE3 GAME
+RCKSK0450726 0 1 1 0 1 0 1 1 0 1 * * * * * * * * * * ZONE3 MEDIA PLAYER
+RCKSK0450727 1 1 1 0 1 0 1 1 0 1 * * * * * * * * * * ZONE3 GAME2
+RCKSK0450729 1 0 0 1 1 0 1 1 0 1 * * * * * * * * * * ZONE3 AUX1
+RCKSK0450732 0 0 1 1 1 0 1 1 0 1 * * * * * * * * * * ZONE3 DVD/Blu-ray
+RCKSK0450735 1 1 1 1 1 0 1 1 0 1 * * * * * * * * * * ZONE3 MEDIA PLAYER
+RCKSK0450741 1 0 1 0 0 1 1 1 0 1 * * * * * * * * * * ZONE3 INTERNET RADIO(Recent Play)
+RCKSK0450765 1 0 1 1 1 1 1 1 0 1 * * * * * * * * * * ZONE3 Pandora (NA only)
+RCKSK0450767 1 1 1 1 1 1 1 1 0 1 * * * * * * * * * * ZONE3 Last.fm (EU only)
+RCKSK0450787 1 1 0 0 1 0 0 0 1 1 * * * * * * * * * * ZONE3 INPUT SOURCE SELECT Right
+21
+RCKSK0450788 0 0 1 0 1 0 0 0 1 1 * * * * * * * * * * ZONE3 INPUT SOURCE SELECT Left
+RCKSK0450788 0 0 1 0 0 0 1 0 1 1 * * * * * * * * * * ZONE3 SLEEP
+RCKSK0450947 1 1 0 0 1 1 0 1 1 1 * * * * * * * * * * ZONE3 PAUSE
+RCKSK0450950 0 1 1 0 1 1 0 1 1 1 * * * * * * * * * * ZONE3 PAGE Previous
+RCKSK0450951 1 1 1 0 1 1 0 1 1 1 * * * * * * * * * * ZONE3 PAGE Next
+RCKSK0450954 0 1 0 1 1 1 0 1 1 1 * * * * * * * * * * ZONE3 iPod dock iPod direct
+RCKSK0450956 0 0 1 1 1 1 0 1 1 1 * * * * * * * * * * ZONE3 REPEAT
+RCKSK0450957 1 0 1 1 1 1 0 1 1 1 * * * * * * * * * * ZONE3 RANDOM/SHUFFLE
+RCKSK0450958 0 1 1 1 1 1 0 1 1 1 * * * * * * * * * * ZONE3 USB DIRECT PLAY
+RCKSK0450959 1 1 1 1 1 1 0 1 1 1 * * * * * * * * * * ZONE3 FAVORITE DIRECT PLAY
+RCKSK0450970 0 1 0 1 0 0 1 1 1 1 * * * * * * * * * * ZONE3 TUNING UP
+RCKSK0450971 1 1 0 1 0 0 1 1 1 1 * * * * * * * * * * ZONE3 TUNING DOWN
+RCKSK0450972 0 0 1 1 0 0 1 1 1 1 * * * * * * * * * * ZONE3 PRESET CH UP
+RCKSK0450973 1 0 1 1 0 0 1 1 1 1 * * * * * * * * * * ZONE3 PRESET CH DOWN
+RCKSK0450974 0 1 1 1 0 0 1 1 1 1 * * * * * * * * * * ZONE3 PRESET CH SHIFT
+RCKSK0450976 0 0 0 0 1 0 1 1 1 1 * * * * * * * * * * ZONE3 TUNER Rewind
+RCKSK0450977 1 0 0 0 1 0 1 1 1 1 * * * * * * * * * * ZONE3 BAND FM
+RCKSK0450978 0 1 0 0 1 0 1 1 1 1 * * * * * * * * * * ZONE3 BAND AM
+RCKSK0450979 1 1 0 0 1 0 1 1 1 1 * * * * * * * * * * ZONE3 TUNER MODE / Fast Forward
+RCKSK0450983 1 1 1 0 1 0 1 1 1 1 * * * * * * * * * * ZONE3 SEARCH(RDS)
+RCKSK0450992 0 0 0 0 0 1 1 1 1 1 * * * * * * * * * * ZONE3 PLAY/PAUSE
+RCKSK0450993 1 0 0 0 0 1 1 1 1 1 * * * * * * * * * * ZONE3 STOP
+RCKSK0450994 0 1 0 0 0 1 1 1 1 1 * * * * * * * * * * ZONE3 PAUSE
+RCKSK0450995 1 1 0 0 0 1 1 1 1 1 * * * * * * * * * * ZONE3 SKIP MINUS/TUNING DOWN
+RCKSK0450996 0 0 1 0 0 1 1 1 1 1 * * * * * * * * * * ZONE3 SKIP PLUS/TUNING UP
+RCKSK0450997 1 0 1 0 0 1 1 1 1 1 * * * * * * * * * * ZONE3 TUNING ▼
+RCKSK0450998 0 1 1 0 0 1 1 1 1 1 * * * * * * * * * * ZONE3 TUNING ▲
+22
+ANALOG TUNER
+REMOTE ID SET: 1
+DENON CODE Parity GENRE1 GENRE2
+４ ５ ２ ３ ０ 4 1
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+0 0 1 0 1 0 1 0 0 1 0 0 1 1 0 0 0 0 0 0 0 0 1 0 1 0 0 0
+REMOTE ID SET: 2-4
+DENON CODE Parity GENRE1 GENRE2
+４ ５ ２ ３ ０ 4 2
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+0 0 1 0 1 0 1 0 0 1 0 0 1 1 0 0 0 0 0 0 0 0 1 0 0 1 0 0
+No. Data ID parity Key Name
+29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48
+RCKSK0410144 0 0 0 0 1 0 0 1 0 0 * * * * * * * * * * TUNING UP
+RCKSK0410145 1 0 0 0 1 0 0 1 0 0 * * * * * * * * * * TUNING DOWN
+RCKSK0410146 0 1 0 0 1 0 0 1 0 0 * * * * * * * * * * PRESET CH UP
+RCKSK0410147 1 1 0 0 1 0 0 1 0 0 * * * * * * * * * * PRESET CH DOWN
+RCKSK0410148 0 0 1 0 1 0 0 1 0 0 * * * * * * * * * * PRESET CH SHIFT
+RCKSK0410152 0 0 0 1 1 0 0 1 0 0 * * * * * * * * * * BAND FM/AM
+RCKSK0410153 1 0 0 1 1 0 0 1 0 0 * * * * * * * * * * BAND FM
+RCKSK0410154 0 1 0 1 1 0 0 1 0 0 * * * * * * * * * * BAND AM
+RCKSK0410156 0 0 1 1 1 0 0 1 0 0 * * * * * * * * * * MODE AUTO/MANUAL
+RCKSK0410160 0 0 0 0 0 1 0 1 0 0 * * * * * * * * * * MEMORY
+RCKSK0410163 1 1 0 0 0 1 0 1 0 0 * * * * * * * * * * RDS(EU only)/SEARCH
+RCKSK0410166 0 1 1 0 0 1 0 1 0 0 * * * * * * * * * * RT (EU only)
+RCKSK0410169 1 0 0 1 0 1 0 1 0 0 * * * * * * * * * * PTY(EU only)
+RCKSK0410170 0 1 0 1 0 1 0 1 0 0 * * * * * * * * * * CURSOR UP(TUNER)
+RCKSK0410171 1 1 0 1 0 1 0 1 0 0 * * * * * * * * * * CURSOR DOWN(TUNER)
+RCKSK0410173 1 0 1 1 0 1 0 1 0 0 * * * * * * * * * * CURSOR LEFT(TUNER)
+RCKSK0410174 0 1 1 1 0 1 0 1 0 0 * * * * * * * * * * CURSOR RIGHT(TUNER)
+RCKSK0410175 1 1 1 1 0 1 0 1 0 0 * * * * * * * * * * CURSOR ENTER(TUNER)
+RCKSK0410176 0 0 0 0 1 1 0 1 0 0 * * * * * * * * * * PRESET 1 / Numeric 1
+RCKSK0410177 1 0 0 0 1 1 0 1 0 0 * * * * * * * * * * PRESET 2 / Numeric 2
+RCKSK0410178 0 1 0 0 1 1 0 1 0 0 * * * * * * * * * * PRESET 3 / Numeric 3
+RCKSK0410179 1 1 0 0 1 1 0 1 0 0 * * * * * * * * * * PRESET 4 / Numeric 4
+RCKSK0410180 0 0 1 0 1 1 0 1 0 0 * * * * * * * * * * PRESET 5 / Numeric 5
+RCKSK0410181 1 0 1 0 1 1 0 1 0 0 * * * * * * * * * * PRESET 6 / Numeric 6
+23
+RCKSK0410182 0 1 1 0 1 1 0 1 0 0 * * * * * * * * * * PRESET 7 / Numeric 7
+RCKSK0410183 1 1 1 0 1 1 0 1 0 0 * * * * * * * * * * PRESET 8 / Numeric 8
+RCKSK0410184 0 0 0 1 1 1 0 1 0 0 * * * * * * * * * * Numeric 9
+RCKSK0410185 1 0 0 1 1 1 0 1 0 0 * * * * * * * * * * Numeric 0
+RCKSK0410241 1 0 0 0 1 1 1 1 0 0 * * * * * * * * * * RETURN(TUNER)
+RCKSK0410248 0 0 0 1 1 1 1 1 0 0 * * * * * * * * * * SHIFT A
+RCKSK0410249 1 0 0 1 1 1 1 1 0 0 * * * * * * * * * * SHIFT B
+RCKSK0410250 0 1 0 1 1 1 1 1 0 0 * * * * * * * * * * SHIFT C
+RCKSK0410251 1 1 0 1 1 1 1 1 0 0 * * * * * * * * * * SHIFT D
+RCKSK0410252 0 0 1 1 1 1 1 1 0 0 * * * * * * * * * * SHIFT E
+RCKSK0410253 1 0 1 1 1 1 1 1 0 0 * * * * * * * * * * SHIFT F
+RCKSK0410254 0 1 1 1 1 1 1 1 0 0 * * * * * * * * * * SHIFT G
+24
+NETWORK AUDIO/iPod/USB
+REMOTE ID SET: 1
+DENON CODE Parity GENRE1 GENRE2
+４ ５ ２ ３ ０ 4 7
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+0 0 1 0 1 0 1 0 0 1 0 0 1 1 0 0 0 0 0 0 0 0 1 0 1 1 1 0
+REMOTE ID SET: 2-4
+DENON CODE Parity GENRE1 GENRE2
+４ ５ ２ ３ ０ 4 8
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+0 0 1 0 1 0 1 0 0 1 0 0 1 1 0 0 0 0 0 0 0 0 1 0 0 0 0 1
+No. Data ID parity Key Name
+29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48
+RCKSK0470027 1 1 0 1 1 0 0 0 0 0 * * * * * * * * * * CURSOR UP
+RCKSK0470028 0 0 1 1 1 0 0 0 0 0 * * * * * * * * * * CURSOR DOWN
+RCKSK0470029 1 0 1 1 1 0 0 0 0 0 * * * * * * * * * * CURSOR LEFT
+RCKSK0470030 0 1 1 1 1 0 0 0 0 0 * * * * * * * * * * CURSOR RIGHT
+RCKSK0470031 1 1 1 1 1 0 0 0 0 0 * * * * * * * * * * ENTER
+RCKSK0470034 0 1 0 0 0 1 0 0 0 0 * * * * * * * * * * RETURN
+RCKSK0470144 0 0 0 0 1 0 0 1 0 0 * * * * * * * * * * JPEG Skip -
+RCKSK0470145 1 0 0 0 1 0 0 1 0 0 * * * * * * * * * * JPEG Skip +
+RCKSK0470146 0 1 0 0 1 0 0 1 0 0 * * * * * * * * * * PRESET CH UP
+RCKSK0470147 1 1 0 0 1 0 0 1 0 0 * * * * * * * * * * PRESET CH DOWN
+RCKSK0470148 0 0 1 0 1 0 0 1 0 0 * * * * * * * * * * PRESET CH SHIFT
+RCKSK0470160 0 0 0 0 0 1 0 1 0 0 * * * * * * * * * * MEMORY
+RCKSK0470163 1 1 0 0 0 1 0 1 0 0 * * * * * * * * * * PAGE SEARCH/CHARA SEARCH
+RCKSK0470176 0 0 0 0 1 1 0 1 0 0 * * * * * * * * * * PRESET 1
+RCKSK0470177 1 0 0 0 1 1 0 1 0 0 * * * * * * * * * * PRESET 2
+RCKSK0470178 0 1 0 0 1 1 0 1 0 0 * * * * * * * * * * PRESET 3
+RCKSK0470179 1 1 0 0 1 1 0 1 0 0 * * * * * * * * * * PRESET 4
+RCKSK0470180 0 0 1 0 1 1 0 1 0 0 * * * * * * * * * * PRESET 5
+RCKSK0470181 1 0 1 0 1 1 0 1 0 0 * * * * * * * * * * PRESET 6
+RCKSK0470182 0 1 1 0 1 1 0 1 0 0 * * * * * * * * * * PRESET 7
+RCKSK0470183 1 1 1 0 1 1 0 1 0 0 * * * * * * * * * * PRESET 8
+RCKSK0470248 0 0 0 1 1 1 1 1 0 0 * * * * * * * * * * SHIFT A
+RCKSK0470249 1 0 0 1 1 1 1 1 0 0 * * * * * * * * * * SHIFT B
+RCKSK0470250 0 1 0 1 1 1 1 1 0 0 * * * * * * * * * * SHIFT C
+25
+RCKSK0470251 1 1 0 1 1 1 1 1 0 0 * * * * * * * * * * SHIFT D
+RCKSK0470252 0 0 1 1 1 1 1 1 0 0 * * * * * * * * * * SHIFT E
+RCKSK0470253 1 0 1 1 1 1 1 1 0 0 * * * * * * * * * * SHIFT F
+RCKSK0470254 0 1 1 1 1 1 1 1 0 0 * * * * * * * * * * SHIFT G
+RCKSK0470773 1 0 1 0 0 0 0 0 1 1 * * * * * * * * * * PLAY
+RCKSK0470774 0 1 1 0 0 0 0 0 1 1 * * * * * * * * * * PAUSE
+RCKSK0470775 1 1 1 0 0 0 0 0 1 1 * * * * * * * * * * STOP
+RCKSK0470776 0 0 0 1 0 0 0 0 1 1 * * * * * * * * * * SKIP PLUS
+RCKSK0470777 1 0 0 1 0 0 0 0 1 1 * * * * * * * * * * SKIP MINUS
+RCKSK0470778 0 1 0 1 0 0 0 0 1 1 * * * * * * * * * * REPEAT ONE
+RCKSK0470779 1 1 0 1 0 0 0 0 1 1 * * * * * * * * * * REPEAT OFF
+RCKSK0470780 0 0 1 1 0 0 0 0 1 1 * * * * * * * * * * RANDOM ON
+RCKSK0470781 1 0 1 1 0 0 0 0 1 1 * * * * * * * * * * RANDOM OFF
+RCKSK0470785 1 0 0 0 1 0 0 0 1 1 * * * * * * * * * * REPEAT ALL
+26
+HD-Radio (NA only)
+REMOTE ID SET: 1-4
+DENON CODE Parity GENRE1 GENRE2
+４ ５ ２ ３ ０ 7 4
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+0 0 1 0 1 0 1 0 0 1 0 0 1 1 0 0 0 0 0 0 0 1 0 0 0 0 1 0
+No. Data ID parity Key Name
+29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48
+RCKSK0740001 1 0 0 0 0 0 0 0 0 0 * * 0 0 1 0 0 1 1 0 PRESET 1/ Numeric 1
+RCKSK0740002 0 1 0 0 0 0 0 0 0 0 * * 0 0 1 0 1 0 1 0 PRESET 2/ Numeric 2
+RCKSK0740003 1 1 0 0 0 0 0 0 0 0 * * 0 0 1 0 0 0 1 0 PRESET 3/ Numeric 3
+RCKSK0740004 0 0 1 0 0 0 0 0 0 0 * * 0 0 1 0 1 1 0 0 PRESET 4/ Numeric 4
+RCKSK0740005 1 0 1 0 0 0 0 0 0 0 * * 0 0 1 0 0 1 0 0 PRESET 5/ Numeric 5
+RCKSK0740006 0 1 1 0 0 0 0 0 0 0 * * 0 0 1 0 1 0 0 0 PRESET 6/ Numeric 6
+RCKSK0740007 1 1 1 0 0 0 0 0 0 0 * * 0 0 1 0 0 0 0 0 PRESET 7/ Numeric 7
+RCKSK0740008 0 0 0 1 0 0 0 0 0 0 * * 0 0 1 0 1 1 1 1 PRESET 8/ Numeric 8
+RCKSK0740009 1 0 0 1 0 0 0 0 0 0 * * 0 0 1 0 0 1 1 1 Numeric 9
+RCKSK0740010 0 1 0 1 0 0 0 0 0 0 * * 0 0 1 0 1 0 1 1 Numeric 0
+RCKSK0740012 0 0 1 1 0 0 0 0 0 0 * * 0 0 1 0 1 1 0 1 MEMORY
+RCKSK0740013 1 0 1 1 0 0 0 0 0 0 * * 0 0 1 0 0 1 0 1 PRESET CH SHIFT
+RCKSK0740018 0 1 0 0 1 0 0 0 0 0 * * 1 0 1 0 1 0 1 0 DIRECT SEARCH
+RCKSK0740021 1 0 1 0 1 0 0 0 0 0 * * 1 0 1 0 0 1 0 0 PRESET CH DOWN
+RCKSK0740022 0 1 1 0 1 0 0 0 0 0 * * 1 0 1 0 1 0 0 0 PRESET CH UP
+RCKSK0740023 1 1 1 0 1 0 0 0 0 0 * * 1 0 1 0 0 0 0 0 BAND AM/FM
+RCKSK0740024 0 0 0 1 1 0 0 0 0 0 * * 1 0 1 0 1 1 1 1 MODE
+RCKSK0740025 1 0 0 1 1 0 0 0 0 0 * * 1 0 1 0 0 1 1 1 TUNING UP
+RCKSK0740026 0 1 0 1 1 0 0 0 0 0 * * 1 0 1 0 1 0 1 1 TUNING DOWN
+RCKSK0740066 0 1 0 0 0 0 1 0 0 0 * * 0 0 0 0 1 0 1 0 ENTER
+RCKSK0740069 1 1 1 0 0 0 1 0 0 0 * * 0 0 0 0 0 0 0 0 CURSOR UP
+RCKSK0740070 0 0 0 1 0 0 1 0 0 0 * * 0 0 0 0 1 1 1 1 CURSOR DOWN
+RCKSK0740071 1 1 1 0 0 0 1 0 0 0 * * 0 0 0 0 0 0 0 0 CURSOR LEFT
+RCKSK0740072 0 0 0 1 0 0 1 0 0 0 * * 0 0 0 0 1 1 1 1 CURSOR RIGHT
+RCKSK0740073 1 0 0 1 0 0 1 0 0 0 * * 0 0 1 0 1 1 1 1 RETURN
+RCKSK0740096 0 0 0 0 0 1 1 0 0 0 * * 0 1 0 0 1 1 1 0 SHIFT A
+RCKSK0740097 1 0 0 0 0 1 1 0 0 0 * * 0 1 0 0 0 1 1 0 SHIFT B
+RCKSK0740098 0 1 0 0 0 1 1 0 0 0 * * 0 1 0 0 1 0 1 0 SHIFT C
+27
+RCKSK0740099 1 1 0 0 0 1 1 0 0 0 * * 0 1 0 0 0 0 1 0 SHIFT D
+RCKSK0740100 0 0 1 0 0 1 1 0 0 0 * * 0 1 0 0 1 1 0 0 SHIFT E
+RCKSK0740101 1 0 1 0 0 1 1 0 0 0 * * 0 1 0 0 0 1 0 0 SHIFT F
+RCKSK0740102 0 1 1 0 0 1 1 0 0 0 * * 0 1 0 0 1 0 0 0 SHIFT G
+RCKSK0740153 1 0 0 1 1 0 0 1 0 0 * * 1 0 1 1 0 1 1 1 BAND FM
+RCKSK0740154 0 1 0 1 1 0 0 1 0 0 * * 1 0 1 1 1 0 1 1 BAND AM
