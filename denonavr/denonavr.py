@@ -1465,7 +1465,7 @@ class DenonAVR:
                 return True
             else:
                 return False
-        if self._sound_mode_raw.upper() == ALL_ZONE_STEREO:
+        if self.sound_mode == ALL_ZONE_STEREO:
             if not self._set_all_zone_stereo(False):
                 return False
         # For selection of sound mode other names then at receiving sound modes
