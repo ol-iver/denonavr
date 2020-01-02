@@ -90,6 +90,8 @@ NETAUDIOSTATUS_URL = "/goform/formNetAudio_StatusXml.xml"
 TUNERSTATUS_URL = "/goform/formTuner_TunerXml.xml"
 HDTUNERSTATUS_URL = "/goform/formTuner_HdXml.xml"
 COMMAND_NETAUDIO_POST_URL = "/NetAudio/index.put.asp"
+COMMAND_PAUSE = "/goform/formiPhoneAppDirect.xml?NS9B"
+COMMAND_PLAY = "/goform/formiPhoneAppDirect.xml?NS9A"
 
 
 # Main Zone URLs
@@ -142,7 +144,8 @@ ReceiverURLs = namedtuple(
                      "command_volume_down", "command_set_volume",
                      "command_mute_on", "command_mute_off",
                      "command_sel_sound_mode", "command_netaudio_post",
-                     "command_set_all_zone_stereo"])
+                     "command_set_all_zone_stereo", "command_pause",
+                     "command_play"])
 
 DENONAVR_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                              status=STATUS_URL,
@@ -162,7 +165,9 @@ DENONAVR_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                              command_mute_off=COMMAND_MUTE_OFF_URL,
                              command_sel_sound_mode=COMMAND_SEL_SM_URL,
                              command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
-                             command_set_all_zone_stereo=COMMAND_SET_ZST_URL)
+                             command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
+                             command_pause=COMMAND_PAUSE,
+                             command_play=COMMAND_PLAY)
 
 ZONE2_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                           status=STATUS_Z2_URL,
@@ -182,7 +187,9 @@ ZONE2_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                           command_mute_off=COMMAND_MUTE_OFF_Z2_URL,
                           command_sel_sound_mode=COMMAND_SEL_SM_URL,
                           command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
-                          command_set_all_zone_stereo=COMMAND_SET_ZST_URL)
+                          command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
+                          command_pause=COMMAND_PAUSE,
+                          command_play=COMMAND_PLAY)
 
 ZONE3_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                           status=STATUS_Z3_URL,
@@ -202,7 +209,9 @@ ZONE3_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                           command_mute_off=COMMAND_MUTE_OFF_Z3_URL,
                           command_sel_sound_mode=COMMAND_SEL_SM_URL,
                           command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
-                          command_set_all_zone_stereo=COMMAND_SET_ZST_URL)
+                          command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
+                          command_pause=COMMAND_PAUSE,
+                          command_play=COMMAND_PLAY)
 
 POWER_ON = "ON"
 POWER_OFF = "OFF"
@@ -1551,15 +1560,12 @@ class DenonAVR:
         """Send play command to receiver command via HTTP post."""
         # Use pause command only for sources which support NETAUDIO
         if self._input_func in self._netaudio_func_list:
+            # In fact play command is a play/pause toggle. Thus checking state
             if self._state == STATE_PLAYING:
                 _LOGGER.info("Already playing, play command not sent")
-                return False
-            body = {"cmd0": "PutNetAudioCommand/CurEnter",
-                    "cmd1": "aspMainZone_WebUpdateStatus/",
-                    "ZoneName": "MAIN ZONE"}
+                return True
             try:
-                if self.send_post_command(
-                        self._urls.command_netaudio_post, body):
+                if self.send_get_command(self._urls.command_play):
                     self._state = STATE_PLAYING
                     return True
                 else:
@@ -1572,15 +1578,8 @@ class DenonAVR:
         """Send pause command to receiver command via HTTP post."""
         # Use pause command only for sources which support NETAUDIO
         if self._input_func in self._netaudio_func_list:
-            if self._state == STATE_PAUSED:
-                _LOGGER.info("Already paused, pause command not sent")
-                return False
-            body = {"cmd0": "PutNetAudioCommand/CurEnter",
-                    "cmd1": "aspMainZone_WebUpdateStatus/",
-                    "ZoneName": "MAIN ZONE"}
             try:
-                if self.send_post_command(
-                        self._urls.command_netaudio_post, body):
+                if self.send_get_command(self._urls.command_pause):
                     self._state = STATE_PAUSED
                     return True
                 else:
