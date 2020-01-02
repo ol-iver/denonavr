@@ -1543,14 +1543,17 @@ class DenonAVR:
         # Use Play/Pause button only for sources which support NETAUDIO
         if (self._state == STATE_PLAYING and
                 self._input_func in self._netaudio_func_list):
-            return self._pause()
+            return self.pause()
         elif self._input_func in self._netaudio_func_list:
-            return self._play()
+            return self.play()
 
-    def _play(self):
+    def play(self):
         """Send play command to receiver command via HTTP post."""
         # Use pause command only for sources which support NETAUDIO
         if self._input_func in self._netaudio_func_list:
+            if self._state == STATE_PLAYING:
+                _LOGGER.info("Already playing, play command not sent")
+                return False
             body = {"cmd0": "PutNetAudioCommand/CurEnter",
                     "cmd1": "aspMainZone_WebUpdateStatus/",
                     "ZoneName": "MAIN ZONE"}
@@ -1565,10 +1568,13 @@ class DenonAVR:
                 _LOGGER.error("Connection error: play command not sent.")
                 return False
 
-    def _pause(self):
+    def pause(self):
         """Send pause command to receiver command via HTTP post."""
         # Use pause command only for sources which support NETAUDIO
         if self._input_func in self._netaudio_func_list:
+            if self._state == STATE_PAUSED:
+                _LOGGER.info("Already paused, pause command not sent")
+                return False
             body = {"cmd0": "PutNetAudioCommand/CurEnter",
                     "cmd1": "aspMainZone_WebUpdateStatus/",
                     "ZoneName": "MAIN ZONE"}
