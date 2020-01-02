@@ -19,7 +19,8 @@ import requests
 _LOGGER = logging.getLogger("DenonAVR")
 
 DEVICEINFO_AVR_X_PATTERN = re.compile(
-    r"(.*AVR-(X|S).*|.*SR500[6-9]|.*SR60(07|08|09|10|11|12|13)|.*NR1604)")
+    r"(.*AVR-(X|S).*|.*SR500[6-9]|.*SR60(07|08|09|10|11|12|13)|."
+    r"*SR70(07|08|09|10|11|12|13)|.*NR1604)")
 DEVICEINFO_COMMAPI_PATTERN = re.compile(r"(0210|0300)")
 
 ReceiverType = namedtuple('ReceiverType', ["type", "port"])
@@ -1172,7 +1173,8 @@ class DenonAVR:
         for child in root:
             if child.tag not in relevant_tags.keys():
                 continue
-            elif child.tag == "Power":
+
+            if child.tag == "Power":
                 self._power = child[0].text
                 relevant_tags.pop(child.tag, None)
             elif child.tag == "InputFuncSelect":

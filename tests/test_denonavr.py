@@ -49,7 +49,7 @@ class TestMainFunctions(testtools.TestCase):
     """Test case for main functions of Denon AVR."""
 
     def __init__(self, *args, **kwargs):
-        """Constructor."""
+        """Initialize."""
         super().__init__(*args, **kwargs)
         self._testing_receiver = None
 
