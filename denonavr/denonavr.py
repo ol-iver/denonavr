@@ -68,7 +68,7 @@ SOUND_MODE_MAPPING = OrderedDict(
                        'DTS VIRTUAL:X', 'DTS-HD + NEURAL:X']),
      ('MCH STEREO', ['MULTI CH STEREO', 'MULTI_CH_STEREO', 'MCH STEREO']),
      ('STEREO', ['STEREO']),
-     (ALL_ZONE_STEREO, [ALL_ZONE_STEREO])])
+     (ALL_ZONE_STEREO, ['ALL ZONE STEREO'])])
 
 PLAYING_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
                    "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
