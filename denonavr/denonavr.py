@@ -276,7 +276,7 @@ class DenonAVR:
         self._receiver_type = None
         # Port 80 for avr and avr-x, Port 8080 port avr-x-2016
         self._receiver_port = None
-        
+
         self._support_update_avr_2016 = False
 
         self._show_all_inputs = show_all_inputs
@@ -458,7 +458,7 @@ class DenonAVR:
         # if update_avr_2016 is supported try that first, that reports better
         if self._receiver_type == AVR_X.type and self._support_update_avr_2016:
             if(self._update_avr_2016()):
-                #succes --> skip xml update
+                # Succes --> skip xml update
                 relevant_tags = {}
 
         # Get status XML from Denon receiver via HTTP
@@ -472,7 +472,8 @@ class DenonAVR:
                 self._power = POWER_OFF
             else:
                 # Get the tags from this XML
-                relevant_tags = self._get_status_from_xml_tags(root, relevant_tags)
+                relevant_tags = self._get_status_from_xml_tags(root,
+                                                               relevant_tags)
 
         # Second option to update variables from different source
         if relevant_tags and self._power != POWER_OFF:
