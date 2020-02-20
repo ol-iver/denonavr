@@ -31,7 +31,7 @@ AVR_X_2016 = ReceiverType(type="avr-x-2016", port=8080)
 SOURCE_MAPPING = {"TV AUDIO": "TV", "iPod/USB": "USB/IPOD", "Bluetooth": "BT",
                   "Blu-ray": "BD", "CBL/SAT": "SAT/CBL", "NETWORK": "NET",
                   "Media Player": "MPLAY", "AUX": "AUX1", "Tuner": "TUNER",
-                  "FM": "TUNER"}
+                  "FM": "TUNER", "SpotifyConnect": "Spotify Connect"}
 
 CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
                         "Media Server": "SERVER", "Spotify": "SPOTIFY",
@@ -276,6 +276,8 @@ class DenonAVR:
         self._receiver_type = None
         # Port 80 for avr and avr-x, Port 8080 port avr-x-2016
         self._receiver_port = None
+        
+        self._support_update_avr_2016 = False
 
         self._show_all_inputs = show_all_inputs
 
@@ -309,6 +311,9 @@ class DenonAVR:
             self._get_zone_name()
         else:
             self._get_receiver_name()
+        # Determine if update_avr_2016 can be used for AVR_X receiver
+        if self._receiver_type == AVR_X.type:
+            self._support_update_avr_2016 = self._update_avr_2016()
         # Determine if sound mode is supported
         self._get_support_sound_mode()
         # Get initial setting of values
@@ -450,17 +455,24 @@ class DenonAVR:
             relevant_tags["selectSurround"] = None
             relevant_tags["SurrMode"] = None
 
+        # if update_avr_2016 is supported try that first, that reports better
+        if self._receiver_type == AVR_X.type and self._support_update_avr_2016:
+            if(self._update_avr_2016()):
+                #succes --> skip xml update
+                relevant_tags = {}
+
         # Get status XML from Denon receiver via HTTP
-        try:
-            root = self.get_status_xml(self._urls.status)
-        except ValueError:
-            pass
-        except requests.exceptions.RequestException:
-            # On timeout and connection error, the device is probably off
-            self._power = POWER_OFF
-        else:
-            # Get the tags from this XML
-            relevant_tags = self._get_status_from_xml_tags(root, relevant_tags)
+        if relevant_tags:
+            try:
+                root = self.get_status_xml(self._urls.status)
+            except ValueError:
+                pass
+            except requests.exceptions.RequestException:
+                # On timeout and connection error, the device is probably off
+                self._power = POWER_OFF
+            else:
+                # Get the tags from this XML
+                relevant_tags = self._get_status_from_xml_tags(root, relevant_tags)
 
         # Second option to update variables from different source
         if relevant_tags and self._power != POWER_OFF:
@@ -534,6 +546,7 @@ class DenonAVR:
         Returns "True" on success and "False" on fail.
         This method is for AVR-X  devices built in 2016 and later.
         """
+        succes = True
         # Collect tags for AppCommand.xml call
         tags = ["GetAllZonePowerStatus", "GetAllZoneSource",
                 "GetAllZoneVolume", "GetAllZoneMuteStatus",
@@ -552,23 +565,27 @@ class DenonAVR:
             self._power = root[0].find(zone).text
         except (AttributeError, IndexError):
             _LOGGER.error("No PowerStatus found for zone %s", self.zone)
+            succes = False
 
         try:
             self._mute = root[3].find(zone).text
         except (AttributeError, IndexError):
             _LOGGER.error("No MuteStatus found for zone %s", self.zone)
+            succes = False
 
         try:
             self._volume = root.find(
                 "./cmd/{zone}/volume".format(zone=zone)).text
         except AttributeError:
             _LOGGER.error("No VolumeStatus found for zone %s", self.zone)
+            succes = False
 
         try:
             inputfunc = root.find(
                 "./cmd/{zone}/source".format(zone=zone)).text
         except AttributeError:
             _LOGGER.error("No Source found for zone %s", self.zone)
+            succes = False
         else:
             try:
                 self._input_func = self._input_func_list_rev[inputfunc]
@@ -591,6 +608,7 @@ class DenonAVR:
             self._sound_mode_raw = root[4][0].text.rstrip()
         except (AttributeError, IndexError):
             _LOGGER.error("No SoundMode found for the main zone %s", self.zone)
+            succes = False
 
         # Now playing information is not implemented for 2016+ models, because
         # a HEOS API query needed. So only sync the power state for now.
@@ -599,7 +617,7 @@ class DenonAVR:
         else:
             self._state = STATE_OFF
 
-        return True
+        return succes
 
     def _update_input_func_list(self):
         """
