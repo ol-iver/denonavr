@@ -19,7 +19,8 @@ import requests
 _LOGGER = logging.getLogger("DenonAVR")
 
 DEVICEINFO_AVR_X_PATTERN = re.compile(
-    r"(.*AVR-X.*|.*SR500[6-9]|.*SR60(07|08|09|10|11|12|13)|.*NR1604)")
+    r"(.*AVR-(X|S).*|.*SR500[6-9]|.*SR60(07|08|09|10|11|12|13)|."
+    r"*SR70(07|08|09|10|11|12|13)|.*NR16(04|05|06|07|08|09))")
 DEVICEINFO_COMMAPI_PATTERN = re.compile(r"(0210|0300)")
 
 ReceiverType = namedtuple('ReceiverType', ["type", "port"])
@@ -29,7 +30,8 @@ AVR_X_2016 = ReceiverType(type="avr-x-2016", port=8080)
 
 SOURCE_MAPPING = {"TV AUDIO": "TV", "iPod/USB": "USB/IPOD", "Bluetooth": "BT",
                   "Blu-ray": "BD", "CBL/SAT": "SAT/CBL", "NETWORK": "NET",
-                  "Media Player": "MPLAY", "AUX": "AUX1", "Tuner": "TUNER"}
+                  "Media Player": "MPLAY", "AUX": "AUX1", "Tuner": "TUNER",
+                  "FM": "TUNER"}
 
 CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
                         "Media Server": "SERVER", "Spotify": "SPOTIFY",
@@ -39,27 +41,42 @@ ALL_ZONE_STEREO = "ALL ZONE STEREO"
 
 SOUND_MODE_MAPPING = OrderedDict(
     [('MUSIC', ['PLII MUSIC', 'DTS NEO:6 MUSIC', 'DOLBY D +NEO:X M',
-                'ROCK ARENA', 'JAZZ CLUB', 'MATRIX']),
+                'DTS Neo:X Music']),
      ('MOVIE', ['PLII MOVIE', 'PLII CINEMA', 'DTS NEO:X CINEMA',
-                'DTS NEO:6 CINEMA', 'DOLBY D +NEO:X C', 'MONO MOVIE',
+                'DTS NEO:6 CINEMA', 'DOLBY D +NEO:X C',
                 'PLIIX CINEMA']),
-     ('GAME', ['PLII GAME', 'DOLBY D +NEO:X G', 'VIDEO GAME']),
+     ('GAME', ['PLII GAME', 'DOLBY D +NEO:X G']),
      ('AUTO', ['None']),
+     ('STANDARD', ['None2']),
      ('VIRTUAL', ['VIRTUAL']),
-     ('PURE DIRECT', ['DIRECT', 'PURE_DIRECT', 'PURE DIRECT']),
+     ('MATRIX', ['MATRIX']),
+     ('ROCK ARENA', ['ROCK ARENA']),
+     ('JAZZ CLUB', ['JAZZ CLUB']),
+     ('VIDEO GAME', ['VIDEO GAME']),
+     ('MONO MOVIE', ['MONO MOVIE']),
+     ('DIRECT', ['DIRECT']),
+     ('PURE DIRECT', ['PURE_DIRECT', 'PURE DIRECT']),
      ('DOLBY DIGITAL', ['DOLBY DIGITAL', 'DOLBY D + DOLBY SURROUND',
                         'DOLBY DIGITAL +', 'STANDARD(DOLBY)', 'DOLBY SURROUND',
-                        'DOLBY D + +DOLBY SURROUND', 'NEURAL',
-                        'MULTI IN + NEURAL:X', 'DOLBY D + NEURAL:X',
-                        'DOLBY DIGITAL + NEURAL:X',
-                        'DOLBY DIGITAL + + NEURAL:X',
-                        'DOLBY AUDIO - DOLBY SURROUND']),
+                        'DOLBY D + +DOLBY SURROUND', 'NEURAL', 'DOLBY HD',
+                        'MULTI IN + NEURAL:X', 'MULTI IN + DOLBY SURROUND',
+                        'DOLBY D + NEURAL:X', 'DOLBY DIGITAL + NEURAL:X',
+                        'DOLBY DIGITAL + + NEURAL:X', 'DOLBY ATMOS',
+                        'DOLBY AUDIO - DOLBY SURROUND', 'DOLBY TRUEHD',
+                        'DOLBY AUDIO - DOLBY DIGITAL PLUS',
+                        'DOLBY AUDIO - TRUEHD + DSUR',
+                        'DOLBY AUDIO - DOLBY TRUEHD',
+                        'DOLBY AUDIO - TRUEHD + NEURAL:X',
+                        'DOLBY AUDIO - DD + DSUR',
+                        'DOLBY AUDIO - DD+   + NEURAL:X',
+                        'DOLBY AUDIO - DD+   + DSUR']),
      ('DTS SURROUND', ['DTS SURROUND', 'DTS NEURAL:X', 'STANDARD(DTS)',
                        'DTS + NEURAL:X', 'MULTI CH IN', 'DTS-HD MSTR',
-                       'DTS VIRTUAL:X']),
+                       'DTS VIRTUAL:X', 'DTS-HD + NEURAL:X', 'DTS-HD',
+                       'DTS + VIRTUAL:X']),
      ('MCH STEREO', ['MULTI CH STEREO', 'MULTI_CH_STEREO', 'MCH STEREO']),
      ('STEREO', ['STEREO']),
-     (ALL_ZONE_STEREO, [ALL_ZONE_STEREO])])
+     (ALL_ZONE_STEREO, ['ALL ZONE STEREO'])])
 
 PLAYING_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
                    "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
@@ -80,6 +97,8 @@ NETAUDIOSTATUS_URL = "/goform/formNetAudio_StatusXml.xml"
 TUNERSTATUS_URL = "/goform/formTuner_TunerXml.xml"
 HDTUNERSTATUS_URL = "/goform/formTuner_HdXml.xml"
 COMMAND_NETAUDIO_POST_URL = "/NetAudio/index.put.asp"
+COMMAND_PAUSE = "/goform/formiPhoneAppDirect.xml?NS9B"
+COMMAND_PLAY = "/goform/formiPhoneAppDirect.xml?NS9A"
 
 
 # Main Zone URLs
@@ -132,7 +151,8 @@ ReceiverURLs = namedtuple(
                      "command_volume_down", "command_set_volume",
                      "command_mute_on", "command_mute_off",
                      "command_sel_sound_mode", "command_netaudio_post",
-                     "command_set_all_zone_stereo"])
+                     "command_set_all_zone_stereo", "command_pause",
+                     "command_play"])
 
 DENONAVR_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                              status=STATUS_URL,
@@ -152,7 +172,9 @@ DENONAVR_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                              command_mute_off=COMMAND_MUTE_OFF_URL,
                              command_sel_sound_mode=COMMAND_SEL_SM_URL,
                              command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
-                             command_set_all_zone_stereo=COMMAND_SET_ZST_URL)
+                             command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
+                             command_pause=COMMAND_PAUSE,
+                             command_play=COMMAND_PLAY)
 
 ZONE2_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                           status=STATUS_Z2_URL,
@@ -172,7 +194,9 @@ ZONE2_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                           command_mute_off=COMMAND_MUTE_OFF_Z2_URL,
                           command_sel_sound_mode=COMMAND_SEL_SM_URL,
                           command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
-                          command_set_all_zone_stereo=COMMAND_SET_ZST_URL)
+                          command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
+                          command_pause=COMMAND_PAUSE,
+                          command_play=COMMAND_PLAY)
 
 ZONE3_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                           status=STATUS_Z3_URL,
@@ -192,7 +216,9 @@ ZONE3_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
                           command_mute_off=COMMAND_MUTE_OFF_Z3_URL,
                           command_sel_sound_mode=COMMAND_SEL_SM_URL,
                           command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
-                          command_set_all_zone_stereo=COMMAND_SET_ZST_URL)
+                          command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
+                          command_pause=COMMAND_PAUSE,
+                          command_play=COMMAND_PLAY)
 
 POWER_ON = "ON"
 POWER_OFF = "OFF"
@@ -791,9 +817,11 @@ class DenonAVR:
             if self._receiver_type == AVR_X.type:
                 root = self.get_status_xml(self._urls.status)
             # URL only available for Main Zone.
-            elif (self._receiver_type == AVR.type and
-                  self._urls.mainzone is not None):
-                root = self.get_status_xml(self._urls.mainzone)
+            elif self._receiver_type == AVR.type:
+                if self._urls.mainzone is not None:
+                    root = self.get_status_xml(self._urls.mainzone)
+                else:
+                    root = self.get_status_xml(self._urls.status)
             else:
                 return (renamed_sources, deleted_sources)
         except (ValueError, requests.exceptions.RequestException):
@@ -825,6 +853,10 @@ class DenonAVR:
             if child.tag == "SourceDelete":
                 for value in child:
                     xml_deletesource.append(value.text)
+
+        # If the deleted source list is empty then use all sources.
+        if not xml_deletesource:
+            xml_deletesource = ['USE'] * len(xml_inputfunclist)
 
         # Renamed and deleted sources are in the same row as the default ones
         # Only values which are not None are considered. Otherwise translation
@@ -1157,7 +1189,8 @@ class DenonAVR:
         for child in root:
             if child.tag not in relevant_tags.keys():
                 continue
-            elif child.tag == "Power":
+
+            if child.tag == "Power":
                 self._power = child[0].text
                 relevant_tags.pop(child.tag, None)
             elif child.tag == "InputFuncSelect":
@@ -1450,7 +1483,7 @@ class DenonAVR:
                 return True
             else:
                 return False
-        if self._sound_mode_raw == ALL_ZONE_STEREO:
+        if self.sound_mode == ALL_ZONE_STEREO:
             if not self._set_all_zone_stereo(False):
                 return False
         # For selection of sound mode other names then at receiving sound modes
@@ -1526,20 +1559,20 @@ class DenonAVR:
         # Use Play/Pause button only for sources which support NETAUDIO
         if (self._state == STATE_PLAYING and
                 self._input_func in self._netaudio_func_list):
-            return self._pause()
+            return self.pause()
         elif self._input_func in self._netaudio_func_list:
-            return self._play()
+            return self.play()
 
-    def _play(self):
+    def play(self):
         """Send play command to receiver command via HTTP post."""
         # Use pause command only for sources which support NETAUDIO
         if self._input_func in self._netaudio_func_list:
-            body = {"cmd0": "PutNetAudioCommand/CurEnter",
-                    "cmd1": "aspMainZone_WebUpdateStatus/",
-                    "ZoneName": "MAIN ZONE"}
+            # In fact play command is a play/pause toggle. Thus checking state
+            if self._state == STATE_PLAYING:
+                _LOGGER.info("Already playing, play command not sent")
+                return True
             try:
-                if self.send_post_command(
-                        self._urls.command_netaudio_post, body):
+                if self.send_get_command(self._urls.command_play):
                     self._state = STATE_PLAYING
                     return True
                 else:
@@ -1548,16 +1581,12 @@ class DenonAVR:
                 _LOGGER.error("Connection error: play command not sent.")
                 return False
 
-    def _pause(self):
+    def pause(self):
         """Send pause command to receiver command via HTTP post."""
         # Use pause command only for sources which support NETAUDIO
         if self._input_func in self._netaudio_func_list:
-            body = {"cmd0": "PutNetAudioCommand/CurEnter",
-                    "cmd1": "aspMainZone_WebUpdateStatus/",
-                    "ZoneName": "MAIN ZONE"}
             try:
-                if self.send_post_command(
-                        self._urls.command_netaudio_post, body):
+                if self.send_get_command(self._urls.command_pause):
                     self._state = STATE_PAUSED
                     return True
                 else:
