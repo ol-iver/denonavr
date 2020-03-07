@@ -1,0 +1,4 @@
+# IP address or hostname of your receiver
+receiver_address: 192.168.3.46
+# offset to convert the internal dB units to the displayed dB of the receiver, default: 80
+db_offset: 80
