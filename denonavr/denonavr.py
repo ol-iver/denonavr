@@ -20,7 +20,7 @@ _LOGGER = logging.getLogger("DenonAVR")
 
 DEVICEINFO_AVR_X_PATTERN = re.compile(
     r"(.*AV(C|R)-(X|S).*|.*SR500[6-9]|.*SR60(07|08|09|10|11|12|13)|."
-    r"*SR70(07|08|09|10|11|12|13)|.*NR1604)|.*NR1710")
+    r"*SR70(07|08|09|10|11|12|13)|.*NR1604|.*NR1710)")
 
 DEVICEINFO_COMMAPI_PATTERN = re.compile(r"(0210|0300)")
 
@@ -458,8 +458,8 @@ class DenonAVR:
 
         # if update_avr_2016 is supported try that first, that reports better
         if self._receiver_type == AVR_X.type and self._support_update_avr_2016:
-            if(self._update_avr_2016()):
-                # Succes --> skip xml update
+            if self._update_avr_2016():
+                # Success --> skip xml update
                 relevant_tags = {}
 
         # Get status XML from Denon receiver via HTTP
@@ -548,7 +548,7 @@ class DenonAVR:
         Returns "True" on success and "False" on fail.
         This method is for AVR-X  devices built in 2016 and later.
         """
-        succes = True
+        success = True
         # Collect tags for AppCommand.xml call
         tags = ["GetAllZonePowerStatus", "GetAllZoneSource",
                 "GetAllZoneVolume", "GetAllZoneMuteStatus",
@@ -567,27 +567,27 @@ class DenonAVR:
             self._power = root[0].find(zone).text
         except (AttributeError, IndexError):
             _LOGGER.error("No PowerStatus found for zone %s", self.zone)
-            succes = False
+            success = False
 
         try:
             self._mute = root[3].find(zone).text
         except (AttributeError, IndexError):
             _LOGGER.error("No MuteStatus found for zone %s", self.zone)
-            succes = False
+            success = False
 
         try:
             self._volume = root.find(
                 "./cmd/{zone}/volume".format(zone=zone)).text
         except AttributeError:
             _LOGGER.error("No VolumeStatus found for zone %s", self.zone)
-            succes = False
+            success = False
 
         try:
             inputfunc = root.find(
                 "./cmd/{zone}/source".format(zone=zone)).text
         except AttributeError:
             _LOGGER.error("No Source found for zone %s", self.zone)
-            succes = False
+            success = False
         else:
             try:
                 self._input_func = self._input_func_list_rev[inputfunc]
@@ -610,7 +610,7 @@ class DenonAVR:
             self._sound_mode_raw = root[4][0].text.rstrip()
         except (AttributeError, IndexError):
             _LOGGER.error("No SoundMode found for the main zone %s", self.zone)
-            succes = False
+            success = False
 
         # Now playing information is not implemented for 2016+ models, because
         # a HEOS API query needed. So only sync the power state for now.
@@ -619,7 +619,7 @@ class DenonAVR:
         else:
             self._state = STATE_OFF
 
-        return succes
+        return success
 
     def _update_input_func_list(self):
         """
