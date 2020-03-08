@@ -19,8 +19,9 @@ import requests
 _LOGGER = logging.getLogger("DenonAVR")
 
 DEVICEINFO_AVR_X_PATTERN = re.compile(
-    r"(.*AVR-(X|S).*|.*SR500[6-9]|.*SR60(07|08|09|10|11|12|13)|."
-    r"*SR70(07|08|09|10|11|12|13)|.*NR1604)")
+    r"(.*AV(C|R)-(X|S).*|.*SR500[6-9]|.*SR60(07|08|09|10|11|12|13)|."
+    r"*SR70(07|08|09|10|11|12|13)|.*NR1604)|.*NR1710")
+
 DEVICEINFO_COMMAPI_PATTERN = re.compile(r"(0210|0300)")
 
 ReceiverType = namedtuple('ReceiverType', ["type", "port"])
@@ -40,7 +41,8 @@ CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
 ALL_ZONE_STEREO = "ALL ZONE STEREO"
 
 SOUND_MODE_MAPPING = OrderedDict(
-    [('MUSIC', ['PLII MUSIC', 'DTS NEO:6 MUSIC', 'DOLBY D +NEO:X M']),
+    [('MUSIC', ['PLII MUSIC', 'DTS NEO:6 MUSIC', 'DOLBY D +NEO:X M',
+                'DTS Neo:X Music']),
      ('MOVIE', ['PLII MOVIE', 'PLII CINEMA', 'DTS NEO:X CINEMA',
                 'DTS NEO:6 CINEMA', 'DOLBY D +NEO:X C',
                 'PLIIX CINEMA']),
@@ -63,10 +65,16 @@ SOUND_MODE_MAPPING = OrderedDict(
                         'DOLBY DIGITAL + + NEURAL:X', 'DOLBY ATMOS',
                         'DOLBY AUDIO - DOLBY SURROUND', 'DOLBY TRUEHD',
                         'DOLBY AUDIO - DOLBY DIGITAL PLUS',
-                        'DOLBY AUDIO - DD + DSUR']),
+                        'DOLBY AUDIO - TRUEHD + DSUR',
+                        'DOLBY AUDIO - DOLBY TRUEHD',
+                        'DOLBY AUDIO - TRUEHD + NEURAL:X',
+                        'DOLBY AUDIO - DD + DSUR',
+                        'DOLBY AUDIO - DD+   + NEURAL:X',
+                        'DOLBY AUDIO - DD+   + DSUR']),
      ('DTS SURROUND', ['DTS SURROUND', 'DTS NEURAL:X', 'STANDARD(DTS)',
                        'DTS + NEURAL:X', 'MULTI CH IN', 'DTS-HD MSTR',
-                       'DTS VIRTUAL:X', 'DTS-HD + NEURAL:X']),
+                       'DTS VIRTUAL:X', 'DTS-HD + NEURAL:X', 'DTS-HD',
+                       'DTS + VIRTUAL:X']),
      ('MCH STEREO', ['MULTI CH STEREO', 'MULTI_CH_STEREO', 'MCH STEREO']),
      ('STEREO', ['STEREO']),
      (ALL_ZONE_STEREO, ['ALL ZONE STEREO'])])
