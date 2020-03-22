@@ -7,6 +7,7 @@ This module covers some basic automated tests of Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
+from urllib.parse import urlparse
 import testtools
 import requests
 import requests_mock
@@ -25,7 +26,8 @@ TESTING_RECEIVERS = {"AVR-X4100W": NO_ZONES, "AVR-2312CI": NO_ZONES,
                      "AVR-X2000": ZONE2_ZONE3, "AVR-X2000-2": NO_ZONES,
                      "SR5008": NO_ZONES, "M-CR603": NO_ZONES,
                      "NR1604": ZONE2_ZONE3, "AVR-4810": NO_ZONES,
-                     "AVR-3312": NO_ZONES}
+                     "AVR-3312": NO_ZONES, "NR1609": ZONE2,
+                     "AVC-8500H": ZONE2_ZONE3}
 
 APPCOMMAND_URL = "/goform/AppCommand.xml"
 STATUS_URL = "/goform/formMainZone_MainZoneXmlStatus.xml"
@@ -62,50 +64,63 @@ class TestMainFunctions(testtools.TestCase):
 
     def custom_matcher(self, request):
         """Match URLs to sample files."""
-        if request.path_url == STATUS_URL:
-            content = get_sample_content(
-                "{receiver}-formMainZone_MainZoneXmlStatus.xml".format(
-                    receiver=self._testing_receiver))
-        elif request.path_url == STATUS_Z2_URL:
-            content = get_sample_content(
-                "{receiver}-formZone2_Zone2XmlStatus.xml".format(
-                    receiver=self._testing_receiver))
-        elif request.path_url == STATUS_Z3_URL:
-            content = get_sample_content(
-                "{receiver}-formZone3_Zone3XmlStatus.xml".format(
-                    receiver=self._testing_receiver))
-        elif request.path_url == MAINZONE_URL:
-            content = get_sample_content(
-                "{receiver}-formMainZone_MainZoneXml.xml".format(
-                    receiver=self._testing_receiver))
-        elif request.path_url == DEVICEINFO_URL:
-            content = get_sample_content(
-                "{receiver}-Deviceinfo.xml".format(
-                    receiver=self._testing_receiver))
-        elif request.path_url == NETAUDIOSTATUS_URL:
-            content = get_sample_content(
-                "{receiver}-formNetAudio_StatusXml.xml".format(
-                    receiver=self._testing_receiver))
-        elif request.path_url == TUNERSTATUS_URL:
-            content = get_sample_content(
-                "{receiver}-formTuner_TunerXml.xml".format(
-                    receiver=self._testing_receiver))
-        elif request.path_url == HDTUNERSTATUS_URL:
-            content = get_sample_content(
-                "{receiver}-formTuner_HdXml.xml".format(
-                    receiver=self._testing_receiver))
-        elif request.path_url == APPCOMMAND_URL:
-            content = get_sample_content(
-                "{receiver}-AppCommand.xml".format(
-                    receiver=self._testing_receiver))
-        else:
-            content = "DATA"
+        port_suffix = ""
+
+        if urlparse(request.url).port == 8080:
+            port_suffix = "-8080"
 
         resp = requests.Response()
         resp.encoding = "utf-8"
-        # pylint: disable=protected-access
-        resp._content = content.encode()
-        resp.status_code = 200
+
+        try:
+            if request.path_url == STATUS_URL:
+                content = get_sample_content(
+                    "{receiver}-formMainZone_MainZoneXmlStatus{port}"
+                    ".xml".format(
+                        receiver=self._testing_receiver, port=port_suffix))
+            elif request.path_url == STATUS_Z2_URL:
+                content = get_sample_content(
+                    "{receiver}-formZone2_Zone2XmlStatus{port}.xml".format(
+                        receiver=self._testing_receiver, port=port_suffix))
+            elif request.path_url == STATUS_Z3_URL:
+                content = get_sample_content(
+                    "{receiver}-formZone3_Zone3XmlStatus{port}.xml".format(
+                        receiver=self._testing_receiver, port=port_suffix))
+            elif request.path_url == MAINZONE_URL:
+                content = get_sample_content(
+                    "{receiver}-formMainZone_MainZoneXml{port}.xml".format(
+                        receiver=self._testing_receiver, port=port_suffix))
+            elif request.path_url == DEVICEINFO_URL:
+                content = get_sample_content(
+                    "{receiver}-Deviceinfo{port}.xml".format(
+                        receiver=self._testing_receiver, port=port_suffix))
+            elif request.path_url == NETAUDIOSTATUS_URL:
+                content = get_sample_content(
+                    "{receiver}-formNetAudio_StatusXml{port}.xml".format(
+                        receiver=self._testing_receiver, port=port_suffix))
+            elif request.path_url == TUNERSTATUS_URL:
+                content = get_sample_content(
+                    "{receiver}-formTuner_TunerXml{port}.xml".format(
+                        receiver=self._testing_receiver, port=port_suffix))
+            elif request.path_url == HDTUNERSTATUS_URL:
+                content = get_sample_content(
+                    "{receiver}-formTuner_HdXml{port}.xml".format(
+                        receiver=self._testing_receiver, port=port_suffix))
+            elif request.path_url == APPCOMMAND_URL:
+                content = get_sample_content(
+                    "{receiver}-AppCommand{port}.xml".format(
+                        receiver=self._testing_receiver, port=port_suffix))
+            else:
+                content = "DATA"
+        except FileNotFoundError:
+            resp = requests.Response()
+            content = "Error 403: Forbidden\nAccess Forbidden"
+            resp.status_code = 403
+        else:
+            resp.status_code = 200
+
+        resp._content = content.encode()  # pylint: disable=protected-access
+
         return resp
 
     @requests_mock.mock()
@@ -118,9 +133,27 @@ class TestMainFunctions(testtools.TestCase):
             self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=zones)
             # Switch through all functions and check if successful
             for zone in self.denon.zones.values():
+                if receiver == 'AVC-8500H':
+                    print(receiver, zone.input_func_list)
                 for input_func in zone.input_func_list:
                     self.denon.set_input_func(input_func)
                     self.assertEqual(
                         input_func, self.denon.input_func,
                         ("Input function change to {func} "
-                         "not successful").format(func=input_func))
+                         "not successful for {receiver}").format(
+                             func=input_func, receiver=receiver))
+
+    @requests_mock.mock()
+    def test_attributes_not_none(self, mock):
+        """Check that certain attributes are not None."""
+        mock.add_matcher(self.custom_matcher)
+        for receiver, zones in TESTING_RECEIVERS.items():
+            # Switch receiver and update to load new sample files
+            self._testing_receiver = receiver
+            self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=zones)
+            self.assertIsNotNone(
+                self.denon.power,
+                "Power status is None for receiver {}".format(receiver))
+            self.assertIsNotNone(
+                self.denon.state,
+                "State is None for receiver {}".format(receiver))

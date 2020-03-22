@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rx>
+<cmd>
+<zone1>ON</zone1>
+<zone2>OFF</zone2>
+<zone3>OFF</zone3>
+</cmd>
+<cmd>
+<zone1>
+<source>NET</source>
+</zone1>
+<zone2>
+<source>NET</source>
+</zone2>
+<zone3>
+<source>NET</source>
+</zone3>
+</cmd>
+<cmd>
+<zone1>
+<volume>-40.0</volume>
+<state>variable</state>
+<limit>OFF</limit>
+<disptype>ABSOLUTE</disptype>
+<dispvalue>40.0</dispvalue>
+</zone1>
+<zone2>
+<volume>-21</volume>
+<state>variable</state>
+<limit>-10.0</limit>
+<disptype>ABSOLUTE</disptype>
+<dispvalue> 59</dispvalue>
+</zone2>
+<zone3>
+<volume>-40</volume>
+<state>variable</state>
+<limit>-10.0</limit>
+<disptype>ABSOLUTE</disptype>
+<dispvalue> 40</dispvalue>
+</zone3>
+</cmd>
+<cmd>
+<zone1>off</zone1>
+<zone2>off</zone2>
+<zone3>off</zone3>
+</cmd>
+<cmd>
+<functionrename>
+<list>
+<name>CBL/SAT</name>
+<rename>SKY Q       </rename>
+</list>
+<list>
+<name>DVD</name>
+<rename>Apple telly </rename>
+</list>
+<list>
+<name>Blu-ray</name>
+<rename>Blu-ray     </rename>
+</list>
+<list>
+<name>GAME</name>
+<rename>PS4         </rename>
+</list>
+<list>
+<name>AUX1</name>
+<rename>Front HDMI  </rename>
+</list>
+<list>
+<name>AUX2</name>
+<rename>XBox        </rename>
+</list>
+<list>
+<name>AUX3</name>
+<rename></rename>
+</list>
+<list>
+<name>AUX4</name>
+<rename></rename>
+</list>
+<list>
+<name>AUX5</name>
+<rename></rename>
+</list>
+<list>
+<name>AUX6</name>
+<rename></rename>
+</list>
+<list>
+<name>AUX7</name>
+<rename></rename>
+</list>
+<list>
+<name>Media Player</name>
+<rename>Dune        </rename>
+</list>
+<list>
+<name>CD</name>
+<rename>CD+PS4 VR   </rename>
+</list>
+<list>
+<name>TUNER</name>
+<rename>Tuner       </rename>
+</list>
+<list>
+<name>NETWORK</name>
+<rename>HEOS Music</rename>
+</list>
+<list>
+<name>TV AUDIO</name>
+<rename>Telly Audio </rename>
+</list>
+<list>
+<name>Bluetooth</name>
+<rename>Bluetooth</rename>
+</list>
+<list>
+<name>PHONO</name>
+<rename>Phono       </rename>
+</list>
+</functionrename>
+</cmd>
+<cmd>
+<functiondelete>
+<list>
+<name>CBL/SAT</name>
+<FuncName>CBL/SAT</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>DVD</name>
+<FuncName>DVD</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>Blu-ray</name>
+<FuncName>Blu-ray</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>GAME</name>
+<FuncName>GAME</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>AUX1</name>
+<FuncName>AUX1</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>AUX2</name>
+<FuncName>AUX2</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>AUX3</name>
+<FuncName>AUX3</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>AUX4</name>
+<FuncName>AUX4</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>AUX5</name>
+<FuncName>AUX5</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>AUX6</name>
+<FuncName>AUX6</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>AUX7</name>
+<FuncName>AUX7</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>Media Player</name>
+<FuncName>Media Player</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>CD</name>
+<FuncName>CD</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>TUNER</name>
+<FuncName>TUNER</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>NETWORK</name>
+<FuncName>NETWORK</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>TV AUDIO</name>
+<FuncName>TV AUDIO</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>Bluetooth</name>
+<FuncName>Bluetooth</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>PHONO</name>
+<FuncName>PHONO</FuncName>
+<use>1</use>
+</list>
+</functiondelete>
+</cmd>
+</rx>

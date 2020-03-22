@@ -356,15 +356,16 @@ class DenonAVR:
             # Buffered XML not needed anymore: close
             body.close()
 
-            try:
-                # Return XML ElementTree
-                root = ET.fromstring(res)
-            except (ET.ParseError, TypeError):
-                _LOGGER.error(
-                    "End point %s on host %s returned malformed XML.",
-                    self._urls.appcommand, self._host)
-            else:
-                return root
+            if res is not None:
+                try:
+                    # Return XML ElementTree
+                    root = ET.fromstring(res)
+                except (ET.ParseError, TypeError):
+                    _LOGGER.error(
+                        "End point %s on host %s returned malformed XML.",
+                        self._urls.appcommand, self._host)
+                else:
+                    return root
 
     def get_status_xml(self, command, suppress_errors=False):
         """Get status XML via HTTP and return it as XML ElementTree."""
@@ -417,7 +418,6 @@ class DenonAVR:
             _LOGGER.error((
                 "Host %s returned HTTP status code %s to POST command at "
                 "end point %s"), self._host, res.status_code, command)
-            return False
 
     def create_zones(self, add_zones):
         """Create instances of additional zones for the receiver."""
@@ -1036,8 +1036,12 @@ class DenonAVR:
                     self._favorite_func_list.append(func_name)
                     receiver_sources[func_name] = child.find("Name").text
             for xml_zonecapa in root.findall("DeviceZoneCapabilities"):
-                # Currently only Main Zone (No=0) supported
-                if xml_zonecapa.find("./Zone/No").text == "0":
+                zone_no = "0"
+                if self._zone == "Zone2":
+                    zone_no = "1"
+                elif self._zone == "Zone3":
+                    zone_no = "2"
+                if xml_zonecapa.find("./Zone/No").text == zone_no:
                     # Get list of all input sources of receiver
                     xml_list = xml_zonecapa.find("./InputSource/List")
                     for xml_source in xml_list.findall("Source"):
@@ -1045,6 +1049,9 @@ class DenonAVR:
                             xml_source.find(
                                 "FuncName").text] = xml_source.find(
                                     "DefaultName").text
+
+            # Invalid source "SOURCE" needs to be deleted
+            receiver_sources.pop("SOURCE", None)
 
             return receiver_sources
 
