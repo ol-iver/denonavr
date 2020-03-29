@@ -12,7 +12,7 @@ from io import open
 
 try:
     from urllib.parse import urlparse
-except ImportError: # Python 2 support
+except ImportError:  # Python 2 support
     from urlparse import urlparse
 import testtools
 import requests
@@ -66,7 +66,7 @@ class TestMainFunctions(testtools.TestCase):
         """Initialize."""
         if (sys.version_info > (3, 0)):
             super().__init__(*args, **kwargs)
-        else: # Python 2 support
+        else:  # Python 2 support
             super(TestMainFunctions, self).__init__(*args, **kwargs)
         self._testing_receiver = None
 
@@ -76,7 +76,7 @@ class TestMainFunctions(testtools.TestCase):
         """Initialize test functions, using the first receiver from list."""
         if (sys.version_info > (3, 0)):
             super().setUp()
-        else: # Python 2 support
+        else:  # Python 2 support
             super(TestMainFunctions, self).setUp()
         self.denon = None
 

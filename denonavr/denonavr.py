@@ -659,11 +659,11 @@ class DenonAVR(object):
             self._input_func_list_rev.clear()
             if "clear" in dir(self._netaudio_func_list):
                 self._netaudio_func_list.clear()
-            else: # Python 2 support
+            else:  # Python 2 support
                 del self._netaudio_func_list[:]
             if "clear" in dir(self._playing_func_list):
                 self._playing_func_list.clear()
-            else: # Python 2 support
+            else:  # Python 2 support
                 del self._playing_func_list[:]
 
             for item in receiver_sources.items():
@@ -704,11 +704,11 @@ class DenonAVR(object):
             self._input_func_list_rev.clear()
             if "clear" in dir(self._netaudio_func_list):
                 self._netaudio_func_list.clear()
-            else: # Python 2 support
+            else:  # Python 2 support
                 del self._netaudio_func_list[:]
             if "clear" in dir(self._playing_func_list):
                 self._playing_func_list.clear()
-            else: # Python 2 support
+            else:  # Python 2 support
                 del self._playing_func_list[:]
             for item in receiver_sources.items():
                 self._input_func_list[item[1]] = item[0]
@@ -1765,7 +1765,7 @@ class DenonAVRZones(DenonAVR):
             super().__init__(self._parent_avr.host, name=name,
                              show_all_inputs=self._parent_avr.show_all_inputs,
                              timeout=self._parent_avr.timeout)
-        else: # Python 2 support
+        else:  # Python 2 support
             super(DenonAVRZones, self).__init__(self._parent_avr.host, name=name,
                              show_all_inputs=self._parent_avr.show_all_inputs,
                              timeout=self._parent_avr.timeout)
