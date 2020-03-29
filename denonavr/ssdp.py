@@ -11,7 +11,10 @@ This module implements a discovery function for Denon AVR receivers.
 import logging
 import socket
 import xml.etree.ElementTree as ET
-from urllib.parse import urlparse
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 import requests
 
 _LOGGER = logging.getLogger('DenonSSDP')

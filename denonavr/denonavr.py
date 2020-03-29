@@ -7,6 +7,7 @@ This module implements the interface to Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
+import sys
 from collections import (namedtuple, OrderedDict)
 from io import BytesIO
 import logging
@@ -235,7 +236,7 @@ ZONE3 = {"Zone3": None}
 ZONE2_ZONE3 = {"Zone2": None, "Zone3": None}
 
 
-class DenonAVR:
+class DenonAVR(object):
     """Representing a Denon AVR Device."""
 
     def __init__(self, host, name=None, show_all_inputs=False, timeout=2.0,
@@ -656,8 +657,14 @@ class DenonAVR:
             # Clear and rebuild the sources lists
             self._input_func_list.clear()
             self._input_func_list_rev.clear()
-            self._netaudio_func_list.clear()
-            self._playing_func_list.clear()
+            if "clear" in dir(self._netaudio_func_list):
+                self._netaudio_func_list.clear()
+            else: # Python 2 support
+                del self._netaudio_func_list[:]
+            if "clear" in dir(self._playing_func_list):
+                self._playing_func_list.clear()
+            else: # Python 2 support
+                del self._playing_func_list[:]
 
             for item in receiver_sources.items():
                 # Mapping of item[0] because some func names are inconsistant
@@ -695,8 +702,14 @@ class DenonAVR:
             # Clear and rebuild the sources lists
             self._input_func_list.clear()
             self._input_func_list_rev.clear()
-            self._netaudio_func_list.clear()
-            self._playing_func_list.clear()
+            if "clear" in dir(self._netaudio_func_list):
+                self._netaudio_func_list.clear()
+            else: # Python 2 support
+                del self._netaudio_func_list[:]
+            if "clear" in dir(self._playing_func_list):
+                self._playing_func_list.clear()
+            else: # Python 2 support
+                del self._playing_func_list[:]
             for item in receiver_sources.items():
                 self._input_func_list[item[1]] = item[0]
                 self._input_func_list_rev[item[0]] = item[1]
@@ -1748,9 +1761,16 @@ class DenonAVRZones(DenonAVR):
         """
         self._parent_avr = parent_avr
         self._zone = zone
-        super().__init__(self._parent_avr.host, name=name,
-                         show_all_inputs=self._parent_avr.show_all_inputs,
-                         timeout=self._parent_avr.timeout)
+        if (sys.version_info > (3, 0)):
+            super().__init__(self._parent_avr.host, name=name,
+                             show_all_inputs=self._parent_avr.show_all_inputs,
+                             timeout=self._parent_avr.timeout)
+        else: # Python 2 support
+            super(DenonAVRZones, self).__init__(self._parent_avr.host, name=name,
+                             show_all_inputs=self._parent_avr.show_all_inputs,
+                             timeout=self._parent_avr.timeout)
+        self._testing_receiver = None
+
 
     @property
     def sound_mode(self):

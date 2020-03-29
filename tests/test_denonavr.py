@@ -7,11 +7,23 @@ This module covers some basic automated tests of Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
-from urllib.parse import urlparse
+import sys
+from io import open
+
+try:
+    from urllib.parse import urlparse
+except ImportError: # Python 2 support
+    from urlparse import urlparse
 import testtools
 import requests
 import requests_mock
 import denonavr
+
+# Python 2 support: Define FileNotFoundError
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
 
 FAKE_IP = "10.0.0.0"
 
@@ -52,14 +64,20 @@ class TestMainFunctions(testtools.TestCase):
 
     def __init__(self, *args, **kwargs):
         """Initialize."""
-        super().__init__(*args, **kwargs)
+        if (sys.version_info > (3, 0)):
+            super().__init__(*args, **kwargs)
+        else: # Python 2 support
+            super(TestMainFunctions, self).__init__(*args, **kwargs)
         self._testing_receiver = None
 
     @requests_mock.mock()
     # pylint: disable=arguments-differ
     def setUp(self, mocker):
         """Initialize test functions, using the first receiver from list."""
-        super().setUp()
+        if (sys.version_info > (3, 0)):
+            super().setUp()
+        else: # Python 2 support
+            super(TestMainFunctions, self).setUp()
         self.denon = None
 
     def custom_matcher(self, request):
