@@ -1762,13 +1762,17 @@ class DenonAVRZones(DenonAVR):
         self._parent_avr = parent_avr
         self._zone = zone
         if (sys.version_info > (3, 0)):
-            super().__init__(self._parent_avr.host, name=name,
-                             show_all_inputs=self._parent_avr.show_all_inputs,
-                             timeout=self._parent_avr.timeout)
+            super().__init__(
+                self._parent_avr.host,
+                name=name,
+                show_all_inputs=self._parent_avr.show_all_inputs,
+                timeout=self._parent_avr.timeout)
         else:  # Python 2 support
-            super(DenonAVRZones, self).__init__(self._parent_avr.host, name=name,
-                             show_all_inputs=self._parent_avr.show_all_inputs,
-                             timeout=self._parent_avr.timeout)
+            super(DenonAVRZones, self).__init__(
+                self._parent_avr.host,
+                name=name,
+                show_all_inputs=self._parent_avr.show_all_inputs,
+                timeout=self._parent_avr.timeout)
         self._testing_receiver = None
 
 
