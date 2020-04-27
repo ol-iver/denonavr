@@ -462,7 +462,10 @@ class DenonAVR:
                 # Success --> skip xml update
                 relevant_tags = {}
             else:
-                _LOGGER.debug("Primary update method (AppCommand.xml) failed for zone %s", self._zone)
+                _LOGGER.debug(
+                    "Primary update method (AppCommand.xml) failed for zone %s",
+                    self._zone
+                )
 
         # Get status XML from Denon receiver via HTTP
         if relevant_tags:
@@ -480,7 +483,10 @@ class DenonAVR:
 
         # Second option to update variables from different source
         if relevant_tags and self._power != POWER_OFF:
-            _LOGGER.debug("Secondary update method (Status.xml) failed for zone %s", self._zone)
+            _LOGGER.debug(
+                "Secondary update method (Status.xml) failed for zone %s",
+                self._zone
+            )
             try:
                 root = self.get_status_xml(self._urls.mainzone)
             except (ValueError,
@@ -493,7 +499,10 @@ class DenonAVR:
 
         # Error message if still some variables are not updated yet
         if relevant_tags and self._power != POWER_OFF:
-            _LOGGER.debug("Third update method (MainZone.xml) failed for zone %s", self._zone)
+            _LOGGER.debug(
+                "Third update method (MainZone.xml) failed for zone %s",
+                self._zone
+            )
             _LOGGER.error("Missing status information from XML of %s for: %s",
                           self._zone, ", ".join(relevant_tags.keys()))
 
@@ -619,7 +628,9 @@ class DenonAVR:
             self._sound_mode_raw = root[4][0].text.rstrip()
         except (AttributeError, IndexError):
             if log_errors:
-                _LOGGER.error("No SoundMode found for the main zone %s", self.zone)
+                _LOGGER.error(
+                    "No SoundMode found for the main zone %s", self.zone
+                )
             success = False
 
         # Now playing information is not implemented for 2016+ models, because
