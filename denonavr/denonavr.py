@@ -463,8 +463,8 @@ class DenonAVR:
                 relevant_tags = {}
             else:
                 _LOGGER.debug(
-                    "Primary update method (AppCommand.xml) failed for zone %s",
-                    self._zone
+                    "Primary update method (AppCommand.xml) "
+                    "failed for zone %s", self._zone
                 )
 
         # Get status XML from Denon receiver via HTTP
