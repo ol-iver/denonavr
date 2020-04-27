@@ -314,7 +314,7 @@ class DenonAVR:
             self._get_receiver_name()
         # Determine if update_avr_2016 can be used for AVR_X receiver
         if self._receiver_type == AVR_X.type:
-            self._support_update_avr_2016 = self._update_avr_2016()
+            self._support_update_avr_2016 = self._update_avr_2016(False)
         # Determine if sound mode is supported
         self._get_support_sound_mode()
         # Get initial setting of values
@@ -458,9 +458,11 @@ class DenonAVR:
 
         # if update_avr_2016 is supported try that first, that reports better
         if self._receiver_type == AVR_X.type and self._support_update_avr_2016:
-            if self._update_avr_2016():
+            if self._update_avr_2016(False):
                 # Success --> skip xml update
                 relevant_tags = {}
+            else:
+                _LOGGER.debug("Primary update method (AppCommand.xml) failed for zone %s", self._zone)
 
         # Get status XML from Denon receiver via HTTP
         if relevant_tags:
@@ -478,6 +480,7 @@ class DenonAVR:
 
         # Second option to update variables from different source
         if relevant_tags and self._power != POWER_OFF:
+            _LOGGER.debug("Secondary update method (Status.xml) failed for zone %s", self._zone)
             try:
                 root = self.get_status_xml(self._urls.mainzone)
             except (ValueError,
@@ -490,6 +493,7 @@ class DenonAVR:
 
         # Error message if still some variables are not updated yet
         if relevant_tags and self._power != POWER_OFF:
+            _LOGGER.debug("Third update method (MainZone.xml) failed for zone %s", self._zone)
             _LOGGER.error("Missing status information from XML of %s for: %s",
                           self._zone, ", ".join(relevant_tags.keys()))
 
@@ -540,7 +544,7 @@ class DenonAVR:
         # Finished
         return True
 
-    def _update_avr_2016(self):
+    def _update_avr_2016(self, log_errors=True):
         """
         Get the latest status information from device.
 
@@ -557,7 +561,8 @@ class DenonAVR:
         root = self.exec_appcommand_post(tags)
         # Check result
         if root is None:
-            _LOGGER.error("Update failed.")
+            if log_errors:
+                _LOGGER.error("Update failed.")
             return False
 
         # Extract relevant information
@@ -566,27 +571,31 @@ class DenonAVR:
         try:
             self._power = root[0].find(zone).text
         except (AttributeError, IndexError):
-            _LOGGER.error("No PowerStatus found for zone %s", self.zone)
+            if log_errors:
+                _LOGGER.error("No PowerStatus found for zone %s", self.zone)
             success = False
 
         try:
             self._mute = root[3].find(zone).text
         except (AttributeError, IndexError):
-            _LOGGER.error("No MuteStatus found for zone %s", self.zone)
+            if log_errors:
+                _LOGGER.error("No MuteStatus found for zone %s", self.zone)
             success = False
 
         try:
             self._volume = root.find(
                 "./cmd/{zone}/volume".format(zone=zone)).text
         except AttributeError:
-            _LOGGER.error("No VolumeStatus found for zone %s", self.zone)
+            if log_errors:
+                _LOGGER.error("No VolumeStatus found for zone %s", self.zone)
             success = False
 
         try:
             inputfunc = root.find(
                 "./cmd/{zone}/source".format(zone=zone)).text
         except AttributeError:
-            _LOGGER.error("No Source found for zone %s", self.zone)
+            if log_errors:
+                _LOGGER.error("No Source found for zone %s", self.zone)
             success = False
         else:
             try:
@@ -609,7 +618,8 @@ class DenonAVR:
         try:
             self._sound_mode_raw = root[4][0].text.rstrip()
         except (AttributeError, IndexError):
-            _LOGGER.error("No SoundMode found for the main zone %s", self.zone)
+            if log_errors:
+                _LOGGER.error("No SoundMode found for the main zone %s", self.zone)
             success = False
 
         # Now playing information is not implemented for 2016+ models, because
