@@ -16,6 +16,8 @@ import html
 import xml.etree.ElementTree as ET
 import requests
 
+from .ssdp import evaluate_scpd_xml
+
 _LOGGER = logging.getLogger("DenonAVR")
 
 DEVICEINFO_AVR_X_PATTERN = re.compile(
@@ -28,6 +30,11 @@ ReceiverType = namedtuple('ReceiverType', ["type", "port"])
 AVR = ReceiverType(type="avr", port=80)
 AVR_X = ReceiverType(type="avr-x", port=80)
 AVR_X_2016 = ReceiverType(type="avr-x-2016", port=8080)
+
+DiscriptionType = namedtuple('DiscriptionType', ["port", "url"])
+DISCRIPTION_URL = {"avr": DiscriptionType(port = 8080, url = "/description.xml"),
+                   "avr-x": DiscriptionType(port = 8080, url = "/description.xml"),
+                   "avr-x-2016": DiscriptionType(port = 60006, url = "/upnp/desc/aios_device/aios_device.xml")}
 
 SOURCE_MAPPING = {"TV AUDIO": "TV", "iPod/USB": "USB/IPOD", "Bluetooth": "BT",
                   "Blu-ray": "BD", "CBL/SAT": "SAT/CBL", "NETWORK": "NET",
@@ -282,6 +289,10 @@ class DenonAVR:
 
         self._show_all_inputs = show_all_inputs
 
+        self._manufacturer = None
+        self._model_name = None
+        self._serial_number = None
+
         self._mute = STATE_OFF
         self._volume = "--"
         self._input_func = None
@@ -307,6 +318,9 @@ class DenonAVR:
 
         # Determine receiver type and input functions
         self._update_input_func_list()
+        
+        # Determine device info
+        self.get_device_info()
 
         if self._receiver_type == AVR_X_2016.type:
             self._get_zone_name()
@@ -418,6 +432,26 @@ class DenonAVR:
             _LOGGER.error((
                 "Host %s returned HTTP status code %s to POST command at "
                 "end point %s"), self._host, res.status_code, command)
+
+    def get_device_info(self):
+        """Get device information."""
+        url = "http://{host}:{port}{command}".format(
+            host=self._host, port=DISCRIPTION_URL[self._receiver_type].port,
+            command=DISCRIPTION_URL[self._receiver_type].url)
+        
+        device_info = evaluate_scpd_xml(url)
+        
+        if device_info == False:
+            self._manufacturer = "Denon"
+            self._model_name = "Unknown"
+            self._serial_number = self._host
+            _LOGGER.error((
+                "Unable to get device information of host %s, using the "
+                "ip address as identification serial number"), self._host)
+        else:
+            self._manufacturer = device_info["manufacturer"]
+            self._model_name = device_info["modelName"]
+            self._serial_number = device_info["serialNumber"]
 
     def create_zones(self, add_zones):
         """Create instances of additional zones for the receiver."""
@@ -1266,6 +1300,21 @@ class DenonAVR:
     def host(self):
         """Return the host of the device as string."""
         return self._host
+
+    @property
+    def manufacturer(self):
+        """Return the manufacturer of the device as string."""
+        return self._manufacturer
+
+    @property
+    def model_name(self):
+        """Return the model name of the device as string."""
+        return self._model_name
+
+    @property
+    def serial_number(self):
+        """Return the serial number of the device as string."""
+        return self._serial_number
 
     @property
     def power(self):
