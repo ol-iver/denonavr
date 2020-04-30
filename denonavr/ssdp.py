@@ -51,6 +51,7 @@ SCPD_DEVICE = "{xmlns}device".format(xmlns=SCPD_XMLNS)
 SCPD_DEVICETYPE = "{xmlns}deviceType".format(xmlns=SCPD_XMLNS)
 SCPD_MANUFACTURER = "{xmlns}manufacturer".format(xmlns=SCPD_XMLNS)
 SCPD_MODELNAME = "{xmlns}modelName".format(xmlns=SCPD_XMLNS)
+SCPD_SERIALNUMBER = "{xmlns}serialNumber".format(xmlns=SCPD_XMLNS)
 SCPD_FRIENDLYNAME = "{xmlns}friendlyName".format(xmlns=SCPD_XMLNS)
 SCPD_PRESENTATIONURL = "{xmlns}presentationURL".format(xmlns=SCPD_XMLNS)
 
@@ -156,13 +157,15 @@ def evaluate_scpd_xml(url):
             root = ET.fromstring(res.text)
             # Look for manufacturer "Denon" in response.
             # Using "try" in case tags are not available in XML
+            device = {}
+            device["manufacturer"] = (
+                root.find(SCPD_DEVICE).find(SCPD_MANUFACTURER).text)
+            
             _LOGGER.debug("Device %s has manufacturer %s", url,
-                          root.find(SCPD_DEVICE).find(SCPD_MANUFACTURER).text)
-            if (root.find(SCPD_DEVICE).find(
-                    SCPD_MANUFACTURER).text in SUPPORTED_MANUFACTURERS and
+                          device["manufacturer"])
+            if (device["manufacturer"] in SUPPORTED_MANUFACTURERS and
                     root.find(SCPD_DEVICE).find(
                         SCPD_DEVICETYPE).text == DEVICETYPE_DENON):
-                device = {}
                 device["host"] = urlparse(
                     root.find(SCPD_DEVICE).find(
                         SCPD_PRESENTATIONURL).text).hostname
@@ -170,6 +173,8 @@ def evaluate_scpd_xml(url):
                     root.find(SCPD_DEVICE).find(SCPD_PRESENTATIONURL).text)
                 device["modelName"] = (
                     root.find(SCPD_DEVICE).find(SCPD_MODELNAME).text)
+                device["serialNumber"] = (
+                    root.find(SCPD_DEVICE).find(SCPD_SERIALNUMBER).text)
                 device["friendlyName"] = (
                     root.find(SCPD_DEVICE).find(SCPD_FRIENDLYNAME).text)
                 return device
