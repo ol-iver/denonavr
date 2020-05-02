@@ -1371,7 +1371,7 @@ class DenonAVR:
     @property
     def support_sound_mode(self):
         """Return True if sound mode supported."""
-        return self._get_support_sound_mode()
+        return self._support_sound_mode
 
     @property
     def sound_mode(self):
