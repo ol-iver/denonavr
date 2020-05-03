@@ -18,33 +18,13 @@ _LOGGER = logging.getLogger('DenonSSDP')
 
 SSDP_ADDR = "239.255.255.250"
 SSDP_PORT = 1900
+SSDP_MX = 2
+SSDP_TARGET = (SSDP_ADDR, SSDP_PORT)
 SSDP_ST_1 = "ssdp:all"
 SSDP_ST_2 = "upnp:rootdevice"
 SSDP_ST_3 = "urn:schemas-upnp-org:device:MediaRenderer:1"
 
-SSDP_QUERY_1 = (
-    "M-SEARCH * HTTP/1.1\r\n" +
-    "HOST: {addr}:{port}\r\n".format(addr=SSDP_ADDR, port=SSDP_PORT) +
-    "MAN: \"ssdp:discover\"\r\n" +
-    "MX: 2\r\n" +
-    "ST: {st}\r\n".format(st=SSDP_ST_1) + "\r\n"
-)
-SSDP_QUERY_2 = (
-    "M-SEARCH * HTTP/1.1\r\n" +
-    "HOST: {addr}:{port}\r\n".format(addr=SSDP_ADDR, port=SSDP_PORT) +
-    "MAN: \"ssdp:discover\"\r\n" +
-    "MX: 2\r\n" +
-    "ST: {st}\r\n".format(st=SSDP_ST_2) + "\r\n"
-)
-SSDP_QUERY_3 = (
-    "M-SEARCH * HTTP/1.1\r\n" +
-    "HOST: {addr}:{port}\r\n".format(addr=SSDP_ADDR, port=SSDP_PORT) +
-    "MAN: \"ssdp:discover\"\r\n" +
-    "MX: 2\r\n" +
-    "ST: {st}\r\n".format(st=SSDP_ST_3) + "\r\n"
-)
-
-SSDP_QUERIES = (SSDP_QUERY_1, SSDP_QUERY_2, SSDP_QUERY_3)
+SSDP_ST_LIST = (SSDP_ST_1, SSDP_ST_2, SSDP_ST_3)
 
 SCPD_XMLNS = "{urn:schemas-upnp-org:device-1-0}"
 SCPD_DEVICE = "{xmlns}device".format(xmlns=SCPD_XMLNS)
@@ -59,6 +39,21 @@ DEVICETYPE_DENON = "urn:schemas-upnp-org:device:MediaRenderer:1"
 
 SUPPORTED_MANUFACTURERS = ["Denon", "DENON", "Marantz"]
 
+def ssdp_request(ssdp_st, ssdp_mx=SSDP_MX):
+    """Return request bytes for given st and mx."""
+    return "\r\n".join([
+        'M-SEARCH * HTTP/1.1',
+        'ST: {}'.format(ssdp_st),
+        'MX: {:d}'.format(ssdp_mx),
+        'MAN: "ssdp:discover"',
+        'HOST: {}:{}'.format(*SSDP_TARGET),
+        '', '']).encode('utf-8')
+
+def get_local_ip(sock):
+    ip_list = socket.gethostbyname_ex(socket.gethostname())[2]
+    for ip in ip_list:
+        if ip.startswith("192."):
+            return ip
 
 def identify_denonavr_receivers():
     """
@@ -91,12 +86,13 @@ def send_ssdp_broadcast():
     of SCPD XML for all discovered devices.
     """
     # Send up to three different broadcast messages
-    for i, ssdp_query in enumerate(SSDP_QUERIES):
+    for i, ssdp_st in enumerate(SSDP_ST_LIST):
         # Prepare SSDP broadcast message
         sock = socket.socket(
             socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        sock.settimeout(2)
-        sock.sendto(ssdp_query.encode(), (SSDP_ADDR, SSDP_PORT))
+        sock.settimeout(SSDP_MX)
+        sock.bind((get_local_ip(sock), 0))
+        sock.sendto(ssdp_request(ssdp_st), (SSDP_ADDR, SSDP_PORT))
 
         # Collect all responses within the timeout period
         res = []
