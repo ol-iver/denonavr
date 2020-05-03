@@ -13,6 +13,7 @@ import socket
 import xml.etree.ElementTree as ET
 from urllib.parse import urlparse
 import requests
+import ifaddr
 
 _LOGGER = logging.getLogger('DenonSSDP')
 
@@ -49,11 +50,13 @@ def ssdp_request(ssdp_st, ssdp_mx=SSDP_MX):
         'HOST: {}:{}'.format(*SSDP_TARGET),
         '', '']).encode('utf-8')
 
-def get_local_ip(sock):
-    ip_list = socket.gethostbyname_ex(socket.gethostname())[2]
-    for ip in ip_list:
-        if ip.startswith("192."):
-            return ip
+def get_local_ip():
+    adapters = ifaddr.get_adapters()
+    for adapter in adapters:
+        for ip in adapter.ips:
+            if type(ip.ip)==str:
+                if ip.ip.startswith("192."):
+                    return ip.ip
 
 def identify_denonavr_receivers():
     """
@@ -91,7 +94,7 @@ def send_ssdp_broadcast():
         sock = socket.socket(
             socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         sock.settimeout(SSDP_MX)
-        sock.bind((get_local_ip(sock), 0))
+        sock.bind((get_local_ip(), 0))
         sock.sendto(ssdp_request(ssdp_st), (SSDP_ADDR, SSDP_PORT))
 
         # Collect all responses within the timeout period
@@ -144,7 +147,7 @@ def evaluate_scpd_xml(url):
         res = requests.get(url, timeout=2)
     except requests.exceptions.RequestException as err:
         _LOGGER.error(
-            "When trying to request %s the following error occurred: %s",
+            "During DenonAVR device identification, when trying to request %s the following error occurred: %s",
             url, err)
         raise ConnectionError
 
