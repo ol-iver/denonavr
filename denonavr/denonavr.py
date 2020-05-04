@@ -31,10 +31,10 @@ AVR = ReceiverType(type="avr", port=80)
 AVR_X = ReceiverType(type="avr-x", port=80)
 AVR_X_2016 = ReceiverType(type="avr-x-2016", port=8080)
 
-DiscriptionType = namedtuple('DiscriptionType', ["port", "url"])
-DISCRIPTION_URL = {"avr": DiscriptionType(port = 8080, url = "/description.xml"),
-                   "avr-x": DiscriptionType(port = 8080, url = "/description.xml"),
-                   "avr-x-2016": DiscriptionType(port = 60006, url = "/upnp/desc/aios_device/aios_device.xml")}
+DescriptionType = namedtuple('DescriptionType', ["port", "url"])
+DESCRIPTION_URL = {"avr": DescriptionType(port = 8080, url = "/description.xml"),
+                   "avr-x": DescriptionType(port = 8080, url = "/description.xml"),
+                   "avr-x-2016": DescriptionType(port = 60006, url = "/upnp/desc/aios_device/aios_device.xml")}
 
 SOURCE_MAPPING = {"TV AUDIO": "TV", "iPod/USB": "USB/IPOD", "Bluetooth": "BT",
                   "Blu-ray": "BD", "CBL/SAT": "SAT/CBL", "NETWORK": "NET",
@@ -436,8 +436,8 @@ class DenonAVR:
     def get_device_info(self):
         """Get device information."""
         url = "http://{host}:{port}{command}".format(
-            host=self._host, port=DISCRIPTION_URL[self._receiver_type].port,
-            command=DISCRIPTION_URL[self._receiver_type].url)
+            host=self._host, port=DESCRIPTION_URL[self._receiver_type].port,
+            command=DESCRIPTION_URL[self._receiver_type].url)
         
         device_info = evaluate_scpd_xml(url)
         
