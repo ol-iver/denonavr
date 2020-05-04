@@ -50,13 +50,14 @@ def ssdp_request(ssdp_st, ssdp_mx=SSDP_MX):
         'HOST: {}:{}'.format(*SSDP_TARGET),
         '', '']).encode('utf-8')
 
-def get_local_ip():
+def get_local_ips():
     adapters = ifaddr.get_adapters()
+    ips = []
     for adapter in adapters:
         for ip in adapter.ips:
             if type(ip.ip)==str:
-                if ip.ip.startswith("192."):
-                    return ip.ip
+                ips.append(ip.ip)
+    return ips
 
 def identify_denonavr_receivers():
     """
@@ -89,25 +90,29 @@ def send_ssdp_broadcast():
     of SCPD XML for all discovered devices.
     """
     # Send up to three different broadcast messages
-    for i, ssdp_st in enumerate(SSDP_ST_LIST):
-        # Prepare SSDP broadcast message
-        sock = socket.socket(
-            socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        sock.settimeout(SSDP_MX)
-        sock.bind((get_local_ip(), 0))
-        sock.sendto(ssdp_request(ssdp_st), (SSDP_ADDR, SSDP_PORT))
+    ips = get_local_ips()
+    res = []
+    for ip in ips:
+        for i, ssdp_st in enumerate(SSDP_ST_LIST):
+            # Prepare SSDP broadcast message
+            sock = socket.socket(
+                socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+            sock.settimeout(SSDP_MX)
+            sock.bind((ip, 0))
+            sock.sendto(ssdp_request(ssdp_st), (SSDP_ADDR, SSDP_PORT))
 
-        # Collect all responses within the timeout period
-        res = []
-        try:
-            while True:
-                res.append(sock.recvfrom(10240))
-        except socket.timeout:
-            sock.close()
+            # Collect all responses within the timeout period
+            try:
+                while True:
+                    res.append(sock.recvfrom(10240))
+            except socket.timeout:
+                sock.close()
 
+            if res:
+                _LOGGER.debug("Got results after %s SSDP queries using ip %s", i + 1, ip)
+                sock.close()
+                break
         if res:
-            _LOGGER.debug("Got results after %s SSDP queries", i + 1)
-            sock.close()
             break
 
     # Prepare output of responding devices
