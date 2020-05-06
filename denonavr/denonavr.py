@@ -444,10 +444,10 @@ class DenonAVR:
         if device_info == False:
             self._manufacturer = "Denon"
             self._model_name = "Unknown"
-            self._serial_number = self._host
+            self._serial_number = None
             _LOGGER.error((
-                "Unable to get device information of host %s, using the "
-                "ip address as identification serial number"), self._host)
+                "Unable to get device information of host %s, can not "
+                "use the serial number as identification"), self._host)
         else:
             self._manufacturer = device_info["manufacturer"]
             self._model_name = device_info["modelName"]
