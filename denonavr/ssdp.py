@@ -55,7 +55,7 @@ def get_local_ips():
     ips = []
     for adapter in adapters:
         for ip in adapter.ips:
-            if type(ip.ip)==str:
+            if isinstance(ip.ip, str):
                 ips.append(ip.ip)
     return ips
 
