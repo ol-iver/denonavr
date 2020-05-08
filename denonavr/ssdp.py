@@ -13,44 +13,26 @@ import socket
 import xml.etree.ElementTree as ET
 from urllib.parse import urlparse
 import requests
+import ifaddr
 
 _LOGGER = logging.getLogger('DenonSSDP')
 
 SSDP_ADDR = "239.255.255.250"
 SSDP_PORT = 1900
+SSDP_MX = 2
+SSDP_TARGET = (SSDP_ADDR, SSDP_PORT)
 SSDP_ST_1 = "ssdp:all"
 SSDP_ST_2 = "upnp:rootdevice"
 SSDP_ST_3 = "urn:schemas-upnp-org:device:MediaRenderer:1"
 
-SSDP_QUERY_1 = (
-    "M-SEARCH * HTTP/1.1\r\n" +
-    "HOST: {addr}:{port}\r\n".format(addr=SSDP_ADDR, port=SSDP_PORT) +
-    "MAN: \"ssdp:discover\"\r\n" +
-    "MX: 2\r\n" +
-    "ST: {st}\r\n".format(st=SSDP_ST_1) + "\r\n"
-)
-SSDP_QUERY_2 = (
-    "M-SEARCH * HTTP/1.1\r\n" +
-    "HOST: {addr}:{port}\r\n".format(addr=SSDP_ADDR, port=SSDP_PORT) +
-    "MAN: \"ssdp:discover\"\r\n" +
-    "MX: 2\r\n" +
-    "ST: {st}\r\n".format(st=SSDP_ST_2) + "\r\n"
-)
-SSDP_QUERY_3 = (
-    "M-SEARCH * HTTP/1.1\r\n" +
-    "HOST: {addr}:{port}\r\n".format(addr=SSDP_ADDR, port=SSDP_PORT) +
-    "MAN: \"ssdp:discover\"\r\n" +
-    "MX: 2\r\n" +
-    "ST: {st}\r\n".format(st=SSDP_ST_3) + "\r\n"
-)
-
-SSDP_QUERIES = (SSDP_QUERY_1, SSDP_QUERY_2, SSDP_QUERY_3)
+SSDP_ST_LIST = (SSDP_ST_1, SSDP_ST_2, SSDP_ST_3)
 
 SCPD_XMLNS = "{urn:schemas-upnp-org:device-1-0}"
 SCPD_DEVICE = "{xmlns}device".format(xmlns=SCPD_XMLNS)
 SCPD_DEVICETYPE = "{xmlns}deviceType".format(xmlns=SCPD_XMLNS)
 SCPD_MANUFACTURER = "{xmlns}manufacturer".format(xmlns=SCPD_XMLNS)
 SCPD_MODELNAME = "{xmlns}modelName".format(xmlns=SCPD_XMLNS)
+SCPD_SERIALNUMBER = "{xmlns}serialNumber".format(xmlns=SCPD_XMLNS)
 SCPD_FRIENDLYNAME = "{xmlns}friendlyName".format(xmlns=SCPD_XMLNS)
 SCPD_PRESENTATIONURL = "{xmlns}presentationURL".format(xmlns=SCPD_XMLNS)
 
@@ -58,6 +40,24 @@ DEVICETYPE_DENON = "urn:schemas-upnp-org:device:MediaRenderer:1"
 
 SUPPORTED_MANUFACTURERS = ["Denon", "DENON", "Marantz"]
 
+def ssdp_request(ssdp_st, ssdp_mx=SSDP_MX):
+    """Return request bytes for given st and mx."""
+    return "\r\n".join([
+        'M-SEARCH * HTTP/1.1',
+        'ST: {}'.format(ssdp_st),
+        'MX: {:d}'.format(ssdp_mx),
+        'MAN: "ssdp:discover"',
+        'HOST: {}:{}'.format(*SSDP_TARGET),
+        '', '']).encode('utf-8')
+
+def get_local_ips():
+    adapters = ifaddr.get_adapters()
+    ips = []
+    for adapter in adapters:
+        for ip in adapter.ips:
+            if isinstance(ip.ip, str):
+                ips.append(ip.ip)
+    return ips
 
 def identify_denonavr_receivers():
     """
@@ -90,24 +90,29 @@ def send_ssdp_broadcast():
     of SCPD XML for all discovered devices.
     """
     # Send up to three different broadcast messages
-    for i, ssdp_query in enumerate(SSDP_QUERIES):
-        # Prepare SSDP broadcast message
-        sock = socket.socket(
-            socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        sock.settimeout(2)
-        sock.sendto(ssdp_query.encode(), (SSDP_ADDR, SSDP_PORT))
+    ips = get_local_ips()
+    res = []
+    for ip in ips:
+        for i, ssdp_st in enumerate(SSDP_ST_LIST):
+            # Prepare SSDP broadcast message
+            sock = socket.socket(
+                socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+            sock.settimeout(SSDP_MX)
+            sock.bind((ip, 0))
+            sock.sendto(ssdp_request(ssdp_st), (SSDP_ADDR, SSDP_PORT))
 
-        # Collect all responses within the timeout period
-        res = []
-        try:
-            while True:
-                res.append(sock.recvfrom(10240))
-        except socket.timeout:
-            sock.close()
+            # Collect all responses within the timeout period
+            try:
+                while True:
+                    res.append(sock.recvfrom(10240))
+            except socket.timeout:
+                sock.close()
 
+            if res:
+                _LOGGER.debug("Got results after %s SSDP queries using ip %s", i + 1, ip)
+                sock.close()
+                break
         if res:
-            _LOGGER.debug("Got results after %s SSDP queries", i + 1)
-            sock.close()
             break
 
     # Prepare output of responding devices
@@ -147,7 +152,7 @@ def evaluate_scpd_xml(url):
         res = requests.get(url, timeout=2)
     except requests.exceptions.RequestException as err:
         _LOGGER.error(
-            "When trying to request %s the following error occurred: %s",
+            "During DenonAVR device identification, when trying to request %s the following error occurred: %s",
             url, err)
         raise ConnectionError
 
@@ -156,13 +161,15 @@ def evaluate_scpd_xml(url):
             root = ET.fromstring(res.text)
             # Look for manufacturer "Denon" in response.
             # Using "try" in case tags are not available in XML
+            device = {}
+            device["manufacturer"] = (
+                root.find(SCPD_DEVICE).find(SCPD_MANUFACTURER).text)
+            
             _LOGGER.debug("Device %s has manufacturer %s", url,
-                          root.find(SCPD_DEVICE).find(SCPD_MANUFACTURER).text)
-            if (root.find(SCPD_DEVICE).find(
-                    SCPD_MANUFACTURER).text in SUPPORTED_MANUFACTURERS and
+                          device["manufacturer"])
+            if (device["manufacturer"] in SUPPORTED_MANUFACTURERS and
                     root.find(SCPD_DEVICE).find(
                         SCPD_DEVICETYPE).text == DEVICETYPE_DENON):
-                device = {}
                 device["host"] = urlparse(
                     root.find(SCPD_DEVICE).find(
                         SCPD_PRESENTATIONURL).text).hostname
@@ -170,6 +177,8 @@ def evaluate_scpd_xml(url):
                     root.find(SCPD_DEVICE).find(SCPD_PRESENTATIONURL).text)
                 device["modelName"] = (
                     root.find(SCPD_DEVICE).find(SCPD_MODELNAME).text)
+                device["serialNumber"] = (
+                    root.find(SCPD_DEVICE).find(SCPD_SERIALNUMBER).text)
                 device["friendlyName"] = (
                     root.find(SCPD_DEVICE).find(SCPD_FRIENDLYNAME).text)
                 return device
