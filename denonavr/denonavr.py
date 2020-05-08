@@ -1083,7 +1083,7 @@ class DenonAVR:
             receiver_sources = {}
             # Source determination from XML
             favorites = root.find(".//FavoriteStation")
-            if favorites:
+            if favorites is not None:
                 for child in favorites:
                     if not child.tag.startswith("Favorite"):
                         continue
