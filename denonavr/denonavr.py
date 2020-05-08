@@ -441,7 +441,7 @@ class DenonAVR:
         
         device_info = evaluate_scpd_xml(url)
         
-        if device_info == False:
+        if device_info is False:
             self._manufacturer = "Denon"
             self._model_name = "Unknown"
             self._serial_number = None
