@@ -49,7 +49,7 @@ ALL_ZONE_STEREO = "ALL ZONE STEREO"
 
 SOUND_MODE_MAPPING = OrderedDict(
     [('MUSIC', ['PLII MUSIC', 'DTS NEO:6 MUSIC', 'DOLBY D +NEO:X M',
-                'DTS Neo:X Music']),
+                'DTS NEO:X MUSIC', 'DOLBY PL2 MUSIC']),
      ('MOVIE', ['PLII MOVIE', 'PLII CINEMA', 'DTS NEO:X CINEMA',
                 'DTS NEO:6 CINEMA', 'DOLBY D +NEO:X C',
                 'PLIIX CINEMA']),
