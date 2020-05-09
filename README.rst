@@ -1,7 +1,8 @@
 denonavr
 ========
 
-|Build Status|
+.. |Build Status| .. image:: https://travis-ci.com/scarface-4711/denonavr.svg?branch=master
+    :target: https://travis-ci.com/scarface-4711/denonavr
 
 Automation Library for Denon AVR receivers - current version 0.9.0
 
@@ -185,6 +186,3 @@ Users
 -----
 
 Home Assistant: https://github.com/home-assistant/home-assistant/
-
-.. |Build Status| image:: https://travis-ci.org/scarface-4711/denonavr.svg?branch=master
-   :target: https://travis-ci.org/scarface-4711/denonavr
