@@ -29,7 +29,7 @@ DATA
     __title__ = 'denonavr'
 
 VERSION
-    0.8.1
+    0.9.0
 
 ====================================================================================
 
@@ -47,10 +47,13 @@ CLASSES
         DenonAVR
             DenonAVRZones
     builtins.tuple(builtins.object)
+        DescriptionType
         ReceiverType
         ReceiverURLs
     
     class DenonAVR(builtins.object)
+     |  DenonAVR(host, name=None, show_all_inputs=False, timeout=2.0, add_zones=None)
+     |  
      |  Representing a Denon AVR Device.
      |  
      |  Methods defined here:
@@ -81,10 +84,16 @@ CLASSES
      |  create_zones(self, add_zones)
      |      Create instances of additional zones for the receiver.
      |  
+     |  ensure_configuration(self)
+     |      Ensure that configuration is loaded from receiver.
+     |  
      |  exec_appcommand_post(self, attribute_list)
      |      Prepare and execute a HTTP POST call to AppCommand.xml end point.
      |      
      |      Returns XML ElementTree on success and None on fail.
+     |  
+     |  get_device_info(self)
+     |      Get device information.
      |  
      |  get_status_xml(self, command, suppress_errors=False)
      |      Get status XML via HTTP and return it as XML ElementTree.
@@ -97,6 +106,12 @@ CLASSES
      |  
      |  next_track(self)
      |      Send next track command to receiver command via HTTP post.
+     |  
+     |  pause(self)
+     |      Send pause command to receiver command via HTTP post.
+     |  
+     |  play(self)
+     |      Send play command to receiver command via HTTP post.
      |  
      |  power_off(self)
      |      Turn off receiver via HTTP get command.
@@ -183,6 +198,12 @@ CLASSES
      |  input_func_list
      |      Return a list of available input sources as string.
      |  
+     |  manufacturer
+     |      Return the manufacturer of the device as string.
+     |  
+     |  model_name
+     |      Return the model name of the device as string.
+     |  
      |  muted
      |      Boolean if volume is currently muted.
      |      
@@ -208,11 +229,20 @@ CLASSES
      |      
      |      Possible values are: "ON", "STANDBY" and "OFF"
      |  
+     |  receiver_port
+     |      Return the receiver's port.
+     |  
+     |  receiver_type
+     |      Return the receiver's type.
+     |  
+     |  serial_number
+     |      Return the serial number of the device as string.
+     |  
+     |  show_all_inputs
+     |      Indicate if all inputs are shown or just active one.
+     |  
      |  sm_match_dict
      |      Return a dict to map each sound_mode_raw to matching sound_mode.
-     |  
-     |  support_sound_mode
-     |      Return True if sound mode supported.
      |  
      |  sound_mode
      |      Return the matched current sound mode as a string.
@@ -236,6 +266,9 @@ CLASSES
      |  station
      |      Return current radio station as string.
      |  
+     |  support_sound_mode
+     |      Return True if sound mode supported.
+     |  
      |  title
      |      Return title of current playing media as string.
      |  
@@ -252,6 +285,8 @@ CLASSES
      |      Return all Zone instances of the device.
     
     class DenonAVRZones(DenonAVR)
+     |  DenonAVRZones(parent_avr, zone, name)
+     |  
      |  Representing an additional zone of a Denon AVR Device.
      |  
      |  Method resolution order:
@@ -273,8 +308,30 @@ CLASSES
      |      :param name: Device name, if None FriendlyName of device is used.
      |      :type name: str
      |  
-     |  create_zones(self, add_zones)
-     |      Only call this method from parent AVR (Main Zone).
+     |  set_sound_mode(self, sound_mode)
+     |      Set sound_mode of device.
+     |      
+     |      Valid values depend on the device and should be taken from
+     |      "sound_mode_list".
+     |      Return "True" on success and "False" on fail.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  sm_match_dict
+     |      Return a dict to map each sound_mode_raw to matching sound_mode.
+     |  
+     |  sound_mode
+     |      Return the matched current sound mode as a string.
+     |  
+     |  sound_mode_dict
+     |      Return a dict of available sound modes with their mapping values.
+     |  
+     |  sound_mode_list
+     |      Return a list of available sound modes as string.
+     |  
+     |  sound_mode_raw
+     |      Return the current sound mode as string as received from the AVR.
      |  
      |  ----------------------------------------------------------------------
      |  Methods inherited from DenonAVR:
@@ -287,10 +344,19 @@ CLASSES
      |      The sound_mode_dict is uses externally to set this dictionary
      |      because that has a nicer syntax.
      |  
+     |  create_zones(self, add_zones)
+     |      Create instances of additional zones for the receiver.
+     |  
+     |  ensure_configuration(self)
+     |      Ensure that configuration is loaded from receiver.
+     |  
      |  exec_appcommand_post(self, attribute_list)
      |      Prepare and execute a HTTP POST call to AppCommand.xml end point.
      |      
      |      Returns XML ElementTree on success and None on fail.
+     |  
+     |  get_device_info(self)
+     |      Get device information.
      |  
      |  get_status_xml(self, command, suppress_errors=False)
      |      Get status XML via HTTP and return it as XML ElementTree.
@@ -303,6 +369,12 @@ CLASSES
      |  
      |  next_track(self)
      |      Send next track command to receiver command via HTTP post.
+     |  
+     |  pause(self)
+     |      Send pause command to receiver command via HTTP post.
+     |  
+     |  play(self)
+     |      Send play command to receiver command via HTTP post.
      |  
      |  power_off(self)
      |      Turn off receiver via HTTP get command.
@@ -324,13 +396,6 @@ CLASSES
      |      
      |      Valid values depend on the device and should be taken from
      |      "input_func_list".
-     |      Return "True" on success and "False" on fail.
-     |  
-     |  set_sound_mode(self, sound_mode)
-     |      Set sound_mode of device.
-     |      
-     |      Valid values depend on the device and should be taken from
-     |      "sound_mode_list".
      |      Return "True" on success and "False" on fail.
      |  
      |  set_sound_mode_dict(self, sound_mode_dict)
@@ -389,6 +454,12 @@ CLASSES
      |  input_func_list
      |      Return a list of available input sources as string.
      |  
+     |  manufacturer
+     |      Return the manufacturer of the device as string.
+     |  
+     |  model_name
+     |      Return the model name of the device as string.
+     |  
      |  muted
      |      Boolean if volume is currently muted.
      |      
@@ -414,20 +485,17 @@ CLASSES
      |      
      |      Possible values are: "ON", "STANDBY" and "OFF"
      |  
-     |  sm_match_dict
-     |      Return a dict to map each sound_mode_raw to matching sound_mode.
+     |  receiver_port
+     |      Return the receiver's port.
      |  
-     |  sound_mode
-     |      Return the matched current sound mode as a string.
+     |  receiver_type
+     |      Return the receiver's type.
      |  
-     |  sound_mode_dict
-     |      Return a dict of available sound modes with their mapping values.
+     |  serial_number
+     |      Return the serial number of the device as string.
      |  
-     |  sound_mode_list
-     |      Return a list of available sound modes as string.
-     |  
-     |  sound_mode_raw
-     |      Return the current sound mode as string as received from the AVR.
+     |  show_all_inputs
+     |      Indicate if all inputs are shown or just active one.
      |  
      |  state
      |      Return the state of the device.
@@ -438,6 +506,9 @@ CLASSES
      |  
      |  station
      |      Return current radio station as string.
+     |  
+     |  support_sound_mode
+     |      Return True if sound mode supported.
      |  
      |  title
      |      Return title of current playing media as string.
@@ -472,6 +543,9 @@ FUNCTIONS
         Returns dictionary with keys "host", "modelName", "friendlyName" and
         "presentationURL" if a Denon AVR device was found and "False" if not.
     
+    get_local_ips()
+        Get IPs of local network adapters.
+    
     identify_denonavr_receivers()
         Identify DenonAVR using SSDP and SCPD queries.
         
@@ -483,3 +557,6 @@ FUNCTIONS
         
         Returns a list of dictionaries with "address" (IP, PORT) and "URL"
         of SCPD XML for all discovered devices.
+    
+    ssdp_request(ssdp_st, ssdp_mx=2)
+        Return request bytes for given st and mx.

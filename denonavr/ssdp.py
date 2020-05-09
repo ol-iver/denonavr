@@ -6,10 +6,10 @@ This module implements a discovery function for Denon AVR receivers.
 :copyright: (c) 2016 by Oliver Goetz.
 :license: MIT, see LICENSE for more details.
 """
-# pylint: disable=no-else-return
 
 import logging
 import socket
+import re
 import xml.etree.ElementTree as ET
 from urllib.parse import urlparse
 import requests
@@ -40,6 +40,7 @@ DEVICETYPE_DENON = "urn:schemas-upnp-org:device:MediaRenderer:1"
 
 SUPPORTED_MANUFACTURERS = ["Denon", "DENON", "Marantz"]
 
+
 def ssdp_request(ssdp_st, ssdp_mx=SSDP_MX):
     """Return request bytes for given st and mx."""
     return "\r\n".join([
@@ -50,14 +51,18 @@ def ssdp_request(ssdp_st, ssdp_mx=SSDP_MX):
         'HOST: {}:{}'.format(*SSDP_TARGET),
         '', '']).encode('utf-8')
 
+
 def get_local_ips():
+    """Get IPs of local network adapters."""
     adapters = ifaddr.get_adapters()
     ips = []
     for adapter in adapters:
+        # pylint: disable=invalid-name
         for ip in adapter.ips:
             if isinstance(ip.ip, str):
                 ips.append(ip.ip)
     return ips
+
 
 def identify_denonavr_receivers():
     """
@@ -74,7 +79,7 @@ def identify_denonavr_receivers():
     for device in devices:
         try:
             receiver = evaluate_scpd_xml(device["URL"])
-        except ConnectionError:
+        except requests.exceptions.RequestException:
             continue
         if receiver:
             receivers.append(receiver)
@@ -92,7 +97,11 @@ def send_ssdp_broadcast():
     # Send up to three different broadcast messages
     ips = get_local_ips()
     res = []
+    # pylint: disable=invalid-name
     for ip in ips:
+        # Ignore 169.254.0.0/16 adresses
+        if re.search("169.254.*.*", ip):
+            continue
         for i, ssdp_st in enumerate(SSDP_ST_LIST):
             # Prepare SSDP broadcast message
             sock = socket.socket(
@@ -109,7 +118,8 @@ def send_ssdp_broadcast():
                 sock.close()
 
             if res:
-                _LOGGER.debug("Got results after %s SSDP queries using ip %s", i + 1, ip)
+                _LOGGER.debug(
+                    "Got results after %s SSDP queries using ip %s", i + 1, ip)
                 sock.close()
                 break
         if res:
@@ -150,11 +160,13 @@ def evaluate_scpd_xml(url):
     # Get SCPD XML via HTTP GET
     try:
         res = requests.get(url, timeout=2)
+    except requests.exceptions.ConnectTimeout:
+        raise
     except requests.exceptions.RequestException as err:
         _LOGGER.error(
-            "During DenonAVR device identification, when trying to request %s the following error occurred: %s",
-            url, err)
-        raise ConnectionError
+            "During DenonAVR device identification, when trying to request %s "
+            "the following error occurred: %s", url, err)
+        raise
 
     if res.status_code == 200:
         try:
@@ -164,7 +176,7 @@ def evaluate_scpd_xml(url):
             device = {}
             device["manufacturer"] = (
                 root.find(SCPD_DEVICE).find(SCPD_MANUFACTURER).text)
-            
+
             _LOGGER.debug("Device %s has manufacturer %s", url,
                           device["manufacturer"])
             if (device["manufacturer"] in SUPPORTED_MANUFACTURERS and
@@ -189,6 +201,6 @@ def evaluate_scpd_xml(url):
                 "Error occurred during evaluation of SCPD XML: %s", err)
             return False
     else:
-        _LOGGER.error("Host returned HTTP status %s when connecting to %s",
+        _LOGGER.debug("Host returned HTTP status %s when connecting to %s",
                       res.status_code, url)
-        raise ConnectionError
+        return False

@@ -32,9 +32,11 @@ AVR_X = ReceiverType(type="avr-x", port=80)
 AVR_X_2016 = ReceiverType(type="avr-x-2016", port=8080)
 
 DescriptionType = namedtuple('DescriptionType', ["port", "url"])
-DESCRIPTION_URL = {"avr": DescriptionType(port = 8080, url = "/description.xml"),
-                   "avr-x": DescriptionType(port = 8080, url = "/description.xml"),
-                   "avr-x-2016": DescriptionType(port = 60006, url = "/upnp/desc/aios_device/aios_device.xml")}
+DESCRIPTION_URL = {
+    "avr": DescriptionType(port=8080, url="/description.xml"),
+    "avr-x": DescriptionType(port=8080, url="/description.xml"),
+    "avr-x-2016": DescriptionType(
+        port=60006, url="/upnp/desc/aios_device/aios_device.xml")}
 
 SOURCE_MAPPING = {"TV AUDIO": "TV", "iPod/USB": "USB/IPOD", "Bluetooth": "BT",
                   "Blu-ray": "BD", "CBL/SAT": "SAT/CBL", "NETWORK": "NET",
@@ -285,7 +287,7 @@ class DenonAVR:
         # Port 80 for avr and avr-x, Port 8080 port avr-x-2016
         self._receiver_port = None
 
-        self._support_update_avr_2016 = False
+        self._support_update_avr_2016 = None
 
         self._show_all_inputs = show_all_inputs
 
@@ -316,21 +318,6 @@ class DenonAVR:
         self._frequency = None
         self._station = None
 
-        # Determine receiver type and input functions
-        self._update_input_func_list()
-        
-        # Determine device info
-        self.get_device_info()
-
-        if self._receiver_type == AVR_X_2016.type:
-            self._get_zone_name()
-        else:
-            self._get_receiver_name()
-        # Determine if update_avr_2016 can be used for AVR_X receiver
-        if self._receiver_type == AVR_X.type:
-            self._support_update_avr_2016 = self._update_avr_2016(False)
-        # Determine if sound mode is supported
-        self._get_support_sound_mode()
         # Get initial setting of values
         self.update()
         # Create instances of additional zones if requested
@@ -362,14 +349,12 @@ class DenonAVR:
         try:
             res = self.send_post_command(
                 self._urls.appcommand, body.getvalue())
+        except requests.exceptions.ConnectTimeout:
+            raise
         except requests.exceptions.RequestException:
             _LOGGER.error("No connection to %s end point on host %s",
                           self._urls.appcommand, self._host)
-            body.close()
         else:
-            # Buffered XML not needed anymore: close
-            body.close()
-
             if res is not None:
                 try:
                     # Return XML ElementTree
@@ -380,6 +365,9 @@ class DenonAVR:
                         self._urls.appcommand, self._host)
                 else:
                     return root
+        finally:
+            # Buffered XML not needed anymore: close
+            body.close()
 
     def get_status_xml(self, command, suppress_errors=False):
         """Get status XML via HTTP and return it as XML ElementTree."""
@@ -395,9 +383,8 @@ class DenonAVR:
             except ET.ParseError as err:
                 if not suppress_errors:
                     _LOGGER.error(
-                        "Host %s returned malformed XML for end point %s",
-                        self._host, command)
-                    _LOGGER.error(err)
+                        "Host %s returned malformed XML for end point %s: %s",
+                        self._host, command, err)
                 raise ValueError
         else:
             if not suppress_errors:
@@ -438,16 +425,22 @@ class DenonAVR:
         url = "http://{host}:{port}{command}".format(
             host=self._host, port=DESCRIPTION_URL[self._receiver_type].port,
             command=DESCRIPTION_URL[self._receiver_type].url)
-        
-        device_info = evaluate_scpd_xml(url)
-        
+
+        try:
+            device_info = evaluate_scpd_xml(url)
+        except requests.exceptions.ConnectTimeout:
+            _LOGGER.error("Connection timeout when getting device information")
+            return
+        except requests.exceptions.RequestException:
+            device_info = False
+
         if device_info is False:
             self._manufacturer = "Denon"
             self._model_name = "Unknown"
             self._serial_number = None
-            _LOGGER.error((
+            _LOGGER.error(
                 "Unable to get device information of host %s, can not "
-                "use the serial number as identification"), self._host)
+                "use the serial number as identification", self._host)
         else:
             self._manufacturer = device_info["manufacturer"]
             self._model_name = device_info["modelName"]
@@ -462,14 +455,40 @@ class DenonAVR:
             zone_inst = DenonAVRZones(self, zone, zonename)
             self._zones[zone] = zone_inst
 
+    def ensure_configuration(self):
+        """Ensure that configuration is loaded from receiver."""
+        # Determine receiver type and input functions
+        if not self._input_func_list:
+            self._update_input_func_list()
+
+        # Determine device info
+        if self.manufacturer is None and self.model_name is None:
+            self.get_device_info()
+
+        if self._receiver_type == AVR_X_2016.type:
+            self._get_zone_name()
+        else:
+            self._get_receiver_name()
+
+        # Determine if update_avr_2016 can be used for AVR_X receiver
+        if (self._support_update_avr_2016 is None
+                and self._receiver_type == AVR_X.type):
+            self._support_update_avr_2016 = self._update_avr_2016(
+                compatibiliy_check=True)
+        # Determine if sound mode is supported
+        if self._support_sound_mode is None:
+            self._get_support_sound_mode()
+
     def update(self):
         """
         Get the latest status information from device.
 
         Method executes the update method for the current receiver type.
         """
+        self.ensure_configuration()
+
         if self._receiver_type == AVR_X_2016.type:
-            return self._update_avr_2016()
+            return bool(self._update_avr_2016())
         else:
             return self._update_avr()
 
@@ -492,7 +511,7 @@ class DenonAVR:
 
         # if update_avr_2016 is supported try that first, that reports better
         if self._receiver_type == AVR_X.type and self._support_update_avr_2016:
-            if self._update_avr_2016(False):
+            if self._update_avr_2016():
                 # Success --> skip xml update
                 relevant_tags = {}
             else:
@@ -505,11 +524,12 @@ class DenonAVR:
         if relevant_tags:
             try:
                 root = self.get_status_xml(self._urls.status)
-            except ValueError:
-                pass
-            except requests.exceptions.RequestException:
-                # On timeout and connection error, the device is probably off
+            except requests.exceptions.ConnectTimeout:
+                # On connect timeout, the device is probably off
                 self._power = POWER_OFF
+                self._state = STATE_OFF
+            except (ValueError, requests.exceptions.RequestException):
+                pass
             else:
                 # Get the tags from this XML
                 relevant_tags = self._get_status_from_xml_tags(root,
@@ -523,20 +543,22 @@ class DenonAVR:
             )
             try:
                 root = self.get_status_xml(self._urls.mainzone)
-            except (ValueError,
-                    requests.exceptions.RequestException):
+            except requests.exceptions.ConnectTimeout:
+                # On connect timeout, the device is probably off
+                self._power = POWER_OFF
+                self._state = STATE_OFF
+            except (ValueError, requests.exceptions.RequestException):
                 pass
             else:
                 # Get the tags from this XML
-                relevant_tags = self._get_status_from_xml_tags(root,
-                                                               relevant_tags)
+                relevant_tags = self._get_status_from_xml_tags(
+                    root, relevant_tags)
 
         # Error message if still some variables are not updated yet
         if relevant_tags and self._power != POWER_OFF:
             _LOGGER.debug(
                 "Third update method (MainZone.xml) failed for zone %s",
-                self._zone
-            )
+                self._zone)
             _LOGGER.error("Missing status information from XML of %s for: %s",
                           self._zone, ", ".join(relevant_tags.keys()))
 
@@ -587,7 +609,7 @@ class DenonAVR:
         # Finished
         return True
 
-    def _update_avr_2016(self, log_errors=True):
+    def _update_avr_2016(self, compatibiliy_check=False):
         """
         Get the latest status information from device.
 
@@ -601,10 +623,18 @@ class DenonAVR:
                 "GetAllZoneVolume", "GetAllZoneMuteStatus",
                 "GetSurroundModeStatus"]
         # Execute call
-        root = self.exec_appcommand_post(tags)
+        try:
+            root = self.exec_appcommand_post(tags)
+        except requests.exceptions.ConnectTimeout:
+            if compatibiliy_check is True:
+                return None
+            # Assume device is off on connect timeout
+            self._power = POWER_OFF
+            self._state = STATE_OFF
+            return False
         # Check result
         if root is None:
-            if log_errors:
+            if compatibiliy_check is False:
                 _LOGGER.error("Update failed.")
             return False
 
@@ -614,14 +644,14 @@ class DenonAVR:
         try:
             self._power = root[0].find(zone).text
         except (AttributeError, IndexError):
-            if log_errors:
+            if compatibiliy_check is False:
                 _LOGGER.error("No PowerStatus found for zone %s", self.zone)
             success = False
 
         try:
             self._mute = root[3].find(zone).text
         except (AttributeError, IndexError):
-            if log_errors:
+            if compatibiliy_check is False:
                 _LOGGER.error("No MuteStatus found for zone %s", self.zone)
             success = False
 
@@ -629,7 +659,7 @@ class DenonAVR:
             self._volume = root.find(
                 "./cmd/{zone}/volume".format(zone=zone)).text
         except AttributeError:
-            if log_errors:
+            if compatibiliy_check is False:
                 _LOGGER.error("No VolumeStatus found for zone %s", self.zone)
             success = False
 
@@ -637,7 +667,7 @@ class DenonAVR:
             inputfunc = root.find(
                 "./cmd/{zone}/source".format(zone=zone)).text
         except AttributeError:
-            if log_errors:
+            if compatibiliy_check is False:
                 _LOGGER.error("No Source found for zone %s", self.zone)
             success = False
         else:
@@ -661,7 +691,7 @@ class DenonAVR:
         try:
             self._sound_mode_raw = root[4][0].text.rstrip()
         except (AttributeError, IndexError):
-            if log_errors:
+            if compatibiliy_check is False:
                 _LOGGER.error(
                     "No SoundMode found for the main zone %s", self.zone
                 )
@@ -688,7 +718,7 @@ class DenonAVR:
         receiver_sources = self._get_receiver_sources()
 
         if not receiver_sources:
-            _LOGGER.error("Receiver sources list empty. "
+            _LOGGER.debug("Receiver sources list empty. "
                           "Please check if device is powered on.")
             return False
 
@@ -775,8 +805,9 @@ class DenonAVR:
             name_tag = {"FriendlyName": None}
             try:
                 root = self.get_status_xml(self._urls.mainzone)
-            except (ValueError,
-                    requests.exceptions.RequestException):
+            except requests.exceptions.ConnectTimeout:
+                pass
+            except (ValueError, requests.exceptions.RequestException):
                 _LOGGER.warning("Receiver name could not be determined. "
                                 "Using standard name: Denon AVR.")
                 self._name = "Denon AVR"
@@ -794,20 +825,23 @@ class DenonAVR:
             # Collect tags for AppCommand.xml call
             tags = ["GetZoneName"]
             # Execute call
-            root = self.exec_appcommand_post(tags)
+            try:
+                root = self.exec_appcommand_post(tags)
+            except requests.exceptions.ConnectTimeout:
+                root = None
             # Check result
             if root is None:
                 _LOGGER.error("Getting ZoneName failed.")
-            else:
-                zone = self._get_own_zone()
+                return
 
-                try:
-                    name = root.find(
-                        "./cmd/{zone}".format(zone=zone)).text
-                except AttributeError:
-                    _LOGGER.error("No ZoneName found for zone %s", self.zone)
-                else:
-                    self._name = name.strip()
+            zone = self._get_own_zone()
+            try:
+                name = root.find(
+                    "./cmd/{zone}".format(zone=zone)).text
+            except AttributeError:
+                _LOGGER.error("No ZoneName found for zone %s", self.zone)
+            else:
+                self._name = name.strip()
 
     def _get_support_sound_mode(self):
         """
@@ -834,6 +868,8 @@ class DenonAVR:
         # Get status XML from Denon receiver via HTTP
         try:
             root = self.get_status_xml(self._urls.status)
+        except requests.exceptions.ConnectTimeout:
+            return None
         except (ValueError, requests.exceptions.RequestException):
             pass
         else:
@@ -844,8 +880,9 @@ class DenonAVR:
         if relevant_tags:
             try:
                 root = self.get_status_xml(self._urls.mainzone)
-            except (ValueError,
-                    requests.exceptions.RequestException):
+            except requests.exceptions.ConnectTimeout:
+                return None
+            except (ValueError, requests.exceptions.RequestException):
                 pass
             else:
                 # Get the tags from this XML
@@ -968,7 +1005,10 @@ class DenonAVR:
         # Collect tags for AppCommand.xml call
         tags = ["GetRenameSource", "GetDeletedSource"]
         # Execute call
-        root = self.exec_appcommand_post(tags)
+        try:
+            root = self.exec_appcommand_post(tags)
+        except requests.exceptions.ConnectTimeout:
+            root = None
         # Check result
         if root is None:
             _LOGGER.error("Getting renamed and deleted sources failed.")
