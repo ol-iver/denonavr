@@ -1,0 +1,144 @@
+<root xmlns="urn:schemas-upnp-org:device-1-0" xmlns:DMH="http://www.dmglobal.com" xmlns:qq="http://www.tencent.com" xmlns:avega_media_server="urn:schemas-avegasystems-com:media-server:metadata-1-0:DIDL-Lite">
+<specVersion>
+<major>1</major>
+<minor>0</minor>
+</specVersion>
+<device>
+<deviceType>urn:schemas-denon-com:device:AiosDevice:1</deviceType>
+<friendlyName>Denon AVR-X1600H</friendlyName>
+<manufacturer>Denon</manufacturer>
+<manufacturerURL>http://www.denon.com</manufacturerURL>
+<modelName>Denon AVR-X1600H</modelName>
+<modelNumber>Aios 4.025</modelNumber>
+<serialNumber>XXX</serialNumber>
+<UDN>XXX</UDN>
+<DMH:X_Audyssey>00000002</DMH:X_Audyssey>
+<DMH:X_AudysseyPort>1256</DMH:X_AudysseyPort>
+<DMH:X_WebAPIPort>8080</DMH:X_WebAPIPort>
+<deviceList>
+<device>
+<deviceType>urn:schemas-upnp-org:device:MediaRenderer:1</deviceType>
+<friendlyName>Denon AVR-X1600H</friendlyName>
+<manufacturer>Denon</manufacturer>
+<manufacturerURL>http://www.denon.com</manufacturerURL>
+<modelName>Denon AVR-X1600H</modelName>
+<modelNumber>Aios 4.025</modelNumber>
+<UDN>XXX</UDN>
+<qq:X_QPlay_SoftwareCapability>QPlay:1</qq:X_QPlay_SoftwareCapability>
+<serviceList>
+<service>
+<serviceType>urn:schemas-upnp-org:service:AVTransport:1</serviceType>
+<serviceId>urn:upnp-org:serviceId:AVTransport</serviceId>
+<SCPDURL>/upnp/scpd/renderer_dvc/AVTransport.xml</SCPDURL>
+<controlURL>/upnp/control/renderer_dvc/AVTransport</controlURL>
+<eventSubURL>/upnp/event/renderer_dvc/AVTransport</eventSubURL>
+</service>
+<service>
+<serviceType>urn:schemas-upnp-org:service:ConnectionManager:1</serviceType>
+<serviceId>urn:upnp-org:serviceId:ConnectionManager</serviceId>
+<SCPDURL>/upnp/scpd/renderer_dvc/ConnectionManager.xml</SCPDURL>
+<controlURL>/upnp/control/renderer_dvc/ConnectionManager</controlURL>
+<eventSubURL>/upnp/event/renderer_dvc/ConnectionManager</eventSubURL>
+</service>
+<service>
+<serviceType>urn:schemas-upnp-org:service:RenderingControl:1</serviceType>
+<serviceId>urn:upnp-org:serviceId:RenderingControl</serviceId>
+<SCPDURL>/upnp/scpd/renderer_dvc/RenderingControl.xml</SCPDURL>
+<controlURL>/upnp/control/renderer_dvc/RenderingControl</controlURL>
+<eventSubURL>/upnp/event/renderer_dvc/RenderingControl</eventSubURL>
+</service>
+</serviceList>
+</device>
+<device>
+<deviceType>urn:schemas-denon-com:device:AiosServices:1</deviceType>
+<friendlyName>AiosServices</friendlyName>
+<manufacturer>Denon</manufacturer>
+<manufacturerURL>http://www.denon.com</manufacturerURL>
+<modelName>Denon AVR-X1600H</modelName>
+<modelNumber>Aios 4.025</modelNumber>
+<UDN>XXX</UDN>
+<serviceList>
+<service>
+<serviceType>urn:schemas-denon-com:service:ErrorHandler:1</serviceType>
+<serviceId>urn:denon-com:serviceId:ErrorHandler</serviceId>
+<SCPDURL>/upnp/scpd/AiosServicesDvc/ErrorHandler.xml</SCPDURL>
+<controlURL>/upnp/control/AiosServicesDvc/ErrorHandler</controlURL>
+<eventSubURL>/upnp/event/AiosServicesDvc/ErrorHandler</eventSubURL>
+</service>
+<service>
+<serviceType>urn:schemas-denon-com:service:ZoneControl:2</serviceType>
+<serviceId>urn:denon-com:serviceId:ZoneControl</serviceId>
+<SCPDURL>/upnp/scpd/AiosServicesDvc/ZoneControl.xml</SCPDURL>
+<controlURL>/upnp/control/AiosServicesDvc/ZoneControl</controlURL>
+<eventSubURL>/upnp/event/AiosServicesDvc/ZoneControl</eventSubURL>
+</service>
+<service>
+<serviceType>urn:schemas-denon-com:service:GroupControl:1</serviceType>
+<serviceId>urn:denon-com:serviceId:GroupControl</serviceId>
+<SCPDURL>/upnp/scpd/AiosServicesDvc/GroupControl.xml</SCPDURL>
+<controlURL>/upnp/control/AiosServicesDvc/GroupControl</controlURL>
+<eventSubURL>/upnp/event/AiosServicesDvc/GroupControl</eventSubURL>
+</service>
+</serviceList>
+</device>
+<device>
+<deviceType>urn:schemas-denon-com:device:ACT-Denon:1</deviceType>
+<friendlyName>ACT-Denon AVR-X1600H</friendlyName>
+<manufacturer>Denon</manufacturer>
+<manufacturerURL>http://www.denon.com</manufacturerURL>
+<modelName>Denon AVR-X1600H</modelName>
+<modelNumber>Aios 4.025</modelNumber>
+<serialNumber>XXX</serialNumber>
+<UDN>XXX</UDN>
+<DeviceID>AIOS:0001</DeviceID>
+<firmwareRevision>153951</firmwareRevision>
+<firmware_date>Thu 2020-02-20 00:11:32</firmware_date>
+<firmware_version>1.544.240</firmware_version>
+<lanMac>XXX</lanMac>
+<locale>en_EU</locale>
+<moduleRevision>4</moduleRevision>
+<moduleType>Aios 4.025</moduleType>
+<productRevision>1</productRevision>
+<releaseType>Production</releaseType>
+<wlanMac>XXX</wlanMac>
+<serviceList>
+<service>
+<serviceType>urn:schemas-denon-com:service:ACT:1</serviceType>
+<serviceId>urn:denon-com:serviceId:ACT</serviceId>
+<SCPDURL>/ACT/SCPD.xml</SCPDURL>
+<controlURL>/ACT/control</controlURL>
+<eventSubURL>/ACT/event</eventSubURL>
+</service>
+</serviceList>
+</device>
+<device>
+<deviceType>urn:schemas-upnp-org:device:MediaServer:1</deviceType>
+<friendlyName>Denon AVR-X1600H</friendlyName>
+<manufacturer>Denon</manufacturer>
+<manufacturerURL>http://www.denon.com</manufacturerURL>
+<modelDescription>Shares User defined folders and files to other Universal Plug and Play media devices.</modelDescription>
+<modelName>Denon AVR-X1600H</modelName>
+<modelNumber>Aios 4.025</modelNumber>
+<serialNumber>XXX</serialNumber>
+<UDN>XXX</UDN>
+<avega_media_server:X_VirtualServersSupported>True</avega_media_server:X_VirtualServersSupported>
+<serviceList>
+<service>
+<serviceType>urn:schemas-upnp-org:service:ContentDirectory:1</serviceType>
+<serviceId>urn:upnp-org:serviceId:ContentDirectory</serviceId>
+<SCPDURL>/upnp/scpd/ams_dvc/ContentDirectory.xml</SCPDURL>
+<controlURL>/upnp/control/ams_dvc/ContentDirectory</controlURL>
+<eventSubURL>/upnp/event/ams_dvc/ContentDirectory</eventSubURL>
+</service>
+<service>
+<serviceType>urn:schemas-upnp-org:service:ConnectionManager:1</serviceType>
+<serviceId>urn:upnp-org:serviceId:ConnectionManager</serviceId>
+<SCPDURL>/upnp/scpd/ams_dvc/ConnectionManager.xml</SCPDURL>
+<controlURL>/upnp/control/ams_dvc/ConnectionManager</controlURL>
+<eventSubURL>/upnp/event/ams_dvc/ConnectionManager</eventSubURL>
+</service>
+</serviceList>
+</device>
+</deviceList>
+</device>
+</root>

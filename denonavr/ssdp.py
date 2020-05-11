@@ -36,7 +36,10 @@ SCPD_SERIALNUMBER = "{xmlns}serialNumber".format(xmlns=SCPD_XMLNS)
 SCPD_FRIENDLYNAME = "{xmlns}friendlyName".format(xmlns=SCPD_XMLNS)
 SCPD_PRESENTATIONURL = "{xmlns}presentationURL".format(xmlns=SCPD_XMLNS)
 
-DEVICETYPE_DENON = "urn:schemas-upnp-org:device:MediaRenderer:1"
+SUPPORTED_DEVICETYPES = [
+    "urn:schemas-upnp-org:device:MediaRenderer:1",
+    "urn:schemas-denon-com:device:AiosDevice:1"
+    ]
 
 SUPPORTED_MANUFACTURERS = ["Denon", "DENON", "Marantz"]
 
@@ -181,12 +184,16 @@ def evaluate_scpd_xml(url):
                           device["manufacturer"])
             if (device["manufacturer"] in SUPPORTED_MANUFACTURERS and
                     root.find(SCPD_DEVICE).find(
-                        SCPD_DEVICETYPE).text == DEVICETYPE_DENON):
-                device["host"] = urlparse(
-                    root.find(SCPD_DEVICE).find(
-                        SCPD_PRESENTATIONURL).text).hostname
-                device["presentationURL"] = (
-                    root.find(SCPD_DEVICE).find(SCPD_PRESENTATIONURL).text)
+                        SCPD_DEVICETYPE).text in SUPPORTED_DEVICETYPES):
+
+                if root.find(SCPD_DEVICE).find(SCPD_PRESENTATIONURL):
+                    device["host"] = urlparse(
+                        root.find(SCPD_DEVICE).find(
+                            SCPD_PRESENTATIONURL).text).hostname
+                    device["presentationURL"] = (
+                        root.find(SCPD_DEVICE).find(SCPD_PRESENTATIONURL).text)
+                else:
+                    device["host"] = urlparse(url).hostname
                 device["modelName"] = (
                     root.find(SCPD_DEVICE).find(SCPD_MODELNAME).text)
                 device["serialNumber"] = (
