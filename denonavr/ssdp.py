@@ -29,6 +29,7 @@ SSDP_ST_LIST = (SSDP_ST_1, SSDP_ST_2, SSDP_ST_3)
 
 SCPD_XMLNS = "{urn:schemas-upnp-org:device-1-0}"
 SCPD_DEVICE = "{xmlns}device".format(xmlns=SCPD_XMLNS)
+SCPD_DEVICELIST = "{xmlns}deviceList".format(xmlns=SCPD_XMLNS)
 SCPD_DEVICETYPE = "{xmlns}deviceType".format(xmlns=SCPD_XMLNS)
 SCPD_MANUFACTURER = "{xmlns}manufacturer".format(xmlns=SCPD_XMLNS)
 SCPD_MODELNAME = "{xmlns}modelName".format(xmlns=SCPD_XMLNS)
@@ -38,7 +39,7 @@ SCPD_PRESENTATIONURL = "{xmlns}presentationURL".format(xmlns=SCPD_XMLNS)
 
 SUPPORTED_DEVICETYPES = [
     "urn:schemas-upnp-org:device:MediaRenderer:1",
-    "urn:schemas-denon-com:device:AiosDevice:1"
+    "urn:schemas-upnp-org:device:MediaServer:1",
     ]
 
 SUPPORTED_MANUFACTURERS = ["Denon", "DENON", "Marantz"]
@@ -177,32 +178,44 @@ def evaluate_scpd_xml(url):
             # Look for manufacturer "Denon" in response.
             # Using "try" in case tags are not available in XML
             device = {}
+            device_xml = None
             device["manufacturer"] = (
                 root.find(SCPD_DEVICE).find(SCPD_MANUFACTURER).text)
 
             _LOGGER.debug("Device %s has manufacturer %s", url,
                           device["manufacturer"])
-            if (device["manufacturer"] in SUPPORTED_MANUFACTURERS and
-                    root.find(SCPD_DEVICE).find(
-                        SCPD_DEVICETYPE).text in SUPPORTED_DEVICETYPES):
 
-                if root.find(SCPD_DEVICE).find(SCPD_PRESENTATIONURL):
-                    device["host"] = urlparse(
-                        root.find(SCPD_DEVICE).find(
-                            SCPD_PRESENTATIONURL).text).hostname
-                    device["presentationURL"] = (
-                        root.find(SCPD_DEVICE).find(SCPD_PRESENTATIONURL).text)
-                else:
-                    device["host"] = urlparse(url).hostname
-                device["modelName"] = (
-                    root.find(SCPD_DEVICE).find(SCPD_MODELNAME).text)
-                device["serialNumber"] = (
-                    root.find(SCPD_DEVICE).find(SCPD_SERIALNUMBER).text)
-                device["friendlyName"] = (
-                    root.find(SCPD_DEVICE).find(SCPD_FRIENDLYNAME).text)
-                return device
-            else:
+            if not device["manufacturer"] in SUPPORTED_MANUFACTURERS:
                 return False
+
+            if (root.find(SCPD_DEVICE).find(SCPD_DEVICETYPE).text
+                    in SUPPORTED_DEVICETYPES):
+                device_xml = root.find(SCPD_DEVICE)
+            elif root.find(SCPD_DEVICE).find(SCPD_DEVICELIST):
+                for dev in root.find(SCPD_DEVICE).find(SCPD_DEVICELIST):
+                    if (dev.find(SCPD_DEVICETYPE).text in SUPPORTED_DEVICETYPES
+                            and dev.find(SCPD_SERIALNUMBER) is not None):
+                        device_xml = dev
+                        break
+
+            if not device_xml:
+                return False
+
+            if device_xml.find(SCPD_PRESENTATIONURL):
+                device["host"] = urlparse(
+                    device_xml.find(
+                        SCPD_PRESENTATIONURL).text).hostname
+                device["presentationURL"] = (
+                    device_xml.find(SCPD_PRESENTATIONURL).text)
+            else:
+                device["host"] = urlparse(url).hostname
+            device["modelName"] = (
+                device_xml.find(SCPD_MODELNAME).text)
+            device["serialNumber"] = (
+                device_xml.find(SCPD_SERIALNUMBER).text)
+            device["friendlyName"] = (
+                device_xml.find(SCPD_FRIENDLYNAME).text)
+            return device
         except (AttributeError, ValueError, ET.ParseError) as err:
             _LOGGER.error(
                 "Error occurred during evaluation of SCPD XML: %s", err)
