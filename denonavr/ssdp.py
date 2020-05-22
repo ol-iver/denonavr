@@ -191,17 +191,17 @@ def evaluate_scpd_xml(url):
             if (root.find(SCPD_DEVICE).find(SCPD_DEVICETYPE).text
                     in SUPPORTED_DEVICETYPES):
                 device_xml = root.find(SCPD_DEVICE)
-            elif root.find(SCPD_DEVICE).find(SCPD_DEVICELIST):
+            elif root.find(SCPD_DEVICE).find(SCPD_DEVICELIST) is not None:
                 for dev in root.find(SCPD_DEVICE).find(SCPD_DEVICELIST):
                     if (dev.find(SCPD_DEVICETYPE).text in SUPPORTED_DEVICETYPES
                             and dev.find(SCPD_SERIALNUMBER) is not None):
                         device_xml = dev
                         break
 
-            if not device_xml:
+            if device_xml is None:
                 return False
 
-            if device_xml.find(SCPD_PRESENTATIONURL):
+            if device_xml.find(SCPD_PRESENTATIONURL) is not None:
                 device["host"] = urlparse(
                     device_xml.find(
                         SCPD_PRESENTATIONURL).text).hostname
