@@ -81,7 +81,7 @@ def identify_denonavr_receivers():
             receiver = evaluate_scpd_xml(device["URL"])
         except requests.exceptions.RequestException:
             continue
-        if receiver:
+        if receiver and receiver not in receivers:
             receivers.append(receiver)
 
     return receivers
