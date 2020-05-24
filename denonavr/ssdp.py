@@ -13,7 +13,7 @@ import re
 import xml.etree.ElementTree as ET
 from urllib.parse import urlparse
 import requests
-import ifaddr
+import netifaces
 
 _LOGGER = logging.getLogger('DenonSSDP')
 
@@ -58,13 +58,11 @@ def ssdp_request(ssdp_st, ssdp_mx=SSDP_MX):
 
 def get_local_ips():
     """Get IPs of local network adapters."""
-    adapters = ifaddr.get_adapters()
     ips = []
-    for adapter in adapters:
-        # pylint: disable=invalid-name
-        for ip in adapter.ips:
-            if isinstance(ip.ip, str):
-                ips.append(ip.ip)
+    for interface in netifaces.interfaces():
+        addresses = netifaces.ifaddresses(interface)
+        for address in addresses.get(netifaces.AF_INET, []):
+            ips.append(address["addr"])
     return ips
 
 
