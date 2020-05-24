@@ -11,6 +11,7 @@ import logging
 import socket
 import re
 import xml.etree.ElementTree as ET
+from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlparse
 import requests
 import netifaces
@@ -26,6 +27,8 @@ SSDP_ST_2 = "upnp:rootdevice"
 SSDP_ST_3 = "urn:schemas-upnp-org:device:MediaRenderer:1"
 
 SSDP_ST_LIST = (SSDP_ST_1, SSDP_ST_2, SSDP_ST_3)
+
+SSDP_LOCATION_PATTERN = re.compile(r'(?<=LOCATION:\s).+?(?=\r)')
 
 SCPD_XMLNS = "{urn:schemas-upnp-org:device-1-0}"
 SCPD_DEVICE = "{xmlns}device".format(xmlns=SCPD_XMLNS)
@@ -59,6 +62,7 @@ def ssdp_request(ssdp_st, ssdp_mx=SSDP_MX):
 def get_local_ips():
     """Get IPs of local network adapters."""
     ips = []
+    # pylint: disable=c-extension-no-member
     for interface in netifaces.interfaces():
         addresses = netifaces.ifaddresses(interface)
         for address in addresses.get(netifaces.AF_INET, []):
@@ -91,40 +95,21 @@ def identify_denonavr_receivers():
 
 def send_ssdp_broadcast():
     """
-    Send SSDP broadcast message to discover UPnP devices.
+    Send SSDP broadcast messages to discover UPnP devices.
 
     Returns a set of SCPD XML resource urls for all discovered devices.
     """
     # Send up to three different broadcast messages
     ips = get_local_ips()
     res = []
-    # pylint: disable=invalid-name
-    for ip in ips:
-        # Ignore 169.254.0.0/16 adresses
-        if re.search("169.254.*.*", ip):
-            continue
-        for i, ssdp_st in enumerate(SSDP_ST_LIST):
-            # Prepare SSDP broadcast message
-            sock = socket.socket(
-                socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-            sock.settimeout(SSDP_MX)
-            sock.bind((ip, 0))
-            sock.sendto(ssdp_request(ssdp_st), (SSDP_ADDR, SSDP_PORT))
 
-            # Collect all responses within the timeout period
-            try:
-                while True:
-                    res.append(sock.recvfrom(10240))
-            except socket.timeout:
-                sock.close()
+    futures = []
+    with ThreadPoolExecutor() as executor:
+        for ip_addr in ips:
+            futures.append(executor.submit(send_ssdp_broadcast_ip, ip_addr))
 
-            if res:
-                _LOGGER.debug(
-                    "Got results after %s SSDP queries using ip %s", i + 1, ip)
-                sock.close()
-                break
-        if res:
-            break
+        for future in futures:
+            res.extend(future.result())
 
     # Prepare output of responding devices
     urls = set()
@@ -133,12 +118,42 @@ def send_ssdp_broadcast():
         # Some string operations to get the receivers URL
         # which could be found between LOCATION and end of line of the response
         entry_text = entry[0].decode("utf-8")
-        match = re.search(r'(?<=LOCATION:\s).+?(?=\r)', entry_text)
+        match = SSDP_LOCATION_PATTERN.search(entry_text)
         if match:
             urls.add(match.group(0))
 
     _LOGGER.debug("Following devices found: %s", urls)
     return urls
+
+
+def send_ssdp_broadcast_ip(ip_addr):
+    """Send SSDP broadcast messages to a single IP."""
+    res = []
+    # Ignore 169.254.0.0/16 adresses
+    if re.search("169.254.*.*", ip_addr):
+        return res
+    # Prepare SSDP broadcast message
+    sock = socket.socket(
+        socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    sock.settimeout(SSDP_MX)
+    sock.bind((ip_addr, 0))
+    for ssdp_st in SSDP_ST_LIST:
+        sock.sendto(ssdp_request(ssdp_st), (SSDP_ADDR, SSDP_PORT))
+
+    # Collect all responses within the timeout period
+    try:
+        while True:
+            res.append(sock.recvfrom(10240))
+    except socket.timeout:
+        pass
+    finally:
+        sock.close()
+
+    if res:
+        _LOGGER.debug(
+            "Got %s results after SSDP queries using ip %s", len(res), ip_addr)
+
+    return res
 
 
 def evaluate_scpd_xml(url):

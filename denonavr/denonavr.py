@@ -14,6 +14,8 @@ import time
 import re
 import html
 import xml.etree.ElementTree as ET
+from concurrent.futures import ThreadPoolExecutor
+
 import requests
 
 from .ssdp import evaluate_scpd_xml
@@ -461,23 +463,31 @@ class DenonAVR:
         if not self._input_func_list:
             self._update_input_func_list()
 
-        # Determine device info
-        if self.manufacturer is None and self.model_name is None:
-            self.get_device_info()
+        # Some queries can be performed in parallel
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            # Determine device info
+            if self.manufacturer is None and self.model_name is None:
+                executor.submit(self.get_device_info)
 
-        if self._receiver_type == AVR_X_2016.type:
-            self._get_zone_name()
-        else:
-            self._get_receiver_name()
+            if self._receiver_type == AVR_X_2016.type:
+                executor.submit(self._get_zone_name)
+            else:
+                executor.submit(self._get_receiver_name)
 
-        # Determine if update_avr_2016 can be used for AVR_X receiver
-        if (self._support_update_avr_2016 is None
-                and self._receiver_type == AVR_X.type):
-            self._support_update_avr_2016 = self._update_avr_2016(
-                compatibiliy_check=True)
-        # Determine if sound mode is supported
-        if self._support_sound_mode is None:
-            self._get_support_sound_mode()
+            # Determine if update_avr_2016 can be used for AVR_X receiver
+            support_avr_2016 = None
+            if (self._support_update_avr_2016 is None
+                    and self._receiver_type == AVR_X.type):
+                support_avr_2016 = executor.submit(
+                    self._update_avr_2016, compatibiliy_check=True)
+
+            # Determine if sound mode is supported
+            if self._support_sound_mode is None:
+                executor.submit(self._get_support_sound_mode)
+
+            # Get result of support_avr_2016 check if it was performed
+            if support_avr_2016 is not None:
+                self._support_update_avr_2016 = support_avr_2016.result()
 
     def update(self):
         """
@@ -500,6 +510,14 @@ class DenonAVR:
         Returns "True" on success and "False" on fail.
         This method is for pre 2016 AVR(-X) devices
         """
+        # Use ThreadPoolExecutor to call all URLs of this method in parallel
+        executor = ThreadPoolExecutor(max_workers=3)
+        if self._support_update_avr_2016:
+            update_avr = executor.submit(self._update_avr_2016)
+        status_status = executor.submit(self.get_status_xml, self._urls.status)
+        status_mainzone = executor.submit(
+            self.get_status_xml, self._urls.mainzone)
+
         # Set all tags to be evaluated
         relevant_tags = {"Power": None, "InputFuncSelect": None, "Mute": None,
                          "MasterVolume": None}
@@ -510,20 +528,19 @@ class DenonAVR:
             relevant_tags["SurrMode"] = None
 
         # if update_avr_2016 is supported try that first, that reports better
-        if self._receiver_type == AVR_X.type and self._support_update_avr_2016:
-            if self._update_avr_2016():
+        if self._support_update_avr_2016:
+            if update_avr.result():
                 # Success --> skip xml update
                 relevant_tags = {}
             else:
                 _LOGGER.debug(
                     "Primary update method (AppCommand.xml) "
-                    "failed for zone %s", self._zone
-                )
+                    "failed for zone %s", self._zone)
 
         # Get status XML from Denon receiver via HTTP
         if relevant_tags:
             try:
-                root = self.get_status_xml(self._urls.status)
+                root = status_status.result()
             except requests.exceptions.ConnectTimeout:
                 # On connect timeout, the device is probably off
                 self._power = POWER_OFF
@@ -542,7 +559,7 @@ class DenonAVR:
                 self._zone
             )
             try:
-                root = self.get_status_xml(self._urls.mainzone)
+                root = status_mainzone.result()
             except requests.exceptions.ConnectTimeout:
                 # On connect timeout, the device is probably off
                 self._power = POWER_OFF
@@ -595,18 +612,18 @@ class DenonAVR:
                 self._input_func is not None):
             if self._update_input_func_list():
                 _LOGGER.info("List of input functions refreshed.")
-                # If input function is still not known, create new entry.
+                # If input function is still not known, log error.
                 if (self._input_func not in self._input_func_list and
                         self._input_func is not None):
-                    inputfunc = self._input_func
-                    self._input_func_list_rev[inputfunc] = inputfunc
-                    self._input_func_list[inputfunc] = inputfunc
+                    _LOGGER.error(
+                        "Input function %s is not known", self._input_func)
             else:
                 _LOGGER.error((
                     "Input function list for Denon receiver at host %s "
                     "could not be updated."), self._host)
 
         # Finished
+        executor.shutdown(wait=False)
         return True
 
     def _update_avr_2016(self, compatibiliy_check=False):
@@ -679,11 +696,11 @@ class DenonAVR:
                 # Get/update sources list if current source is not known yet
                 if self._update_input_func_list():
                     _LOGGER.info("List of input functions refreshed.")
-                    # If input function is still not known, create new entry.
+                    # If input function is still not known, log error.
                     if (inputfunc not in self._input_func_list and
                             inputfunc is not None):
-                        self._input_func_list_rev[inputfunc] = inputfunc
-                        self._input_func_list[inputfunc] = inputfunc
+                        _LOGGER.error(
+                            "Input function %s is not known", self._input_func)
                 else:
                     _LOGGER.error((
                         "Input function list for Denon receiver at host %s "
@@ -699,10 +716,11 @@ class DenonAVR:
 
         # Now playing information is not implemented for 2016+ models, because
         # a HEOS API query needed. So only sync the power state for now.
-        if self._power == POWER_ON:
-            self._state = STATE_ON
-        else:
-            self._state = STATE_OFF
+        if self._receiver_type == AVR_X_2016.type:
+            if self._power == POWER_ON:
+                self._state = STATE_ON
+            else:
+                self._state = STATE_OFF
 
         return success
 
@@ -862,12 +880,18 @@ class DenonAVR:
         Returns "True" if sound mode supported and "False" if not.
         This method is for pre 2016 AVR(-X) devices
         """
+        # Use ThreadPoolExecutor to call all URLs of this method in parallel
+        executor = ThreadPoolExecutor(max_workers=2)
+        status_status = executor.submit(self.get_status_xml, self._urls.status)
+        status_mainzone = executor.submit(
+            self.get_status_xml, self._urls.mainzone)
+
         # Set sound mode tags to be checked if available
         relevant_tags = {"selectSurround": None, "SurrMode": None}
 
         # Get status XML from Denon receiver via HTTP
         try:
-            root = self.get_status_xml(self._urls.status)
+            root = status_status.result()
         except requests.exceptions.ConnectTimeout:
             return None
         except (ValueError, requests.exceptions.RequestException):
@@ -879,7 +903,7 @@ class DenonAVR:
         # Second option to update variables from different source
         if relevant_tags:
             try:
-                root = self.get_status_xml(self._urls.mainzone)
+                root = status_mainzone.result()
             except requests.exceptions.ConnectTimeout:
                 return None
             except (ValueError, requests.exceptions.RequestException):
@@ -888,6 +912,9 @@ class DenonAVR:
                 # Get the tags from this XML
                 relevant_tags = self._get_status_from_xml_tags(root,
                                                                relevant_tags)
+
+        # Shutdown ThreadPoolExecutor
+        executor.shutdown(wait=False)
 
         # if sound mode not found in the status XML, return False
         if relevant_tags:

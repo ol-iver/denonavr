@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 """Tests for ssdp."""
 
-import pytest
 import requests_mock
+import pytest
 from denonavr.ssdp import evaluate_scpd_xml
 
 
 def get_sample_content(filename):
     """Return sample content form file."""
     with open(
-        "tests/xml/{filename}".format(filename=filename), encoding="utf-8"
-    ) as file:
+            "tests/xml/{filename}".format(
+                filename=filename), encoding="utf-8") as file:
         return file.read()
 
 
@@ -35,7 +35,6 @@ def test_evaluate(model, expected_device):
     url = "https://127.0.0.1/bar"
     with requests_mock.Mocker() as mock:
         mock.get(url, text=get_sample_content(
-            "{model}_upnp.xml".format(model=model))
-            )
+            "{model}_upnp.xml".format(model=model)))
         device = evaluate_scpd_xml(url)
     assert device == expected_device

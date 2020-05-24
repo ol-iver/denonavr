@@ -29,7 +29,7 @@ DATA
     __title__ = 'denonavr'
 
 VERSION
-    0.9.0
+    0.9.1
 
 ====================================================================================
 
@@ -553,10 +553,12 @@ FUNCTIONS
         devices with keys "host", "modelName", "friendlyName", "presentationURL".
     
     send_ssdp_broadcast()
-        Send SSDP broadcast message to discover UPnP devices.
+        Send SSDP broadcast messages to discover UPnP devices.
         
-        Returns a list of dictionaries with "address" (IP, PORT) and "URL"
-        of SCPD XML for all discovered devices.
+        Returns a set of SCPD XML resource urls for all discovered devices.
     
+    send_ssdp_broadcast_ip(ip_addr)
+        Send SSDP broadcast messages to a single IP.
+
     ssdp_request(ssdp_st, ssdp_mx=2)
         Return request bytes for given st and mx.
