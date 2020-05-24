@@ -73,14 +73,14 @@ def identify_denonavr_receivers():
     Returns a list of dictionaries which includes all discovered Denon AVR
     devices with keys "host", "modelName", "friendlyName", "presentationURL".
     """
-    # Sending SSDP broadcast message to get devices
-    devices = send_ssdp_broadcast()
+    # Sending SSDP broadcast message to get resource urls from devices
+    urls = send_ssdp_broadcast()
 
     # Check which responding device is a DenonAVR device and prepare output
     receivers = []
-    for device in devices:
+    for url in urls:
         try:
-            receiver = evaluate_scpd_xml(device["URL"])
+            receiver = evaluate_scpd_xml(url)
         except requests.exceptions.RequestException:
             continue
         if receiver:
@@ -93,8 +93,7 @@ def send_ssdp_broadcast():
     """
     Send SSDP broadcast message to discover UPnP devices.
 
-    Returns a list of dictionaries with "address" (IP, PORT) and "URL"
-    of SCPD XML for all discovered devices.
+    Returns a set of SCPD XML resource urls for all discovered devices.
     """
     # Send up to three different broadcast messages
     ips = get_local_ips()
@@ -128,28 +127,18 @@ def send_ssdp_broadcast():
             break
 
     # Prepare output of responding devices
-    devices = {}
-    device = {}
+    urls = set()
 
     for entry in res:
-        device["address"] = entry[1]
         # Some string operations to get the receivers URL
         # which could be found between LOCATION and end of line of the response
-        en_decoded = entry[0].decode("utf-8")
-        # If location is not found, skip the entry
-        try:
-            device["URL"] = (
-                en_decoded[
-                    en_decoded.lower().index(
-                        "location:") + 10:en_decoded.index(
-                            "\r\n", en_decoded.lower().index("location:"))]
-            )
-        except ValueError:
-            continue
-        devices[device["address"]] = device.copy()
+        entry_text = entry[0].decode("utf-8")
+        match = re.search(r'(?<=LOCATION:\s).+?(?=\r)', entry_text)
+        if match:
+            urls.add(match.group(0))
 
-    _LOGGER.debug("Following devices found: %s", list(devices.values()))
-    return list(devices.values())
+    _LOGGER.debug("Following devices found: %s", urls)
+    return urls
 
 
 def evaluate_scpd_xml(url):
