@@ -131,7 +131,7 @@ def send_ssdp_broadcast():
         # Some string operations to get the receivers URL
         # which could be found between LOCATION and end of line of the response
         entry_text = entry[0].decode("utf-8")
-        match = re.search('(?<=LOCATION:\s).+?(?=\\r)', entry_text)
+        match = re.search(r'(?<=LOCATION:\s).+?(?=\r)', entry_text)
         if match:
             urls.add(match.group(0))
 
