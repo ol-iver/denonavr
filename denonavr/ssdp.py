@@ -82,13 +82,19 @@ def identify_denonavr_receivers():
 
     # Check which responding device is a DenonAVR device and prepare output
     receivers = []
-    for url in urls:
-        try:
-            receiver = evaluate_scpd_xml(url)
-        except requests.exceptions.RequestException:
-            continue
-        if receiver:
-            receivers.append(receiver)
+    futures = []
+
+    with ThreadPoolExecutor() as executor:
+        for url in urls:
+            futures.append(executor.submit(evaluate_scpd_xml, url))
+
+        for future in futures:
+            try:
+                receiver = future.result()
+            except requests.exceptions.RequestException:
+                continue
+            if receiver is not None:
+                receivers.append(receiver)
 
     return receivers
 
@@ -188,7 +194,7 @@ def evaluate_scpd_xml(url):
                           device["manufacturer"])
 
             if not device["manufacturer"] in SUPPORTED_MANUFACTURERS:
-                return False
+                return None
 
             if (root.find(SCPD_DEVICE).find(SCPD_DEVICETYPE).text
                     in SUPPORTED_DEVICETYPES):
@@ -201,7 +207,7 @@ def evaluate_scpd_xml(url):
                         break
 
             if device_xml is None:
-                return False
+                return None
 
             if device_xml.find(SCPD_PRESENTATIONURL) is not None:
                 device["host"] = urlparse(
@@ -221,8 +227,8 @@ def evaluate_scpd_xml(url):
         except (AttributeError, ValueError, ET.ParseError) as err:
             _LOGGER.error(
                 "Error occurred during evaluation of SCPD XML: %s", err)
-            return False
+            return None
     else:
         _LOGGER.debug("Host returned HTTP status %s when connecting to %s",
                       res.status_code, url)
-        return False
+        return None
