@@ -469,10 +469,7 @@ class DenonAVR:
             if self.manufacturer is None and self.model_name is None:
                 executor.submit(self.get_device_info)
 
-            if self._receiver_type == AVR_X_2016.type:
-                executor.submit(self._get_zone_name)
-            else:
-                executor.submit(self._get_receiver_name)
+            executor.submit(self._get_receiver_name)
 
             # Determine if update_avr_2016 can be used for AVR_X receiver
             support_avr_2016 = None
@@ -819,23 +816,44 @@ class DenonAVR:
     def _get_receiver_name(self):
         """Get name of receiver from web interface if not set."""
         # If name is not set yet, get it from Main Zone URL
-        if self._name is None and self._urls.mainzone is not None:
-            name_tag = {"FriendlyName": None}
-            try:
-                root = self.get_status_xml(self._urls.mainzone)
-            except requests.exceptions.ConnectTimeout:
-                pass
-            except (ValueError, requests.exceptions.RequestException):
-                _LOGGER.warning("Receiver name could not be determined. "
-                                "Using standard name: Denon AVR.")
-                self._name = "Denon AVR"
-            else:
-                # Get the tags from this XML
-                name_tag = self._get_status_from_xml_tags(root, name_tag)
-                if name_tag:
+        if self._name is None:
+            if self._receiver_type == AVR_X_2016.type:
+                # Collect tags for AppCommand.xml call
+                tags = ["GetFriendlyName"]
+                # Execute call
+                try:
+                    root = self.exec_appcommand_post(tags)
+                except requests.exceptions.ConnectTimeout:
+                    root = None
+                # Check result
+                if root is None:
+                    _LOGGER.error("Getting friendlyname name failed.")
+                    return
+
+                try:
+                    name = root.find(
+                        "./cmd/friendlyname").text
+                except AttributeError:
+                    _LOGGER.error("No friendlyname found")
+                else:
+                    self._name = name.strip()
+            elif self._urls.mainzone is not None:
+                name_tag = {"FriendlyName": None}
+                try:
+                    root = self.get_status_xml(self._urls.mainzone)
+                except requests.exceptions.ConnectTimeout:
+                    pass
+                except (ValueError, requests.exceptions.RequestException):
                     _LOGGER.warning("Receiver name could not be determined. "
                                     "Using standard name: Denon AVR.")
                     self._name = "Denon AVR"
+                else:
+                    # Get the tags from this XML
+                    name_tag = self._get_status_from_xml_tags(root, name_tag)
+                    if name_tag:
+                        _LOGGER.warning("Receiver name could not be determined. "
+                                        "Using standard name: Denon AVR.")
+                        self._name = "Denon AVR"
 
     def _get_zone_name(self):
         """Get receivers zone name if not set yet."""
