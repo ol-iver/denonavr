@@ -851,7 +851,8 @@ class DenonAVR:
                     # Get the tags from this XML
                     name_tag = self._get_status_from_xml_tags(root, name_tag)
                     if name_tag:
-                        _LOGGER.warning("Receiver name could not be determined. "
+                        _LOGGER.warning("Receiver name could not be "
+                                        "determined. "
                                         "Using standard name: Denon AVR.")
                         self._name = "Denon AVR"
 
