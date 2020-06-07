@@ -1715,7 +1715,7 @@ class DenonAVR:
             self._sound_mode_dict[smr_up] = [smr_up]
             self._sm_match_dict = self.construct_sm_match_dict()
             _LOGGER.warning("Not able to match sound mode: '%s', "
-                            "returning raw sound mode.", sound_mode_raw)
+                            "returning raw sound mode.", smr_up)
         return sound_mode_raw
 
     def toggle_play_pause(self):
