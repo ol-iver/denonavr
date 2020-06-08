@@ -24,7 +24,7 @@ _LOGGER = logging.getLogger("DenonAVR")
 
 DEVICEINFO_AVR_X_PATTERN = re.compile(
     r"(.*AV(C|R)-(X|S).*|.*SR500[6-9]|.*SR60(07|08|09|10|11|12|13)|."
-    r"*SR70(07|08|09|10|11|12|13)|.*NR1604|.*NR1710)")
+    r"*SR70(07|08|09|10|11|12|13)|.*SR501[3-4]|.*NR1604|.*NR1710)")
 
 DEVICEINFO_COMMAPI_PATTERN = re.compile(r"(0210|0300|0301)")
 
@@ -471,7 +471,7 @@ class DenonAVR:
                 executor.submit(self.get_device_info)
 
             if self._receiver_type == AVR_X_2016.type:
-                executor.submit(self._get_zone_name)
+                executor.submit(self._get_receiver_name_avr_2016)
             else:
                 executor.submit(self._get_receiver_name)
 
@@ -838,11 +838,11 @@ class DenonAVR:
                                     "Using standard name: Denon AVR.")
                     self._name = "Denon AVR"
 
-    def _get_zone_name(self):
-        """Get receivers zone name if not set yet."""
+    def _get_receiver_name_avr_2016(self):
+        """Get name of receiver from web interface if not set."""
         if self._name is None:
             # Collect tags for AppCommand.xml call
-            tags = ["GetZoneName"]
+            tags = ["GetFriendlyName"]
             # Execute call
             try:
                 root = self.exec_appcommand_post(tags)
@@ -850,15 +850,13 @@ class DenonAVR:
                 root = None
             # Check result
             if root is None:
-                _LOGGER.error("Getting ZoneName failed.")
+                _LOGGER.error("Getting GetFriendlyName failed.")
                 return
 
-            zone = self._get_own_zone()
             try:
-                name = root.find(
-                    "./cmd/{zone}".format(zone=zone)).text
+                name = root.find("./cmd/friendlyname").text
             except AttributeError:
-                _LOGGER.error("No ZoneName found for zone %s", self.zone)
+                _LOGGER.error("No friendlyname found")
             else:
                 self._name = name.strip()
 
