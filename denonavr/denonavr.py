@@ -56,7 +56,7 @@ SOUND_MODE_MAPPING = OrderedDict(
                 'DTS NEO:X MUSIC', 'DOLBY PL2 MUSIC']),
      ('MOVIE', ['PLII MOVIE', 'PLII CINEMA', 'DTS NEO:X CINEMA',
                 'DTS NEO:6 CINEMA', 'DOLBY D +NEO:X C',
-                'PLIIX CINEMA']),
+                'PLIIX CINEMA', 'DOLBY PLII MOVIE']),
      ('GAME', ['PLII GAME', 'DOLBY D +NEO:X G']),
      ('AUTO', ['None']),
      ('STANDARD', ['None2']),
@@ -81,7 +81,8 @@ SOUND_MODE_MAPPING = OrderedDict(
                         'DOLBY AUDIO - TRUEHD + NEURAL:X',
                         'DOLBY AUDIO - DD + DSUR',
                         'DOLBY AUDIO - DD+   + NEURAL:X',
-                        'DOLBY AUDIO - DD+   + DSUR']),
+                        'DOLBY AUDIO - DD+   + DSUR',
+                        'DOLBY AUDIO - DOLBY DIGITAL']),
      ('DTS SURROUND', ['DTS SURROUND', 'DTS NEURAL:X', 'STANDARD(DTS)',
                        'DTS + NEURAL:X', 'MULTI CH IN', 'DTS-HD MSTR',
                        'DTS VIRTUAL:X', 'DTS-HD + NEURAL:X', 'DTS-HD',
@@ -1715,7 +1716,7 @@ class DenonAVR:
             self._sound_mode_dict[smr_up] = [smr_up]
             self._sm_match_dict = self.construct_sm_match_dict()
             _LOGGER.warning("Not able to match sound mode: '%s', "
-                            "returning raw sound mode.", sound_mode_raw)
+                            "returning raw sound mode.", smr_up)
         return sound_mode_raw
 
     def toggle_play_pause(self):
