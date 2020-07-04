@@ -1919,7 +1919,7 @@ class DenonAVR:
         """Post request for tone control commands."""
         root = ET.Element("tx")
         ET.SubElement(root, 'cmd', id='1').text = 'SetToneControl'
-        ET.SubElement(root, type).text = str(value)
+        ET.SubElement(root, parameter_type).text = str(value)
         tree = ET.ElementTree(root)
 
         body = BytesIO()
