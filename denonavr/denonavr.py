@@ -333,7 +333,7 @@ class DenonAVR:
         if self._zone == "Main" and add_zones is not None:
             self.create_zones(add_zones)
 
-    def exec_appcommand_post(self, attribute_list, root_tag='tx'):
+    def exec_appcommand_post(self, attribute_list):
         """
         Prepare and execute a HTTP POST call to AppCommand.xml end point.
 
@@ -882,9 +882,7 @@ class DenonAVR:
     def _update_tone_control(self):
         """Update tone control related things."""
         try:
-            root = self.exec_appcommand_post(
-                attribute_list=['GetToneControl'], root_tag='rx'
-                )
+            root = self.exec_appcommand_post(attribute_list=['GetToneControl'])
         except requests.exceptions.ConnectTimeout:
             root = None
 
