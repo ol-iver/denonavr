@@ -729,7 +729,7 @@ class DenonAVR:
             else:
                 self._state = STATE_OFF
 
-        self._update_tone_control() is False:
+        self._update_tone_control()
 
         return success
 
