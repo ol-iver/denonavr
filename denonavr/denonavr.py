@@ -321,13 +321,19 @@ class DenonAVR:
         self._frequency = None
         self._station = None
 
+        self._tone_control_adjust = None
+        self._bass = None
+        self._bass_level = None
+        self._treble = None
+        self._treble_level = None
+
         # Get initial setting of values
         self.update()
         # Create instances of additional zones if requested
         if self._zone == "Main" and add_zones is not None:
             self.create_zones(add_zones)
 
-    def exec_appcommand_post(self, attribute_list):
+    def exec_appcommand_post(self, attribute_list, root_tag='tx'):
         """
         Prepare and execute a HTTP POST call to AppCommand.xml end point.
 
@@ -723,6 +729,8 @@ class DenonAVR:
             else:
                 self._state = STATE_OFF
 
+        self._update_tone_control() is False:
+
         return success
 
     def _update_input_func_list(self):
@@ -870,6 +878,30 @@ class DenonAVR:
             return self._get_support_sound_mode_avr_2016()
         else:
             return self._get_support_sound_mode_avr()
+
+    def _update_tone_control(self):
+        """Update tone control related things."""
+        try:
+            root = self.exec_appcommand_post(
+                attribute_list=['GetToneControl'], root_tag='rx'
+                )
+        except requests.exceptions.ConnectTimeout:
+            root = None
+
+        if root is None:
+            _LOGGER.error("Getting tone control failed.")
+            return False
+
+        try:
+            self._tone_control_adjust = bool(int(root[0].find('adjust').text))
+            self._bass = int(root[0].find('bassvalue').text)
+            self._bass_level = root[0].find('basslevel').text
+            self._treble = int(root[0].find('treblevalue').text)
+            self._treble_level = root[0].find('treblelevel').text
+        except (AttributeError, IndexError):
+            _LOGGER.error("Incomple/no information found for tone control")
+            return False
+        return True
 
     def _get_support_sound_mode_avr(self):
         """
@@ -1557,6 +1589,26 @@ class DenonAVR:
         """Indicate if all inputs are shown or just active one."""
         return self._show_all_inputs
 
+    @property
+    def bass(self):
+        """Return value of bass."""
+        return self._bass
+
+    @property
+    def bass_level(self):
+        """Return level of bass."""
+        return self._bass_level
+
+    @property
+    def treble(self):
+        """Return value of treble."""
+        return self._treble
+
+    @property
+    def treble_level(self):
+        """Return level of treble."""
+        return self._treble_level
+
     @input_func.setter
     def input_func(self, input_func):
         """Setter function for input_func to switch input_func of device."""
@@ -1864,6 +1916,103 @@ class DenonAVR:
         except requests.exceptions.RequestException:
             _LOGGER.error("Connection error: mute command not sent.")
             return False
+
+    def _set_tone_control_command(self, parameter_type, value):
+        """Post request for tone control commands."""
+        root = ET.Element("tx")
+        ET.SubElement(root, 'cmd', id='1').text = 'SetToneControl'
+        ET.SubElement(root, type).text = str(value)
+        tree = ET.ElementTree(root)
+
+        body = BytesIO()
+        tree.write(body, encoding="utf-8", xml_declaration=True)
+
+        try:
+            self.send_post_command(
+                command=self._urls.appcommand, body=body.getvalue()
+                )
+        except (
+                requests.exceptions.ConnectTimeout,
+                requests.exceptions.RequestException
+                ):
+            _LOGGER.error("No connection to %s end point on host %s",
+                          self._urls.appcommand, self._host)
+            return False
+        return True
+
+    def enable_tone_control(self):
+        """Enable tone control to change settings like bass or treble."""
+        if self._tone_control_adjust is True:
+            return True
+        elif self._set_tone_control_command(parameter_type='adjust', value=1):
+            self._tone_control_adjust = True
+            return True
+        return False
+
+    def disable_tone_control(self):
+        """Disable tone control to change settings like bass or treble."""
+        if self._tone_control_adjust is False:
+            return True
+        elif self._set_tone_control_command(parameter_type='adjust', value=0):
+            self._tone_control_adjust = False
+            return True
+        return False
+
+    def _set_tone_control(self, parameter_type, value):
+        """Set tone control parameter."""
+        if value < 0 or value > 12:
+            raise ValueError(
+                "Invalid value for {parameter_type}".format(
+                    parameter_type=parameter_type
+                    )
+            )
+
+        if not self.enable_tone_control():
+            return False
+
+        if self._set_tone_control_command(
+                parameter_type='{parameter_type}value'.format(
+                    parameter_type=parameter_type
+                    ), value=value
+                ):
+            setattr(
+                self,
+                '_{parameter_type}'.format(parameter_type=parameter_type),
+                value
+                )
+            setattr(
+                self,
+                '_{parameter_type}_level'.format(
+                    parameter_type=parameter_type
+                    ),
+                '{value:{sign}}dB'.format(
+                    value=value-6, sign='' if value-6 == 0 else '+'
+                    )
+                )
+            return True
+        return False
+
+    def set_bass(self, bass):
+        """
+        Set receiver bass.
+
+        Minimum is 0, maximum at 12
+
+        Note:
+        Doesn't work, if Dynamic Equalizer is active.
+        """
+        return self._set_tone_control(parameter_type='bass', value=bass)
+
+    def set_treble(self, treble):
+        """
+        Set receiver treble.
+
+        Minimum is 0, maximum at 12
+
+        Note:
+        Doesn't work, if Dynamic Equalizer is active.
+        """
+        return self._set_tone_control(parameter_type='treble', value=treble)
 
 
 class DenonAVRZones(DenonAVR):
