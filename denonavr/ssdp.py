@@ -45,7 +45,7 @@ SUPPORTED_DEVICETYPES = [
     "urn:schemas-upnp-org:device:MediaServer:1",
     ]
 
-SUPPORTED_MANUFACTURERS = ["Denon", "DENON", "Marantz"]
+SUPPORTED_MANUFACTURERS = ["Denon", "DENON", "DENON PROFESSIONAL", "Marantz"]
 
 
 def ssdp_request(ssdp_st, ssdp_mx=SSDP_MX):
