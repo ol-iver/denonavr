@@ -828,14 +828,14 @@ class DenonAVR:
                 pass
             except (ValueError, requests.exceptions.RequestException):
                 _LOGGER.info("Receiver name could not be determined. "
-                                "Using standard name: Denon AVR.")
+                             "Using standard name: Denon AVR.")
                 self._name = "Denon AVR"
             else:
                 # Get the tags from this XML
                 name_tag = self._get_status_from_xml_tags(root, name_tag)
                 if name_tag:
                     _LOGGER.info("Receiver name could not be determined. "
-                                    "Using standard name: Denon AVR.")
+                                 "Using standard name: Denon AVR.")
                     self._name = "Denon AVR"
 
     def _get_receiver_name_avr_2016(self):
