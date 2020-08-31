@@ -1789,7 +1789,7 @@ class DenonAVR:
                 return False
 
     def power_on(self):
-        """Turn off receiver via HTTP get command."""
+        """Turn on receiver via HTTP get command."""
         try:
             if self.send_get_command(self._urls.command_power_on):
                 self._power = POWER_ON
