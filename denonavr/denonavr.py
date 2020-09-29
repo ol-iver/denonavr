@@ -53,10 +53,12 @@ ALL_ZONE_STEREO = "ALL ZONE STEREO"
 
 SOUND_MODE_MAPPING = OrderedDict(
     [('MUSIC', ['PLII MUSIC', 'DTS NEO:6 MUSIC', 'DOLBY D +NEO:X M',
-                'DTS NEO:X MUSIC', 'DOLBY PL2 MUSIC', 'AURO-3D', 'AURO-2D SURROUND']),
+                'DTS NEO:X MUSIC', 'DOLBY PL2 MUSIC', 'AURO-3D',
+                'AURO-2D SURROUND']),
      ('MOVIE', ['PLII MOVIE', 'PLII CINEMA', 'DTS NEO:X CINEMA',
                 'DTS NEO:6 CINEMA', 'DOLBY D +NEO:X C',
-                'PLIIX CINEMA', 'DOLBY PLII MOVIE', 'AURO-3D', 'AURO-2D SURROUND']),
+                'PLIIX CINEMA', 'DOLBY PLII MOVIE', 'AURO-3D',
+                'AURO-2D SURROUND']),
      ('GAME', ['PLII GAME', 'DOLBY D +NEO:X G']),
      ('AUTO', ['None']),
      ('STANDARD', ['None2']),
@@ -389,7 +391,7 @@ class DenonAVR:
                     _LOGGER.error(
                         "Host %s returned malformed XML for end point %s: %s",
                         self._host, command, err)
-                raise ValueError
+                raise ValueError from err
         else:
             if not suppress_errors:
                 _LOGGER.error((
