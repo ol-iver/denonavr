@@ -56,7 +56,7 @@ SOUND_MODE_MAPPING = OrderedDict(
                 'DTS NEO:X MUSIC', 'DOLBY PL2 MUSIC']),
      ('MOVIE', ['PLII MOVIE', 'PLII CINEMA', 'DTS NEO:X CINEMA',
                 'DTS NEO:6 CINEMA', 'DOLBY D +NEO:X C',
-                'PLIIX CINEMA', 'DOLBY PLII MOVIE']),
+                'PLIIX CINEMA', 'DOLBY PLII MOVIE', 'AURO-3D', 'AURO-2D SURROUND']),
      ('GAME', ['PLII GAME', 'DOLBY D +NEO:X G']),
      ('AUTO', ['None']),
      ('STANDARD', ['None2']),
