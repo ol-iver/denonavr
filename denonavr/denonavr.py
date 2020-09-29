@@ -87,7 +87,8 @@ SOUND_MODE_MAPPING = OrderedDict(
                        'DTS + NEURAL:X', 'MULTI CH IN', 'DTS-HD MSTR',
                        'DTS VIRTUAL:X', 'DTS-HD + NEURAL:X', 'DTS-HD',
                        'DTS + VIRTUAL:X']),
-     ('MCH STEREO', ['MULTI CH STEREO', 'MULTI_CH_STEREO', 'MCH STEREO']),
+     ('MCH STEREO', ['MULTI CH STEREO', 'MULTI_CH_STEREO', 'MCH STEREO',
+                     'MULTI CH IN 7.1']),
      ('STEREO', ['STEREO']),
      (ALL_ZONE_STEREO, ['ALL ZONE STEREO'])])
 
@@ -827,15 +828,15 @@ class DenonAVR:
             except requests.exceptions.ConnectTimeout:
                 pass
             except (ValueError, requests.exceptions.RequestException):
-                _LOGGER.warning("Receiver name could not be determined. "
-                                "Using standard name: Denon AVR.")
+                _LOGGER.info("Receiver name could not be determined. "
+                             "Using standard name: Denon AVR.")
                 self._name = "Denon AVR"
             else:
                 # Get the tags from this XML
                 name_tag = self._get_status_from_xml_tags(root, name_tag)
                 if name_tag:
-                    _LOGGER.warning("Receiver name could not be determined. "
-                                    "Using standard name: Denon AVR.")
+                    _LOGGER.info("Receiver name could not be determined. "
+                                 "Using standard name: Denon AVR.")
                     self._name = "Denon AVR"
 
     def _get_receiver_name_avr_2016(self):
@@ -1788,7 +1789,7 @@ class DenonAVR:
                 return False
 
     def power_on(self):
-        """Turn off receiver via HTTP get command."""
+        """Turn on receiver via HTTP get command."""
         try:
             if self.send_get_command(self._urls.command_power_on):
                 self._power = POWER_ON
