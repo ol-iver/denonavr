@@ -891,7 +891,11 @@ class DenonAVR:
             _LOGGER.error("Getting tone control failed.")
             return False
 
-        self._tone_control_status = bool(int(root[0].find('status').text))
+        try:
+            self._tone_control_status = bool(int(root[0].find('status').text))
+        except (AttributeError, IndexError, TypeError):
+            return False
+
         if self._tone_control_status is False:
             # Tone Control can not be activated.
             # e.g.: Due to active DynamicEQ
