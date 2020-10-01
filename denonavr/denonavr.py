@@ -321,6 +321,7 @@ class DenonAVR:
         self._frequency = None
         self._station = None
 
+        self._tone_control_status = None
         self._tone_control_adjust = None
         self._bass = None
         self._bass_level = None
@@ -890,14 +891,20 @@ class DenonAVR:
             _LOGGER.error("Getting tone control failed.")
             return False
 
+        self._tone_control_status = bool(int(root[0].find('status').text))
+        if self._tone_control_status is False:
+            # Tone Control can not be activated.
+            # e.g.: Due to active DynamicEQ
+            return False
+
         try:
             self._tone_control_adjust = bool(int(root[0].find('adjust').text))
             self._bass = int(root[0].find('bassvalue').text)
             self._bass_level = root[0].find('basslevel').text
             self._treble = int(root[0].find('treblevalue').text)
             self._treble_level = root[0].find('treblelevel').text
-        except (AttributeError, IndexError):
-            _LOGGER.error("Incomple/no information found for tone control")
+        except (AttributeError, IndexError, TypeError):
+            _LOGGER.error("Incomplete/no information found for tone control")
             return False
         return True
 
@@ -1940,6 +1947,9 @@ class DenonAVR:
 
     def enable_tone_control(self):
         """Enable tone control to change settings like bass or treble."""
+        if self._tone_control_status is False:
+            return False
+
         if self._tone_control_adjust is True:
             return True
         elif self._set_tone_control_command(parameter_type='adjust', value=1):
@@ -1949,6 +1959,9 @@ class DenonAVR:
 
     def disable_tone_control(self):
         """Disable tone control to change settings like bass or treble."""
+        if self._tone_control_status is False:
+            return False
+
         if self._tone_control_adjust is False:
             return True
         elif self._set_tone_control_command(parameter_type='adjust', value=0):
