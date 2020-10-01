@@ -899,6 +899,11 @@ class DenonAVR:
         if self._tone_control_status is False:
             # Tone Control can not be activated.
             # e.g.: Due to active DynamicEQ
+            self._tone_control_adjust = None
+            self._bass = None
+            self._bass_level = None
+            self._treble = None
+            self._treble_level = None
             return False
 
         try:
