@@ -645,97 +645,106 @@ class DenonAVR:
         Returns "True" on success and "False" on fail.
         This method is for AVR-X  devices built in 2016 and later.
         """
-        success = True
-        # Collect tags for AppCommand.xml call
-        tags = ["GetAllZonePowerStatus", "GetAllZoneSource",
-                "GetAllZoneVolume", "GetAllZoneMuteStatus",
-                "GetSurroundModeStatus"]
-        # Execute call
-        try:
-            root = self.exec_appcommand_post(tags)
-        except requests.exceptions.ConnectTimeout:
-            if compatibiliy_check is True:
-                return None
-            # Assume device is off on connect timeout
-            self._power = POWER_OFF
-            self._state = STATE_OFF
-            return False
-        # Check result
-        if root is None:
-            if compatibiliy_check is False:
-                _LOGGER.error("Update failed.")
-            return False
+        # Use ThreadPoolExecutor to call all URLs of this method in parallel
+        with ThreadPoolExecutor(max_workers=2) as executor:
 
-        # Extract relevant information
-        zone = self._get_own_zone()
+            success = True
+            # Collect tags for AppCommand.xml call
+            tags = ["GetAllZonePowerStatus", "GetAllZoneSource",
+                    "GetAllZoneVolume", "GetAllZoneMuteStatus",
+                    "GetSurroundModeStatus"]
+            # Execute call
+            app_command = executor.submit(self.exec_appcommand_post, tags)
 
-        try:
-            self._power = root[0].find(zone).text
-        except (AttributeError, IndexError):
-            if compatibiliy_check is False:
-                _LOGGER.error("No PowerStatus found for zone %s", self.zone)
-            success = False
+            # Update tone control
+            executor.submit(self._update_tone_control)
 
-        try:
-            self._mute = root[3].find(zone).text
-        except (AttributeError, IndexError):
-            if compatibiliy_check is False:
-                _LOGGER.error("No MuteStatus found for zone %s", self.zone)
-            success = False
-
-        try:
-            self._volume = root.find(
-                "./cmd/{zone}/volume".format(zone=zone)).text
-        except AttributeError:
-            if compatibiliy_check is False:
-                _LOGGER.error("No VolumeStatus found for zone %s", self.zone)
-            success = False
-
-        try:
-            inputfunc = root.find(
-                "./cmd/{zone}/source".format(zone=zone)).text
-        except AttributeError:
-            if compatibiliy_check is False:
-                _LOGGER.error("No Source found for zone %s", self.zone)
-            success = False
-        else:
             try:
-                self._input_func = self._input_func_list_rev[inputfunc]
-            except KeyError:
-                _LOGGER.info("No mapping for source %s found", inputfunc)
-                self._input_func = inputfunc
-                # Get/update sources list if current source is not known yet
-                if self._update_input_func_list():
-                    _LOGGER.info("List of input functions refreshed.")
-                    # If input function is still not known, log error.
-                    if (inputfunc not in self._input_func_list and
-                            inputfunc is not None):
-                        _LOGGER.error(
-                            "Input function %s is not known", self._input_func)
-                else:
-                    _LOGGER.error((
-                        "Input function list for Denon receiver at host %s "
-                        "could not be updated."), self._host)
-        try:
-            self._sound_mode_raw = root[4][0].text.rstrip()
-        except (AttributeError, IndexError):
-            if compatibiliy_check is False:
-                _LOGGER.error(
-                    "No SoundMode found for the main zone %s", self.zone
-                )
-            success = False
-
-        # Now playing information is not implemented for 2016+ models, because
-        # a HEOS API query needed. So only sync the power state for now.
-        if self._receiver_type == AVR_X_2016.type:
-            if self._power == POWER_ON:
-                self._state = STATE_ON
-            else:
+                root = app_command.result()
+            except requests.exceptions.ConnectTimeout:
+                if compatibiliy_check is True:
+                    return None
+                # Assume device is off on connect timeout
+                self._power = POWER_OFF
                 self._state = STATE_OFF
+                return False
+            # Check result
+            if root is None:
+                if compatibiliy_check is False:
+                    _LOGGER.error("Update failed.")
+                return False
 
-        self._update_tone_control()
+            # Extract relevant information
+            zone = self._get_own_zone()
 
-        return success
+            try:
+                self._power = root[0].find(zone).text
+            except (AttributeError, IndexError):
+                if compatibiliy_check is False:
+                    _LOGGER.error(
+                        "No PowerStatus found for zone %s", self.zone)
+                success = False
+
+            try:
+                self._mute = root[3].find(zone).text
+            except (AttributeError, IndexError):
+                if compatibiliy_check is False:
+                    _LOGGER.error("No MuteStatus found for zone %s", self.zone)
+                success = False
+
+            try:
+                self._volume = root.find(
+                    "./cmd/{zone}/volume".format(zone=zone)).text
+            except AttributeError:
+                if compatibiliy_check is False:
+                    _LOGGER.error(
+                        "No VolumeStatus found for zone %s", self.zone)
+                success = False
+
+            try:
+                inputfunc = root.find(
+                    "./cmd/{zone}/source".format(zone=zone)).text
+            except AttributeError:
+                if compatibiliy_check is False:
+                    _LOGGER.error("No Source found for zone %s", self.zone)
+                success = False
+            else:
+                try:
+                    self._input_func = self._input_func_list_rev[inputfunc]
+                except KeyError:
+                    _LOGGER.info("No mapping for source %s found", inputfunc)
+                    self._input_func = inputfunc
+                    # Update sources list if current source is not known yet
+                    if self._update_input_func_list():
+                        _LOGGER.info("List of input functions refreshed.")
+                        # If input function is still not known, log error.
+                        if (inputfunc not in self._input_func_list and
+                                inputfunc is not None):
+                            _LOGGER.error(
+                                "Input function %s is not known",
+                                self._input_func)
+                    else:
+                        _LOGGER.error((
+                            "Input function list for Denon receiver at host %s"
+                            " could not be updated."), self._host)
+            try:
+                self._sound_mode_raw = root[4][0].text.rstrip()
+            except (AttributeError, IndexError):
+                if compatibiliy_check is False:
+                    _LOGGER.error(
+                        "No SoundMode found for the main zone %s", self.zone
+                    )
+                success = False
+
+            # Now playing information is not implemented for 2016+ models, as
+            # a HEOS API query needed. So only sync the power state for now.
+            if self._receiver_type == AVR_X_2016.type:
+                if self._power == POWER_ON:
+                    self._state = STATE_ON
+                else:
+                    self._state = STATE_OFF
+
+            return success
 
     def _update_input_func_list(self):
         """

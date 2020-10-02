@@ -84,6 +84,12 @@ CLASSES
      |  create_zones(self, add_zones)
      |      Create instances of additional zones for the receiver.
      |  
+     |  disable_tone_control(self)
+     |      Disable tone control to change settings like bass or treble.
+     |  
+     |  enable_tone_control(self)
+     |      Enable tone control to change settings like bass or treble.
+     |  
      |  ensure_configuration(self)
      |      Ensure that configuration is loaded from receiver.
      |  
@@ -117,7 +123,7 @@ CLASSES
      |      Turn off receiver via HTTP get command.
      |  
      |  power_on(self)
-     |      Turn off receiver via HTTP get command.
+     |      Turn on receiver via HTTP get command.
      |  
      |  previous_track(self)
      |      Send previous track command to receiver command via HTTP post.
@@ -127,6 +133,14 @@ CLASSES
      |  
      |  send_post_command(self, command, body)
      |      Send command via HTTP post to receiver.
+     |  
+     |  set_bass(self, bass)
+     |      Set receiver bass.
+     |      
+     |      Minimum is 0, maximum at 12
+     |      
+     |      Note:
+     |      Doesn't work, if Dynamic Equalizer is active.
      |  
      |  set_input_func(self, input_func)
      |      Set input_func of device.
@@ -144,6 +158,14 @@ CLASSES
      |  
      |  set_sound_mode_dict(self, sound_mode_dict)
      |      Set the matching dictionary used to match the raw sound mode.
+     |  
+     |  set_treble(self, treble)
+     |      Set receiver treble.
+     |      
+     |      Minimum is 0, maximum at 12
+     |      
+     |      Note:
+     |      Doesn't work, if Dynamic Equalizer is active.
      |  
      |  set_volume(self, volume)
      |      Set receiver volume via HTTP get command.
@@ -166,13 +188,7 @@ CLASSES
      |      Volume up receiver via HTTP get command.
      |  
      |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
+     |  Readonly properties defined here:
      |  
      |  album
      |      Return album name of current playing media as string.
@@ -183,6 +199,12 @@ CLASSES
      |  band
      |      Return band of current radio station as string.
      |  
+     |  bass
+     |      Return value of bass.
+     |  
+     |  bass_level
+     |      Return level of bass.
+     |  
      |  frequency
      |      Return frequency of current radio station as string.
      |  
@@ -191,9 +213,6 @@ CLASSES
      |  
      |  image_url
      |      Return image URL of current playing media when powered on.
-     |  
-     |  input_func
-     |      Return the current input source as string.
      |  
      |  input_func_list
      |      Return a list of available input sources as string.
@@ -244,9 +263,6 @@ CLASSES
      |  sm_match_dict
      |      Return a dict to map each sound_mode_raw to matching sound_mode.
      |  
-     |  sound_mode
-     |      Return the matched current sound mode as a string.
-     |  
      |  sound_mode_dict
      |      Return a dict of available sound modes with their mapping values.
      |  
@@ -272,6 +288,12 @@ CLASSES
      |  title
      |      Return title of current playing media as string.
      |  
+     |  treble
+     |      Return value of treble.
+     |  
+     |  treble_level
+     |      Return level of treble.
+     |  
      |  volume
      |      Return volume of Denon AVR as float.
      |      
@@ -283,6 +305,21 @@ CLASSES
      |  
      |  zones
      |      Return all Zone instances of the device.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  input_func
+     |      Return the current input source as string.
+     |  
+     |  sound_mode
+     |      Return the matched current sound mode as a string.
     
     class DenonAVRZones(DenonAVR)
      |  DenonAVRZones(parent_avr, zone, name)
@@ -316,13 +353,10 @@ CLASSES
      |      Return "True" on success and "False" on fail.
      |  
      |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
+     |  Readonly properties defined here:
      |  
      |  sm_match_dict
      |      Return a dict to map each sound_mode_raw to matching sound_mode.
-     |  
-     |  sound_mode
-     |      Return the matched current sound mode as a string.
      |  
      |  sound_mode_dict
      |      Return a dict of available sound modes with their mapping values.
@@ -332,6 +366,12 @@ CLASSES
      |  
      |  sound_mode_raw
      |      Return the current sound mode as string as received from the AVR.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  sound_mode
+     |      Return the matched current sound mode as a string.
      |  
      |  ----------------------------------------------------------------------
      |  Methods inherited from DenonAVR:
@@ -346,6 +386,12 @@ CLASSES
      |  
      |  create_zones(self, add_zones)
      |      Create instances of additional zones for the receiver.
+     |  
+     |  disable_tone_control(self)
+     |      Disable tone control to change settings like bass or treble.
+     |  
+     |  enable_tone_control(self)
+     |      Enable tone control to change settings like bass or treble.
      |  
      |  ensure_configuration(self)
      |      Ensure that configuration is loaded from receiver.
@@ -380,7 +426,7 @@ CLASSES
      |      Turn off receiver via HTTP get command.
      |  
      |  power_on(self)
-     |      Turn off receiver via HTTP get command.
+     |      Turn on receiver via HTTP get command.
      |  
      |  previous_track(self)
      |      Send previous track command to receiver command via HTTP post.
@@ -391,6 +437,14 @@ CLASSES
      |  send_post_command(self, command, body)
      |      Send command via HTTP post to receiver.
      |  
+     |  set_bass(self, bass)
+     |      Set receiver bass.
+     |      
+     |      Minimum is 0, maximum at 12
+     |      
+     |      Note:
+     |      Doesn't work, if Dynamic Equalizer is active.
+     |  
      |  set_input_func(self, input_func)
      |      Set input_func of device.
      |      
@@ -400,6 +454,14 @@ CLASSES
      |  
      |  set_sound_mode_dict(self, sound_mode_dict)
      |      Set the matching dictionary used to match the raw sound mode.
+     |  
+     |  set_treble(self, treble)
+     |      Set receiver treble.
+     |      
+     |      Minimum is 0, maximum at 12
+     |      
+     |      Note:
+     |      Doesn't work, if Dynamic Equalizer is active.
      |  
      |  set_volume(self, volume)
      |      Set receiver volume via HTTP get command.
@@ -422,13 +484,7 @@ CLASSES
      |      Volume up receiver via HTTP get command.
      |  
      |  ----------------------------------------------------------------------
-     |  Data descriptors inherited from DenonAVR:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
+     |  Readonly properties inherited from DenonAVR:
      |  
      |  album
      |      Return album name of current playing media as string.
@@ -439,6 +495,12 @@ CLASSES
      |  band
      |      Return band of current radio station as string.
      |  
+     |  bass
+     |      Return value of bass.
+     |  
+     |  bass_level
+     |      Return level of bass.
+     |  
      |  frequency
      |      Return frequency of current radio station as string.
      |  
@@ -447,9 +509,6 @@ CLASSES
      |  
      |  image_url
      |      Return image URL of current playing media when powered on.
-     |  
-     |  input_func
-     |      Return the current input source as string.
      |  
      |  input_func_list
      |      Return a list of available input sources as string.
@@ -513,6 +572,12 @@ CLASSES
      |  title
      |      Return title of current playing media as string.
      |  
+     |  treble
+     |      Return value of treble.
+     |  
+     |  treble_level
+     |      Return level of treble.
+     |  
      |  volume
      |      Return volume of Denon AVR as float.
      |      
@@ -524,6 +589,18 @@ CLASSES
      |  
      |  zones
      |      Return all Zone instances of the device.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from DenonAVR:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  input_func
+     |      Return the current input source as string.
 
 ====================================================================================
 
@@ -559,6 +636,6 @@ FUNCTIONS
     
     send_ssdp_broadcast_ip(ip_addr)
         Send SSDP broadcast messages to a single IP.
-
+    
     ssdp_request(ssdp_st, ssdp_mx=2)
         Return request bytes for given st and mx.
