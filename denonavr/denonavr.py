@@ -53,12 +53,10 @@ ALL_ZONE_STEREO = "ALL ZONE STEREO"
 
 SOUND_MODE_MAPPING = OrderedDict(
     [('MUSIC', ['PLII MUSIC', 'DTS NEO:6 MUSIC', 'DOLBY D +NEO:X M',
-                'DTS NEO:X MUSIC', 'DOLBY PL2 MUSIC', 'AURO-3D',
-                'AURO-2D SURROUND']),
+                'DTS NEO:X MUSIC', 'DOLBY PL2 MUSIC']),
      ('MOVIE', ['PLII MOVIE', 'PLII CINEMA', 'DTS NEO:X CINEMA',
                 'DTS NEO:6 CINEMA', 'DOLBY D +NEO:X C',
-                'PLIIX CINEMA', 'DOLBY PLII MOVIE', 'AURO-3D',
-                'AURO-2D SURROUND']),
+                'PLIIX CINEMA', 'DOLBY PLII MOVIE']),
      ('GAME', ['PLII GAME', 'DOLBY D +NEO:X G']),
      ('AUTO', ['None']),
      ('STANDARD', ['None2']),
@@ -89,6 +87,7 @@ SOUND_MODE_MAPPING = OrderedDict(
                        'DTS + NEURAL:X', 'MULTI CH IN', 'DTS-HD MSTR',
                        'DTS VIRTUAL:X', 'DTS-HD + NEURAL:X', 'DTS-HD',
                        'DTS + VIRTUAL:X']),
+     ('AURO3D', ['AURO-3D', 'AURO-2D SURROUND']),
      ('MCH STEREO', ['MULTI CH STEREO', 'MULTI_CH_STEREO', 'MCH STEREO',
                      'MULTI CH IN 7.1']),
      ('STEREO', ['STEREO']),
