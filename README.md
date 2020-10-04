@@ -1,7 +1,7 @@
 # denonavr
 [![Build Status](https://travis-ci.com/scarface-4711/denonavr.svg?branch=master)](https://travis-ci.com/scarface-4711/denonavr)
 
-Automation Library for Denon AVR receivers - current version 0.9.5
+Automation Library for Denon AVR receivers - current version 0.9.6
 
 ## Installation
 

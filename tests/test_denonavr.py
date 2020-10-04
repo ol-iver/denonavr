@@ -132,11 +132,11 @@ class TestMainFunctions(testtools.TestCase):
             self._testing_receiver = receiver
             self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=zones)
             # Switch through all functions and check if successful
-            for zone in self.denon.zones.values():
+            for name, zone in self.denon.zones.items():
                 for input_func in zone.input_func_list:
-                    self.denon.set_input_func(input_func)
+                    self.denon.zones[name].set_input_func(input_func)
                     self.assertEqual(
-                        input_func, self.denon.input_func,
+                        input_func, self.denon.zones[name].input_func,
                         ("Input function change to {func} "
                          "not successful for {receiver}").format(
                              func=input_func, receiver=receiver))

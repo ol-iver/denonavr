@@ -244,6 +244,7 @@ STATE_OFF = "off"
 STATE_PLAYING = "playing"
 STATE_PAUSED = "paused"
 
+MAIN_ZONE = "Main"
 NO_ZONES = None
 ZONE2 = {"Zone2": None}
 ZONE3 = {"Zone3": None}
@@ -274,10 +275,10 @@ class DenonAVR:
         self._host = host
         # Main zone just set for DenonAVR class
         if self.__class__.__name__ == "DenonAVR":
-            self._zone = "Main"
+            self._zone = MAIN_ZONE
         self._zones = {self._zone: self}
 
-        if self._zone == "Main":
+        if self._zone == MAIN_ZONE:
             self._urls = DENONAVR_URLS
         elif self._zone == "Zone2":
             self._urls = ZONE2_URLS
@@ -334,7 +335,7 @@ class DenonAVR:
         # Get initial setting of values
         self.update()
         # Create instances of additional zones if requested
-        if self._zone == "Main" and add_zones is not None:
+        if self._zone == MAIN_ZONE and add_zones is not None:
             self.create_zones(add_zones)
 
     def exec_appcommand_post(self, attribute_list):
@@ -510,8 +511,18 @@ class DenonAVR:
 
         if self._receiver_type == AVR_X_2016.type:
             return bool(self._update_avr_2016())
+        elif self._support_update_avr_2016:
+            if self._update_avr_2016() is not True:
+                _LOGGER.debug(
+                    "Update method (AppCommand.xml) failed for zone %s",
+                    self._zone)
+                return False
         else:
-            return self._update_avr()
+            if self._update_avr() is not True:
+                return False
+
+        # Media data are only supported on non AVR devices built before 2016
+        return self._set_media_state()
 
     def _update_avr(self):
         """
@@ -522,9 +533,8 @@ class DenonAVR:
         This method is for pre 2016 AVR(-X) devices
         """
         # Use ThreadPoolExecutor to call all URLs of this method in parallel
-        executor = ThreadPoolExecutor(max_workers=3)
-        if self._support_update_avr_2016:
-            update_avr = executor.submit(self._update_avr_2016)
+        executor = ThreadPoolExecutor(max_workers=2)
+
         status_status = executor.submit(self.get_status_xml, self._urls.status)
         status_mainzone = executor.submit(
             self.get_status_xml, self._urls.mainzone)
@@ -534,41 +544,27 @@ class DenonAVR:
                          "MasterVolume": None}
 
         # Sound mode information only available in main zone
-        if self._zone == "Main" and self._support_sound_mode:
+        if self._zone == MAIN_ZONE and self._support_sound_mode:
             relevant_tags["selectSurround"] = None
             relevant_tags["SurrMode"] = None
 
-        # if update_avr_2016 is supported try that first, that reports better
-        if self._support_update_avr_2016:
-            if update_avr.result():
-                # Success --> skip xml update
-                relevant_tags = {}
-            else:
-                _LOGGER.debug(
-                    "Primary update method (AppCommand.xml) "
-                    "failed for zone %s", self._zone)
-
         # Get status XML from Denon receiver via HTTP
-        if relevant_tags:
-            try:
-                root = status_status.result()
-            except requests.exceptions.ConnectTimeout:
-                # On connect timeout, the device is probably off
-                self._power = POWER_OFF
-                self._state = STATE_OFF
-            except (ValueError, requests.exceptions.RequestException):
-                pass
-            else:
-                # Get the tags from this XML
-                relevant_tags = self._get_status_from_xml_tags(root,
-                                                               relevant_tags)
+        try:
+            root = status_status.result()
+        except requests.exceptions.ConnectTimeout:
+            # On connect timeout, the device is probably off
+            self._power = POWER_OFF
+            self._state = STATE_OFF
+        except (ValueError, requests.exceptions.RequestException):
+            pass
+        else:
+            # Get the tags from this XML
+            relevant_tags = self._get_status_from_xml_tags(root, relevant_tags)
 
         # Second option to update variables from different source
         if relevant_tags and self._power != POWER_OFF:
             _LOGGER.debug(
-                "Secondary update method (Status.xml) failed for zone %s",
-                self._zone
-            )
+                "Update method (Status.xml) failed for zone %s", self._zone)
             try:
                 root = status_mainzone.result()
             except requests.exceptions.ConnectTimeout:
@@ -585,42 +581,13 @@ class DenonAVR:
         # Error message if still some variables are not updated yet
         if relevant_tags and self._power != POWER_OFF:
             _LOGGER.debug(
-                "Third update method (MainZone.xml) failed for zone %s",
-                self._zone)
+                "Update method (MainZone.xml) failed for zone %s", self._zone)
             _LOGGER.error("Missing status information from XML of %s for: %s",
                           self._zone, ", ".join(relevant_tags.keys()))
 
-        # Set state and media image URL based on current source
-        # and power status
-        if (self._power == POWER_ON) and (
-                self._input_func in self._playing_func_list):
-            if self._update_media_data():
-                pass
-            else:
-                _LOGGER.error(
-                    "Update of media data for source %s in %s failed",
-                    self._input_func, self._zone)
-        elif self._power == POWER_ON:
-            self._state = STATE_ON
-            self._title = None
-            self._artist = None
-            self._album = None
-            self._band = None
-            self._frequency = None
-            self._station = None
-            self._image_url = None
-        else:
-            self._state = STATE_OFF
-            self._title = None
-            self._artist = None
-            self._album = None
-            self._band = None
-            self._frequency = None
-            self._station = None
-
         # Get/update sources list if current source is not known yet
-        if (self._input_func not in self._input_func_list and
-                self._input_func is not None):
+        if (self._input_func not in self._input_func_list
+                and self._input_func is not None):
             if self._update_input_func_list():
                 _LOGGER.info("List of input functions refreshed.")
                 # If input function is still not known, log error.
@@ -643,7 +610,7 @@ class DenonAVR:
 
         Method queries device via HTTP and updates instance attributes.
         Returns "True" on success and "False" on fail.
-        This method is for AVR-X  devices built in 2016 and later.
+        This method is for AVR-X devices built in 2016 and later.
         """
         # Use ThreadPoolExecutor to call all URLs of this method in parallel
         with ThreadPoolExecutor(max_workers=2) as executor:
@@ -709,12 +676,18 @@ class DenonAVR:
                     _LOGGER.error("No Source found for zone %s", self.zone)
                 success = False
             else:
+                # AirPlay is not always listed in available sources
+                if (inputfunc == "AirPlay"
+                        and "AirPlay" not in self._input_func_list):
+                    self._input_func_list["AirPlay"] = "AirPlay"
+                    self._input_func_list_rev["AirPlay"] = "AirPlay"
                 try:
                     self._input_func = self._input_func_list_rev[inputfunc]
                 except KeyError:
-                    _LOGGER.info("No mapping for source %s found", inputfunc)
                     self._input_func = inputfunc
                     # Update sources list if current source is not known yet
+                    _LOGGER.info(
+                        "No mapping for source %s found", inputfunc)
                     if self._update_input_func_list():
                         _LOGGER.info("List of input functions refreshed.")
                         # If input function is still not known, log error.
@@ -725,8 +698,8 @@ class DenonAVR:
                                 self._input_func)
                     else:
                         _LOGGER.error((
-                            "Input function list for Denon receiver at host %s"
-                            " could not be updated."), self._host)
+                            "Input function list for Denon receiver at "
+                            "host %s could not be updated."), self._host)
             try:
                 self._sound_mode_raw = root[4][0].text.rstrip()
             except (AttributeError, IndexError):
@@ -1196,8 +1169,7 @@ class DenonAVR:
                 for deleted_source in deleted_non_x_sources.items():
                     if deleted_source[1] == "DEL":
                         non_x_sources.pop(deleted_source[0], None)
-            # Invalid source "SOURCE" needs to be deleted
-            non_x_sources.pop("SOURCE", None)
+
             return non_x_sources
 
         # Following source determination of AVR-X receivers
@@ -1229,9 +1201,6 @@ class DenonAVR:
                                 "FuncName").text] = xml_source.find(
                                     "DefaultName").text
 
-            # Invalid source "SOURCE" needs to be deleted
-            receiver_sources.pop("SOURCE", None)
-
             return receiver_sources
 
     def _get_own_zone(self):
@@ -1241,10 +1210,48 @@ class DenonAVR:
         These zone information are used to evaluate responses of HTTP POST
         commands.
         """
-        if self._zone == "Main":
+        if self._zone == MAIN_ZONE:
             return "zone1"
         else:
             return self.zone.lower()
+
+    def _set_media_state(self):
+        """
+        Set media state for the receiver.
+
+        This method does not work on AVR-X devices built in 2016 and later.
+        """
+        # Set state and media image URL based on current source
+        # and power status
+        if (self._power == POWER_ON and
+                self._input_func in self._playing_func_list):
+            if self._update_media_data():
+                return True
+            else:
+                _LOGGER.error(
+                    "Update of media data for source %s in %s failed",
+                    self._input_func, self._zone)
+                return False
+        elif self._power == POWER_ON:
+            self._state = STATE_ON
+            self._title = None
+            self._artist = None
+            self._album = None
+            self._band = None
+            self._frequency = None
+            self._station = None
+            self._image_url = None
+        else:
+            self._state = STATE_OFF
+            self._title = None
+            self._artist = None
+            self._album = None
+            self._band = None
+            self._frequency = None
+            self._station = None
+            self._image_url = None
+
+        return True
 
     def _update_media_data(self):
         """
@@ -1286,7 +1293,7 @@ class DenonAVR:
                     self._frequency = None
                     self._station = None
 
-        elif self._input_func == "Tuner" or self._input_func == "TUNER":
+        elif self._input_func in ["Tuner", "TUNER"]:
             try:
                 root = self.get_status_xml(self._urls.tunerstatus)
             except (ValueError, requests.exceptions.RequestException):
@@ -1312,7 +1319,7 @@ class DenonAVR:
                 STATIC_ALBUM_URL.format(
                     host=self._host, port=self._receiver_port))
 
-        elif self._input_func == "HD Radio" or self._input_func == "HDRADIO":
+        elif self._input_func in ["HD Radio", "HDRADIO"]:
             try:
                 root = self.get_status_xml(self._urls.hdtunerstatus)
             except (ValueError, requests.exceptions.RequestException):
@@ -1402,6 +1409,11 @@ class DenonAVR:
             elif child.tag == "InputFuncSelect":
                 inputfunc = child[0].text
                 if inputfunc is not None:
+                    # AirPlay is not always listed in available sources
+                    if (inputfunc == "AirPlay"
+                            and "AirPlay" not in self._input_func_list):
+                        self._input_func_list["AirPlay"] = "AirPlay"
+                        self._input_func_list_rev["AirPlay"] = "AirPlay"
                     try:
                         self._input_func = self._input_func_list_rev[inputfunc]
                     except KeyError:
@@ -2110,3 +2122,56 @@ class DenonAVRZones(DenonAVR):
         Return "True" on success and "False" on fail.
         """
         return self._parent_avr.set_sound_mode(sound_mode)
+
+    def _get_renamed_deleted_sources(self):
+        """
+        Get renamed and deleted sources lists from receiver .
+
+        Internal method which queries device via HTTP to get names of renamed
+        input sources.
+        """
+        renamed, deleted = super()._get_renamed_deleted_sources()
+
+        # SOURCE in zone 2 and 3 means "same input sources as main zone"
+        renamed["SOURCE"] = "Source of main zone"
+
+        return (renamed, deleted)
+
+    def _get_renamed_deleted_sourcesapp(self):
+        """
+        Get renamed and deleted sources lists from receiver .
+
+        Internal method which queries device via HTTP to get names of renamed
+        input sources. In this method AppCommand.xml is used.
+        """
+        renamed, deleted, success = super()._get_renamed_deleted_sourcesapp()
+
+        if success is True:
+            # SOURCE in zone 2 and 3 means "same input sources as main zone"
+            renamed["SOURCE"] = "Source of main zone"
+
+        return (renamed, deleted, success)
+
+    def _set_media_state(self):
+        """
+        Set media state for the receiver.
+
+        This method does not work on AVR-X devices built in 2016 and later.
+        """
+        if (self._parent_avr.input_func in self._parent_avr.playing_func_list
+                and self._input_func == "Source of main zone"
+                and self._power == POWER_ON):
+
+            # When zone uses the same input as main zone, copy its media state
+            self._state = self._parent_avr.state
+            self._title = self._parent_avr.title
+            self._artist = self._parent_avr.artist
+            self._album = self._parent_avr.album
+            self._band = self._parent_avr.band
+            self._frequency = self._parent_avr.frequency
+            self._station = self._parent_avr.station
+            self._image_url = self._parent_avr.image_url
+
+            return True
+        else:
+            return super()._set_media_state()
