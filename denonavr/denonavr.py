@@ -634,6 +634,9 @@ class DenonAVR:
             # Update tone control
             executor.submit(self._update_tone_control)
 
+            # Update Audyssey
+            executor.submit(self._audyssey.update())
+
             try:
                 root = app_command.result()
             except requests.exceptions.ConnectTimeout:
@@ -725,13 +728,8 @@ class DenonAVR:
                 else:
                     self._state = STATE_OFF
 
-<<<<<<< HEAD
-            return success
-=======
-        self._audyssey.update()
 
         return success
->>>>>>> 26dda99... Add Audyssey settings
 
     def _update_input_func_list(self):
         """
