@@ -727,9 +727,7 @@ class DenonAVR:
                     self._state = STATE_ON
                 else:
                     self._state = STATE_OFF
-
-
-        return success
+            return success
 
     def _update_input_func_list(self):
         """
