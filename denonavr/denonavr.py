@@ -20,6 +20,13 @@ import requests
 
 from .ssdp import evaluate_scpd_xml
 
+from .audyssey import (
+    Audyssey,
+    REF_LVL_OFFSET_MAP_LABELS,
+    MULTI_EQ_MAP_LABELS,
+    DYNAMIC_VOLUME_MAP_LABELS,
+    )
+
 _LOGGER = logging.getLogger("DenonAVR")
 
 DEVICEINFO_AVR_X_PATTERN = re.compile(
@@ -330,6 +337,8 @@ class DenonAVR:
         self._bass_level = None
         self._treble = None
         self._treble_level = None
+
+        self._audyssey = Audyssey(receiver=self)
 
         # Get initial setting of values
         self.update()
@@ -716,7 +725,13 @@ class DenonAVR:
                 else:
                     self._state = STATE_OFF
 
+<<<<<<< HEAD
             return success
+=======
+        self._audyssey.update()
+
+        return success
+>>>>>>> 26dda99... Add Audyssey settings
 
     def _update_input_func_list(self):
         """
@@ -1645,6 +1660,71 @@ class DenonAVR:
     def treble_level(self):
         """Return level of treble."""
         return self._treble_level
+
+    @property
+    def dynamic_eq(self):
+        """Return value of Dynamic EQ."""
+        return self._audyssey.dynamiceq
+
+    @property
+    def reference_level_offset(self):
+        """Return value of Reference Level Offset."""
+        return self._audyssey.reflevoffset
+
+    @property
+    def reference_level_offset_setting_list(self):
+        """Return a list of available reference level offset settings."""
+        return list(REF_LVL_OFFSET_MAP_LABELS.keys())
+
+    @property
+    def dynamic_volume(self):
+        """Return value of Dynamic Volume."""
+        return self._audyssey.dynamicvol
+
+    @property
+    def dynamic_volume_setting_list(self):
+        """Return a list of available Dynamic Volume settings."""
+        return list(DYNAMIC_VOLUME_MAP_LABELS.keys())
+
+    @property
+    def multi_eq(self):
+        """Return value of MultiEQ."""
+        return self._audyssey.multeq
+
+    @property
+    def multi_eq_setting_list(self):
+        """Return a list of available MultiEQ settings."""
+        return list(MULTI_EQ_MAP_LABELS.keys())
+
+    def dynamic_eq_off(self):
+        """Turn DynamicEQ off."""
+        self._audyssey.dynamiceq_off()
+
+    def dynamic_eq_on(self):
+        """Turn DynamicEQ on."""
+        self._audyssey.dynamiceq_on()
+
+    def toggle_dynamic_eq(self):
+        """Toggle DynamicEQ."""
+        if self.dynamic_eq is True:
+            self._audyssey.dynamiceq_off()
+        else:
+            self._audyssey.dynamiceq_on()
+
+    @reference_level_offset.setter
+    def reference_level_offset(self, setting):
+        """Set Reference Level Offset."""
+        self._audyssey.set_reflevoffset(setting=setting)
+
+    @dynamic_volume.setter
+    def dynamic_volume(self, setting):
+        """Set Dynamic Volume."""
+        self._audyssey.set_dynamicvol(setting=setting)
+
+    @multi_eq.setter
+    def multi_eq(self, setting):
+        """Set MultiEQ."""
+        self._audyssey.set_mutlieq(setting=setting)
 
     @input_func.setter
     def input_func(self, input_func):
