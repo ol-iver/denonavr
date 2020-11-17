@@ -2,7 +2,7 @@
 import logging
 from io import BytesIO
 import xml.etree.ElementTree as ET
-from requests.exceptions import ConnectTimeout, RequestException
+from requests.exceptions import RequestException
 
 _LOGGER = logging.getLogger("Audyssey")
 
@@ -49,15 +49,15 @@ class Audyssey:
         xml_tree.write(body, encoding="utf-8", xml_declaration=True)
         try:
             result = self.receiver.send_post_command(
-                command=COMMAND_ENDPOINT, body=body.getvalue()
-            )
-        except (ConnectTimeout, RequestException):
+                command=COMMAND_ENDPOINT, body=body.getvalue())
+        except RequestException:
             _LOGGER.error(
                 "No connection to %s end point on host %s",
-                COMMAND_ENDPOINT,
-                self.receiver.host,
-            )
+                COMMAND_ENDPOINT, self.receiver.host)
             return
+        finally:
+            # Buffered XML not needed anymore: close
+            body.close()
 
         if result is None:
             return
@@ -69,9 +69,7 @@ class Audyssey:
         except (ET.ParseError, TypeError):
             _LOGGER.error(
                 "End point %s on host %s returned malformed XML.",
-                COMMAND_ENDPOINT,
-                self.receiver.host,
-            )
+                COMMAND_ENDPOINT, self.receiver.host)
             return
 
     def update(self):
@@ -79,8 +77,9 @@ class Audyssey:
         root = ET.Element("tx")
         cmd = ET.SubElement(root, "cmd", id="3")
         ET.SubElement(cmd, "name").text = "GetAudyssey"
+        valid_params = ["dynamiceq", "reflevoffset", "dynamicvol", "multeq"]
         param_list = ET.SubElement(cmd, "list")
-        for param in ["dynamiceq", "reflevoffset", "dynamicvol", "multeq"]:
+        for param in valid_params:
             ET.SubElement(param_list, "param", name=param)
         tree = ET.ElementTree(root)
 
@@ -94,6 +93,8 @@ class Audyssey:
             return False
 
         for param in audyssey_params:
+            if param.get("name") not in valid_params:
+                continue
             if param.get("name") == "multeq":
                 self.multeq = MULTI_EQ_MAP.get(param.text)
             elif param.get("name") == "dynamiceq":
@@ -107,10 +108,8 @@ class Audyssey:
             elif param.get("name") == "dynamicvol":
                 self.dynamicvol = DYNAMIC_VOLUME_MAP.get(param.text)
             setattr(
-                self,
-                "{name}_control".format(name=param.get("name")),
-                bool(int(param.get("control"))),
-            )
+                self, "{name}_control".format(name=param.get("name")),
+                bool(int(param.get("control"))))
         return True
 
     def _set_audyssey(self, parameter, value):
@@ -142,34 +141,25 @@ class Audyssey:
 
     def set_mutlieq(self, setting):
         """Set MultiEQ mode."""
-        if (
-            self._set_audyssey(
+        if self._set_audyssey(
                 parameter="multeq", value=MULTI_EQ_MAP_LABELS.get(setting)
-            )
-            is True
-        ):
+                ) is True:
             self.multeq = setting
 
     def set_reflevoffset(self, setting):
         """Set Reference Level Offset."""
         # Reference level offset can only be used with DynamicEQ
         if self.dynamiceq is True:
-            if (
-                self._set_audyssey(
+            if self._set_audyssey(
                     parameter="reflevoffset",
-                    value=REF_LVL_OFFSET_MAP_LABELS.get(setting),
-                )
-                is True
-            ):
+                    value=REF_LVL_OFFSET_MAP_LABELS.get(setting)
+                        ) is True:
                 self.reflevoffset = setting
 
     def set_dynamicvol(self, setting):
         """Set Dynamic Volume."""
-        if (
-            self._set_audyssey(
+        if self._set_audyssey(
                 parameter="dynamicvol",
-                value=DYNAMIC_VOLUME_MAP_LABELS.get(setting),
-            )
-            is True
-        ):
+                value=DYNAMIC_VOLUME_MAP_LABELS.get(setting)
+                ) is True:
             self.dynamicvol = setting

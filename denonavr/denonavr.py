@@ -93,7 +93,7 @@ SOUND_MODE_MAPPING = OrderedDict(
      ('DTS SURROUND', ['DTS SURROUND', 'DTS NEURAL:X', 'STANDARD(DTS)',
                        'DTS + NEURAL:X', 'MULTI CH IN', 'DTS-HD MSTR',
                        'DTS VIRTUAL:X', 'DTS-HD + NEURAL:X', 'DTS-HD',
-                       'DTS + VIRTUAL:X']),
+                       'DTS + VIRTUAL:X', 'DTS + DOLBY SURROUND']),
      ('AURO3D', ['AURO-3D', 'AURO-2D SURROUND']),
      ('MCH STEREO', ['MULTI CH STEREO', 'MULTI_CH_STEREO', 'MCH STEREO',
                      'MULTI CH IN 7.1']),
@@ -394,9 +394,11 @@ class DenonAVR:
     def get_status_xml(self, command, suppress_errors=False):
         """Get status XML via HTTP and return it as XML ElementTree."""
         # Get XML structure via HTTP get
+        # Using a long read timeout because receiver could be quite slow
         res = requests.get("http://{host}:{port}{command}".format(
             host=self._host, port=self._receiver_port, command=command),
-                           timeout=self.timeout)
+                           timeout=(
+                               self.timeout, max(self.timeout, 10)))
         # Continue with XML processing only if HTTP status code = 200
         if res.status_code == 200:
             try:
@@ -418,9 +420,11 @@ class DenonAVR:
     def send_get_command(self, command):
         """Send command via HTTP get to receiver."""
         # Send commands via HTTP get
+        # Using a long read timeout because receiver could be quite slow
         res = requests.get("http://{host}:{port}{command}".format(
             host=self._host, port=self._receiver_port, command=command),
-                           timeout=self.timeout)
+                           timeout=(
+                               self.timeout, max(self.timeout, 10)))
         if res.status_code == 200:
             return True
         else:
@@ -432,9 +436,11 @@ class DenonAVR:
     def send_post_command(self, command, body):
         """Send command via HTTP post to receiver."""
         # Send commands via HTTP post
+        # Using a long read timeout because receiver could be quite slow
         res = requests.post("http://{host}:{port}{command}".format(
             host=self._host, port=self._receiver_port, command=command),
-                            data=body, timeout=self.timeout)
+                            data=body, timeout=(
+                                self.timeout, max(self.timeout, 10)))
         if res.status_code == 200:
             return res.text
         else:
@@ -541,11 +547,15 @@ class DenonAVR:
         This method is for pre 2016 AVR(-X) devices
         """
         # Use ThreadPoolExecutor to call all URLs of this method in parallel
-        executor = ThreadPoolExecutor(max_workers=2)
+        executor = ThreadPoolExecutor(max_workers=3)
 
         status_status = executor.submit(self.get_status_xml, self._urls.status)
         status_mainzone = executor.submit(
             self.get_status_xml, self._urls.mainzone)
+
+        # Update Audyssey
+        if self._receiver_type == AVR_X.type:
+            executor.submit(self._audyssey.update())
 
         # Set all tags to be evaluated
         relevant_tags = {"Power": None, "InputFuncSelect": None, "Mute": None,
@@ -621,7 +631,7 @@ class DenonAVR:
         This method is for AVR-X devices built in 2016 and later.
         """
         # Use ThreadPoolExecutor to call all URLs of this method in parallel
-        with ThreadPoolExecutor(max_workers=2) as executor:
+        with ThreadPoolExecutor(max_workers=3) as executor:
 
             success = True
             # Collect tags for AppCommand.xml call
@@ -2011,6 +2021,11 @@ class DenonAVR:
             _LOGGER.error("Connection error: set volume command not sent.")
             return False
 
+    @volume.setter
+    def volume(self, volume):
+        """Set receiver volume. Minimum is -80.0, maximum at 18.0."""
+        self.set_volume(volume)
+
     def mute(self, mute):
         """Mute receiver via HTTP get command."""
         try:
@@ -2044,13 +2059,13 @@ class DenonAVR:
             self.send_post_command(
                 command=self._urls.appcommand, body=body.getvalue()
                 )
-        except (
-                requests.exceptions.ConnectTimeout,
-                requests.exceptions.RequestException
-                ):
+        except requests.exceptions.RequestException:
             _LOGGER.error("No connection to %s end point on host %s",
                           self._urls.appcommand, self._host)
             return False
+        finally:
+            # Buffered XML not needed anymore: close
+            body.close()
         return True
 
     def enable_tone_control(self):
