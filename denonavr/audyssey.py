@@ -42,7 +42,15 @@ class AppCommand0300:
             }
         else:
             _LOGGER.warning("Class AppCommand0300 initialized without params.")
-    
+
+    def list_parameter_options(self, param):
+        """List the valid options for param."""
+        labels = self.param_labels.get(param)
+        if labels is None:
+            _LOGGER.warning("Parameter: %s not found.", param)
+            return []
+        return list(labels.keys())
+
     def send_command(self, xml_tree):
         """Send commands."""
         body = BytesIO()

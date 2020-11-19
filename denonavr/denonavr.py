@@ -1674,7 +1674,7 @@ class DenonAVR:
     @property
     def reference_level_offset_setting_list(self):
         """Return a list of available reference level offset settings."""
-        return list(self._audyssey.param_labels.get("reflevoffset").keys())
+        return self._audyssey.list_parameter_options("reflevoffset")
 
     @property
     def dynamic_volume(self):
@@ -1684,7 +1684,7 @@ class DenonAVR:
     @property
     def dynamic_volume_setting_list(self):
         """Return a list of available Dynamic Volume settings."""
-        return list(self._audyssey.param_labels.get("dynamicvol").keys())
+        return self._audyssey.list_parameter_options("dynamicvol")
 
     @property
     def multi_eq(self):
@@ -1694,7 +1694,7 @@ class DenonAVR:
     @property
     def multi_eq_setting_list(self):
         """Return a list of available MultiEQ settings."""
-        return list(self._audyssey.param_labels.get("multeq").keys())
+        return self._audyssey.list_parameter_options("multeq")
     
     @property
     def dyncomp(self):
@@ -1704,7 +1704,7 @@ class DenonAVR:
     @property
     def dyncomp_setting_list(self):
         """Return a list of available Dynamic Compression settings."""
-        return list(self._surround_parameter.param_labels.get("dyncomp").keys())
+        return self._surround_parameter.list_parameter_options("dyncomp")
 
     @property
     def lfe(self):
@@ -1714,7 +1714,7 @@ class DenonAVR:
     @property
     def lfe_setting_list(self):
         """Return a list of available Dynamic Compression settings."""
-        return list(self._surround_parameter.param_labels.get("lfe").keys())
+        return self._surround_parameter.list_parameter_options("lfe")
 
     def dynamic_eq_off(self):
         """Turn DynamicEQ off."""
