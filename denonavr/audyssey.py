@@ -172,51 +172,46 @@ class Audyssey(AppCommand0300):
                 "3": "Reference",
             },
         }
+        self.dynamiceq = None
+        self.multeq = None
+        self.reflevoffset = None
+        self.dynamicvol = None
         super().__init__(receiver)
 
     def dynamiceq_off(self):
         """Turn DynamicEQ off."""
-        if self._set(parameter="dynamiceq", value=0) is True:
+        success = self._set(parameter="dynamiceq", value=0)
+        if success:
             self.dynamiceq = False
 
     def dynamiceq_on(self):
         """Turn DynamicEQ on."""
-        if self._set(parameter="dynamiceq", value=1) is True:
+        success = self._set(parameter="dynamiceq", value=1)
+        if success:
             self.dynamiceq = True
 
     def set_multieq(self, setting):
         """Set MultiEQ mode."""
-        if (
-            self._set(
-                parameter="multeq", value=self.param_labels["multeq"].get(setting)
-            )
-            is True
-        ):
+        value = self.param_labels["multeq"].get(setting)
+        success = self._set(parameter="multeq", value=value)
+        if success:
             self.multeq = setting
 
     def set_reflevoffset(self, setting):
         """Set Reference Level Offset."""
         # Reference level offset can only be used with DynamicEQ
-        # TODO: Let's take advantage of the "control" attr given by API
-        if self.dynamiceq is True:
-            if (
-                self._set(
-                    parameter="reflevoffset",
-                    value=self.param_labels["reflevoffset"].get(setting),
-                )
-                is True
-            ):
-                self.reflevoffset = setting
+        if self.dynamiceq is False:
+            return
+        value = self.param_labels["reflevoffset"].get(setting)
+        success = self._set(parameter="reflevoffset", value=value)
+        if success:
+            self.reflevoffset = setting
 
     def set_dynamicvol(self, setting):
         """Set Dynamic Volume."""
-        if (
-            self._set(
-                parameter="dynamicvol",
-                value=self.param_labels["dynamicvol"].get(setting),
-            )
-            is True
-        ):
+        value = self.param_labels["dynamicvol"].get(setting)
+        success = self._set(parameter="dynamicvol", value=value)
+        if success:
             self.dynamicvol = setting
 
 
@@ -242,25 +237,20 @@ class SurroundParameter(AppCommand0300):
             },
             "lfe": {str(gain): f"{str(gain)}dB" for gain in range(0, -11, -1)},
         }
+        self.dyncomp = None
+        self.lfe = None
         super().__init__(receiver)
 
     def set_dyncomp(self, setting):
         """Set Dolby Dynamic Compression mode."""
-        if (
-            self._set(
-                parameter="dyncomp", value=self.param_labels["dyncomp"].get(setting)
-            )
-            is True
-        ):
+        value = self.param_labels["dyncomp"].get(setting)
+        success = self._set(parameter="dyncomp", value=value)
+        if success:
             self.dyncomp = setting
 
     def set_lfe(self, setting):
         """Set Dynamic Volume."""
-        if (
-            self._set(
-                parameter="lfe",
-                value=self.param_labels["lfe"].get(setting),
-            )
-            is True
-        ):
+        value = self.param_labels["lfe"].get(setting)
+        success = self._set(parameter="lfe", value=value)
+        if success:
             self.lfe = setting
