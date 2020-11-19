@@ -28,6 +28,13 @@ class AppCommand0300:
         :type receiver: DenonAVR
         """
         self.receiver = receiver
+        self.param_labels = None
+        self._params = None
+        self._get_cmd_name = None
+        self._set_cmd_name = None
+
+    def _init_param_labels(self):
+        """Create the map self.param_labels."""
         if self._params:
             self.param_labels = {
                 param: {value: key for key, value in inner.items()}
@@ -35,7 +42,7 @@ class AppCommand0300:
             }
         else:
             _LOGGER.warning("Class AppCommand0300 initialized without params.")
-
+    
     def send_command(self, xml_tree):
         """Send commands."""
         body = BytesIO()
@@ -146,6 +153,7 @@ class Audyssey(AppCommand0300):
         :type receiver: DenonAVR
         """
 
+        super().__init__(receiver)
         self._set_cmd_name = "SetAudyssey"
         self._get_cmd_name = "GetAudyssey"
         self._params = {
@@ -172,11 +180,11 @@ class Audyssey(AppCommand0300):
                 "3": "Reference",
             },
         }
+        self._init_param_labels()
         self.dynamiceq = None
         self.multeq = None
         self.reflevoffset = None
         self.dynamicvol = None
-        super().__init__(receiver)
 
     def dynamiceq_off(self):
         """Turn DynamicEQ off."""
@@ -225,7 +233,7 @@ class SurroundParameter(AppCommand0300):
         :param receiver: DenonAVR Receiver
         :type receiver: DenonAVR
         """
-
+        super().__init__(receiver)
         self._set_cmd_name = "SetSurroundParameter"
         self._get_cmd_name = "GetSurroundParameter"
         self._params = {
@@ -237,9 +245,9 @@ class SurroundParameter(AppCommand0300):
             },
             "lfe": {str(gain): f"{str(gain)}dB" for gain in range(0, -11, -1)},
         }
+        self._init_param_labels()
         self.dyncomp = None
         self.lfe = None
-        super().__init__(receiver)
 
     def set_dyncomp(self, setting):
         """Set Dolby Dynamic Compression mode."""
