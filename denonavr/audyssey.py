@@ -11,10 +11,17 @@ import logging
 from io import BytesIO
 import xml.etree.ElementTree as ET
 from requests.exceptions import ConnectTimeout, RequestException
+from denonavr.commands import (
+    COMMAND_ENDPOINT,
+    AUDYSSEY_GET_CMD,
+    AUDYSSEY_PARAMS,
+    AUDYSSEY_SET_CMD,
+    SURROUND_PARAMETER_GET_CMD,
+    SURROUND_PARAMETER_PARAMS,
+    SURROUND_PARAMETER_SET_CMD,
+)
 
 _LOGGER = logging.getLogger("AppCommand0300")
-
-COMMAND_ENDPOINT = "/goform/AppCommand0300.xml"
 
 
 class AppCommand0300:
@@ -28,24 +35,24 @@ class AppCommand0300:
         :type receiver: DenonAVR
         """
         self.receiver = receiver
-        self.param_labels = None
+        self._set_cmd = None
+        self._get_cmd = None
         self._params = None
-        self._get_cmd_name = None
-        self._set_cmd_name = None
+        self._param_labels = None
 
-    def _init_param_labels(self):
-        """Create the map self.param_labels."""
-        if self._params:
-            self.param_labels = {
-                param: {value: key for key, value in inner.items()}
-                for param, inner in self._params.items()
-            }
-        else:
-            _LOGGER.warning("Class AppCommand0300 initialized without params.")
+    def _init_commands(self, set_cmd, get_cmd, params):
+        """Initialize the commands."""
+        self._set_cmd = set_cmd
+        self._get_cmd = get_cmd
+        self._params = params
+        self._param_labels = {
+            param: {value: key for key, value in inner.items()}
+            for param, inner in self._params.items()
+        }
 
     def list_parameter_options(self, param):
         """List the valid options for param."""
-        labels = self.param_labels.get(param)
+        labels = self._param_labels.get(param)
         if labels is None:
             _LOGGER.warning("Parameter: %s not found.", param)
             return []
@@ -88,7 +95,7 @@ class AppCommand0300:
         """Update settings."""
         root = ET.Element("tx")
         cmd = ET.SubElement(root, "cmd", id="3")
-        ET.SubElement(cmd, "name").text = self._get_cmd_name
+        ET.SubElement(cmd, "name").text = self._get_cmd
         param_list = ET.SubElement(cmd, "list")
         for param in self._params.keys():
             ET.SubElement(param_list, "param", name=param)
@@ -135,7 +142,7 @@ class AppCommand0300:
     def _set(self, parameter, value):
         root = ET.Element("tx")
         cmd = ET.SubElement(root, "cmd", id="3")
-        ET.SubElement(cmd, "name").text = self._set_cmd_name
+        ET.SubElement(cmd, "name").text = self._set_cmd
         param_list = ET.SubElement(cmd, "list")
         ET.SubElement(param_list, "param", name=parameter).text = str(value)
         tree = ET.ElementTree(root)
@@ -162,33 +169,9 @@ class Audyssey(AppCommand0300):
         """
 
         super().__init__(receiver)
-        self._set_cmd_name = "SetAudyssey"
-        self._get_cmd_name = "GetAudyssey"
-        self._params = {
-            "dynamiceq": {
-                "0": "Off",
-                "1": "On",
-            },
-            "reflevoffset": {
-                "0": "0dB",
-                "1": "+5dB",
-                "2": "+10dB",
-                "3": "+15dB",
-            },
-            "dynamicvol": {
-                "0": "Off",
-                "1": "Light",
-                "2": "Medium",
-                "3": "Heavy",
-            },
-            "multeq": {
-                "0": "Off",
-                "1": "Flat",
-                "2": "L/R Bypass",
-                "3": "Reference",
-            },
-        }
-        self._init_param_labels()
+        self._init_commands(
+            set_cmd=AUDYSSEY_SET_CMD, get_cmd=AUDYSSEY_GET_CMD, params=AUDYSSEY_PARAMS
+        )
         self.dynamiceq = None
         self.multeq = None
         self.reflevoffset = None
@@ -208,7 +191,7 @@ class Audyssey(AppCommand0300):
 
     def set_multieq(self, setting):
         """Set MultiEQ mode."""
-        value = self.param_labels["multeq"].get(setting)
+        value = self._param_labels["multeq"].get(setting)
         success = self._set(parameter="multeq", value=value)
         if success:
             self.multeq = setting
@@ -218,14 +201,14 @@ class Audyssey(AppCommand0300):
         # Reference level offset can only be used with DynamicEQ
         if self.dynamiceq is False:
             return
-        value = self.param_labels["reflevoffset"].get(setting)
+        value = self._param_labels["reflevoffset"].get(setting)
         success = self._set(parameter="reflevoffset", value=value)
         if success:
             self.reflevoffset = setting
 
     def set_dynamicvol(self, setting):
         """Set Dynamic Volume."""
-        value = self.param_labels["dynamicvol"].get(setting)
+        value = self._param_labels["dynamicvol"].get(setting)
         success = self._set(parameter="dynamicvol", value=value)
         if success:
             self.dynamicvol = setting
@@ -242,31 +225,24 @@ class SurroundParameter(AppCommand0300):
         :type receiver: DenonAVR
         """
         super().__init__(receiver)
-        self._set_cmd_name = "SetSurroundParameter"
-        self._get_cmd_name = "GetSurroundParameter"
-        self._params = {
-            "dyncomp": {
-                "0": "Off",
-                "1": "Low",
-                "2": "Medium",
-                "3": "High",
-            },
-            "lfe": {str(gain): f"{str(gain)}dB" for gain in range(0, -11, -1)},
-        }
-        self._init_param_labels()
+        self._init_commands(
+            set_cmd=SURROUND_PARAMETER_SET_CMD,
+            get_cmd=SURROUND_PARAMETER_GET_CMD,
+            params=SURROUND_PARAMETER_PARAMS,
+        )
         self.dyncomp = None
         self.lfe = None
 
     def set_dyncomp(self, setting):
         """Set Dolby Dynamic Compression mode."""
-        value = self.param_labels["dyncomp"].get(setting)
+        value = self._param_labels["dyncomp"].get(setting)
         success = self._set(parameter="dyncomp", value=value)
         if success:
             self.dyncomp = setting
 
     def set_lfe(self, setting):
         """Set Dynamic Volume."""
-        value = self.param_labels["lfe"].get(setting)
+        value = self._param_labels["lfe"].get(setting)
         success = self._set(parameter="lfe", value=value)
         if success:
             self.lfe = setting
