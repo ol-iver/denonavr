@@ -1695,7 +1695,7 @@ class DenonAVR:
     def multi_eq_setting_list(self):
         """Return a list of available MultiEQ settings."""
         return self._audyssey.list_parameter_options("multeq")
-    
+
     @property
     def dyncomp(self):
         """Return value of Dolby Dynamic Compression."""
@@ -1745,7 +1745,7 @@ class DenonAVR:
     def multi_eq(self, setting):
         """Set MultiEQ."""
         self._audyssey.set_multieq(setting=setting)
-    
+
     @dyncomp.setter
     def dyncomp(self, setting):
         """Set Dolby Dynamic Compression."""
