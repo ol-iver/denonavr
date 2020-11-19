@@ -27,7 +27,8 @@ TESTING_RECEIVERS = {"AVR-X4100W": NO_ZONES, "AVR-2312CI": NO_ZONES,
                      "SR5008": NO_ZONES, "M-CR603": NO_ZONES,
                      "NR1604": ZONE2_ZONE3, "AVR-4810": NO_ZONES,
                      "AVR-3312": NO_ZONES, "NR1609": ZONE2,
-                     "AVC-8500H": ZONE2_ZONE3, "AVR-X4300H": ZONE2_ZONE3}
+                     "AVC-8500H": ZONE2_ZONE3, "AVR-X4300H": ZONE2_ZONE3,
+                     "AVR-X1100W": ZONE2}
 
 APPCOMMAND_URL = "/goform/AppCommand.xml"
 STATUS_URL = "/goform/formMainZone_MainZoneXmlStatus.xml"
@@ -133,6 +134,10 @@ class TestMainFunctions(testtools.TestCase):
             self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=zones)
             # Switch through all functions and check if successful
             for name, zone in self.denon.zones.items():
+                print("Receiver: {}, Zone: {}".format(receiver, name))
+                self.assertThat(
+                    len(zone.input_func_list),
+                    testtools.matchers.GreaterThan(0))
                 for input_func in zone.input_func_list:
                     self.denon.zones[name].set_input_func(input_func)
                     self.assertEqual(

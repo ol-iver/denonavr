@@ -547,15 +547,11 @@ class DenonAVR:
         This method is for pre 2016 AVR(-X) devices
         """
         # Use ThreadPoolExecutor to call all URLs of this method in parallel
-        executor = ThreadPoolExecutor(max_workers=3)
+        executor = ThreadPoolExecutor(max_workers=2)
 
         status_status = executor.submit(self.get_status_xml, self._urls.status)
         status_mainzone = executor.submit(
             self.get_status_xml, self._urls.mainzone)
-
-        # Update Audyssey
-        if self._receiver_type == AVR_X.type:
-            executor.submit(self._audyssey.update())
 
         # Set all tags to be evaluated
         relevant_tags = {"Power": None, "InputFuncSelect": None, "Mute": None,
@@ -697,11 +693,12 @@ class DenonAVR:
                     _LOGGER.error("No Source found for zone %s", self.zone)
                 success = False
             else:
-                # AirPlay is not always listed in available sources
-                if (inputfunc == "AirPlay"
-                        and "AirPlay" not in self._input_func_list):
-                    self._input_func_list["AirPlay"] = "AirPlay"
-                    self._input_func_list_rev["AirPlay"] = "AirPlay"
+                # AirPlay and Internet Radio are not always listed in
+                # available sources
+                if inputfunc in ["AirPlay", "Internet Radio"]:
+                    if inputfunc not in self._input_func_list:
+                        self._input_func_list[inputfunc] = inputfunc
+                        self._input_func_list_rev[inputfunc] = inputfunc
                 try:
                     self._input_func = self._input_func_list_rev[inputfunc]
                 except KeyError:
@@ -1429,11 +1426,12 @@ class DenonAVR:
             elif child.tag == "InputFuncSelect":
                 inputfunc = child[0].text
                 if inputfunc is not None:
-                    # AirPlay is not always listed in available sources
-                    if (inputfunc == "AirPlay"
-                            and "AirPlay" not in self._input_func_list):
-                        self._input_func_list["AirPlay"] = "AirPlay"
-                        self._input_func_list_rev["AirPlay"] = "AirPlay"
+                    # AirPlay and Internet Radio are not always listed in
+                    # available sources
+                    if inputfunc in ["AirPlay", "Internet Radio"]:
+                        if inputfunc not in self._input_func_list:
+                            self._input_func_list[inputfunc] = inputfunc
+                            self._input_func_list_rev[inputfunc] = inputfunc
                     try:
                         self._input_func = self._input_func_list_rev[inputfunc]
                     except KeyError:

@@ -1,34 +1,32 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <item>
-<FriendlyName><value>Denon AVR-X4100W</value></FriendlyName>
+<FriendlyName><value>Living Room</value></FriendlyName>
 <Power><value>ON</value></Power>
 <ZonePower><value>ON</value></ZonePower>
-<RenameZone><value>MAIN ZONE 
-</value></RenameZone>
+<RenameZone><value>MAIN ZONE</value></RenameZone>
 <TopMenuLink><value>ON</value></TopMenuLink>
 <VideoSelectDisp><value>OFF</value></VideoSelectDisp>
 <VideoSelect><value></value></VideoSelect>
 <VideoSelectOnOff><value>OFF</value></VideoSelectOnOff>
 <VideoSelectLists>
-<value index='ON'  table='Ein' param=''/>
-<value index='OFF'  table='Aus' param=''/>
+<value index='ON'  table='On' param=''/>
+<value index='OFF'  table='Off' param=''/>
 </VideoSelectLists>
 <ECOModeDisp><value>ON</value></ECOModeDisp>
 <ECOMode><value></value></ECOMode>
 <ECOModeLists>
-<value index='ON'  table='Ein' param=''/>
-<value index='OFF'  table='Aus' param=''/>
-<value index='AUTO'  table='Automatisch' param=''/>
+<value index='ON'  table='On' param=''/>
+<value index='OFF'  table='Off' param=''/>
+<value index='AUTO'  table='Auto' param=''/>
 </ECOModeLists>
-<AddSourceDisplay><value>FALSE</value></AddSourceDisplay>
-<ModelId><value>4</value></ModelId>
+<ModelId><value>1</value></ModelId>
 <BrandId><value>DENON_MODEL</value></BrandId>
 <SalesArea><value>6</value></SalesArea>
-<InputFuncSelect><value>Sky</value></InputFuncSelect>
+<InputFuncSelect><value>Chromecast</value></InputFuncSelect>
 <NetFuncSelect><value>FAVORITES</value></NetFuncSelect>
-<selectSurround><value>DTS Neo:X Cinema               </value></selectSurround>
+<selectSurround><value>Dolby Digital +                </value></selectSurround>
 <VolumeDisplay><value>Absolute</value></VolumeDisplay>
-<MasterVolume><value>-23.0</value></MasterVolume>
+<MasterVolume><value>-38.0</value></MasterVolume>
 <Mute><value>off</value></Mute>
 <RemoteMaintenance><value></value></RemoteMaintenance>
 <SubwooferDisplay><value>FALSE</value></SubwooferDisplay>

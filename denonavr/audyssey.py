@@ -1,4 +1,12 @@
-"""Audyssey Settings."""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+This module implements the Audyssey settings of Denon AVR receivers.
+
+:copyright: (c) 2016 by Oliver Goetz.
+:license: MIT, see LICENSE for more details.
+"""
+
 import logging
 from io import BytesIO
 import xml.etree.ElementTree as ET

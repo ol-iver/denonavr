@@ -87,6 +87,12 @@ CLASSES
      |  disable_tone_control(self)
      |      Disable tone control to change settings like bass or treble.
      |  
+     |  dynamic_eq_off(self)
+     |      Turn DynamicEQ off.
+     |  
+     |  dynamic_eq_on(self)
+     |      Turn DynamicEQ on.
+     |  
      |  enable_tone_control(self)
      |      Enable tone control to change settings like bass or treble.
      |  
@@ -173,6 +179,9 @@ CLASSES
      |      Volume is send in a format like -50.0.
      |      Minimum is -80.0, maximum at 18.0
      |  
+     |  toggle_dynamic_eq(self)
+     |      Toggle DynamicEQ.
+     |  
      |  toggle_play_pause(self)
      |      Toggle play pause media player.
      |  
@@ -205,6 +214,12 @@ CLASSES
      |  bass_level
      |      Return level of bass.
      |  
+     |  dynamic_eq
+     |      Return value of Dynamic EQ.
+     |  
+     |  dynamic_volume_setting_list
+     |      Return a list of available Dynamic Volume settings.
+     |  
      |  frequency
      |      Return frequency of current radio station as string.
      |  
@@ -222,6 +237,9 @@ CLASSES
      |  
      |  model_name
      |      Return the model name of the device as string.
+     |  
+     |  multi_eq_setting_list
+     |      Return a list of available MultiEQ settings.
      |  
      |  muted
      |      Boolean if volume is currently muted.
@@ -253,6 +271,9 @@ CLASSES
      |  
      |  receiver_type
      |      Return the receiver's type.
+     |  
+     |  reference_level_offset_setting_list
+     |      Return a list of available reference level offset settings.
      |  
      |  serial_number
      |      Return the serial number of the device as string.
@@ -294,12 +315,6 @@ CLASSES
      |  treble_level
      |      Return level of treble.
      |  
-     |  volume
-     |      Return volume of Denon AVR as float.
-     |      
-     |      Volume is send in a format like -50.0.
-     |      Minimum is -80.0, maximum at 18.0
-     |  
      |  zone
      |      Return Zone of this instance.
      |  
@@ -315,11 +330,26 @@ CLASSES
      |  __weakref__
      |      list of weak references to the object (if defined)
      |  
+     |  dynamic_volume
+     |      Return value of Dynamic Volume.
+     |  
      |  input_func
      |      Return the current input source as string.
      |  
+     |  multi_eq
+     |      Return value of MultiEQ.
+     |  
+     |  reference_level_offset
+     |      Return value of Reference Level Offset.
+     |  
      |  sound_mode
      |      Return the matched current sound mode as a string.
+     |  
+     |  volume
+     |      Return volume of Denon AVR as float.
+     |      
+     |      Volume is send in a format like -50.0.
+     |      Minimum is -80.0, maximum at 18.0
     
     class DenonAVRZones(DenonAVR)
      |  DenonAVRZones(parent_avr, zone, name)
@@ -390,6 +420,12 @@ CLASSES
      |  disable_tone_control(self)
      |      Disable tone control to change settings like bass or treble.
      |  
+     |  dynamic_eq_off(self)
+     |      Turn DynamicEQ off.
+     |  
+     |  dynamic_eq_on(self)
+     |      Turn DynamicEQ on.
+     |  
      |  enable_tone_control(self)
      |      Enable tone control to change settings like bass or treble.
      |  
@@ -469,6 +505,9 @@ CLASSES
      |      Volume is send in a format like -50.0.
      |      Minimum is -80.0, maximum at 18.0
      |  
+     |  toggle_dynamic_eq(self)
+     |      Toggle DynamicEQ.
+     |  
      |  toggle_play_pause(self)
      |      Toggle play pause media player.
      |  
@@ -501,6 +540,12 @@ CLASSES
      |  bass_level
      |      Return level of bass.
      |  
+     |  dynamic_eq
+     |      Return value of Dynamic EQ.
+     |  
+     |  dynamic_volume_setting_list
+     |      Return a list of available Dynamic Volume settings.
+     |  
      |  frequency
      |      Return frequency of current radio station as string.
      |  
@@ -518,6 +563,9 @@ CLASSES
      |  
      |  model_name
      |      Return the model name of the device as string.
+     |  
+     |  multi_eq_setting_list
+     |      Return a list of available MultiEQ settings.
      |  
      |  muted
      |      Boolean if volume is currently muted.
@@ -550,6 +598,9 @@ CLASSES
      |  receiver_type
      |      Return the receiver's type.
      |  
+     |  reference_level_offset_setting_list
+     |      Return a list of available reference level offset settings.
+     |  
      |  serial_number
      |      Return the serial number of the device as string.
      |  
@@ -578,12 +629,6 @@ CLASSES
      |  treble_level
      |      Return level of treble.
      |  
-     |  volume
-     |      Return volume of Denon AVR as float.
-     |      
-     |      Volume is send in a format like -50.0.
-     |      Minimum is -80.0, maximum at 18.0
-     |  
      |  zone
      |      Return Zone of this instance.
      |  
@@ -599,8 +644,23 @@ CLASSES
      |  __weakref__
      |      list of weak references to the object (if defined)
      |  
+     |  dynamic_volume
+     |      Return value of Dynamic Volume.
+     |  
      |  input_func
      |      Return the current input source as string.
+     |  
+     |  multi_eq
+     |      Return value of MultiEQ.
+     |  
+     |  reference_level_offset
+     |      Return value of Reference Level Offset.
+     |  
+     |  volume
+     |      Return volume of Denon AVR as float.
+     |      
+     |      Volume is send in a format like -50.0.
+     |      Minimum is -80.0, maximum at 18.0
 
 ====================================================================================
 
@@ -639,3 +699,48 @@ FUNCTIONS
     
     ssdp_request(ssdp_st, ssdp_mx=2)
         Return request bytes for given st and mx.
+
+====================================================================================
+
+Help on module denonavr.audyssey in denonavr:
+
+NAME
+    denonavr.audyssey - Audyssey Settings.
+
+CLASSES
+    builtins.object
+        Audyssey
+    
+    class Audyssey(builtins.object)
+     |  Audyssey(receiver)
+     |  
+     |  Audyssey Settings.
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self, receiver)
+     |      Initialize Audyssey Settings of DenonAVR.
+     |      
+     |      :param receiver: DenonAVR Receiver
+     |      :type receiver: DenonAVR
+     |  
+     |  dynamiceq_off(self)
+     |      Turn DynamicEQ off.
+     |  
+     |  dynamiceq_on(self)
+     |      Turn DynamicEQ on.
+     |  
+     |  send_command(self, xml_tree)
+     |      Send commands.
+     |  
+     |  set_dynamicvol(self, setting)
+     |      Set Dynamic Volume.
+     |  
+     |  set_mutlieq(self, setting)
+     |      Set MultiEQ mode.
+     |  
+     |  set_reflevoffset(self, setting)
+     |      Set Reference Level Offset.
+     |  
+     |  update(self)
+     |      Update settings.
