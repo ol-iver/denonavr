@@ -20,12 +20,7 @@ import requests
 
 from .ssdp import evaluate_scpd_xml
 
-from .audyssey import (
-    Audyssey,
-    REF_LVL_OFFSET_MAP_LABELS,
-    MULTI_EQ_MAP_LABELS,
-    DYNAMIC_VOLUME_MAP_LABELS,
-    )
+from .audyssey import Audyssey, SurroundParameter
 
 _LOGGER = logging.getLogger("DenonAVR")
 
@@ -339,6 +334,7 @@ class DenonAVR:
         self._treble_level = None
 
         self._audyssey = Audyssey(receiver=self)
+        self._surround_parameter = SurroundParameter(receiver=self)
 
         # Get initial setting of values
         self.update()
@@ -1678,7 +1674,7 @@ class DenonAVR:
     @property
     def reference_level_offset_setting_list(self):
         """Return a list of available reference level offset settings."""
-        return list(REF_LVL_OFFSET_MAP_LABELS.keys())
+        return list(self._audyssey.param_labels.get("reflevoffset").keys())
 
     @property
     def dynamic_volume(self):
@@ -1688,7 +1684,7 @@ class DenonAVR:
     @property
     def dynamic_volume_setting_list(self):
         """Return a list of available Dynamic Volume settings."""
-        return list(DYNAMIC_VOLUME_MAP_LABELS.keys())
+        return list(self._audyssey.param_labels.get("dynamicvol").keys())
 
     @property
     def multi_eq(self):
@@ -1698,7 +1694,27 @@ class DenonAVR:
     @property
     def multi_eq_setting_list(self):
         """Return a list of available MultiEQ settings."""
-        return list(MULTI_EQ_MAP_LABELS.keys())
+        return list(self._audyssey.param_labels.get("multeq").keys())
+    
+    @property
+    def dyncomp(self):
+        """Return value of Dolby Dynamic Compression."""
+        return self._surround_parameter.dyncomp
+
+    @property
+    def dyncomp_setting_list(self):
+        """Return a list of available Dynamic Compression settings."""
+        return list(self._surround_parameter.param_labels.get("dyncomp").keys())
+
+    @property
+    def lfe(self):
+        """Return value of Dolby Dynamic Compression."""
+        return self._surround_parameter.lfe
+
+    @property
+    def lfe_setting_list(self):
+        """Return a list of available Dynamic Compression settings."""
+        return list(self._surround_parameter.param_labels.get("lfe").keys())
 
     def dynamic_eq_off(self):
         """Turn DynamicEQ off."""
@@ -1728,7 +1744,17 @@ class DenonAVR:
     @multi_eq.setter
     def multi_eq(self, setting):
         """Set MultiEQ."""
-        self._audyssey.set_mutlieq(setting=setting)
+        self._audyssey.set_multieq(setting=setting)
+    
+    @dyncomp.setter
+    def dyncomp(self, setting):
+        """Set Dolby Dynamic Compression."""
+        self._surround_parameter.set_dyncomp(setting=setting)
+
+    @lfe.setter
+    def lfe(self, setting):
+        """Set LFE level."""
+        self._surround_parameter.set_lfe(setting=setting)
 
     @input_func.setter
     def input_func(self, input_func):
