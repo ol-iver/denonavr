@@ -95,9 +95,9 @@ class Audyssey:
         if response is None:
             return False
 
-        try:
-            audyssey_params = response.find("./cmd/list")
-        except (AttributeError, IndexError, TypeError):
+        audyssey_params = response.find("./cmd/list")
+
+        if audyssey_params is None:
             return False
 
         for param in audyssey_params:
@@ -132,8 +132,11 @@ class Audyssey:
         if response is None:
             return False
 
-        if response.find("cmd").text == "OK":
-            return True
+        try:
+            if response.find("cmd").text == "OK":
+                return True
+        except AttributeError:
+            pass
 
         return False
 

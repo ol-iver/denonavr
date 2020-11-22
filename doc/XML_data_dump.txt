@@ -164,7 +164,7 @@ Upon success the AVR replies with: (needs more testing)
 <?xml version="1.0" encoding="utf-8"?>
 <tx>
   <cmd id="3">
-    <name>GetAudyssyInfo</name>
+    <name>GetAudysseyInfo</name>
     <list>
       <param name="eqname"></param>
       <param name="eqvalue"></param>
