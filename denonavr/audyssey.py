@@ -150,7 +150,7 @@ class Audyssey:
         if self._set_audyssey(parameter="dynamiceq", value=1) is True:
             self.dynamiceq = True
 
-    def set_mutlieq(self, setting):
+    def set_multieq(self, setting):
         """Set MultiEQ mode."""
         if self._set_audyssey(
                 parameter="multeq", value=MULTI_EQ_MAP_LABELS.get(setting)
