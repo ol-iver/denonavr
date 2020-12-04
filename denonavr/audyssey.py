@@ -106,7 +106,7 @@ class Audyssey:
             if param.get("name") == "multeq":
                 self.multeq = MULTI_EQ_MAP.get(param.text)
             elif param.get("name") == "dynamiceq":
-                self.dynamiceq = bool(int(param.text))
+                self.dynamiceq = bool(int(param.text)) if param.text else None
             elif param.get("name") == "reflevoffset":
                 # Reference level offset can only be used with DynamicEQ
                 if self.dynamiceq is False:
