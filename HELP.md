@@ -29,7 +29,7 @@ DATA
     __title__ = 'denonavr'
 
 VERSION
-    0.9.7
+    0.9.8
 
 ====================================================================================
 
@@ -736,7 +736,7 @@ CLASSES
      |  set_dynamicvol(self, setting)
      |      Set Dynamic Volume.
      |  
-     |  set_mutlieq(self, setting)
+     |  set_multieq(self, setting)
      |      Set MultiEQ mode.
      |  
      |  set_reflevoffset(self, setting)

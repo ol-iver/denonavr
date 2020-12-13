@@ -106,7 +106,8 @@ class Audyssey:
             if param.get("name") == "multeq":
                 self.multeq = MULTI_EQ_MAP.get(param.text)
             elif param.get("name") == "dynamiceq":
-                self.dynamiceq = bool(int(param.text))
+                self.dynamiceq = bool(int(
+                    param.text)) if param.text is not None else None
             elif param.get("name") == "reflevoffset":
                 # Reference level offset can only be used with DynamicEQ
                 if self.dynamiceq is False:
@@ -115,9 +116,10 @@ class Audyssey:
                     self.reflevoffset = REF_LVL_OFFSET_MAP.get(param.text)
             elif param.get("name") == "dynamicvol":
                 self.dynamicvol = DYNAMIC_VOLUME_MAP.get(param.text)
-            setattr(
-                self, "{name}_control".format(name=param.get("name")),
-                bool(int(param.get("control"))))
+            if param.get("control") is not None:
+                setattr(
+                    self, "{name}_control".format(name=param.get("name")),
+                    bool(int(param.get("control"))))
         return True
 
     def _set_audyssey(self, parameter, value):
@@ -150,7 +152,7 @@ class Audyssey:
         if self._set_audyssey(parameter="dynamiceq", value=1) is True:
             self.dynamiceq = True
 
-    def set_mutlieq(self, setting):
+    def set_multieq(self, setting):
         """Set MultiEQ mode."""
         if self._set_audyssey(
                 parameter="multeq", value=MULTI_EQ_MAP_LABELS.get(setting)

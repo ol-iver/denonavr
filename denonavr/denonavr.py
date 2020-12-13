@@ -63,7 +63,7 @@ SOUND_MODE_MAPPING = OrderedDict(
                 'DTS NEO:X MUSIC', 'DOLBY PL2 MUSIC']),
      ('MOVIE', ['PLII MOVIE', 'PLII CINEMA', 'DTS NEO:X CINEMA',
                 'DTS NEO:6 CINEMA', 'DOLBY D +NEO:X C',
-                'PLIIX CINEMA', 'DOLBY PLII MOVIE']),
+                'PLIIX CINEMA', 'DOLBY PLII MOVIE', 'MULTI IN + VIRTUAL:X']),
      ('GAME', ['PLII GAME', 'DOLBY D +NEO:X G']),
      ('AUTO', ['None']),
      ('STANDARD', ['None2']),
@@ -1728,7 +1728,7 @@ class DenonAVR:
     @multi_eq.setter
     def multi_eq(self, setting):
         """Set MultiEQ."""
-        self._audyssey.set_mutlieq(setting=setting)
+        self._audyssey.set_multieq(setting=setting)
 
     @input_func.setter
     def input_func(self, input_func):
