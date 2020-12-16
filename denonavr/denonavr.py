@@ -1084,7 +1084,7 @@ class DenonAVR:
                 root = self.get_status_xml(self._urls.deviceinfo,
                                            suppress_errors=True)
             except (ValueError, requests.exceptions.RequestException):
-                self._receiver_type = None
+                continue
             else:
                 # First test by CommApiVers
                 try:
@@ -1096,7 +1096,7 @@ class DenonAVR:
                 except AttributeError:
                     # AttributeError occurs when ModelName tag is not found.
                     # In this case there is no AVR-X device
-                    self._receiver_type = None
+                    continue
 
                 # if first test did not find AVR-X device, check by model name
                 if self._receiver_type is None:
@@ -1109,7 +1109,7 @@ class DenonAVR:
                     except AttributeError:
                         # AttributeError occurs when ModelName tag is not found
                         # In this case there is no AVR-X device
-                        self._receiver_type = None
+                        continue
 
         # Set ports and update method
         if self._receiver_type is None:
