@@ -10,7 +10,7 @@ This module implements the Audyssey settings of Denon AVR receivers.
 import logging
 from io import BytesIO
 import xml.etree.ElementTree as ET
-from requests.exceptions import RequestException
+from requests.exceptions import RequestException, ConnectTimeout
 
 _LOGGER = logging.getLogger("Audyssey")
 
@@ -58,6 +58,8 @@ class Audyssey:
         try:
             result = self.receiver.send_post_command(
                 command=COMMAND_ENDPOINT, body=body.getvalue())
+        except ConnectTimeout:
+            return
         except RequestException:
             _LOGGER.error(
                 "No connection to %s end point on host %s",

@@ -82,19 +82,14 @@ def identify_denonavr_receivers():
 
     # Check which responding device is a DenonAVR device and prepare output
     receivers = []
-    futures = []
 
-    with ThreadPoolExecutor() as executor:
-        for url in urls:
-            futures.append(executor.submit(evaluate_scpd_xml, url))
-
-        for future in futures:
-            try:
-                receiver = future.result()
-            except requests.exceptions.RequestException:
-                continue
-            if receiver is not None:
-                receivers.append(receiver)
+    for url in urls:
+        try:
+            receiver = evaluate_scpd_xml(url)
+        except requests.exceptions.RequestException:
+            continue
+        if receiver is not None:
+            receivers.append(receiver)
 
     return receivers
 
