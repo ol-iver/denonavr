@@ -190,6 +190,9 @@ CLASSES
      |      
      |      Method executes the update method for the current receiver type.
      |  
+     |  update_audyssey(self)
+     |      Get current Audyssey settings.
+     |  
      |  volume_down(self)
      |      Volume down receiver via HTTP get command.
      |  
@@ -515,6 +518,9 @@ CLASSES
      |      Get the latest status information from device.
      |      
      |      Method executes the update method for the current receiver type.
+     |  
+     |  update_audyssey(self)
+     |      Get current Audyssey settings.
      |  
      |  volume_down(self)
      |      Volume down receiver via HTTP get command.

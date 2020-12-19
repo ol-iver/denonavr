@@ -574,6 +574,10 @@ class DenonAVR:
 
         return success
 
+    def update_audyssey(self):
+        """Get current Audyssey settings."""
+        self._audyssey.update()
+
     def _update_avr(self):
         """
         Get the latest status information from device.
@@ -752,9 +756,6 @@ class DenonAVR:
 
         # Update tone control
         self._update_tone_control(root)
-
-        # Update Audyssey
-        self._audyssey.update()
 
         return success
 

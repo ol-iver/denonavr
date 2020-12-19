@@ -83,7 +83,7 @@ class Audyssey:
             return
 
     def update(self):
-        """Update settings."""
+        """Get current Audyssey settings."""
         root = ET.Element("tx")
         cmd = ET.SubElement(root, "cmd", id="3")
         ET.SubElement(cmd, "name").text = "GetAudyssey"
@@ -125,6 +125,7 @@ class Audyssey:
         return True
 
     def _set_audyssey(self, parameter, value):
+        """Set Audyssey parameter."""
         root = ET.Element("tx")
         cmd = ET.SubElement(root, "cmd", id="3")
         ET.SubElement(cmd, "name").text = "SetAudyssey"
