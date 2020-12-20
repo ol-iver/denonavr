@@ -424,6 +424,7 @@ class DenonAVR:
                 raise ValueError from err
         elif res.status_code == 403:
             self._handle_403_error(endpoint)
+            raise ValueError
         else:
             if not suppress_errors:
                 _LOGGER.error(
@@ -443,6 +444,7 @@ class DenonAVR:
             return True
         elif res.status_code == 403:
             self._handle_403_error(endpoint)
+            return False
         else:
             _LOGGER.error(
                 "Host %s returned HTTP status code %s to GET command at "
@@ -2069,9 +2071,7 @@ class DenonAVR:
         tree.write(body, encoding="utf-8", xml_declaration=True)
 
         try:
-            self.send_post_command(
-                command=self._urls.appcommand, body=body.getvalue()
-                )
+            self.send_post_command(self._urls.appcommand, body.getvalue())
         except requests.exceptions.RequestException:
             _LOGGER.error("No connection to %s end point on host %s",
                           self._urls.appcommand, self._host)
@@ -2088,7 +2088,7 @@ class DenonAVR:
 
         if self._tone_control_adjust is True:
             return True
-        elif self._set_tone_control_command(parameter_type='adjust', value=1):
+        elif self._set_tone_control_command('adjust', 1):
             self._tone_control_adjust = True
             return True
         return False
@@ -2100,7 +2100,7 @@ class DenonAVR:
 
         if self._tone_control_adjust is False:
             return True
-        elif self._set_tone_control_command(parameter_type='adjust', value=0):
+        elif self._set_tone_control_command('adjust', 0):
             self._tone_control_adjust = False
             return True
         return False
@@ -2108,34 +2108,18 @@ class DenonAVR:
     def _set_tone_control(self, parameter_type, value):
         """Set tone control parameter."""
         if value < 0 or value > 12:
-            raise ValueError(
-                "Invalid value for {parameter_type}".format(
-                    parameter_type=parameter_type
-                    )
-            )
+            raise ValueError("Invalid value for {}".format(parameter_type))
 
         if not self.enable_tone_control():
             return False
 
         if self._set_tone_control_command(
-                parameter_type='{parameter_type}value'.format(
-                    parameter_type=parameter_type
-                    ), value=value
-                ):
+                '{}value'.format(parameter_type), value):
+            setattr(self, '_{}'.format(parameter_type), value)
             setattr(
-                self,
-                '_{parameter_type}'.format(parameter_type=parameter_type),
-                value
-                )
-            setattr(
-                self,
-                '_{parameter_type}_level'.format(
-                    parameter_type=parameter_type
-                    ),
+                self, '_{}_level'.format(parameter_type),
                 '{value:{sign}}dB'.format(
-                    value=value-6, sign='' if value-6 == 0 else '+'
-                    )
-                )
+                    value=value-6, sign='' if value-6 == 0 else '+'))
             return True
         return False
 
@@ -2148,7 +2132,7 @@ class DenonAVR:
         Note:
         Doesn't work, if Dynamic Equalizer is active.
         """
-        return self._set_tone_control(parameter_type='bass', value=bass)
+        return self._set_tone_control('bass', bass)
 
     def set_treble(self, treble):
         """
@@ -2159,7 +2143,7 @@ class DenonAVR:
         Note:
         Doesn't work, if Dynamic Equalizer is active.
         """
-        return self._set_tone_control(parameter_type='treble', value=treble)
+        return self._set_tone_control('treble', treble)
 
 
 class DenonAVRZones(DenonAVR):
