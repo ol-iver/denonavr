@@ -1,10 +1,10 @@
 # denonavr
-[![Version](https://img.shields.io/badge/version-v0.9.9-orange.svg)](https://github.com/scarface-4711/denonavr)
+[![Version](https://img.shields.io/badge/version-v0.9.10-orange.svg)](https://github.com/scarface-4711/denonavr)
 [![Build Status](https://travis-ci.com/scarface-4711/denonavr.svg?branch=master)](https://travis-ci.com/scarface-4711/denonavr)
 [![PyPi](https://img.shields.io/pypi/v/denonavr.svg)](https://pypi.org/project/denonavr)
 [![License](https://img.shields.io/github/license/scarface-4711/denonavr.svg)](LICENSE)
 
-Automation Library for Denon AVR receivers - current version 0.9.9
+Automation Library for Denon AVR receivers - current version 0.9.10
 
 ## Installation
 

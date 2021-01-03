@@ -32,7 +32,7 @@ DEVICEINFO_AVR_X_PATTERN = re.compile(
     r"(.*AV(C|R)-(X|S).*|.*SR500[6-9]|.*SR60(07|08|09|10|11|12|13)|."
     r"*SR70(07|08|09|10|11|12|13)|.*SR501[3-4]|.*NR1604|.*NR1710)")
 
-DEVICEINFO_COMMAPI_PATTERN = re.compile(r"(0210|0300|0301)")
+DEVICEINFO_COMMAPI_PATTERN = re.compile(r"(0210|0220|0250|0300|0301)")
 
 ReceiverType = namedtuple('ReceiverType', ["type", "port"])
 AVR = ReceiverType(type="avr", port=80)
@@ -920,7 +920,8 @@ class DenonAVR:
             return False
 
         try:
-            self._tone_control_status = bool(int(root[0].find('status').text))
+            self._tone_control_status = bool(
+                int(root.find('./cmd/status').text))
         except (AttributeError, IndexError, TypeError):
             return False
 
@@ -935,11 +936,12 @@ class DenonAVR:
             return False
 
         try:
-            self._tone_control_adjust = bool(int(root[0].find('adjust').text))
-            self._bass = int(root[0].find('bassvalue').text)
-            self._bass_level = root[0].find('basslevel').text
-            self._treble = int(root[0].find('treblevalue').text)
-            self._treble_level = root[0].find('treblelevel').text
+            self._tone_control_adjust = bool(
+                int(root.find('./cmd/adjust').text))
+            self._bass = int(root.find('./cmd/bassvalue').text)
+            self._bass_level = root.find('./cmd/basslevel').text
+            self._treble = int(root.find('./cmd/treblevalue').text)
+            self._treble_level = root.find('./cmd/treblelevel').text
         except (AttributeError, IndexError, TypeError):
             _LOGGER.error("Incomplete/no information found for tone control")
             return False
