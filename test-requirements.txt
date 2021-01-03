@@ -6,4 +6,3 @@ pytest-timeout
 flake8-docstrings
 flake8
 requests-mock
-testtools
