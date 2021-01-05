@@ -2125,6 +2125,18 @@ class DenonAVR:
             return True
         return False
 
+    def bass_up(self):
+        """Increase level of Bass."""
+        if self.bass == 12:
+            return True
+        return self._set_tone_control('bass', self.bass + 1)
+
+    def bass_down(self):
+        """Decrease level of Bass."""
+        if self.bass == 0:
+            return True
+        return self._set_tone_control('bass', self.bass - 1)
+
     def set_bass(self, bass):
         """
         Set receiver bass.
@@ -2135,6 +2147,18 @@ class DenonAVR:
         Doesn't work, if Dynamic Equalizer is active.
         """
         return self._set_tone_control('bass', bass)
+
+    def treble_up(self):
+        """Increase level of Treble."""
+        if self.treble == 12:
+            return True
+        return self._set_tone_control('treble', self.treble + 1)
+
+    def treble_down(self):
+        """Decrease level of Treble."""
+        if self.treble == 0:
+            return True
+        return self._set_tone_control('treble', self.treble - 1)
 
     def set_treble(self, treble):
         """
