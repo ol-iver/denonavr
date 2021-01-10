@@ -158,12 +158,12 @@
         <surround>DTS Neo:X Cinema               </surround>
     </cmd>
     <cmd>
-        <status>0</status>
-        <adjust></adjust>
-        <basslevel></basslevel>
-        <bassvalue></bassvalue>
-        <treblelevel></treblelevel>
-        <treblevalue></treblevalue>
+        <status>1</status>
+        <adjust>1</adjust>
+        <basslevel>0dB</basslevel>
+        <bassvalue>6</bassvalue>
+        <treblelevel>0dB</treblelevel>
+        <treblevalue>6</treblevalue>
     </cmd>
     <cmd>
         <zone1>
