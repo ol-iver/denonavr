@@ -3,46 +3,14 @@
 <cmd>
 <zone1>ON</zone1>
 <zone2>OFF</zone2>
-<zone3>OFF</zone3>
 </cmd>
 <cmd>
 <zone1>
-<source>BD</source>
+<source>NET</source>
 </zone1>
 <zone2>
-<source>TV</source>
+<source>NET</source>
 </zone2>
-<zone3>
-<source>SOURCE</source>
-</zone3>
-</cmd>
-<cmd>
-<zone1>
-<volume>-57.5</volume>
-<state>variable</state>
-<limit>OFF</limit>
-<disptype>ABSOLUTE</disptype>
-<dispvalue>22.5</dispvalue>
-</zone1>
-<zone2>
-<volume>-40</volume>
-<state>variable</state>
-<limit>-10.0</limit>
-<disptype>ABSOLUTE</disptype>
-<dispvalue> 40</dispvalue>
-</zone2>
-<zone3>
-<volume>-40</volume>
-<state>variable</state>
-<limit>-10.0</limit>
-<disptype>ABSOLUTE</disptype>
-<dispvalue> 40</dispvalue>
-</zone3>
-</cmd>
-<cmd>
-<zone1>off</zone1>
-<zone2>off</zone2>
-<zone3>off</zone3>
 </cmd>
 <cmd>
 <functionrename>
@@ -56,7 +24,7 @@
 </list>
 <list>
 <name>Blu-ray</name>
-<rename>Bluray      </rename>
+<rename>Blu-ray     </rename>
 </list>
 <list>
 <name>GAME</name>
@@ -110,7 +78,7 @@
 <list>
 <name>DVD</name>
 <FuncName>DVD</FuncName>
-<use>1</use>
+<use>0</use>
 </list>
 <list>
 <name>Blu-ray</name>
@@ -120,7 +88,7 @@
 <list>
 <name>GAME</name>
 <FuncName>GAME</FuncName>
-<use>1</use>
+<use>0</use>
 </list>
 <list>
 <name>AUX1</name>
@@ -130,7 +98,7 @@
 <list>
 <name>AUX2</name>
 <FuncName>AUX2</FuncName>
-<use>1</use>
+<use>0</use>
 </list>
 <list>
 <name>Media Player</name>
@@ -140,7 +108,7 @@
 <list>
 <name>CD</name>
 <FuncName>CD</FuncName>
-<use>1</use>
+<use>0</use>
 </list>
 <list>
 <name>TUNER</name>
@@ -165,8 +133,39 @@
 <list>
 <name>PHONO</name>
 <FuncName>PHONO</FuncName>
-<use>1</use>
+<use>0</use>
 </list>
 </functiondelete>
+</cmd>
+<cmd>
+<surround>DTS Neo:X Cinema               </surround>
+</cmd>
+<cmd>
+<status>0</status>
+<adjust></adjust>
+<basslevel></basslevel>
+<bassvalue></bassvalue>
+<treblelevel></treblelevel>
+<treblevalue></treblevalue>
+</cmd>
+<cmd>
+<zone1>
+<volume>-70.0</volume>
+<state>variable</state>
+<limit>OFF</limit>
+<disptype>ABSOLUTE</disptype>
+<dispvalue>10.0</dispvalue>
+</zone1>
+<zone2>
+<volume>-70</volume>
+<state>variable</state>
+<limit>-20.0</limit>
+<disptype>ABSOLUTE</disptype>
+<dispvalue> 10</dispvalue>
+</zone2>
+</cmd>
+<cmd>
+<zone1>off</zone1>
+<zone2>off</zone2>
 </cmd>
 </rx>

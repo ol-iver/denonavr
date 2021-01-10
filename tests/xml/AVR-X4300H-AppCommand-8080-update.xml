@@ -3,36 +3,24 @@
 <cmd>
 <zone1>ON</zone1>
 <zone2>OFF</zone2>
+<zone3>OFF</zone3>
 </cmd>
 <cmd>
 <zone1>
 <source>BD</source>
 </zone1>
 <zone2>
+<source>TV</source>
+</zone2>
+<zone3>
 <source>SOURCE</source>
-</zone2>
-</cmd>
-<cmd>
-<zone1>
-<volume>-38.0</volume>
-<disptype>ABSOLUTE</disptype>
-<dispvalue>42.0</dispvalue>
-</zone1>
-<zone2>
-<volume>-40</volume>
-<disptype>ABSOLUTE</disptype>
-<dispvalue> 40</dispvalue>
-</zone2>
-</cmd>
-<cmd>
-<zone1>off</zone1>
-<zone2>off</zone2>
+</zone3>
 </cmd>
 <cmd>
 <functionrename>
 <list>
 <name>CBL/SAT</name>
-<rename>Kodi TV     </rename>
+<rename>CBL/SAT     </rename>
 </list>
 <list>
 <name>DVD</name>
@@ -40,23 +28,27 @@
 </list>
 <list>
 <name>Blu-ray</name>
-<rename>Chromecast  </rename>
+<rename>Bluray      </rename>
 </list>
 <list>
 <name>GAME</name>
 <rename>Game        </rename>
 </list>
 <list>
-<name>AUX</name>
-<rename>AUX         </rename>
+<name>AUX1</name>
+<rename>AUX1        </rename>
+</list>
+<list>
+<name>AUX2</name>
+<rename>AUX2        </rename>
 </list>
 <list>
 <name>Media Player</name>
 <rename>Media Player</rename>
 </list>
 <list>
-<name>iPod/USB</name>
-<rename>iPod/USB</rename>
+<name>CD</name>
+<rename>CD          </rename>
 </list>
 <list>
 <name>TUNER</name>
@@ -64,7 +56,7 @@
 </list>
 <list>
 <name>NETWORK</name>
-<rename>Online Music</rename>
+<rename>HEOS Music</rename>
 </list>
 <list>
 <name>TV AUDIO</name>
@@ -75,8 +67,8 @@
 <rename>Bluetooth</rename>
 </list>
 <list>
-<name>SpotifyConnect</name>
-<rename>Spotify</rename>
+<name>PHONO</name>
+<rename>Phono       </rename>
 </list>
 </functionrename>
 </cmd>
@@ -100,27 +92,32 @@
 <list>
 <name>GAME</name>
 <FuncName>GAME</FuncName>
-<use>0</use>
+<use>1</use>
 </list>
 <list>
-<name>AUX</name>
-<FuncName>AUX</FuncName>
-<use>0</use>
+<name>AUX1</name>
+<FuncName>AUX1</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>AUX2</name>
+<FuncName>AUX2</FuncName>
+<use>1</use>
 </list>
 <list>
 <name>Media Player</name>
 <FuncName>Media Player</FuncName>
-<use>0</use>
+<use>1</use>
 </list>
 <list>
-<name>iPod/USB</name>
-<FuncName>iPod/USB</FuncName>
+<name>CD</name>
+<FuncName>CD</FuncName>
 <use>1</use>
 </list>
 <list>
 <name>TUNER</name>
 <FuncName>TUNER</FuncName>
-<use>0</use>
+<use>1</use>
 </list>
 <list>
 <name>NETWORK</name>
@@ -137,6 +134,50 @@
 <FuncName>Bluetooth</FuncName>
 <use>1</use>
 </list>
+<list>
+<name>PHONO</name>
+<FuncName>PHONO</FuncName>
+<use>1</use>
+</list>
 </functiondelete>
+</cmd>
+<cmd>
+<surround>DTS Neo:X Cinema               </surround>
+</cmd>
+<cmd>
+<status>0</status>
+<adjust></adjust>
+<basslevel></basslevel>
+<bassvalue></bassvalue>
+<treblelevel></treblelevel>
+<treblevalue></treblevalue>
+</cmd>
+<cmd>
+<zone1>
+<volume>-57.5</volume>
+<state>variable</state>
+<limit>OFF</limit>
+<disptype>ABSOLUTE</disptype>
+<dispvalue>22.5</dispvalue>
+</zone1>
+<zone2>
+<volume>-40</volume>
+<state>variable</state>
+<limit>-10.0</limit>
+<disptype>ABSOLUTE</disptype>
+<dispvalue> 40</dispvalue>
+</zone2>
+<zone3>
+<volume>-40</volume>
+<state>variable</state>
+<limit>-10.0</limit>
+<disptype>ABSOLUTE</disptype>
+<dispvalue> 40</dispvalue>
+</zone3>
+</cmd>
+<cmd>
+<zone1>off</zone1>
+<zone2>off</zone2>
+<zone3>off</zone3>
 </cmd>
 </rx>

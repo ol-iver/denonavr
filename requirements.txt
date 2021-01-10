@@ -1,2 +1,5 @@
-requests
-netifaces
+async_lru>=1.0.2
+attrs>=20.3.0
+defusedxml>=0.6.0
+httpx>=0.16.1
+netifaces>=0.10.9

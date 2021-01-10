@@ -3,6 +3,7 @@ pylint
 pytest
 pytest-cov
 pytest-timeout
+pytest-asyncio
+pytest-httpx
 flake8-docstrings
 flake8
-requests-mock

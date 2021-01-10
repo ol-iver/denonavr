@@ -3,173 +3,216 @@
 """
 This module implements the Audyssey settings of Denon AVR receivers.
 
-:copyright: (c) 2016 by Oliver Goetz.
+:copyright: (c) 2020 by Oliver Goetz.
 :license: MIT, see LICENSE for more details.
 """
 
 import logging
-from io import BytesIO
-import xml.etree.ElementTree as ET
-from requests.exceptions import RequestException, ConnectTimeout
 
-_LOGGER = logging.getLogger("Audyssey")
+from typing import Hashable, List, Optional
 
-MULTI_EQ_MAP = {"0": "Off", "1": "Flat", "2": "L/R Bypass", "3": "Reference"}
-MULTI_EQ_MAP_LABELS = {(value, key) for key, value in MULTI_EQ_MAP.items()}
+import attr
 
-REF_LVL_OFFSET_MAP = {"0": "0dB", "1": "+5dB", "2": "+10dB", "3": "+15dB"}
-REF_LVL_OFFSET_MAP_LABELS = {
-    (value, key) for key, value in REF_LVL_OFFSET_MAP.items()}
+from .appcommand import AppCommandCmd, AppCommandCmdParam, AppCommands
+from .const import (
+    DENON_ATTR_SETATTR, DYNAMIC_VOLUME_MAP, DYNAMIC_VOLUME_MAP_LABELS,
+    MULTI_EQ_MAP, MULTI_EQ_MAP_LABELS, REF_LVL_OFFSET_MAP,
+    REF_LVL_OFFSET_MAP_LABELS)
+from .foundation import DenonAVRFoundation, convert_string_int_bool
+from .exceptions import AvrCommandError, AvrProcessingError
 
-DYNAMIC_VOLUME_MAP = {"0": "Off", "1": "Light", "2": "Medium", "3": "Heavy"}
-DYNAMIC_VOLUME_MAP_LABELS = {
-    (value, key) for key, value in DYNAMIC_VOLUME_MAP.items()}
-
-COMMAND_ENDPOINT = "/goform/AppCommand0300.xml"
+_LOGGER = logging.getLogger(__name__)
 
 
-class Audyssey:
+@attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
+class DenonAVRAudyssey(DenonAVRFoundation):
     """Audyssey Settings."""
 
-    def __init__(self, receiver):
-        """
-        Initialize Audyssey Settings of DenonAVR.
+    _dynamiceq: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_string_int_bool),
+        default=None)
+    _dynamiceq_control: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_string_int_bool),
+        default=None)
+    _reflevoffset: Optional[str] = attr.ib(
+        converter=attr.converters.optional(REF_LVL_OFFSET_MAP.get),
+        default=None)
+    _reflevoffset_control: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_string_int_bool),
+        default=None)
+    _dynamicvol: Optional[str] = attr.ib(
+        converter=attr.converters.optional(DYNAMIC_VOLUME_MAP.get),
+        default=None)
+    _dynamicvol_control: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_string_int_bool),
+        default=None)
+    _multeq: Optional[str] = attr.ib(
+        converter=attr.converters.optional(MULTI_EQ_MAP.get),
+        default=None)
+    _multeq_control: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_string_int_bool),
+        default=None)
 
-        :param receiver: DenonAVR Receiver
-        :type receiver: DenonAVR
-        """
-        self.receiver = receiver
+    # Update tags for attributes
+    # AppCommand0300.xml interface
+    appcommand0300_attrs = {
+        AppCommands.GetAudyssey: None}
 
-        self.dynamiceq = None
-        self.dynamiceq_control = None
-        self.reflevoffset = None
-        self.reflevoffset_control = None
-        self.dynamicvol = None
-        self.dynamicvol_control = None
-        self.multeq = None
-        self.multeq_control = None
+    def setup(self) -> None:
+        """Ensure that the instance is initialized."""
+        # Add tags for a potential AppCommand.xml update
+        for tag in self.appcommand0300_attrs:
+            self._device.api.add_appcommand0300_update_tag(tag)
 
-    def send_command(self, xml_tree):
-        """Send commands."""
-        body = BytesIO()
-        xml_tree.write(body, encoding="utf-8", xml_declaration=True)
-        try:
-            result = self.receiver.send_post_command(
-                COMMAND_ENDPOINT, body.getvalue())
-        except ConnectTimeout:
-            return
-        except RequestException:
-            _LOGGER.error(
-                "No connection to %s end point on host %s",
-                COMMAND_ENDPOINT, self.receiver.host)
-            return
-        finally:
-            # Buffered XML not needed anymore: close
-            body.close()
+        self._is_setup = True
 
-        if result is None:
-            return
+    async def async_update(
+            self,
+            global_update: bool = False,
+            cache_id: Optional[Hashable] = None) -> None:
+        """Update Audyssey asynchronously."""
+        # Ensure instance is setup before updating
+        if self._is_setup is False:
+            self.setup()
 
-        try:
-            # Return XML ElementTree
-            return ET.fromstring(result)
+        # Update state
+        await self.async_update_audyssey(
+            global_update=global_update, cache_id=cache_id)
 
-        except (ET.ParseError, TypeError):
-            _LOGGER.error(
-                "End point %s on host %s returned malformed XML.",
-                COMMAND_ENDPOINT, self.receiver.host)
-            return
-
-    def update(self):
-        """Get current Audyssey settings."""
-        root = ET.Element("tx")
-        cmd = ET.SubElement(root, "cmd", id="3")
-        ET.SubElement(cmd, "name").text = "GetAudyssey"
-        valid_params = ["dynamiceq", "reflevoffset", "dynamicvol", "multeq"]
-        param_list = ET.SubElement(cmd, "list")
-        for param in valid_params:
-            ET.SubElement(param_list, "param", name=param)
-        tree = ET.ElementTree(root)
-
-        response = self.send_command(tree)
-        if response is None:
-            return False
-
-        audyssey_params = response.find("./cmd/list")
-
-        if audyssey_params is None:
-            return False
-
-        for param in audyssey_params:
-            if param.get("name") not in valid_params:
-                continue
-            if param.get("name") == "multeq":
-                self.multeq = MULTI_EQ_MAP.get(param.text)
-            elif param.get("name") == "dynamiceq":
-                self.dynamiceq = bool(int(
-                    param.text)) if param.text is not None else None
-            elif param.get("name") == "reflevoffset":
-                # Reference level offset can only be used with DynamicEQ
-                if self.dynamiceq is False:
-                    self.reflevoffset = False
-                else:
-                    self.reflevoffset = REF_LVL_OFFSET_MAP.get(param.text)
-            elif param.get("name") == "dynamicvol":
-                self.dynamicvol = DYNAMIC_VOLUME_MAP.get(param.text)
-            if param.get("control") is not None:
-                setattr(
-                    self, "{name}_control".format(name=param.get("name")),
-                    bool(int(param.get("control"))))
-        return True
-
-    def _set_audyssey(self, parameter, value):
-        """Set Audyssey parameter."""
-        root = ET.Element("tx")
-        cmd = ET.SubElement(root, "cmd", id="3")
-        ET.SubElement(cmd, "name").text = "SetAudyssey"
-        param_list = ET.SubElement(cmd, "list")
-        ET.SubElement(param_list, "param", name=parameter).text = str(value)
-        tree = ET.ElementTree(root)
-
-        response = self.send_command(xml_tree=tree)
-        if response is None:
-            return False
-
-        try:
-            if response.find("cmd").text == "OK":
-                return True
-        except AttributeError:
+    async def async_update_audyssey(
+            self,
+            global_update: bool = False,
+            cache_id: Optional[Hashable] = None):
+        """Update Audyssey status of device."""
+        if self._device.use_avr_2016_update is True:
+            await self.async_update_attrs_appcommand(
+                self.appcommand0300_attrs,
+                appcommand0300=True,
+                global_update=global_update,
+                cache_id=cache_id,
+                ignore_missing_response=True)
+        elif self._device.use_avr_2016_update is False:
+            # Not available
             pass
+        else:
+            raise AvrProcessingError(
+                "Device is not setup correctly, update method not set")
 
-        return False
+    async def _async_set_audyssey(self, cmd: AppCommandCmd) -> None:
+        """Set Audyssey parameter."""
+        res = await self._device.api.async_post_appcommand(
+            self._device.urls.appcommand0300, (cmd,))
 
-    def dynamiceq_off(self):
+        try:
+            if res.find("cmd").text != "OK":
+                raise AvrProcessingError(
+                    "SetAudyssey command {} failed".format(cmd.name))
+        except AttributeError as err:
+            raise AvrProcessingError(
+                "SetAudyssey command {} failed".format(cmd.name)) from err
+
+    ##############
+    # Properties #
+    ##############
+    @property
+    def dynamic_eq(self) -> Optional[bool]:
+        """Return value of Dynamic EQ."""
+        return self._dynamiceq
+
+    @property
+    def reference_level_offset(self) -> Optional[str]:
+        """Return value of Reference Level Offset."""
+        return self._reflevoffset
+
+    @property
+    def reference_level_offset_setting_list(self) -> List[str]:
+        """Return a list of available reference level offset settings."""
+        return list(REF_LVL_OFFSET_MAP_LABELS.keys())
+
+    @property
+    def dynamic_volume(self) -> Optional[str]:
+        """Return value of Dynamic Volume."""
+        return self._dynamicvol
+
+    @property
+    def dynamic_volume_setting_list(self) -> List[str]:
+        """Return a list of available Dynamic Volume settings."""
+        return list(DYNAMIC_VOLUME_MAP_LABELS.keys())
+
+    @property
+    def multi_eq(self) -> Optional[str]:
+        """Return value of MultiEQ."""
+        return self._multeq
+
+    @property
+    def multi_eq_setting_list(self) -> List[str]:
+        """Return a list of available MultiEQ settings."""
+        return list(MULTI_EQ_MAP_LABELS.keys())
+
+    ##########
+    # Setter #
+    ##########
+    async def async_dynamiceq_off(self) -> None:
         """Turn DynamicEQ off."""
-        if self._set_audyssey("dynamiceq", 0) is True:
-            self.dynamiceq = False
+        cmd = attr.evolve(
+            AppCommands.SetAudysseyDynamicEQ, param_list=(
+                AppCommandCmdParam(name="dynamiceq", text=0),))
+        await self._async_set_audyssey(cmd)
 
-    def dynamiceq_on(self):
+    async def async_dynamiceq_on(self) -> None:
         """Turn DynamicEQ on."""
-        if self._set_audyssey("dynamiceq", 1) is True:
-            self.dynamiceq = True
+        cmd = attr.evolve(
+            AppCommands.SetAudysseyDynamicEQ, param_list=(
+                AppCommandCmdParam(name="dynamiceq", text=1),))
+        await self._async_set_audyssey(cmd)
 
-    def set_multieq(self, setting):
+    async def async_set_multieq(self, value: str) -> None:
         """Set MultiEQ mode."""
-        if self._set_audyssey(
-                "multeq", MULTI_EQ_MAP_LABELS.get(setting)) is True:
-            self.multeq = setting
+        setting = MULTI_EQ_MAP_LABELS.get(value)
+        if setting is None:
+            raise AvrCommandError(
+                "Value {} not known for MultiEQ".format(value))
+        cmd = attr.evolve(
+            AppCommands.SetAudysseyMultiEQ, param_list=(
+                AppCommandCmdParam(name="multeq", text=setting),))
+        await self._async_set_audyssey(cmd)
 
-    def set_reflevoffset(self, setting):
+    async def async_set_reflevoffset(self, value: str) -> None:
         """Set Reference Level Offset."""
         # Reference level offset can only be used with DynamicEQ
-        if self.dynamiceq is True:
-            if self._set_audyssey(
-                    "reflevoffset", REF_LVL_OFFSET_MAP_LABELS.get(setting)
-                        ) is True:
-                self.reflevoffset = setting
+        if self._dynamiceq is False:
+            raise AvrCommandError(
+                "Reference level could only be set when DynamicEQ is active")
+        setting = REF_LVL_OFFSET_MAP_LABELS.get(value)
+        if setting is None:
+            raise AvrCommandError(
+                "Value {} not known for Reference level offset".format(value))
+        cmd = attr.evolve(
+            AppCommands.SetAudysseyReflevoffset, param_list=(
+                AppCommandCmdParam(name="reflevoffset", text=setting),))
+        await self._async_set_audyssey(cmd)
 
-    def set_dynamicvol(self, setting):
+    async def async_set_dynamicvol(self, value: str) -> None:
         """Set Dynamic Volume."""
-        if self._set_audyssey(
-                "dynamicvol", DYNAMIC_VOLUME_MAP_LABELS.get(setting)) is True:
-            self.dynamicvol = setting
+        setting = DYNAMIC_VOLUME_MAP_LABELS.get(value)
+        if setting is None:
+            raise AvrCommandError(
+                "Value {} not known for Dynamic Volume".format(value))
+        cmd = attr.evolve(
+            AppCommands.SetAudysseyDynamicvol, param_list=(
+                AppCommandCmdParam(name="dynamicvol", text=setting),))
+        await self._async_set_audyssey(cmd)
+
+    async def async_toggle_dynamic_eq(self) -> None:
+        """Toggle DynamicEQ."""
+        if self._dynamiceq is True:
+            await self.async_dynamiceq_off()
+        else:
+            await self.async_dynamiceq_on()
+
+
+def audyssey_factory(instance: DenonAVRFoundation) -> DenonAVRAudyssey:
+    """Create  DenonAVRAudyssey at receiver instances."""
+    # pylint: disable=protected-access
+    new = DenonAVRAudyssey(device=instance._device)
+    return new

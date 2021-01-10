@@ -3,6 +3,7 @@
 <cmd>
 <zone1>ON</zone1>
 <zone2>OFF</zone2>
+<zone3>OFF</zone3>
 </cmd>
 <cmd>
 <zone1>
@@ -11,36 +12,19 @@
 <zone2>
 <source>NET</source>
 </zone2>
-</cmd>
-<cmd>
-<zone1>
-<volume>-70.0</volume>
-<state>variable</state>
-<limit>OFF</limit>
-<disptype>ABSOLUTE</disptype>
-<dispvalue>10.0</dispvalue>
-</zone1>
-<zone2>
-<volume>-70</volume>
-<state>variable</state>
-<limit>-20.0</limit>
-<disptype>ABSOLUTE</disptype>
-<dispvalue> 10</dispvalue>
-</zone2>
-</cmd>
-<cmd>
-<zone1>off</zone1>
-<zone2>off</zone2>
+<zone3>
+<source>NET</source>
+</zone3>
 </cmd>
 <cmd>
 <functionrename>
 <list>
 <name>CBL/SAT</name>
-<rename>CBL/SAT     </rename>
+<rename>SKY Q       </rename>
 </list>
 <list>
 <name>DVD</name>
-<rename>DVD         </rename>
+<rename>Apple telly </rename>
 </list>
 <list>
 <name>Blu-ray</name>
@@ -48,27 +32,47 @@
 </list>
 <list>
 <name>GAME</name>
-<rename>Game        </rename>
+<rename>PS4         </rename>
 </list>
 <list>
 <name>AUX1</name>
-<rename>AUX1        </rename>
+<rename>Front HDMI  </rename>
 </list>
 <list>
 <name>AUX2</name>
-<rename>AUX2        </rename>
+<rename>XBox        </rename>
+</list>
+<list>
+<name>AUX3</name>
+<rename></rename>
+</list>
+<list>
+<name>AUX4</name>
+<rename></rename>
+</list>
+<list>
+<name>AUX5</name>
+<rename></rename>
+</list>
+<list>
+<name>AUX6</name>
+<rename></rename>
+</list>
+<list>
+<name>AUX7</name>
+<rename></rename>
 </list>
 <list>
 <name>Media Player</name>
-<rename>Media Player</rename>
+<rename>Dune        </rename>
 </list>
 <list>
 <name>CD</name>
-<rename>CD          </rename>
+<rename>CD+PS4 VR   </rename>
 </list>
 <list>
 <name>TUNER</name>
-<rename>Tuner</rename>
+<rename>Tuner       </rename>
 </list>
 <list>
 <name>NETWORK</name>
@@ -76,7 +80,7 @@
 </list>
 <list>
 <name>TV AUDIO</name>
-<rename>TV Audio    </rename>
+<rename>Telly Audio </rename>
 </list>
 <list>
 <name>Bluetooth</name>
@@ -98,7 +102,7 @@
 <list>
 <name>DVD</name>
 <FuncName>DVD</FuncName>
-<use>0</use>
+<use>1</use>
 </list>
 <list>
 <name>Blu-ray</name>
@@ -108,7 +112,7 @@
 <list>
 <name>GAME</name>
 <FuncName>GAME</FuncName>
-<use>0</use>
+<use>1</use>
 </list>
 <list>
 <name>AUX1</name>
@@ -118,6 +122,31 @@
 <list>
 <name>AUX2</name>
 <FuncName>AUX2</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>AUX3</name>
+<FuncName>AUX3</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>AUX4</name>
+<FuncName>AUX4</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>AUX5</name>
+<FuncName>AUX5</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>AUX6</name>
+<FuncName>AUX6</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>AUX7</name>
+<FuncName>AUX7</FuncName>
 <use>0</use>
 </list>
 <list>
@@ -128,7 +157,7 @@
 <list>
 <name>CD</name>
 <FuncName>CD</FuncName>
-<use>0</use>
+<use>1</use>
 </list>
 <list>
 <name>TUNER</name>
@@ -153,8 +182,47 @@
 <list>
 <name>PHONO</name>
 <FuncName>PHONO</FuncName>
-<use>0</use>
+<use>1</use>
 </list>
 </functiondelete>
+</cmd>
+<cmd>
+<surround>DTS Neo:X Cinema               </surround>
+</cmd>
+<cmd>
+<status>0</status>
+<adjust></adjust>
+<basslevel></basslevel>
+<bassvalue></bassvalue>
+<treblelevel></treblelevel>
+<treblevalue></treblevalue>
+</cmd>
+<cmd>
+<zone1>
+<volume>-40.0</volume>
+<state>variable</state>
+<limit>OFF</limit>
+<disptype>ABSOLUTE</disptype>
+<dispvalue>40.0</dispvalue>
+</zone1>
+<zone2>
+<volume>-21</volume>
+<state>variable</state>
+<limit>-10.0</limit>
+<disptype>ABSOLUTE</disptype>
+<dispvalue> 59</dispvalue>
+</zone2>
+<zone3>
+<volume>-40</volume>
+<state>variable</state>
+<limit>-10.0</limit>
+<disptype>ABSOLUTE</disptype>
+<dispvalue> 40</dispvalue>
+</zone3>
+</cmd>
+<cmd>
+<zone1>off</zone1>
+<zone2>off</zone2>
+<zone3>off</zone3>
 </cmd>
 </rx>
