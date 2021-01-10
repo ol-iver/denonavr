@@ -21,6 +21,7 @@ setup(name='denonavr',
       tests_require=['tox'],
       platforms=['any'],
       zip_safe=False,
+      python_requires=">=3.6",
       classifiers=[
           "Development Status :: 4 - Beta",
           "Intended Audience :: Developers",
