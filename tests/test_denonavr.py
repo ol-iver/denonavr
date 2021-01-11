@@ -107,7 +107,7 @@ class TestMainFunctions:
                         receiver=self.testing_receiver, port=port_suffix))
             elif request.url.path == APPCOMMAND_URL:
                 content_str = request.read().decode("utf-8")
-                if "friendlyname" in content_str:
+                if "GetFriendlyName" in content_str:
                     ep_suffix = "-setup"
                 else:
                     ep_suffix = "-update"
