@@ -18,7 +18,9 @@ import httpx
 
 from .appcommand import AppCommandCmd, AppCommands
 from .api import DenonAVRApi
-from .exceptions import AvrProcessingError, AvrRequestError, AvrTimoutError
+from .exceptions import (
+    AvrProcessingError, AvrRequestError, AvrTimoutError,
+    AvrInvalidResponseError)
 from .const import (
     APPCOMMAND_CMD_TEXT, APPCOMMAND_NAME, AVR, AVR_X, AVR_X_2016,
     DENON_ATTR_SETATTR, DENONAVR_URLS, DESCRIPTION_TYPES,
@@ -284,13 +286,15 @@ class DenonAVRDeviceInfo:
             self.manufacturer = "Denon"
             self.model_name = "Unknown"
             self.serial_number = None
-            _LOGGER.error(
-                "Unable to get device information of host %s, can not "
-                "use the serial number as identification", self.api.host)
-        else:
-            self.manufacturer = device_info["manufacturer"]
-            self.model_name = device_info["modelName"]
-            self.serial_number = device_info["serialNumber"]
+            _LOGGER.debug("No device info")
+            raise AvrInvalidResponseError(
+                "Unable to get device information of host {}, Device is in a "
+                "corrupted state. Disconnect and reconnect power to the device"
+                " and try again.".format(self.api.host), command)
+
+        self.manufacturer = device_info["manufacturer"]
+        self.model_name = device_info["modelName"]
+        self.serial_number = device_info["serialNumber"]
 
     async def async_update_power(
             self,

@@ -129,10 +129,10 @@ class AppCommands:
         response_pattern=(
             AppCommandResponsePattern(
                 update_attribute="_multeq", add_zone=False,
-                suffix="/list/param[@name='multieq']"),
+                suffix="/list/param[@name='multeq']"),
             AppCommandResponsePattern(
                 update_attribute="_multeq_control", add_zone=False,
-                suffix="/list/param[@name='multieq']",
+                suffix="/list/param[@name='multeq']",
                 get_xml_attribute="control"),
             AppCommandResponsePattern(
                 update_attribute="_dynamiceq", add_zone=False,
