@@ -8,15 +8,20 @@ This module implements a discovery function for Denon AVR receivers.
 """
 
 import logging
+import asyncio
 import socket
 import re
 import xml.etree.ElementTree as ET
-from concurrent.futures import ThreadPoolExecutor
+
+from typing import Dict, Optional, Tuple, Set
 from urllib.parse import urlparse
-import requests
+
+import httpx
 import netifaces
 
-_LOGGER = logging.getLogger('DenonSSDP')
+from defusedxml.ElementTree import fromstring
+
+_LOGGER = logging.getLogger(__name__)
 
 SSDP_ADDR = "239.255.255.250"
 SSDP_PORT = 1900
@@ -70,7 +75,7 @@ def get_local_ips():
     return ips
 
 
-def identify_denonavr_receivers():
+async def async_identify_denonavr_receivers():
     """
     Identify DenonAVR using SSDP and SCPD queries.
 
@@ -78,23 +83,27 @@ def identify_denonavr_receivers():
     devices with keys "host", "modelName", "friendlyName", "presentationURL".
     """
     # Sending SSDP broadcast message to get resource urls from devices
-    urls = send_ssdp_broadcast()
+    urls = await async_send_ssdp_broadcast()
 
     # Check which responding device is a DenonAVR device and prepare output
     receivers = []
 
     for url in urls:
         try:
-            receiver = evaluate_scpd_xml(url)
-        except requests.exceptions.RequestException:
+            async with httpx.AsyncClient() as client:
+                res = await client.get(url, timeout=5.0)
+                res.raise_for_status()
+        except httpx.HTTPError:
             continue
-        if receiver is not None:
-            receivers.append(receiver)
+        else:
+            receiver = evaluate_scpd_xml(url, res.text)
+            if receiver is not None:
+                receivers.append(receiver)
 
     return receivers
 
 
-def send_ssdp_broadcast():
+async def async_send_ssdp_broadcast() -> Set[str]:
     """
     Send SSDP broadcast messages to discover UPnP devices.
 
@@ -102,128 +111,131 @@ def send_ssdp_broadcast():
     """
     # Send up to three different broadcast messages
     ips = get_local_ips()
-    res = []
-
-    futures = []
-    with ThreadPoolExecutor() as executor:
-        for ip_addr in ips:
-            futures.append(executor.submit(send_ssdp_broadcast_ip, ip_addr))
-
-        for future in futures:
-            res.extend(future.result())
-
     # Prepare output of responding devices
     urls = set()
 
-    for entry in res:
-        # Some string operations to get the receivers URL
-        # which could be found between LOCATION and end of line of the response
-        entry_text = entry[0].decode("utf-8")
-        match = SSDP_LOCATION_PATTERN.search(entry_text)
-        if match:
-            urls.add(match.group(0))
+    tasks = []
+    for ip_addr in ips:
+        tasks.append(async_send_ssdp_broadcast_ip(ip_addr))
+
+    results = await asyncio.gather(*tasks)
+
+    for result in results:
+        _LOGGER.debug("################### %s", result)
+        urls = urls.union(result)
 
     _LOGGER.debug("Following devices found: %s", urls)
     return urls
 
 
-def send_ssdp_broadcast_ip(ip_addr):
+async def async_send_ssdp_broadcast_ip(ip_addr):
     """Send SSDP broadcast messages to a single IP."""
-    res = []
     # Ignore 169.254.0.0/16 adresses
     if re.search("169.254.*.*", ip_addr):
-        return res
-    # Prepare SSDP broadcast message
+        return set()
+
+    # Prepare socket
     sock = socket.socket(
         socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-    sock.settimeout(SSDP_MX)
     sock.bind((ip_addr, 0))
-    for ssdp_st in SSDP_ST_LIST:
-        sock.sendto(ssdp_request(ssdp_st), (SSDP_ADDR, SSDP_PORT))
 
-    # Collect all responses within the timeout period
-    try:
-        while True:
-            res.append(sock.recvfrom(10240))
-    except socket.timeout:
-        pass
-    finally:
-        sock.close()
+    # Get asyncio loop
+    loop = asyncio.get_event_loop()
+    transport, protocol = await loop.create_datagram_endpoint(
+        DenonAVRSSDP, sock=sock)
 
-    if res:
-        _LOGGER.debug(
-            "Got %s results after SSDP queries using ip %s", len(res), ip_addr)
+    # Wait for the timeout period
+    await asyncio.sleep(SSDP_MX)
 
-    return res
+    # Close the connection
+    transport.close()
+
+    _LOGGER.debug(
+        "Got %s results after SSDP queries using ip %s",
+        len(protocol.urls), ip_addr)
+
+    return protocol.urls
 
 
-def evaluate_scpd_xml(url):
+def evaluate_scpd_xml(url: str, body: str) -> Optional[Dict]:
     """
-    Get and evaluate SCPD XML to identified URLs.
+    Evaluate SCPD XML.
 
     Returns dictionary with keys "host", "modelName", "friendlyName" and
-    "presentationURL" if a Denon AVR device was found and "False" if not.
+    "presentationURL" if a Denon AVR device was found and "None" if not.
     """
-    # Get SCPD XML via HTTP GET
     try:
-        res = requests.get(url, timeout=2)
-    except requests.exceptions.ConnectTimeout:
-        raise
-    except requests.exceptions.RequestException as err:
-        _LOGGER.error(
-            "During DenonAVR device identification, when trying to request %s "
-            "the following error occurred: %s", url, err)
-        raise
+        root = fromstring(body)
+        # Look for manufacturer "Denon" in response.
+        # Using "try" in case tags are not available in XML
+        device = {}
+        device_xml = None
+        device["manufacturer"] = (
+            root.find(SCPD_DEVICE).find(SCPD_MANUFACTURER).text)
 
-    if res.status_code == 200:
-        try:
-            root = ET.fromstring(res.text)
-            # Look for manufacturer "Denon" in response.
-            # Using "try" in case tags are not available in XML
-            device = {}
-            device_xml = None
-            device["manufacturer"] = (
-                root.find(SCPD_DEVICE).find(SCPD_MANUFACTURER).text)
+        _LOGGER.debug(
+            "Device %s has manufacturer %s", url, device["manufacturer"])
 
-            _LOGGER.debug("Device %s has manufacturer %s", url,
-                          device["manufacturer"])
-
-            if not device["manufacturer"] in SUPPORTED_MANUFACTURERS:
-                return None
-
-            if (root.find(SCPD_DEVICE).find(SCPD_DEVICETYPE).text
-                    in SUPPORTED_DEVICETYPES):
-                device_xml = root.find(SCPD_DEVICE)
-            elif root.find(SCPD_DEVICE).find(SCPD_DEVICELIST) is not None:
-                for dev in root.find(SCPD_DEVICE).find(SCPD_DEVICELIST):
-                    if (dev.find(SCPD_DEVICETYPE).text in SUPPORTED_DEVICETYPES
-                            and dev.find(SCPD_SERIALNUMBER) is not None):
-                        device_xml = dev
-                        break
-
-            if device_xml is None:
-                return None
-
-            if device_xml.find(SCPD_PRESENTATIONURL) is not None:
-                device["host"] = urlparse(
-                    device_xml.find(
-                        SCPD_PRESENTATIONURL).text).hostname
-                device["presentationURL"] = (
-                    device_xml.find(SCPD_PRESENTATIONURL).text)
-            else:
-                device["host"] = urlparse(url).hostname
-            device["modelName"] = (
-                device_xml.find(SCPD_MODELNAME).text)
-            device["serialNumber"] = (
-                device_xml.find(SCPD_SERIALNUMBER).text)
-            device["friendlyName"] = (
-                device_xml.find(SCPD_FRIENDLYNAME).text)
-            return device
-        except (AttributeError, ValueError, ET.ParseError) as err:
-            _LOGGER.error(
-                "Error occurred during evaluation of SCPD XML: %s", err)
+        if not device["manufacturer"] in SUPPORTED_MANUFACTURERS:
             return None
-    else:
-        _LOGGER.debug("Host returned HTTP status %s when connecting to %s",
-                      res.status_code, url)
+
+        if (root.find(SCPD_DEVICE).find(SCPD_DEVICETYPE).text
+                in SUPPORTED_DEVICETYPES):
+            device_xml = root.find(SCPD_DEVICE)
+        elif root.find(SCPD_DEVICE).find(SCPD_DEVICELIST) is not None:
+            for dev in root.find(SCPD_DEVICE).find(SCPD_DEVICELIST):
+                if (dev.find(SCPD_DEVICETYPE).text in SUPPORTED_DEVICETYPES
+                        and dev.find(SCPD_SERIALNUMBER) is not None):
+                    device_xml = dev
+                    break
+
+        if device_xml is None:
+            return None
+
+        if device_xml.find(SCPD_PRESENTATIONURL) is not None:
+            device["host"] = urlparse(
+                device_xml.find(
+                    SCPD_PRESENTATIONURL).text).hostname
+            device["presentationURL"] = (
+                device_xml.find(SCPD_PRESENTATIONURL).text)
+        else:
+            device["host"] = urlparse(url).hostname
+
+        device["modelName"] = (
+            device_xml.find(SCPD_MODELNAME).text)
+        device["serialNumber"] = (
+            device_xml.find(SCPD_SERIALNUMBER).text)
+        device["friendlyName"] = (
+            device_xml.find(SCPD_FRIENDLYNAME).text)
+        return device
+    except (AttributeError, ValueError, ET.ParseError) as err:
+        _LOGGER.error(
+            "Error occurred during evaluation of SCPD XML: %s", err)
         return None
+
+
+class DenonAVRSSDP(asyncio.DatagramProtocol):
+    """Implements datagram protocol for SSDP discovery of Denon AVR devices."""
+
+    def __init__(self) -> None:
+        """Create instance."""
+        self.urls = set()
+
+    def connection_made(
+            self, transport: asyncio.DatagramTransport) -> None:
+        """Send SSDP request when connection was made."""
+        # Prepare SSDP and send broadcast message
+        for ssdp_st in SSDP_ST_LIST:
+            request = ssdp_request(ssdp_st)
+            transport.sendto(request, SSDP_TARGET)
+            _LOGGER.debug("SSDP request sent %s", request)
+
+    def datagram_received(self, data: bytes, addr: Tuple[str, int]) -> None:
+        """Receive responses to SSDP call."""
+        # Some string operations to get the receivers URL
+        # which could be found between LOCATION and end of line of the response
+        _LOGGER.debug("Response to SSDP call received: %s", data)
+        data_text = data.decode("utf-8")
+        match = SSDP_LOCATION_PATTERN.search(data_text)
+        if match:
+            self.urls.add(match.group(0))

@@ -16,31 +16,6 @@
             <source>SOURCE</source>
         </zone3>
     </cmd>
-    <cmd>
-        <zone1>
-            <volume>-23.0</volume>
-            <disptype>ABSOLUTE</disptype>
-            <dispvalue>57.0</dispvalue>
-        </zone1>
-        <zone2>
-            <volume>-40</volume>
-            <disptype>ABSOLUTE</disptype>
-            <dispvalue> 40</dispvalue>
-        </zone2>
-        <zone3>
-            <volume>-40</volume>
-            <disptype>ABSOLUTE</disptype>
-            <dispvalue> 40</dispvalue>
-        </zone3>
-    </cmd>
-    <cmd>
-        <zone1>off</zone1>
-        <zone2>off</zone2>
-        <zone3>off</zone3>
-    </cmd>
-    <cmd>
-        <surround>DTS Neo:X Cinema               </surround>
-    </cmd>
 	<cmd>
 		<functionrename>
 			<list>
@@ -179,4 +154,37 @@
 			</list>
 		</functiondelete>
 	</cmd>
+    <cmd>
+        <surround>DTS Neo:X Cinema               </surround>
+    </cmd>
+    <cmd>
+        <status>1</status>
+        <adjust>1</adjust>
+        <basslevel>0dB</basslevel>
+        <bassvalue>6</bassvalue>
+        <treblelevel>0dB</treblelevel>
+        <treblevalue>6</treblevalue>
+    </cmd>
+    <cmd>
+        <zone1>
+            <volume>-23.0</volume>
+            <disptype>ABSOLUTE</disptype>
+            <dispvalue>57.0</dispvalue>
+        </zone1>
+        <zone2>
+            <volume>-40</volume>
+            <disptype>ABSOLUTE</disptype>
+            <dispvalue> 40</dispvalue>
+        </zone2>
+        <zone3>
+            <volume>-40</volume>
+            <disptype>ABSOLUTE</disptype>
+            <dispvalue> 40</dispvalue>
+        </zone3>
+    </cmd>
+    <cmd>
+        <zone1>off</zone1>
+        <zone2>off</zone2>
+        <zone3>off</zone3>
+    </cmd>
 </rx>

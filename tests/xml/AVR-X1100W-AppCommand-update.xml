@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rx>
+<cmd>
+<zone1>ON</zone1>
+<zone2>OFF</zone2>
+</cmd>
+<cmd>
+<zone1>
+<source>BD</source>
+</zone1>
+<zone2>
+<source>SOURCE</source>
+</zone2>
+</cmd>
+<cmd>
+<functionrename>
+<list>
+<name>CBL/SAT</name>
+<rename>Kodi TV     </rename>
+</list>
+<list>
+<name>DVD</name>
+<rename>DVD         </rename>
+</list>
+<list>
+<name>Blu-ray</name>
+<rename>Chromecast  </rename>
+</list>
+<list>
+<name>GAME</name>
+<rename>Game        </rename>
+</list>
+<list>
+<name>AUX</name>
+<rename>AUX         </rename>
+</list>
+<list>
+<name>Media Player</name>
+<rename>Media Player</rename>
+</list>
+<list>
+<name>iPod/USB</name>
+<rename>iPod/USB</rename>
+</list>
+<list>
+<name>TUNER</name>
+<rename>Tuner</rename>
+</list>
+<list>
+<name>NETWORK</name>
+<rename>Online Music</rename>
+</list>
+<list>
+<name>TV AUDIO</name>
+<rename>TV Audio    </rename>
+</list>
+<list>
+<name>Bluetooth</name>
+<rename>Bluetooth</rename>
+</list>
+<list>
+<name>SpotifyConnect</name>
+<rename>Spotify</rename>
+</list>
+</functionrename>
+</cmd>
+<cmd>
+<functiondelete>
+<list>
+<name>CBL/SAT</name>
+<FuncName>CBL/SAT</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>DVD</name>
+<FuncName>DVD</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>Blu-ray</name>
+<FuncName>Blu-ray</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>GAME</name>
+<FuncName>GAME</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>AUX</name>
+<FuncName>AUX</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>Media Player</name>
+<FuncName>Media Player</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>iPod/USB</name>
+<FuncName>iPod/USB</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>TUNER</name>
+<FuncName>TUNER</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>NETWORK</name>
+<FuncName>NETWORK</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>TV AUDIO</name>
+<FuncName>TV AUDIO</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>Bluetooth</name>
+<FuncName>Bluetooth</FuncName>
+<use>1</use>
+</list>
+</functiondelete>
+</cmd>
+<cmd>
+<surround>DTS Neo:X Cinema               </surround>
+</cmd>
+<cmd>
+<status>0</status>
+<adjust></adjust>
+<basslevel></basslevel>
+<bassvalue></bassvalue>
+<treblelevel></treblelevel>
+<treblevalue></treblevalue>
+</cmd>
+<cmd>
+<zone1>
+<volume>-38.0</volume>
+<disptype>ABSOLUTE</disptype>
+<dispvalue>42.0</dispvalue>
+</zone1>
+<zone2>
+<volume>-40</volume>
+<disptype>ABSOLUTE</disptype>
+<dispvalue> 40</dispvalue>
+</zone2>
+</cmd>
+<cmd>
+<zone1>off</zone1>
+<zone2>off</zone2>
+</cmd>
+</rx>

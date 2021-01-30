@@ -7,1520 +7,253 @@ This module implements the interface to Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
-from collections import (namedtuple, OrderedDict)
-from io import BytesIO
 import logging
 import time
-import re
-import html
-import xml.etree.ElementTree as ET
 
-import requests
+from typing import Dict, List, Optional
 
-from .ssdp import evaluate_scpd_xml
+import attr
 
-from .audyssey import (
-    Audyssey,
-    REF_LVL_OFFSET_MAP_LABELS,
-    MULTI_EQ_MAP_LABELS,
-    DYNAMIC_VOLUME_MAP_LABELS,
-    )
+from .decorators import run_async_synchronously
+from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
+from .const import (
+    DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES)
 
-_LOGGER = logging.getLogger("DenonAVR")
-
-DEVICEINFO_AVR_X_PATTERN = re.compile(
-    r"(.*AV(C|R)-(X|S).*|.*SR500[6-9]|.*SR60(07|08|09|10|11|12|13)|."
-    r"*SR70(07|08|09|10|11|12|13)|.*SR501[3-4]|.*NR1604|.*NR1710)")
-
-DEVICEINFO_COMMAPI_PATTERN = re.compile(r"(0210|0220|0250|0300|0301)")
-
-ReceiverType = namedtuple('ReceiverType', ["type", "port"])
-AVR = ReceiverType(type="avr", port=80)
-AVR_X = ReceiverType(type="avr-x", port=80)
-AVR_X_2016 = ReceiverType(type="avr-x-2016", port=8080)
-
-DescriptionType = namedtuple('DescriptionType', ["port", "url"])
-DESCRIPTION_URL = {
-    "avr": DescriptionType(port=8080, url="/description.xml"),
-    "avr-x": DescriptionType(port=8080, url="/description.xml"),
-    "avr-x-2016": DescriptionType(
-        port=60006, url="/upnp/desc/aios_device/aios_device.xml")}
-
-SOURCE_MAPPING = {"TV AUDIO": "TV", "iPod/USB": "USB/IPOD", "Bluetooth": "BT",
-                  "Blu-ray": "BD", "CBL/SAT": "SAT/CBL", "NETWORK": "NET",
-                  "Media Player": "MPLAY", "AUX": "AUX1", "Tuner": "TUNER",
-                  "FM": "TUNER", "SpotifyConnect": "Spotify Connect"}
-
-CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
-                        "Media Server": "SERVER", "Spotify": "SPOTIFY",
-                        "Flickr": "FLICKR", "Favorites": "FAVORITES"}
-
-ALL_ZONE_STEREO = "ALL ZONE STEREO"
-
-SOUND_MODE_MAPPING = OrderedDict(
-    [('MUSIC', ['PLII MUSIC', 'DTS NEO:6 MUSIC', 'DOLBY D +NEO:X M',
-                'DTS NEO:X MUSIC', 'DOLBY PL2 MUSIC']),
-     ('MOVIE', ['PLII MOVIE', 'PLII CINEMA', 'DTS NEO:X CINEMA',
-                'DTS NEO:6 CINEMA', 'DOLBY D +NEO:X C',
-                'PLIIX CINEMA', 'DOLBY PLII MOVIE', 'MULTI IN + VIRTUAL:X']),
-     ('GAME', ['PLII GAME', 'DOLBY D +NEO:X G']),
-     ('AUTO', ['None']),
-     ('STANDARD', ['None2']),
-     ('VIRTUAL', ['VIRTUAL']),
-     ('MATRIX', ['MATRIX']),
-     ('ROCK ARENA', ['ROCK ARENA']),
-     ('JAZZ CLUB', ['JAZZ CLUB']),
-     ('VIDEO GAME', ['VIDEO GAME']),
-     ('MONO MOVIE', ['MONO MOVIE']),
-     ('DIRECT', ['DIRECT']),
-     ('PURE DIRECT', ['PURE_DIRECT', 'PURE DIRECT']),
-     ('DOLBY DIGITAL', ['DOLBY DIGITAL', 'DOLBY D + DOLBY SURROUND',
-                        'DOLBY DIGITAL +', 'STANDARD(DOLBY)', 'DOLBY SURROUND',
-                        'DOLBY D + +DOLBY SURROUND', 'NEURAL', 'DOLBY HD',
-                        'DOLBY HD + DOLBY SURROUND',
-                        'MULTI IN + NEURAL:X', 'MULTI IN + DOLBY SURROUND',
-                        'DOLBY D + NEURAL:X', 'DOLBY DIGITAL + NEURAL:X',
-                        'DOLBY DIGITAL + + NEURAL:X', 'DOLBY ATMOS',
-                        'DOLBY AUDIO - DOLBY SURROUND', 'DOLBY TRUEHD',
-                        'DOLBY AUDIO - DOLBY DIGITAL PLUS',
-                        'DOLBY AUDIO - TRUEHD + DSUR',
-                        'DOLBY AUDIO - DOLBY TRUEHD',
-                        'DOLBY AUDIO - TRUEHD + NEURAL:X',
-                        'DOLBY AUDIO - DD + DSUR',
-                        'DOLBY AUDIO - DD+   + NEURAL:X',
-                        'DOLBY AUDIO - DD+   + DSUR',
-                        'DOLBY AUDIO - DOLBY DIGITAL']),
-     ('DTS SURROUND', ['DTS SURROUND', 'DTS NEURAL:X', 'STANDARD(DTS)',
-                       'DTS + NEURAL:X', 'MULTI CH IN', 'DTS-HD MSTR',
-                       'DTS VIRTUAL:X', 'DTS-HD + NEURAL:X', 'DTS-HD',
-                       'DTS + VIRTUAL:X', 'DTS + DOLBY SURROUND']),
-     ('AURO3D', ['AURO-3D', 'AURO-2D SURROUND']),
-     ('MCH STEREO', ['MULTI CH STEREO', 'MULTI_CH_STEREO', 'MCH STEREO',
-                     'MULTI CH IN 7.1']),
-     ('STEREO', ['STEREO']),
-     (ALL_ZONE_STEREO, ['ALL ZONE STEREO'])])
-
-PLAYING_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
-                   "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
-                   "TUNER", "NET/USB", "HDRADIO", "Music Server", "NETWORK",
-                   "NET")
-NETAUDIO_SOURCES = ("Online Music", "Media Server", "iPod/USB", "Bluetooth",
-                    "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
-                    "NET/USB", "Music Server", "NETWORK", "NET")
-
-# Image URLs
-STATIC_ALBUM_URL = "http://{host}:{port}/img/album%20art_S.png"
-ALBUM_COVERS_URL = "http://{host}:{port}/NetAudio/art.asp-jpg?{time}"
-
-# General URLs
-APPCOMMAND_URL = "/goform/AppCommand.xml"
-DEVICEINFO_URL = "/goform/Deviceinfo.xml"
-NETAUDIOSTATUS_URL = "/goform/formNetAudio_StatusXml.xml"
-TUNERSTATUS_URL = "/goform/formTuner_TunerXml.xml"
-HDTUNERSTATUS_URL = "/goform/formTuner_HdXml.xml"
-COMMAND_NETAUDIO_POST_URL = "/NetAudio/index.put.asp"
-COMMAND_PAUSE = "/goform/formiPhoneAppDirect.xml?NS9B"
-COMMAND_PLAY = "/goform/formiPhoneAppDirect.xml?NS9A"
+from .audyssey import DenonAVRAudyssey, audyssey_factory
+from .input import DenonAVRInput, input_factory
+from .soundmode import DenonAVRSoundMode, sound_mode_factory
+from .tonecontrol import DenonAVRToneControl, tone_control_factory
+from .volume import DenonAVRVolume, volume_factory
 
 
-# Main Zone URLs
-STATUS_URL = "/goform/formMainZone_MainZoneXmlStatus.xml"
-MAINZONE_URL = "/goform/formMainZone_MainZoneXml.xml"
-COMMAND_SEL_SRC_URL = "/goform/formiPhoneAppDirect.xml?SI"
-COMMAND_FAV_SRC_URL = "/goform/formiPhoneAppDirect.xml?ZM"
-COMMAND_POWER_ON_URL = "/goform/formiPhoneAppPower.xml?1+PowerOn"
-COMMAND_POWER_STANDBY_URL = "/goform/formiPhoneAppPower.xml?1+PowerStandby"
-COMMAND_VOLUME_UP_URL = "/goform/formiPhoneAppDirect.xml?MVUP"
-COMMAND_VOLUME_DOWN_URL = "/goform/formiPhoneAppDirect.xml?MVDOWN"
-COMMAND_SET_VOLUME_URL = "/goform/formiPhoneAppVolume.xml?1+%.1f"
-COMMAND_MUTE_ON_URL = "/goform/formiPhoneAppMute.xml?1+MuteOn"
-COMMAND_MUTE_OFF_URL = "/goform/formiPhoneAppMute.xml?1+MuteOff"
-COMMAND_SEL_SM_URL = "/goform/formiPhoneAppDirect.xml?MS"
-COMMAND_SET_ZST_URL = "/goform/formiPhoneAppDirect.xml?MN"
-
-# Zone 2 URLs
-STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
-MAINZONE_Z2_URL = None
-COMMAND_SEL_SRC_Z2_URL = "/goform/formiPhoneAppDirect.xml?Z2"
-COMMAND_FAV_SRC_Z2_URL = "/goform/formiPhoneAppDirect.xml?Z2"
-COMMAND_POWER_ON_Z2_URL = "/goform/formiPhoneAppPower.xml?2+PowerOn"
-COMMAND_POWER_STANDBY_Z2_URL = "/goform/formiPhoneAppPower.xml?2+PowerStandby"
-COMMAND_VOLUME_UP_Z2_URL = "/goform/formiPhoneAppDirect.xml?Z2UP"
-COMMAND_VOLUME_DOWN_Z2_URL = "/goform/formiPhoneAppDirect.xml?Z2DOWN"
-COMMAND_SET_VOLUME_Z2_URL = "/goform/formiPhoneAppVolume.xml?2+%.1f"
-COMMAND_MUTE_ON_Z2_URL = "/goform/formiPhoneAppMute.xml?2+MuteOn"
-COMMAND_MUTE_OFF_Z2_URL = "/goform/formiPhoneAppMute.xml?2+MuteOff"
-
-# Zone 3 URLs
-STATUS_Z3_URL = "/goform/formZone3_Zone3XmlStatus.xml"
-MAINZONE_Z3_URL = None
-COMMAND_SEL_SRC_Z3_URL = "/goform/formiPhoneAppDirect.xml?Z3"
-COMMAND_FAV_SRC_Z3_URL = "/goform/formiPhoneAppDirect.xml?Z3"
-COMMAND_POWER_ON_Z3_URL = "/goform/formiPhoneAppPower.xml?3+PowerOn"
-COMMAND_POWER_STANDBY_Z3_URL = "/goform/formiPhoneAppPower.xml?3+PowerStandby"
-COMMAND_VOLUME_UP_Z3_URL = "/goform/formiPhoneAppDirect.xml?Z3UP"
-COMMAND_VOLUME_DOWN_Z3_URL = "/goform/formiPhoneAppDirect.xml?Z3DOWN"
-COMMAND_SET_VOLUME_Z3_URL = "/goform/formiPhoneAppVolume.xml?3+%.1f"
-COMMAND_MUTE_ON_Z3_URL = "/goform/formiPhoneAppMute.xml?3+MuteOn"
-COMMAND_MUTE_OFF_Z3_URL = "/goform/formiPhoneAppMute.xml?3+MuteOff"
+_LOGGER = logging.getLogger(__name__)
 
 
-ReceiverURLs = namedtuple(
-    "ReceiverURLs", ["appcommand", "status", "mainzone", "deviceinfo",
-                     "netaudiostatus", "tunerstatus", "hdtunerstatus",
-                     "command_sel_src", "command_fav_src", "command_power_on",
-                     "command_power_standby", "command_volume_up",
-                     "command_volume_down", "command_set_volume",
-                     "command_mute_on", "command_mute_off",
-                     "command_sel_sound_mode", "command_netaudio_post",
-                     "command_set_all_zone_stereo", "command_pause",
-                     "command_play"])
+@attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
+class DenonAVR(DenonAVRFoundation):
+    """
+    Representing a Denon AVR Device.
 
-DENONAVR_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
-                             status=STATUS_URL,
-                             mainzone=MAINZONE_URL,
-                             deviceinfo=DEVICEINFO_URL,
-                             netaudiostatus=NETAUDIOSTATUS_URL,
-                             tunerstatus=TUNERSTATUS_URL,
-                             hdtunerstatus=HDTUNERSTATUS_URL,
-                             command_sel_src=COMMAND_SEL_SRC_URL,
-                             command_fav_src=COMMAND_FAV_SRC_URL,
-                             command_power_on=COMMAND_POWER_ON_URL,
-                             command_power_standby=COMMAND_POWER_STANDBY_URL,
-                             command_volume_up=COMMAND_VOLUME_UP_URL,
-                             command_volume_down=COMMAND_VOLUME_DOWN_URL,
-                             command_set_volume=COMMAND_SET_VOLUME_URL,
-                             command_mute_on=COMMAND_MUTE_ON_URL,
-                             command_mute_off=COMMAND_MUTE_OFF_URL,
-                             command_sel_sound_mode=COMMAND_SEL_SM_URL,
-                             command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
-                             command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
-                             command_pause=COMMAND_PAUSE,
-                             command_play=COMMAND_PLAY)
+    Initialize MainZone of DenonAVR.
 
-ZONE2_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
-                          status=STATUS_Z2_URL,
-                          mainzone=MAINZONE_Z2_URL,
-                          deviceinfo=DEVICEINFO_URL,
-                          netaudiostatus=NETAUDIOSTATUS_URL,
-                          tunerstatus=TUNERSTATUS_URL,
-                          hdtunerstatus=HDTUNERSTATUS_URL,
-                          command_sel_src=COMMAND_SEL_SRC_Z2_URL,
-                          command_fav_src=COMMAND_FAV_SRC_Z2_URL,
-                          command_power_on=COMMAND_POWER_ON_Z2_URL,
-                          command_power_standby=COMMAND_POWER_STANDBY_Z2_URL,
-                          command_volume_up=COMMAND_VOLUME_UP_Z2_URL,
-                          command_volume_down=COMMAND_VOLUME_DOWN_Z2_URL,
-                          command_set_volume=COMMAND_SET_VOLUME_Z2_URL,
-                          command_mute_on=COMMAND_MUTE_ON_Z2_URL,
-                          command_mute_off=COMMAND_MUTE_OFF_Z2_URL,
-                          command_sel_sound_mode=COMMAND_SEL_SM_URL,
-                          command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
-                          command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
-                          command_pause=COMMAND_PAUSE,
-                          command_play=COMMAND_PLAY)
+    :param host: IP or HOSTNAME.
+    :type host: str
 
-ZONE3_URLS = ReceiverURLs(appcommand=APPCOMMAND_URL,
-                          status=STATUS_Z3_URL,
-                          mainzone=MAINZONE_Z3_URL,
-                          deviceinfo=DEVICEINFO_URL,
-                          netaudiostatus=NETAUDIOSTATUS_URL,
-                          tunerstatus=TUNERSTATUS_URL,
-                          hdtunerstatus=HDTUNERSTATUS_URL,
-                          command_sel_src=COMMAND_SEL_SRC_Z3_URL,
-                          command_fav_src=COMMAND_FAV_SRC_Z3_URL,
-                          command_power_on=COMMAND_POWER_ON_Z3_URL,
-                          command_power_standby=COMMAND_POWER_STANDBY_Z3_URL,
-                          command_volume_up=COMMAND_VOLUME_UP_Z3_URL,
-                          command_volume_down=COMMAND_VOLUME_DOWN_Z3_URL,
-                          command_set_volume=COMMAND_SET_VOLUME_Z3_URL,
-                          command_mute_on=COMMAND_MUTE_ON_Z3_URL,
-                          command_mute_off=COMMAND_MUTE_OFF_Z3_URL,
-                          command_sel_sound_mode=COMMAND_SEL_SM_URL,
-                          command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
-                          command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
-                          command_pause=COMMAND_PAUSE,
-                          command_play=COMMAND_PLAY)
+    :param name: Device name, if None FriendlyName of device is used.
+    :type name: str or None
 
-POWER_ON = "ON"
-POWER_OFF = "OFF"
-POWER_STANDBY = "STANDBY"
-STATE_ON = "on"
-STATE_OFF = "off"
-STATE_PLAYING = "playing"
-STATE_PAUSED = "paused"
+    :param show_all_inputs: If True deleted input functions are also shown
+    :type show_all_inputs: bool
 
-MAIN_ZONE = "Main"
-NO_ZONES = None
-ZONE2 = {"Zone2": None}
-ZONE3 = {"Zone3": None}
-ZONE2_ZONE3 = {"Zone2": None, "Zone3": None}
+    :param timeout: Timeout when calling device APIs.
+    :type timeout: float
 
+    :param add_zones: Additional Zones for which an instance are created
+    :type add_zones: dict [str, str] or None
+    """
 
-class DenonAVR:
-    """Representing a Denon AVR Device."""
+    _host: str = attr.ib(
+        converter=str, on_setattr=[*DENON_ATTR_SETATTR, set_api_host])
+    _name: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None)
+    _show_all_inputs: bool = attr.ib(converter=bool, default=False)
+    _add_zones: Optional[Dict[str, str]] = attr.ib(
+        validator=attr.validators.optional(attr.validators.deep_mapping(
+            attr.validators.in_(VALID_ZONES),
+            attr.validators.optional(attr.validators.instance_of(str)),
+            attr.validators.instance_of(dict))),
+        default=None)
+    _timeout: float = attr.ib(
+        converter=float,
+        on_setattr=[*DENON_ATTR_SETATTR, set_api_timeout],
+        default=2.0)
+    _zones: Dict[str, DenonAVRFoundation] = attr.ib(
+        validator=attr.validators.deep_mapping(
+            attr.validators.in_(VALID_ZONES),
+            attr.validators.instance_of(DenonAVRFoundation),
+            attr.validators.instance_of(dict)),
+        default=attr.Factory(dict),
+        init=False)
+    audyssey: DenonAVRAudyssey = attr.ib(
+        validator=attr.validators.instance_of(DenonAVRAudyssey),
+        default=attr.Factory(audyssey_factory, takes_self=True),
+        init=False)
+    input: DenonAVRInput = attr.ib(
+        validator=attr.validators.instance_of(DenonAVRInput),
+        default=attr.Factory(input_factory, takes_self=True),
+        init=False)
+    soundmode: DenonAVRSoundMode = attr.ib(
+        validator=attr.validators.instance_of(DenonAVRSoundMode),
+        default=attr.Factory(sound_mode_factory, takes_self=True),
+        init=False)
+    tonecontrol: DenonAVRToneControl = attr.ib(
+        validator=attr.validators.instance_of(DenonAVRToneControl),
+        default=attr.Factory(tone_control_factory, takes_self=True),
+        init=False)
+    vol: DenonAVRVolume = attr.ib(
+        validator=attr.validators.instance_of(DenonAVRVolume),
+        default=attr.Factory(volume_factory, takes_self=True),
+        init=False)
 
-    def __init__(self, host, name=None, show_all_inputs=False, timeout=2.0,
-                 add_zones=NO_ZONES):
-        """
-        Initialize MainZone of DenonAVR.
+    def __attrs_post_init__(self) -> None:
+        """Initialize special attributes."""
+        # Set host and timeout again to start its custom setattr function
+        self._host = self._host
+        self._timeout = self._timeout
 
-        :param host: IP or HOSTNAME.
-        :type host: str
+        # Add own instance to zone dictionary
+        self._zones[self._device.zone] = self
 
-        :param name: Device name, if None FriendlyName of device is used.
-        :type name: str or None
-
-        :param show_all_inputs: If True deleted input functions are also shown
-        :type show_all_inputs: bool
-
-        :param add_zones: Additional Zones for which an instance are created
-        :type add_zones: dict [str, str] or None
-        """
-        self._name = name
-        self._host = host
-        # Main zone just set for DenonAVR class
-        if self.__class__.__name__ == "DenonAVR":
-            self._zone = MAIN_ZONE
-        self._zones = {self._zone: self}
-
-        if self._zone == MAIN_ZONE:
-            self._urls = DENONAVR_URLS
-        elif self._zone == "Zone2":
-            self._urls = ZONE2_URLS
-        elif self._zone == "Zone3":
-            self._urls = ZONE3_URLS
-        else:
-            raise ValueError("Invalid zone {}".format(self._zone))
-
-        # Timeout for HTTP calls to receiver
-        self.timeout = timeout
-        # Receiver types could be avr, avr-x, avr-x-2016 after being determined
-        self._receiver_type = None
-        # Port 80 for avr and avr-x, Port 8080 port avr-x-2016
-        self._receiver_port = None
-
-        self._403_error_count = 0
-
-        self._support_update_avr_2016 = None
-
-        self._show_all_inputs = show_all_inputs
-
-        self._manufacturer = None
-        self._model_name = None
-        self._serial_number = None
-
-        self._mute = STATE_OFF
-        self._volume = "--"
-        self._input_func = None
-        self._input_func_list = {}
-        self._input_func_list_rev = {}
-        self._sound_mode_raw = None
-        self._sound_mode_dict = SOUND_MODE_MAPPING
-        self._support_sound_mode = None
-        self._sm_match_dict = self.construct_sm_match_dict()
-        self._netaudio_func_list = []
-        self._playing_func_list = []
-        self._favorite_func_list = []
-        self._state = None
-        self._power = None
-        self._image_url = None
-        self._image_available = None
-        self._title = None
-        self._artist = None
-        self._album = None
-        self._band = None
-        self._frequency = None
-        self._station = None
-
-        self._tone_control_status = None
-        self._tone_control_adjust = None
-        self._bass = None
-        self._bass_level = None
-        self._treble = None
-        self._treble_level = None
-
-        self._audyssey = Audyssey(receiver=self)
-
-        # Get initial setting of values
-        self.update()
         # Create instances of additional zones if requested
-        if self._zone == MAIN_ZONE and add_zones is not None:
-            self.create_zones(add_zones)
-
-    def exec_appcommand_post(self, attribute_list):
-        """
-        Prepare and execute a HTTP POST call to AppCommand.xml end point.
-
-        Returns XML ElementTree on success and None on fail.
-        """
-        # Buffer XML body as binary IO
-        body = BytesIO()
-
-        # Denon AppCommand.xml acts weird. It returns an error when the tx
-        # element consists of more than 5 cmd elements, but it accepts
-        # multiple XML root elements
-        chunks = [attribute_list[i:i+5] for i in range(
-            0, len(attribute_list), 5)]
-
-        for i, chunk in enumerate(chunks):
-            # Prepare POST XML body for AppCommand.xml
-            post_root = ET.Element("tx")
-
-            for attribute in chunk:
-                # Append tags for each attribute
-                item = ET.Element("cmd")
-                item.set("id", "1")
-                item.text = attribute
-                post_root.append(item)
-
-            post_tree = ET.ElementTree(post_root)
-            # XML declaration only for the first chunk
-            post_tree.write(
-                body, encoding="utf-8", xml_declaration=bool(i == 0))
-
-        # Query receivers AppCommand.xml
-        try:
-            res = self.send_post_command(
-                self._urls.appcommand, body.getvalue())
-        except requests.exceptions.ConnectTimeout:
-            raise
-        except requests.exceptions.RequestException:
-            _LOGGER.error("No connection to %s end point on host %s",
-                          self._urls.appcommand, self._host)
-        else:
-            if res is not None:
-                try:
-                    # Return XML ElementTree
-                    root = ET.fromstring(res)
-                except (ET.ParseError, TypeError):
-                    _LOGGER.error(
-                        "End point %s on host %s returned malformed XML.",
-                        self._urls.appcommand, self._host)
-                else:
-                    return root
-        finally:
-            # Buffered XML not needed anymore: close
-            body.close()
-
-    def get_status_xml(self, command, suppress_errors=False):
-        """Get status XML via HTTP and return it as XML ElementTree."""
-        # Get XML structure via HTTP get
-        endpoint = "http://{host}:{port}{command}".format(
-            host=self._host, port=self._receiver_port, command=command)
-        # Using a long read timeout because receiver could be quite slow
-        res = requests.get(
-            endpoint, timeout=(self.timeout, max(self.timeout, 10)))
-        # Continue with XML processing only if HTTP status code = 200
-        if res.status_code == 200:
-            try:
-                # Return XML ElementTree
-                return ET.fromstring(res.text)
-            except ET.ParseError as err:
-                if not suppress_errors:
-                    _LOGGER.error(
-                        "Host %s returned malformed XML for end point %s: %s",
-                        self._host, command, err)
-                raise ValueError from err
-        elif res.status_code == 403:
-            self._handle_403_error(endpoint)
-            raise ValueError
-        else:
-            if not suppress_errors:
-                _LOGGER.error(
-                    "Host %s returned HTTP status code %s to GET request at "
-                    "end point %s", self._host, res.status_code, command)
-            raise ValueError
-
-    def send_get_command(self, command):
-        """Send command via HTTP get to receiver."""
-        # Send commands via HTTP get
-        endpoint = "http://{host}:{port}{command}".format(
-            host=self._host, port=self._receiver_port, command=command)
-        # Using a long read timeout because receiver could be quite slow
-        res = requests.get(
-            endpoint, timeout=(self.timeout, max(self.timeout, 10)))
-        if res.status_code == 200:
-            return True
-        elif res.status_code == 403:
-            self._handle_403_error(endpoint)
-            return False
-        else:
-            _LOGGER.error(
-                "Host %s returned HTTP status code %s to GET command at "
-                "end point %s", self._host, res.status_code, command)
-            return False
-
-    def send_post_command(self, command, body):
-        """Send command via HTTP post to receiver."""
-        # Send commands via HTTP post
-        endpoint = "http://{host}:{port}{command}".format(
-            host=self._host, port=self._receiver_port, command=command)
-        # Using a long read timeout because receiver could be quite slow
-        res = requests.post(
-            endpoint, data=body, timeout=(self.timeout, max(self.timeout, 10)))
-        if res.status_code == 200:
-            return res.text
-        elif res.status_code == 403:
-            self._handle_403_error(endpoint)
-        else:
-            _LOGGER.error(
-                "Host %s returned HTTP status code %s to POST command at "
-                "end point %s", self._host, res.status_code, command)
-
-    def _handle_403_error(self, endpoint):
-        """Handle 403 errors during API calls."""
-        self._403_error_count += 1
-        if self._403_error_count == 1:
-            _LOGGER.error(
-                "Endpoint %s responded with a 403 error. Please consider "
-                "power cycling your receiver", endpoint)
-        elif self._403_error_count % 100 == 0:
-            _LOGGER.error(
-                "%s 403 errors occured on your receiver, most recently at "
-                "endpoint %s. Please consider power cycling your receiver",
-                self._403_error_count, endpoint)
-            self._403_error_count = 0
-
-    def get_device_info(self):
-        """Get device information."""
-        url = "http://{host}:{port}{command}".format(
-            host=self._host, port=DESCRIPTION_URL[self._receiver_type].port,
-            command=DESCRIPTION_URL[self._receiver_type].url)
-
-        try:
-            device_info = evaluate_scpd_xml(url)
-        except requests.exceptions.ConnectTimeout:
-            _LOGGER.error("Connection timeout when getting device information")
-            return
-        except requests.exceptions.RequestException:
-            device_info = None
-
-        if device_info is None:
-            self._manufacturer = "Denon"
-            self._model_name = "Unknown"
-            self._serial_number = None
-            _LOGGER.error(
-                "Unable to get device information of host %s, can not "
-                "use the serial number as identification", self._host)
-        else:
-            self._manufacturer = device_info["manufacturer"]
-            self._model_name = device_info["modelName"]
-            self._serial_number = device_info["serialNumber"]
+        if self._device.zone == MAIN_ZONE and self._add_zones is not None:
+            self.create_zones(self._add_zones)
 
     def create_zones(self, add_zones):
         """Create instances of additional zones for the receiver."""
         for zone, zname in add_zones.items():
             # Name either set explicitly or name of Main Zone with suffix
-            zonename = "{} {}".format(self._name, zone) if (
-                zname is None) else zname
-            zone_inst = DenonAVRZones(self, zone, zonename)
+            zonename = None
+            if zname is None and self._name is not None:
+                zonename = "{} {}".format(self._name, zone)
+            zone_device = attr.evolve(self._device, zone=zone)
+            zone_inst = DenonAVR(
+                host=self._host,
+                device=zone_device,
+                name=zonename,
+                timeout=self._timeout,
+                show_all_inputs=self._show_all_inputs)
             self._zones[zone] = zone_inst
 
-    def ensure_configuration(self):
+    async def async_setup(self) -> None:
+        """Ensure that configuration is loaded from receiver asynchronously."""
+        # Device setup
+        await self._device.async_setup()
+        if self._name is None:
+            self._name = self._device.friendly_name
+
+        # Setup other functions
+        self.input.setup()
+        self.soundmode.setup()
+        self.tonecontrol.setup()
+        self.vol.setup()
+        self.audyssey.setup()
+
+        self._is_setup = True
+
+    @run_async_synchronously(async_func=async_setup)
+    def setup(self) -> None:
         """Ensure that configuration is loaded from receiver."""
-        # Determine receiver type and input functions
-        if not self._input_func_list:
-            self._update_input_func_list()
 
-        # Determine device info
-        if self.manufacturer is None and self.model_name is None:
-            self.get_device_info()
+    async def async_update(self):
+        """
+        Get the latest status information from device asynchronously.
 
-        if self._receiver_type == AVR_X_2016.type:
-            self._get_receiver_name_avr_2016()
-        else:
-            self._get_receiver_name()
+        Method executes the update method for the current receiver type.
+        """
+        # Ensure that the device is setup
+        if self._is_setup is False:
+            await self.async_setup()
 
-        # Determine if update_avr_2016 can be used for AVR_X receiver
-        if (self._support_update_avr_2016 is None
-                and self._receiver_type == AVR_X.type):
-            self._support_update_avr_2016 = self._update_avr_2016(
-                compatibiliy_check=True)
+        # Create a cache id for this global update
+        cache_id = time.time()
 
-        # Determine if sound mode is supported
-        if self._support_sound_mode is None:
-            self._get_support_sound_mode()
+        # Verify update method
+        await self._device.async_verify_avr_2016_update_method(
+            cache_id=cache_id)
 
+        # Update device
+        await self._device.async_update(global_update=True, cache_id=cache_id)
+
+        # Update other functions
+        await self.input.async_update(global_update=True, cache_id=cache_id)
+        await self.soundmode.async_update(
+            global_update=True, cache_id=cache_id)
+        await self.tonecontrol.async_update(
+            global_update=True, cache_id=cache_id)
+        await self.vol.async_update(global_update=True, cache_id=cache_id)
+
+        # AppCommand0300.xml interface is very slow, thus it is not included
+        # into main update
+        # await self.audyssey.async_update(
+        #     global_update=True, cache_id=cache_id)
+
+    @run_async_synchronously(async_func=async_update)
     def update(self):
         """
         Get the latest status information from device.
 
         Method executes the update method for the current receiver type.
         """
-        support_avr_2016_before = self._support_update_avr_2016
 
-        # Verify that receiver config is initialized
-        self.ensure_configuration()
+    async def async_update_audyssey(self):
+        """Get Audyssey settings."""
+        await self.audyssey.async_update()
 
-        updated_by_ensure_config = False
-        if support_avr_2016_before is None:
-            if self._support_update_avr_2016 is True:
-                updated_by_ensure_config = True
-
-        if self._receiver_type == AVR_X_2016.type:
-            return bool(self._update_avr_2016())
-        elif self._support_update_avr_2016:
-            if updated_by_ensure_config is False:
-                if self._update_avr_2016() is False:
-                    _LOGGER.debug(
-                        "Update method (AppCommand.xml) failed for zone %s",
-                        self._zone)
-                    return False
-        else:
-            if self._update_avr() is not True:
-                return False
-
-        # Media data are only supported on non AVR devices built before 2016
-        success = self._set_media_state()
-
-        return success
-
+    @run_async_synchronously(async_func=async_update_audyssey)
     def update_audyssey(self):
-        """Get current Audyssey settings."""
-        self._audyssey.update()
-
-    def _update_avr(self):
-        """
-        Get the latest status information from device.
-
-        Method queries device via HTTP and updates instance attributes.
-        Returns "True" on success and "False" on fail.
-        This method is for pre 2016 AVR(-X) devices
-        """
-        # Set all tags to be evaluated
-        relevant_tags = {"Power": None, "InputFuncSelect": None, "Mute": None,
-                         "MasterVolume": None}
-
-        # Sound mode information only available in main zone
-        if self._zone == MAIN_ZONE and self._support_sound_mode:
-            relevant_tags["selectSurround"] = None
-            relevant_tags["SurrMode"] = None
-
-        # Get status XML from Denon receiver via HTTP
-        try:
-            root = self.get_status_xml(self._urls.status)
-        except requests.exceptions.ConnectTimeout:
-            # On connect timeout, the device is probably off
-            self._power = POWER_OFF
-            self._state = STATE_OFF
-            return False
-        except (ValueError, requests.exceptions.RequestException):
-            pass
-        else:
-            # Get the tags from this XML
-            relevant_tags = self._get_status_from_xml_tags(root, relevant_tags)
-
-        # Second option to update variables from different source
-        if relevant_tags and self._power != POWER_OFF:
-            _LOGGER.debug(
-                "Update method (Status.xml) failed for zone %s", self._zone)
-            try:
-                root = self.get_status_xml(self._urls.mainzone)
-            except requests.exceptions.ConnectTimeout:
-                # On connect timeout, the device is probably off
-                self._power = POWER_OFF
-                self._state = STATE_OFF
-                return False
-            except (ValueError, requests.exceptions.RequestException):
-                pass
-            else:
-                # Get the tags from this XML
-                relevant_tags = self._get_status_from_xml_tags(
-                    root, relevant_tags)
-
-        # Error message if still some variables are not updated yet
-        if relevant_tags and self._power != POWER_OFF:
-            _LOGGER.debug(
-                "Update method (MainZone.xml) failed for zone %s", self._zone)
-            _LOGGER.error("Missing status information from XML of %s for: %s",
-                          self._zone, ", ".join(relevant_tags.keys()))
-
-        # Get/update sources list if current source is not known yet
-        if (self._input_func not in self._input_func_list
-                and self._input_func is not None):
-            if self._update_input_func_list():
-                _LOGGER.info("List of input functions refreshed.")
-                # If input function is still not known, log error.
-                if (self._input_func not in self._input_func_list and
-                        self._input_func is not None):
-                    _LOGGER.error(
-                        "Input function %s is not known", self._input_func)
-            else:
-                _LOGGER.error(
-                    "Input function list for Denon receiver at host %s "
-                    "could not be updated.", self._host)
-
-        # Finished
-        return True
-
-    def _update_avr_2016(self, compatibiliy_check=False):
-        """
-        Get the latest status information from device.
-
-        Method queries device via HTTP and updates instance attributes.
-        Returns "True" on success and "False" on fail.
-        This method is for AVR-X devices built in 2016 and later.
-        """
-        success = True
-        # Collect tags for AppCommand.xml call
-        tags = ["GetAllZonePowerStatus", "GetAllZoneSource",
-                "GetAllZoneVolume", "GetAllZoneMuteStatus",
-                "GetSurroundModeStatus", "GetToneControl"]
-
-        # Execute call
-        try:
-            root = self.exec_appcommand_post(tags)
-        except requests.exceptions.ConnectTimeout:
-            if compatibiliy_check is True:
-                return None
-            # Assume device is off on connect timeout
-            self._power = POWER_OFF
-            self._state = STATE_OFF
-            return False
-        # Check result
-        if root is None:
-            if compatibiliy_check is False:
-                _LOGGER.error("Update failed.")
-            return False
-
-        # Extract relevant information
-        zone = self._get_own_zone()
-
-        try:
-            self._power = root[0].find(zone).text
-        except (AttributeError, IndexError):
-            if compatibiliy_check is False:
-                _LOGGER.error("No PowerStatus found for zone %s", self.zone)
-            success = False
-
-        try:
-            self._mute = root[3].find(zone).text
-        except (AttributeError, IndexError):
-            if compatibiliy_check is False:
-                _LOGGER.error("No MuteStatus found for zone %s", self.zone)
-            success = False
-
-        try:
-            self._volume = root.find(
-                "./cmd/{zone}/volume".format(zone=zone)).text
-        except AttributeError:
-            if compatibiliy_check is False:
-                _LOGGER.error("No VolumeStatus found for zone %s", self.zone)
-            success = False
-
-        try:
-            inputfunc = root.find(
-                "./cmd/{zone}/source".format(zone=zone)).text
-        except AttributeError:
-            if compatibiliy_check is False:
-                _LOGGER.error("No Source found for zone %s", self.zone)
-            success = False
-        else:
-            # AirPlay and Internet Radio are not always listed in
-            # available sources
-            if inputfunc in ["AirPlay", "Internet Radio"]:
-                if inputfunc not in self._input_func_list:
-                    self._input_func_list[inputfunc] = inputfunc
-                    self._input_func_list_rev[inputfunc] = inputfunc
-            try:
-                self._input_func = self._input_func_list_rev[inputfunc]
-            except KeyError:
-                self._input_func = inputfunc
-                # Update sources list if current source is not known yet
-                _LOGGER.info("No mapping for source %s found", inputfunc)
-                if self._update_input_func_list():
-                    _LOGGER.info("List of input functions refreshed.")
-                    # If input function is still not known, log error.
-                    if (inputfunc not in self._input_func_list and
-                            inputfunc is not None):
-                        _LOGGER.error(
-                            "Input function %s is not known", self._input_func)
-                else:
-                    _LOGGER.error(
-                        "Input function list for Denon receiver at "
-                        "host %s could not be updated.", self._host)
-        try:
-            self._sound_mode_raw = root[4][0].text.rstrip()
-        except (AttributeError, IndexError):
-            if compatibiliy_check is False:
-                _LOGGER.error(
-                    "No SoundMode found for the main zone %s", self.zone)
-            success = False
-
-        # Now playing information is not implemented for 2016+ models, as
-        # a HEOS API query needed. So only sync the power state for now.
-        if self._receiver_type == AVR_X_2016.type:
-            if self._power == POWER_ON:
-                self._state = STATE_ON
-            else:
-                self._state = STATE_OFF
-
-        # Update tone control
-        self._update_tone_control(root)
-
-        return success
-
-    def _update_input_func_list(self):
-        """
-        Update sources list from receiver.
-
-        Internal method which updates sources list of receiver after getting
-        sources and potential renaming information from receiver.
-        """
-        # Get all sources and renaming information from receiver
-        # For structural information of the variables please see the methods
-        receiver_sources = self._get_receiver_sources()
-
-        if not receiver_sources:
-            _LOGGER.debug("Receiver sources list empty. "
-                          "Please check if device is powered on.")
-            return False
-
-        # First input_func_list determination of AVR-X receivers
-        if self._receiver_type in [AVR_X.type, AVR_X_2016.type]:
-            renamed_sources, deleted_sources, status_success = (
-                self._get_renamed_deleted_sourcesapp())
-
-            # Backup if previous try with AppCommand was not successful
-            if status_success is False:
-                renamed_sources, deleted_sources = (
-                    self._get_renamed_deleted_sources())
-
-            # Remove all deleted sources
-            if self._show_all_inputs is False:
-                for deleted_source in deleted_sources.items():
-                    if deleted_source[1] == "DEL":
-                        receiver_sources.pop(deleted_source[0], None)
-
-            # Clear and rebuild the sources lists
-            self._input_func_list.clear()
-            self._input_func_list_rev.clear()
-            self._netaudio_func_list.clear()
-            self._playing_func_list.clear()
-
-            for item in receiver_sources.items():
-                # Mapping of item[0] because some func names are inconsistant
-                # at AVR-X receivers
-
-                m_item_0 = SOURCE_MAPPING.get(item[0], item[0])
-
-                # For renamed sources use those names and save the default name
-                # for a later mapping
-                if item[0] in renamed_sources:
-                    self._input_func_list[renamed_sources[item[0]]] = m_item_0
-                    self._input_func_list_rev[
-                        m_item_0] = renamed_sources[item[0]]
-                    # If the source is a netaudio source, save its renamed name
-                    if item[0] in NETAUDIO_SOURCES:
-                        self._netaudio_func_list.append(
-                            renamed_sources[item[0]])
-                    # If the source is a playing source, save its renamed name
-                    if item[0] in PLAYING_SOURCES:
-                        self._playing_func_list.append(
-                            renamed_sources[item[0]])
-                # Otherwise the default names are used
-                else:
-                    self._input_func_list[item[1]] = m_item_0
-                    self._input_func_list_rev[m_item_0] = item[1]
-                    # If the source is a netaudio source, save its name
-                    if item[1] in NETAUDIO_SOURCES:
-                        self._netaudio_func_list.append(item[1])
-                    # If the source is a playing source, save its name
-                    if item[1] in PLAYING_SOURCES:
-                        self._playing_func_list.append(item[1])
-
-        # Determination of input_func_list for non AVR-nonX receivers
-        elif self._receiver_type == AVR.type:
-            # Clear and rebuild the sources lists
-            self._input_func_list.clear()
-            self._input_func_list_rev.clear()
-            self._netaudio_func_list.clear()
-            self._playing_func_list.clear()
-            for item in receiver_sources.items():
-                self._input_func_list[item[1]] = item[0]
-                self._input_func_list_rev[item[0]] = item[1]
-                # If the source is a netaudio source, save its name
-                if item[0] in NETAUDIO_SOURCES:
-                    self._netaudio_func_list.append(item[1])
-                # If the source is a playing source, save its name
-                if item[0] in PLAYING_SOURCES:
-                    self._playing_func_list.append(item[1])
-        else:
-            _LOGGER.error('Receiver type not set yet.')
-            return False
-
-        # Finished
-        return True
-
-    def _get_receiver_name(self):
-        """Get name of receiver from web interface if not set."""
-        # If name is not set yet, get it from Main Zone URL
-        if self._name is None and self._urls.mainzone is not None:
-            name_tag = {"FriendlyName": None}
-            try:
-                root = self.get_status_xml(self._urls.mainzone)
-            except requests.exceptions.ConnectTimeout:
-                pass
-            except (ValueError, requests.exceptions.RequestException):
-                _LOGGER.info("Receiver name could not be determined. "
-                             "Using standard name: Denon AVR.")
-                self._name = "Denon AVR"
-            else:
-                # Get the tags from this XML
-                name_tag = self._get_status_from_xml_tags(root, name_tag)
-                if name_tag:
-                    _LOGGER.info("Receiver name could not be determined. "
-                                 "Using standard name: Denon AVR.")
-                    self._name = "Denon AVR"
-
-    def _get_receiver_name_avr_2016(self):
-        """Get name of receiver from web interface if not set."""
-        if self._name is None:
-            # Collect tags for AppCommand.xml call
-            tags = ["GetFriendlyName"]
-            # Execute call
-            try:
-                root = self.exec_appcommand_post(tags)
-            except requests.exceptions.ConnectTimeout:
-                root = None
-            # Check result
-            if root is None:
-                _LOGGER.error("Getting GetFriendlyName failed.")
-                return
-
-            try:
-                name = root.find("./cmd/friendlyname").text
-            except AttributeError:
-                _LOGGER.error("No friendlyname found")
-            else:
-                self._name = name.strip()
-
-    def _get_support_sound_mode(self):
-        """
-        Get if sound mode is supported from device.
-
-        Method executes the method for the current receiver type.
-        """
-        if self._receiver_type == AVR_X_2016.type:
-            return self._get_support_sound_mode_avr_2016()
-        else:
-            return self._get_support_sound_mode_avr()
-
-    def _update_tone_control(self, root=None):
-        """Update tone control related things."""
-        if root is None:
-            try:
-                root = self.exec_appcommand_post(["GetToneControl"])
-            except requests.exceptions.ConnectTimeout:
-                root = None
-
-        if root is None:
-            _LOGGER.error("Getting tone control failed.")
-            return False
-
-        try:
-            self._tone_control_status = bool(
-                int(root.find('./cmd/status').text))
-        except (AttributeError, IndexError, TypeError):
-            return False
-
-        if self._tone_control_status is False:
-            # Tone Control can not be activated.
-            # e.g.: Due to active DynamicEQ
-            self._tone_control_adjust = None
-            self._bass = None
-            self._bass_level = None
-            self._treble = None
-            self._treble_level = None
-            return False
-
-        try:
-            self._tone_control_adjust = bool(
-                int(root.find('./cmd/adjust').text))
-            self._bass = int(root.find('./cmd/bassvalue').text)
-            self._bass_level = root.find('./cmd/basslevel').text
-            self._treble = int(root.find('./cmd/treblevalue').text)
-            self._treble_level = root.find('./cmd/treblelevel').text
-        except (AttributeError, IndexError, TypeError):
-            _LOGGER.error("Incomplete/no information found for tone control")
-            return False
-        return True
-
-    def _get_support_sound_mode_avr(self):
-        """
-        Get if sound mode is supported from device.
-
-        Method queries device via HTTP.
-        Returns "True" if sound mode supported and "False" if not.
-        This method is for pre 2016 AVR(-X) devices
-        """
-        # Set sound mode tags to be checked if available
-        relevant_tags = {"selectSurround": None, "SurrMode": None}
-
-        # Get status XML from Denon receiver via HTTP
-        try:
-            root = self.get_status_xml(self._urls.status)
-        except requests.exceptions.ConnectTimeout:
-            return None
-        except (ValueError, requests.exceptions.RequestException):
-            pass
-        else:
-            # Process the tags from this XML
-            relevant_tags = self._get_status_from_xml_tags(root, relevant_tags)
-
-        # Second option to update variables from different source
-        if relevant_tags:
-            try:
-                root = self.get_status_xml(self._urls.mainzone)
-            except requests.exceptions.ConnectTimeout:
-                return None
-            except (ValueError, requests.exceptions.RequestException):
-                pass
-            else:
-                # Get the tags from this XML
-                relevant_tags = self._get_status_from_xml_tags(root,
-                                                               relevant_tags)
-
-        # if sound mode not found in the status XML, return False
-        if relevant_tags:
-            self._support_sound_mode = False
-            return False
-        # if sound mode found, the relevant_tags are empty: return True.
-        self._support_sound_mode = True
-        return True
-
-    def _get_support_sound_mode_avr_2016(self):
-        """
-        Get if sound mode is supported from device.
-
-        Method enables sound mode.
-        Returns "True" in all cases for 2016 AVR(-X) devices
-        """
-        self._support_sound_mode = True
-        return True
-
-    def _get_renamed_deleted_sources(self):
-        """
-        Get renamed and deleted sources lists from receiver .
-
-        Internal method which queries device via HTTP to get names of renamed
-        input sources.
-        """
-        # renamed_sources and deleted_sources are dicts with "source" as key
-        # and "renamed_source" or deletion flag as value.
-        renamed_sources = {}
-        deleted_sources = {}
-        xml_inputfunclist = []
-        xml_renamesource = []
-        xml_deletesource = []
-
-        # This XML is needed to get names of eventually renamed sources
-        try:
-            # AVR-X and AVR-nonX using different XMLs to provide info about
-            # deleted sources
-            if self._receiver_type == AVR_X.type:
-                root = self.get_status_xml(self._urls.status)
-            # URL only available for Main Zone.
-            elif self._receiver_type == AVR.type:
-                if self._urls.mainzone is not None:
-                    root = self.get_status_xml(self._urls.mainzone)
-                else:
-                    root = self.get_status_xml(self._urls.status)
-            else:
-                return (renamed_sources, deleted_sources)
-        except (ValueError, requests.exceptions.RequestException):
-            return (renamed_sources, deleted_sources)
-
-        # Get the relevant tags from XML structure
-        for child in root:
-            # Default names of the sources
-            if child.tag == "InputFuncList":
-                for value in child:
-                    xml_inputfunclist.append(value.text)
-            # Renamed sources
-            if child.tag == "RenameSource":
-                for value in child:
-                    # Two different kinds of source structure types exist
-                    # 1. <RenameSource><Value>...
-                    if value.text is not None:
-                        xml_renamesource.append(value.text.strip())
-                    # 2. <RenameSource><Value><Value>
-                    else:
-                        try:
-                            xml_renamesource.append(value[0].text.strip())
-                        # Exception covers empty tags and appends empty line
-                        # in this case, to ensure that sources and
-                        # renamed_sources lists have always the same length
-                        except IndexError:
-                            xml_renamesource.append(None)
-            # Deleted sources
-            if child.tag == "SourceDelete":
-                for value in child:
-                    xml_deletesource.append(value.text)
-
-        # If the deleted source list is empty then use all sources.
-        if not xml_deletesource:
-            xml_deletesource = ['USE'] * len(xml_inputfunclist)
-
-        # Renamed and deleted sources are in the same row as the default ones
-        # Only values which are not None are considered. Otherwise translation
-        # is not valid and original name is taken
-        for i, item in enumerate(xml_inputfunclist):
-            try:
-                if xml_renamesource[i] is not None:
-                    renamed_sources[item] = xml_renamesource[i]
-                else:
-                    renamed_sources[item] = item
-            except IndexError:
-                _LOGGER.error(
-                    "List of renamed sources incomplete, continuing anyway")
-            try:
-                deleted_sources[item] = xml_deletesource[i]
-            except IndexError:
-                _LOGGER.error(
-                    "List of deleted sources incomplete, continuing anyway")
-
-        return (renamed_sources, deleted_sources)
-
-    def _get_renamed_deleted_sourcesapp(self):
-        """
-        Get renamed and deleted sources lists from receiver .
-
-        Internal method which queries device via HTTP to get names of renamed
-        input sources. In this method AppCommand.xml is used.
-        """
-        # renamed_sources and deleted_sources are dicts with "source" as key
-        # and "renamed_source" or deletion flag as value.
-        renamed_sources = {}
-        deleted_sources = {}
-
-        # Collect tags for AppCommand.xml call
-        tags = ["GetRenameSource", "GetDeletedSource"]
-        # Execute call
-        try:
-            root = self.exec_appcommand_post(tags)
-        except requests.exceptions.ConnectTimeout:
-            return (renamed_sources, deleted_sources, None)
-        # Check result
-        if root is None:
-            _LOGGER.error("Getting renamed and deleted sources failed.")
-            return (renamed_sources, deleted_sources, False)
-
-        # Detect "Document Error: Data follows" title if URL does not exist
-        document_error = root.find("./head/title")
-        if document_error is not None:
-            if document_error.text == "Document Error: Data follows":
-                return (renamed_sources, deleted_sources, False)
-
-        for child in root.findall("./cmd/functionrename/list"):
-            try:
-                renamed_sources[child.find("name").text.strip()] = (
-                    child.find("rename").text.strip())
-            except AttributeError:
-                continue
-
-        for child in root.findall("./cmd/functiondelete/list"):
-            try:
-                deleted_sources[child.find("FuncName").text.strip(
-                )] = "DEL" if (
-                    child.find("use").text.strip() == "0") else None
-            except AttributeError:
-                continue
-
-        return (renamed_sources, deleted_sources, True)
-
-    def _get_receiver_sources(self):
-        """
-        Get sources list from receiver.
-
-        Internal method which queries device via HTTP to get the receiver's
-        input sources.
-        This method also determines the type of the receiver
-        (avr, avr-x, avr-x-2016).
-        """
-        # Test if receiver is a AVR-X with port 80 for pre 2016 devices and
-        # port 8080 devices 2016 and later
-        r_types = [AVR_X, AVR_X_2016]
-        for r_type, port in r_types:
-            self._receiver_port = port
-
-            # This XML is needed to get the sources of the receiver
-            try:
-                root = self.get_status_xml(self._urls.deviceinfo,
-                                           suppress_errors=True)
-            except (ValueError, requests.exceptions.RequestException):
-                continue
-            else:
-                # First test by CommApiVers
-                try:
-                    if bool(DEVICEINFO_COMMAPI_PATTERN.search(
-                            root.find("CommApiVers").text) is not None):
-                        self._receiver_type = r_type
-                        # receiver found break the loop
-                        break
-                except AttributeError:
-                    # AttributeError occurs when ModelName tag is not found.
-                    # In this case there is no AVR-X device
-                    continue
-
-                # if first test did not find AVR-X device, check by model name
-                if self._receiver_type is None:
-                    try:
-                        if bool(DEVICEINFO_AVR_X_PATTERN.search(
-                                root.find("ModelName").text) is not None):
-                            self._receiver_type = r_type
-                            # receiver found break the loop
-                            break
-                    except AttributeError:
-                        # AttributeError occurs when ModelName tag is not found
-                        # In this case there is no AVR-X device
-                        continue
-
-        # Set ports and update method
-        if self._receiver_type is None:
-            self._receiver_type = AVR.type
-            self._receiver_port = AVR.port
-        elif self._receiver_type == AVR_X_2016.type:
-            self._receiver_port = AVR_X_2016.port
-        else:
-            self._receiver_port = AVR_X.port
-
-        _LOGGER.info("Identified receiver type: '%s' on port: '%s'",
-                     self._receiver_type, self._receiver_port)
-
-        # Not an AVR-X device, start determination of sources
-        if self._receiver_type == AVR.type:
-            # Sources list is equal to list of renamed sources.
-            non_x_sources, deleted_non_x_sources, status_success = (
-                self._get_renamed_deleted_sourcesapp())
-
-            # Backup if previous try with AppCommand was not successful
-            if status_success is False:
-                non_x_sources, deleted_non_x_sources = (
-                    self._get_renamed_deleted_sources())
-
-            # Remove all deleted sources
-            if self._show_all_inputs is False:
-                for deleted_source in deleted_non_x_sources.items():
-                    if deleted_source[1] == "DEL":
-                        non_x_sources.pop(deleted_source[0], None)
-
-            return non_x_sources
-
-        # Following source determination of AVR-X receivers
-        else:
-            # receiver_sources is of type dict with "FuncName" as key and
-            # "DefaultName" as value.
-            receiver_sources = {}
-            # Source determination from XML
-            favorites = root.find(".//FavoriteStation")
-            if favorites is not None:
-                for child in favorites:
-                    if not child.tag.startswith("Favorite"):
-                        continue
-                    func_name = child.tag.upper()
-                    self._favorite_func_list.append(func_name)
-                    receiver_sources[func_name] = child.find("Name").text
-            for xml_zonecapa in root.findall("DeviceZoneCapabilities"):
-                zone_no = "0"
-                if self._zone == "Zone2":
-                    zone_no = "1"
-                elif self._zone == "Zone3":
-                    zone_no = "2"
-                if xml_zonecapa.find("./Zone/No").text == zone_no:
-                    # Get list of all input sources of receiver
-                    xml_list = xml_zonecapa.find("./InputSource/List")
-                    for xml_source in xml_list.findall("Source"):
-                        receiver_sources[
-                            xml_source.find(
-                                "FuncName").text] = xml_source.find(
-                                    "DefaultName").text
-
-            return receiver_sources
-
-    def _get_own_zone(self):
-        """
-        Get zone from actual instance.
-
-        These zone information are used to evaluate responses of HTTP POST
-        commands.
-        """
-        if self._zone == MAIN_ZONE:
-            return "zone1"
-        else:
-            return self.zone.lower()
-
-    def _set_media_state(self):
-        """
-        Set media state for the receiver.
-
-        This method does not work on AVR-X devices built in 2016 and later.
-        """
-        # Set state and media image URL based on current source
-        # and power status
-        if (self._power == POWER_ON and
-                self._input_func in self._playing_func_list):
-            if self._update_media_data():
-                return True
-            else:
-                _LOGGER.error(
-                    "Update of media data for source %s in %s failed",
-                    self._input_func, self._zone)
-                return False
-        elif self._power == POWER_ON:
-            self._state = STATE_ON
-            self._title = None
-            self._artist = None
-            self._album = None
-            self._band = None
-            self._frequency = None
-            self._station = None
-            self._image_url = None
-        else:
-            self._state = STATE_OFF
-            self._title = None
-            self._artist = None
-            self._album = None
-            self._band = None
-            self._frequency = None
-            self._station = None
-            self._image_url = None
-
-        return True
-
-    def _update_media_data(self):
-        """
-        Update media data for playing devices.
-
-        Internal method which queries device via HTTP to update media
-        information (title, artist, etc.) and URL of cover image.
-        """
-        # Use different query URL based on selected source
-        if self._input_func in self._netaudio_func_list:
-            try:
-                root = self.get_status_xml(self._urls.netaudiostatus)
-            except (ValueError, requests.exceptions.RequestException):
-                return False
-
-            # Get the relevant tags from XML structure
-            for child in root:
-                if child.tag == "szLine":
-                    if (self._title != html.unescape(child[1].text) if (
-                            child[1].text is not None) else None or
-                            self._artist != html.unescape(child[2].text) if (
-                                child[2].text is not None) else None or
-                            self._album != html.unescape(child[4].text) if (
-                                child[4].text is not None) else None):
-                        # Refresh cover with a new time stamp for media URL
-                        # when track is changing
-                        self._image_url = (ALBUM_COVERS_URL.format(
-                            host=self._host, port=self._receiver_port,
-                            time=int(time.time())))
-                        # On track change assume device is PLAYING
-                        self._state = STATE_PLAYING
-                    self._title = html.unescape(child[1].text) if (
-                        child[1].text is not None) else None
-                    self._artist = html.unescape(child[2].text) if (
-                        child[2].text is not None) else None
-                    self._album = html.unescape(child[4].text)if (
-                        child[4].text is not None) else None
-                    self._band = None
-                    self._frequency = None
-                    self._station = None
-
-        elif self._input_func in ["Tuner", "TUNER"]:
-            try:
-                root = self.get_status_xml(self._urls.tunerstatus)
-            except (ValueError, requests.exceptions.RequestException):
-                return False
-
-            # Get the relevant tags from XML structure
-            for child in root:
-                if child.tag == "Band":
-                    self._band = child[0].text
-                elif child.tag == "Frequency":
-                    self._frequency = child[0].text
-
-            self._title = None
-            self._artist = None
-            self._album = None
-            self._station = None
-
-            # Assume Tuner is always PLAYING
-            self._state = STATE_PLAYING
-
-            # No special cover, using a static one
-            self._image_url = (
-                STATIC_ALBUM_URL.format(
-                    host=self._host, port=self._receiver_port))
-
-        elif self._input_func in ["HD Radio", "HDRADIO"]:
-            try:
-                root = self.get_status_xml(self._urls.hdtunerstatus)
-            except (ValueError, requests.exceptions.RequestException):
-                return False
-
-            # Get the relevant tags from XML structure
-            for child in root:
-                if child.tag == "Artist":
-                    self._artist = html.unescape(child[0].text) if (
-                        child[0].text is not None) else None
-                elif child.tag == "Title":
-                    self._title = html.unescape(child[0].text) if (
-                        child[0].text is not None) else None
-                elif child.tag == "Album":
-                    self._album = html.unescape(child[0].text) if (
-                        child[0].text is not None) else None
-                elif child.tag == "Band":
-                    self._band = html.unescape(child[0].text) if (
-                        child[0].text is not None) else None
-                elif child.tag == "Frequency":
-                    self._frequency = html.unescape(child[0].text) if (
-                        child[0].text is not None) else None
-                elif child.tag == "StationNameSh":
-                    self._station = html.unescape(child[0].text) if (
-                        child[0].text is not None) else None
-
-            # Assume Tuner is always PLAYING
-            self._state = STATE_PLAYING
-
-            # No special cover, using a static one
-            self._image_url = (
-                STATIC_ALBUM_URL.format(
-                    host=self._host, port=self._receiver_port))
-
-        # No behavior implemented, so reset all variables for that source
-        else:
-            self._band = None
-            self._frequency = None
-            self._title = None
-            self._artist = None
-            self._album = None
-            self._station = None
-            # Assume PLAYING_DEVICE is always PLAYING
-            self._state = STATE_PLAYING
-            # No special cover, using a static one
-            self._image_url = (
-                STATIC_ALBUM_URL.format(
-                    host=self._host, port=self._receiver_port))
-
-        # Test if image URL is accessable
-        if self._image_available is None and self._image_url is not None:
-            try:
-                imgres = requests.get(self._image_url, timeout=self.timeout)
-            except requests.exceptions.RequestException:
-                # No result set image URL to None
-                self._image_url = None
-            else:
-                if imgres.status_code == 200:
-                    self._image_available = True
-                else:
-                    _LOGGER.info('No album art available for your receiver')
-                    # No image available. Save this status.
-                    self._image_available = False
-                    #  Set image URL to None.
-                    self._image_url = None
-        # Already tested that image URL is not accessible
-        elif self._image_available is False:
-            self._image_url = None
-
-        # Finished
-        return True
-
-    def _get_status_from_xml_tags(self, root, relevant_tags):
-        """
-        Get relevant status tags from XML structure with this internal method.
-
-        Status is saved to internal attributes.
-        Return dictionary of tags not found in XML.
-        """
-        for child in root:
-            if child.tag not in relevant_tags.keys():
-                continue
-
-            if child.tag == "Power":
-                self._power = child[0].text
-                relevant_tags.pop(child.tag, None)
-            elif child.tag == "InputFuncSelect":
-                inputfunc = child[0].text
-                if inputfunc is not None:
-                    # AirPlay and Internet Radio are not always listed in
-                    # available sources
-                    if inputfunc in ["AirPlay", "Internet Radio"]:
-                        if inputfunc not in self._input_func_list:
-                            self._input_func_list[inputfunc] = inputfunc
-                            self._input_func_list_rev[inputfunc] = inputfunc
-                    try:
-                        self._input_func = self._input_func_list_rev[inputfunc]
-                    except KeyError:
-                        _LOGGER.info(
-                            "No mapping for source %s found", inputfunc)
-                        self._input_func = inputfunc
-                    finally:
-                        relevant_tags.pop(child.tag, None)
-            elif child.tag == "MasterVolume":
-                self._volume = child[0].text
-                relevant_tags.pop(child.tag, None)
-            elif child.tag == "Mute":
-                self._mute = child[0].text
-                relevant_tags.pop(child.tag, None)
-            elif child.tag == "FriendlyName" and self._name is None:
-                self._name = child[0].text
-                relevant_tags.pop(child.tag, None)
-            elif child.tag == "selectSurround" or child.tag == "SurrMode":
-                self._sound_mode_raw = child[0].text.rstrip()
-                relevant_tags.pop("selectSurround", None)
-                relevant_tags.pop("SurrMode", None)
-
-        return relevant_tags
-
+        """Get Audyssey settings."""
+
+    async def async_get_command(self, request: str) -> str:
+        """Send HTTP GET command to Denon AVR receiver asynchronously."""
+        return await self._device.api.async_get_command(request)
+
+    @run_async_synchronously(async_func=async_get_command)
+    def get_command(self, request: str) -> str:
+        """Send HTTP GET command to Denon AVR receiver."""
+
+    @run_async_synchronously(async_func=async_get_command)
+    def send_get_command(self, request: str) -> str:
+        """Send HTTP GET command to Denon AVR receiver...for compatibility."""
+
+    ##############
+    # Properties #
+    ##############
     @property
-    def zone(self):
+    def zone(self) -> str:
         """Return Zone of this instance."""
-        return self._zone
+        return self._device.zone
 
     @property
-    def zones(self):
+    def zones(self) -> Dict[str, DenonAVRFoundation]:
         """Return all Zone instances of the device."""
         return self._zones
 
     @property
-    def name(self):
+    def name(self) -> Optional[str]:
         """Return the name of the device as string."""
         return self._name
 
     @property
-    def host(self):
+    def host(self) -> str:
         """Return the host of the device as string."""
         return self._host
 
     @property
-    def manufacturer(self):
+    def manufacturer(self) -> Optional[str]:
         """Return the manufacturer of the device as string."""
-        return self._manufacturer
+        return self._device.manufacturer
 
     @property
-    def model_name(self):
+    def model_name(self) -> Optional[str]:
         """Return the model name of the device as string."""
-        return self._model_name
+        return self._device.model_name
 
     @property
-    def serial_number(self):
+    def serial_number(self) -> Optional[str]:
         """Return the serial number of the device as string."""
-        return self._serial_number
+        return self._device.serial_number
 
     @property
-    def power(self):
+    def power(self) -> Optional[str]:
         """
         Return the power state of the device.
 
         Possible values are: "ON", "STANDBY" and "OFF"
         """
-        return self._power
+        return self._device.power
 
     @property
-    def state(self):
+    def state(self) -> Optional[str]:
         """
         Return the state of the device.
 
@@ -1528,604 +261,372 @@ class DenonAVR:
         "playing" and "paused" are only available for input functions
         in PLAYING_SOURCES.
         """
-        return self._state
+        return self.input.state
 
     @property
-    def muted(self):
+    def muted(self) -> bool:
         """
         Boolean if volume is currently muted.
 
         Return "True" if muted and "False" if not muted.
         """
-        return bool(self._mute == STATE_ON)
+        return self.vol.muted
 
     @property
-    def volume(self):
+    def volume(self) -> float:
         """
         Return volume of Denon AVR as float.
 
         Volume is send in a format like -50.0.
         Minimum is -80.0, maximum at 18.0
         """
-        if self._volume == "--":
-            return -80.0
-        else:
-            return float(self._volume)
+        return self.vol.volume
 
     @property
-    def input_func(self):
+    def input_func(self) -> Optional[str]:
         """Return the current input source as string."""
-        return self._input_func
+        return self.input.input_func
 
     @property
-    def input_func_list(self):
+    def input_func_list(self) -> List[str]:
         """Return a list of available input sources as string."""
-        return sorted(self._input_func_list.keys())
+        return self.input.input_func_list
 
     @property
-    def support_sound_mode(self):
+    def support_sound_mode(self) -> Optional[bool]:
         """Return True if sound mode supported."""
-        return self._support_sound_mode
+        return self.soundmode.support_sound_mode
 
     @property
-    def sound_mode(self):
+    def sound_mode(self) -> Optional[str]:
         """Return the matched current sound mode as a string."""
-        sound_mode_matched = self.match_sound_mode(self._sound_mode_raw)
-        return sound_mode_matched
+        return self.soundmode.sound_mode
 
     @property
-    def sound_mode_list(self):
+    def sound_mode_list(self) -> List[str]:
         """Return a list of available sound modes as string."""
-        return list(self._sound_mode_dict.keys())
+        return self.soundmode.sound_mode_list
 
     @property
-    def sound_mode_dict(self):
+    def sound_mode_map(self) -> Dict[str, str]:  # returns an OrderedDict
         """Return a dict of available sound modes with their mapping values."""
-        return dict(self._sound_mode_dict)
+        return self.soundmode.sound_mode_map
 
     @property
-    def sm_match_dict(self):
+    def sound_mode_map_rev(self) -> Dict[str, str]:
         """Return a dict to map each sound_mode_raw to matching sound_mode."""
-        return self._sm_match_dict
+        return self.soundmode.sound_mode_map_rev
 
     @property
-    def sound_mode_raw(self):
+    def sound_mode_raw(self) -> Optional[str]:
         """Return the current sound mode as string as received from the AVR."""
-        return self._sound_mode_raw
+        return self.soundmode.sound_mode_raw
 
     @property
-    def image_url(self):
+    def image_url(self) -> Optional[str]:
         """Return image URL of current playing media when powered on."""
-        if self._power == POWER_ON:
-            return self._image_url
-        else:
-            return None
+        return self.input.image_url
 
     @property
-    def title(self):
+    def title(self) -> Optional[str]:
         """Return title of current playing media as string."""
-        return self._title
+        return self.input.title
 
     @property
-    def artist(self):
+    def artist(self) -> Optional[str]:
         """Return artist of current playing media as string."""
-        return self._artist
+        return self.input.artist
 
     @property
-    def album(self):
+    def album(self) -> Optional[str]:
         """Return album name of current playing media as string."""
-        return self._album
+        return self.input.album
 
     @property
-    def band(self):
+    def band(self) -> Optional[str]:
         """Return band of current radio station as string."""
-        return self._band
+        return self.input.band
 
     @property
-    def frequency(self):
+    def frequency(self) -> Optional[str]:
         """Return frequency of current radio station as string."""
-        return self._frequency
+        return self.input.frequency
 
     @property
-    def station(self):
+    def station(self) -> Optional[str]:
         """Return current radio station as string."""
-        return self._station
+        return self.input.station
 
     @property
-    def netaudio_func_list(self):
+    def netaudio_func_list(self) -> List[str]:
         """Return list of network audio devices.
 
         Those devices should react to play, pause, next and previous
         track commands.
         """
-        return self._netaudio_func_list
+        return self.input.netaudio_func_list
 
     @property
-    def playing_func_list(self):
+    def playing_func_list(self) -> List[str]:
         """Return list of playing devices.
 
         Those devices offer additional information about what they are playing
         (e.g. title, artist, album, band, frequency, station, image_url).
         """
-        return self._playing_func_list
+        return self.input.playing_func_list
 
     @property
-    def receiver_port(self):
+    def receiver_port(self) -> int:
         """Return the receiver's port."""
-        return self._receiver_port
+        if self._device.receiver is None:
+            return None
+        return self._device.receiver.port
 
     @property
-    def receiver_type(self):
+    def receiver_type(self) -> Optional[str]:
         """Return the receiver's type."""
-        return self._receiver_type
+        if self._device.receiver is None:
+            return None
+        return self._device.receiver.type
 
     @property
-    def show_all_inputs(self):
+    def show_all_inputs(self) -> Optional[bool]:
         """Indicate if all inputs are shown or just active one."""
         return self._show_all_inputs
 
     @property
-    def bass(self):
+    def bass(self) -> Optional[int]:
         """Return value of bass."""
-        return self._bass
+        return self.tonecontrol.bass
 
     @property
-    def bass_level(self):
+    def bass_level(self) -> Optional[str]:
         """Return level of bass."""
-        return self._bass_level
+        return self.tonecontrol.bass_level
 
     @property
-    def treble(self):
+    def treble(self) -> Optional[int]:
         """Return value of treble."""
-        return self._treble
+        return self.tonecontrol.treble
 
     @property
-    def treble_level(self):
+    def treble_level(self) -> Optional[str]:
         """Return level of treble."""
-        return self._treble_level
+        return self.tonecontrol.treble_level
 
     @property
-    def dynamic_eq(self):
+    def dynamic_eq(self) -> Optional[bool]:
         """Return value of Dynamic EQ."""
-        return self._audyssey.dynamiceq
+        return self.audyssey.dynamic_eq
 
     @property
-    def reference_level_offset(self):
+    def reference_level_offset(self) -> Optional[str]:
         """Return value of Reference Level Offset."""
-        return self._audyssey.reflevoffset
+        return self.audyssey.reference_level_offset
 
     @property
-    def reference_level_offset_setting_list(self):
+    def reference_level_offset_setting_list(self) -> List[str]:
         """Return a list of available reference level offset settings."""
-        return list(REF_LVL_OFFSET_MAP_LABELS.keys())
+        return self.audyssey.reference_level_offset_setting_list
 
     @property
-    def dynamic_volume(self):
+    def dynamic_volume(self) -> Optional[str]:
         """Return value of Dynamic Volume."""
-        return self._audyssey.dynamicvol
+        return self.audyssey.dynamic_volume
 
     @property
-    def dynamic_volume_setting_list(self):
+    def dynamic_volume_setting_list(self) -> List[str]:
         """Return a list of available Dynamic Volume settings."""
-        return list(DYNAMIC_VOLUME_MAP_LABELS.keys())
+        return self.audyssey.dynamic_volume_setting_list
 
     @property
-    def multi_eq(self):
+    def multi_eq(self) -> Optional[str]:
         """Return value of MultiEQ."""
-        return self._audyssey.multeq
+        return self.audyssey.multi_eq
 
     @property
-    def multi_eq_setting_list(self):
+    def multi_eq_setting_list(self) -> List[str]:
         """Return a list of available MultiEQ settings."""
-        return list(MULTI_EQ_MAP_LABELS.keys())
+        return self.audyssey.multi_eq_setting_list
 
-    def dynamic_eq_off(self):
+    async def async_dynamic_eq_off(self) -> None:
         """Turn DynamicEQ off."""
-        self._audyssey.dynamiceq_off()
+        await self.audyssey.async_dynamiceq_off()
 
-    def dynamic_eq_on(self):
+    ##########
+    # Setter #
+    ##########
+    @run_async_synchronously(async_func=async_dynamic_eq_off)
+    def dynamic_eq_off(self) -> None:
+        """Turn DynamicEQ off."""
+
+    async def async_dynamic_eq_on(self) -> None:
         """Turn DynamicEQ on."""
-        self._audyssey.dynamiceq_on()
+        await self.audyssey.async_dynamiceq_on()
 
-    def toggle_dynamic_eq(self):
+    @run_async_synchronously(async_func=async_dynamic_eq_on)
+    def dynamic_eq_on(self) -> None:
+        """Turn DynamicEQ on."""
+
+    async def async_toggle_dynamic_eq(self) -> None:
         """Toggle DynamicEQ."""
-        if self.dynamic_eq is True:
-            self._audyssey.dynamiceq_off()
-        else:
-            self._audyssey.dynamiceq_on()
+        await self.audyssey.async_toggle_dynamic_eq()
 
-    @reference_level_offset.setter
-    def reference_level_offset(self, setting):
-        """Set Reference Level Offset."""
-        self._audyssey.set_reflevoffset(setting=setting)
+    @run_async_synchronously(async_func=async_toggle_dynamic_eq)
+    def toggle_dynamic_eq(self) -> None:
+        """Toggle DynamicEQ."""
 
-    @dynamic_volume.setter
-    def dynamic_volume(self, setting):
-        """Set Dynamic Volume."""
-        self._audyssey.set_dynamicvol(setting=setting)
-
-    @multi_eq.setter
-    def multi_eq(self, setting):
-        """Set MultiEQ."""
-        self._audyssey.set_multieq(setting=setting)
-
-    @input_func.setter
-    def input_func(self, input_func):
-        """Setter function for input_func to switch input_func of device."""
-        self.set_input_func(input_func)
-
-    def set_input_func(self, input_func):
+    async def async_set_input_func(self, input_func: str) -> None:
         """
         Set input_func of device.
 
         Valid values depend on the device and should be taken from
         "input_func_list".
-        Return "True" on success and "False" on fail.
         """
-        # For selection of sources other names then at receiving sources
-        # have to be used
-        # AVR-X receiver needs source mapping to set input_func
-        if self._receiver_type in [AVR_X.type, AVR_X_2016.type]:
-            direct_mapping = False
-            try:
-                linp = CHANGE_INPUT_MAPPING[self._input_func_list[input_func]]
-            except KeyError:
-                direct_mapping = True
-        else:
-            direct_mapping = True
-        # AVR-nonX receiver and if no mapping was found get parameter for
-        # setting input_func directly
-        if direct_mapping is True:
-            try:
-                linp = self._input_func_list[input_func]
-            except KeyError:
-                _LOGGER.error("No mapping for input source %s", input_func)
-                return False
-        # Create command URL and send command via HTTP GET
-        try:
-            if linp in self._favorite_func_list:
-                command_url = self._urls.command_fav_src + linp
-            else:
-                command_url = self._urls.command_sel_src + linp
+        await self.input.async_set_input_func(input_func)
 
-            if self.send_get_command(command_url):
-                self._input_func = input_func
-                return True
-            else:
-                return False
-        except requests.exceptions.RequestException:
-            _LOGGER.error("Connection error: input function %s not set.",
-                          input_func)
-            return False
-
-    @sound_mode.setter
-    def sound_mode(self, sound_mode):
-        """Setter function for sound_mode to switch sound_mode of device."""
-        self.set_sound_mode(sound_mode)
-
-    def _set_all_zone_stereo(self, zst_on):
+    @run_async_synchronously(async_func=async_set_input_func)
+    def set_input_func(self, input_func: str) -> None:
         """
-        Set All Zone Stereo option on the device.
+        Set input_func of device.
 
-        Calls command to activate/deactivate the mode
-        Return "True" when successfully sent.
+        Valid values depend on the device and should be taken from
+        "input_func_list".
         """
-        command_url = self._urls.command_set_all_zone_stereo
-        if zst_on:
-            command_url += "ZST ON"
-        else:
-            command_url += "ZST OFF"
 
-        try:
-            return self.send_get_command(command_url)
-        except requests.exceptions.RequestException:
-            _LOGGER.error(
-                "Connection error: unable to set All Zone Stereo to %s",
-                zst_on)
-            return False
-
-    def set_sound_mode(self, sound_mode):
+    async def async_set_sound_mode(self, sound_mode: str) -> None:
         """
         Set sound_mode of device.
 
         Valid values depend on the device and should be taken from
         "sound_mode_list".
-        Return "True" on success and "False" on fail.
         """
-        if sound_mode == ALL_ZONE_STEREO:
-            if self._set_all_zone_stereo(True):
-                self._sound_mode_raw = ALL_ZONE_STEREO
-                return True
-            else:
-                return False
-        if self.sound_mode == ALL_ZONE_STEREO:
-            if not self._set_all_zone_stereo(False):
-                return False
-        # For selection of sound mode other names then at receiving sound modes
-        # have to be used
-        # Therefore source mapping is needed to get sound_mode
-        # Create command URL and send command via HTTP GET
-        command_url = self._urls.command_sel_sound_mode + sound_mode
-        # sent command
-        try:
-            if self.send_get_command(command_url):
-                self._sound_mode_raw = self._sound_mode_dict[sound_mode][0]
-                return True
-            else:
-                return False
-        except requests.exceptions.RequestException:
-            _LOGGER.error("Connection error: sound mode function %s not set.",
-                          sound_mode)
-            return False
+        await self.soundmode.async_set_sound_mode()
 
-    def set_sound_mode_dict(self, sound_mode_dict):
-        """Set the matching dictionary used to match the raw sound mode."""
-        error_msg = ("Syntax of sound mode dictionary not valid, "
-                     "use: OrderedDict([('COMMAND', ['VALUE1','VALUE2'])])")
-        if isinstance(sound_mode_dict, dict):
-            mode_list = list(sound_mode_dict.values())
-            for sublist in mode_list:
-                if isinstance(sublist, list):
-                    for element in sublist:
-                        if not isinstance(element, str):
-                            _LOGGER.error(error_msg)
-                            return False
-                else:
-                    _LOGGER.error(error_msg)
-                    return False
-        else:
-            _LOGGER.error(error_msg)
-            return False
-        self._sound_mode_dict = sound_mode_dict
-        self._sm_match_dict = self.construct_sm_match_dict()
-        return True
-
-    def construct_sm_match_dict(self):
+    @run_async_synchronously(async_func=async_set_sound_mode)
+    def set_sound_mode(self, sound_mode: str) -> None:
         """
-        Construct the sm_match_dict.
+        Set sound_mode of device.
 
-        Reverse the key value structure. The sm_match_dict is bigger,
-        but allows for direct matching using a dictionary key access.
-        The sound_mode_dict is uses externally to set this dictionary
-        because that has a nicer syntax.
+        Valid values depend on the device and should be taken from
+        "sound_mode_list".
         """
-        mode_dict = list(self._sound_mode_dict.items())
-        match_mode_dict = {}
-        for matched_mode, sublist in mode_dict:
-            for raw_mode in sublist:
-                match_mode_dict[raw_mode.upper()] = matched_mode
-        return match_mode_dict
 
-    def match_sound_mode(self, sound_mode_raw):
-        """Match the raw_sound_mode to its corresponding sound_mode."""
-        try:
-            sound_mode = self._sm_match_dict[sound_mode_raw.upper()]
-            return sound_mode
-        except KeyError:
-            smr_up = sound_mode_raw.upper()
-            self._sound_mode_dict[smr_up] = [smr_up]
-            self._sm_match_dict = self.construct_sm_match_dict()
-            _LOGGER.warning("Not able to match sound mode: '%s', "
-                            "returning raw sound mode.", smr_up)
-        return sound_mode_raw
-
-    def toggle_play_pause(self):
+    async def async_toggle_play_pause(self) -> None:
         """Toggle play pause media player."""
-        # Use Play/Pause button only for sources which support NETAUDIO
-        if (self._state == STATE_PLAYING and
-                self._input_func in self._netaudio_func_list):
-            return self.pause()
-        elif self._input_func in self._netaudio_func_list:
-            return self.play()
+        await self.input.async_toggle_play_pause()
 
-    def play(self):
+    @run_async_synchronously(async_func=async_toggle_play_pause)
+    def toggle_play_pause(self) -> None:
+        """Toggle play pause media player."""
+
+    async def async_play(self) -> None:
         """Send play command to receiver command via HTTP post."""
-        # Use pause command only for sources which support NETAUDIO
-        if self._input_func in self._netaudio_func_list:
-            # In fact play command is a play/pause toggle. Thus checking state
-            if self._state == STATE_PLAYING:
-                _LOGGER.info("Already playing, play command not sent")
-                return True
-            try:
-                if self.send_get_command(self._urls.command_play):
-                    self._state = STATE_PLAYING
-                    return True
-                else:
-                    return False
-            except requests.exceptions.RequestException:
-                _LOGGER.error("Connection error: play command not sent.")
-                return False
+        await self.input.async_play()
 
-    def pause(self):
+    @run_async_synchronously(async_func=async_play)
+    def play(self) -> None:
+        """Send play command to receiver command via HTTP post."""
+
+    async def async_pause(self) -> None:
         """Send pause command to receiver command via HTTP post."""
-        # Use pause command only for sources which support NETAUDIO
-        if self._input_func in self._netaudio_func_list:
-            try:
-                if self.send_get_command(self._urls.command_pause):
-                    self._state = STATE_PAUSED
-                    return True
-                else:
-                    return False
-            except requests.exceptions.RequestException:
-                _LOGGER.error("Connection error: pause command not sent.")
-                return False
+        await self.input.async_pause()
 
-    def previous_track(self):
+    @run_async_synchronously(async_func=async_pause)
+    def pause(self) -> None:
+        """Send pause command to receiver command via HTTP post."""
+
+    async def async_previous_track(self) -> None:
         """Send previous track command to receiver command via HTTP post."""
-        # Use previous track button only for sources which support NETAUDIO
-        if self._input_func in self._netaudio_func_list:
-            body = {"cmd0": "PutNetAudioCommand/CurUp",
-                    "cmd1": "aspMainZone_WebUpdateStatus/",
-                    "ZoneName": "MAIN ZONE"}
-            try:
-                return bool(self.send_post_command(
-                    self._urls.command_netaudio_post, body))
-            except requests.exceptions.RequestException:
-                _LOGGER.error(
-                    "Connection error: previous track command not sent.")
-                return False
+        await self.input.async_previous_track()
 
-    def next_track(self):
+    @run_async_synchronously(async_func=async_previous_track)
+    def previous_track(self) -> None:
+        """Send previous track command to receiver command via HTTP post."""
+
+    async def async_next_track(self) -> None:
         """Send next track command to receiver command via HTTP post."""
-        # Use next track button only for sources which support NETAUDIO
-        if self._input_func in self._netaudio_func_list:
-            body = {"cmd0": "PutNetAudioCommand/CurDown",
-                    "cmd1": "aspMainZone_WebUpdateStatus/",
-                    "ZoneName": "MAIN ZONE"}
-            try:
-                return bool(self.send_post_command(
-                    self._urls.command_netaudio_post, body))
-            except requests.exceptions.RequestException:
-                _LOGGER.error("Connection error: next track command not sent.")
-                return False
+        await self.input.async_next_track()
 
-    def power_on(self):
+    @run_async_synchronously(async_func=async_next_track)
+    def next_track(self) -> None:
+        """Send next track command to receiver command via HTTP post."""
+
+    async def async_power_on(self) -> None:
         """Turn on receiver via HTTP get command."""
-        try:
-            if self.send_get_command(self._urls.command_power_on):
-                self._power = POWER_ON
-                self._state = STATE_ON
-                return True
-            else:
-                return False
-        except requests.exceptions.RequestException:
-            _LOGGER.error("Connection error: power on command not sent.")
-            return False
+        await self._device.async_power_on()
 
-    def power_off(self):
+    @run_async_synchronously(async_func=async_power_on)
+    def power_on(self) -> None:
+        """Turn on receiver via HTTP get command."""
+
+    async def async_power_off(self) -> None:
         """Turn off receiver via HTTP get command."""
-        try:
-            if self.send_get_command(self._urls.command_power_standby):
-                self._power = POWER_STANDBY
-                self._state = STATE_OFF
-                return True
-            else:
-                return False
-        except requests.exceptions.RequestException:
-            _LOGGER.error("Connection error: power off command not sent.")
-            return False
+        await self._device.async_power_off()
 
-    def volume_up(self):
+    @run_async_synchronously(async_func=async_power_off)
+    def power_off(self) -> None:
+        """Turn off receiver via HTTP get command."""
+
+    async def async_volume_up(self) -> None:
         """Volume up receiver via HTTP get command."""
-        try:
-            return bool(self.send_get_command(self._urls.command_volume_up))
-        except requests.exceptions.RequestException:
-            _LOGGER.error("Connection error: volume up command not sent.")
-            return False
+        await self.vol.async_volume_up()
 
-    def volume_down(self):
+    @run_async_synchronously(async_func=async_volume_up)
+    def volume_up(self) -> None:
+        """Volume up receiver via HTTP get command."""
+
+    async def async_volume_down(self) -> None:
         """Volume down receiver via HTTP get command."""
-        try:
-            return bool(self.send_get_command(self._urls.command_volume_down))
-        except requests.exceptions.RequestException:
-            _LOGGER.error("Connection error: volume down command not sent.")
-            return False
+        await self.vol.async_volume_down()
 
-    def set_volume(self, volume):
+    @run_async_synchronously(async_func=async_volume_down)
+    def volume_down(self) -> None:
+        """Volume down receiver via HTTP get command."""
+
+    async def async_set_volume(self, volume: float) -> None:
         """
         Set receiver volume via HTTP get command.
 
         Volume is send in a format like -50.0.
         Minimum is -80.0, maximum at 18.0
         """
-        if volume < -80 or volume > 18:
-            raise ValueError("Invalid volume")
+        await self.vol.async_set_volume(volume)
 
-        try:
-            return bool(self.send_get_command(
-                self._urls.command_set_volume % volume))
-        except requests.exceptions.RequestException:
-            _LOGGER.error("Connection error: set volume command not sent.")
-            return False
+    @run_async_synchronously(async_func=async_set_volume)
+    def set_volume(self, volume: float) -> None:
+        """
+        Set receiver volume via HTTP get command.
 
-    @volume.setter
-    def volume(self, volume):
-        """Set receiver volume. Minimum is -80.0, maximum at 18.0."""
-        self.set_volume(volume)
+        Volume is send in a format like -50.0.
+        Minimum is -80.0, maximum at 18.0
+        """
 
-    def mute(self, mute):
+    async def async_mute(self, mute: bool) -> None:
         """Mute receiver via HTTP get command."""
-        try:
-            if mute:
-                if self.send_get_command(self._urls.command_mute_on):
-                    self._mute = STATE_ON
-                    return True
-                else:
-                    return False
-            else:
-                if self.send_get_command(self._urls.command_mute_off):
-                    self._mute = STATE_OFF
-                    return True
-                else:
-                    return False
-        except requests.exceptions.RequestException:
-            _LOGGER.error("Connection error: mute command not sent.")
-            return False
+        await self.vol.async_mute(mute)
 
-    def _set_tone_control_command(self, parameter_type, value):
-        """Post request for tone control commands."""
-        root = ET.Element("tx")
-        ET.SubElement(root, 'cmd', id='1').text = 'SetToneControl'
-        ET.SubElement(root, parameter_type).text = str(value)
-        tree = ET.ElementTree(root)
+    @run_async_synchronously(async_func=async_mute)
+    def mute(self, mute: bool) -> None:
+        """Mute receiver via HTTP get command."""
 
-        body = BytesIO()
-        tree.write(body, encoding="utf-8", xml_declaration=True)
-
-        try:
-            self.send_post_command(self._urls.appcommand, body.getvalue())
-        except requests.exceptions.RequestException:
-            _LOGGER.error("No connection to %s end point on host %s",
-                          self._urls.appcommand, self._host)
-            return False
-        finally:
-            # Buffered XML not needed anymore: close
-            body.close()
-        return True
-
-    def enable_tone_control(self):
+    async def async_enable_tone_control(self) -> None:
         """Enable tone control to change settings like bass or treble."""
-        if self._tone_control_status is False:
-            return False
+        await self.tonecontrol.async_enable_tone_control()
 
-        if self._tone_control_adjust is True:
-            return True
-        elif self._set_tone_control_command('adjust', 1):
-            self._tone_control_adjust = True
-            return True
-        return False
+    @run_async_synchronously(async_func=async_enable_tone_control)
+    def enable_tone_control(self) -> None:
+        """Enable tone control to change settings like bass or treble."""
 
-    def disable_tone_control(self):
+    async def async_disable_tone_control(self) -> None:
         """Disable tone control to change settings like bass or treble."""
-        if self._tone_control_status is False:
-            return False
+        await self.tonecontrol.async_disable_tone_control()
 
-        if self._tone_control_adjust is False:
-            return True
-        elif self._set_tone_control_command('adjust', 0):
-            self._tone_control_adjust = False
-            return True
-        return False
+    @run_async_synchronously(async_func=async_disable_tone_control)
+    def disable_tone_control(self) -> None:
+        """Disable tone control to change settings like bass or treble."""
 
-    def _set_tone_control(self, parameter_type, value):
-        """Set tone control parameter."""
-        if value < 0 or value > 12:
-            raise ValueError("Invalid value for {}".format(parameter_type))
-
-        if not self.enable_tone_control():
-            return False
-
-        if self._set_tone_control_command(
-                '{}value'.format(parameter_type), value):
-            setattr(self, '_{}'.format(parameter_type), value)
-            setattr(
-                self, '_{}_level'.format(parameter_type),
-                '{value:{sign}}dB'.format(
-                    value=value-6, sign='' if value-6 == 0 else '+'))
-            return True
-        return False
-
-    def set_bass(self, bass):
+    async def async_set_bass(self, value: int) -> None:
         """
         Set receiver bass.
 
@@ -2134,9 +635,20 @@ class DenonAVR:
         Note:
         Doesn't work, if Dynamic Equalizer is active.
         """
-        return self._set_tone_control('bass', bass)
+        await self.tonecontrol.async_set_bass(value)
 
-    def set_treble(self, treble):
+    @run_async_synchronously(async_func=async_set_bass)
+    def set_bass(self, value: int) -> None:
+        """
+        Set receiver bass.
+
+        Minimum is 0, maximum at 12
+
+        Note:
+        Doesn't work, if Dynamic Equalizer is active.
+        """
+
+    async def async_set_treble(self, value: int) -> None:
         """
         Set receiver treble.
 
@@ -2145,122 +657,15 @@ class DenonAVR:
         Note:
         Doesn't work, if Dynamic Equalizer is active.
         """
-        return self._set_tone_control('treble', treble)
+        await self.tonecontrol.async_set_treble(value)
 
-
-class DenonAVRZones(DenonAVR):
-    """Representing an additional zone of a Denon AVR Device."""
-
-    def __init__(self, parent_avr, zone, name):
+    @run_async_synchronously(async_func=async_set_treble)
+    def set_treble(self, value: int) -> None:
         """
-        Initialize additional zones of DenonAVR.
+        Set receiver treble.
 
-        :param parent_avr: Instance of parent DenonAVR.
-        :type parent_avr: denonavr.DenonAVR
+        Minimum is 0, maximum at 12
 
-        :param zone: Zone name of this instance
-        :type zone: str
-
-        :param name: Device name, if None FriendlyName of device is used.
-        :type name: str
+        Note:
+        Doesn't work, if Dynamic Equalizer is active.
         """
-        self._parent_avr = parent_avr
-        self._zone = zone
-        super().__init__(self._parent_avr.host, name=name,
-                         show_all_inputs=self._parent_avr.show_all_inputs,
-                         timeout=self._parent_avr.timeout)
-
-    @property
-    def sound_mode(self):
-        """Return the matched current sound mode as a string."""
-        sound_mode_matched = self._parent_avr.match_sound_mode(
-            self._parent_avr.sound_mode_raw)
-        return sound_mode_matched
-
-    @property
-    def sound_mode_list(self):
-        """Return a list of available sound modes as string."""
-        return list(self._parent_avr.sound_mode_dict.keys())
-
-    @property
-    def sound_mode_dict(self):
-        """Return a dict of available sound modes with their mapping values."""
-        return dict(self._parent_avr.sound_mode_dict)
-
-    @property
-    def sm_match_dict(self):
-        """Return a dict to map each sound_mode_raw to matching sound_mode."""
-        return self._parent_avr.sm_match_dict
-
-    @property
-    def sound_mode_raw(self):
-        """Return the current sound mode as string as received from the AVR."""
-        return self._parent_avr.sound_mode_raw
-
-    @sound_mode.setter
-    def sound_mode(self, sound_mode):
-        """Setter function for sound_mode to switch sound_mode of device."""
-        self.set_sound_mode(sound_mode)
-
-    def set_sound_mode(self, sound_mode):
-        """
-        Set sound_mode of device.
-
-        Valid values depend on the device and should be taken from
-        "sound_mode_list".
-        Return "True" on success and "False" on fail.
-        """
-        return self._parent_avr.set_sound_mode(sound_mode)
-
-    def _get_renamed_deleted_sources(self):
-        """
-        Get renamed and deleted sources lists from receiver .
-
-        Internal method which queries device via HTTP to get names of renamed
-        input sources.
-        """
-        renamed, deleted = super()._get_renamed_deleted_sources()
-
-        # SOURCE in zone 2 and 3 means "same input sources as main zone"
-        renamed["SOURCE"] = "Source of main zone"
-
-        return (renamed, deleted)
-
-    def _get_renamed_deleted_sourcesapp(self):
-        """
-        Get renamed and deleted sources lists from receiver .
-
-        Internal method which queries device via HTTP to get names of renamed
-        input sources. In this method AppCommand.xml is used.
-        """
-        renamed, deleted, success = super()._get_renamed_deleted_sourcesapp()
-
-        if success is True:
-            # SOURCE in zone 2 and 3 means "same input sources as main zone"
-            renamed["SOURCE"] = "Source of main zone"
-
-        return (renamed, deleted, success)
-
-    def _set_media_state(self):
-        """
-        Set media state for the receiver.
-
-        This method does not work on AVR-X devices built in 2016 and later.
-        """
-        if (self._parent_avr.input_func in self._parent_avr.playing_func_list
-                and self._input_func == "Source of main zone"
-                and self._power == POWER_ON):
-
-            # When zone uses the same input as main zone, copy its media state
-            self._state = self._parent_avr.state
-            self._title = self._parent_avr.title
-            self._artist = self._parent_avr.artist
-            self._album = self._parent_avr.album
-            self._band = self._parent_avr.band
-            self._frequency = self._parent_avr.frequency
-            self._station = self._parent_avr.station
-            self._image_url = self._parent_avr.image_url
-
-            return True
-        else:
-            return super()._set_media_state()
