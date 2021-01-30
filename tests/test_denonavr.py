@@ -49,6 +49,8 @@ DEVICEINFO_URL = "/goform/Deviceinfo.xml"
 NETAUDIOSTATUS_URL = "/goform/formNetAudio_StatusXml.xml"
 TUNERSTATUS_URL = "/goform/formTuner_TunerXml.xml"
 HDTUNERSTATUS_URL = "/goform/formTuner_HdXml.xml"
+DESCRIPTION_URL1 = "/description.xml"
+DESCRIPTION_URL2 = "/upnp/desc/aios_device/aios_device.xml"
 
 
 def get_sample_content(filename):
@@ -116,6 +118,8 @@ class TestMainFunctions:
                         receiver=self.testing_receiver,
                         port=port_suffix,
                         ep=ep_suffix))
+            elif request.url.path in [DESCRIPTION_URL1, DESCRIPTION_URL2]:
+                content = get_sample_content("AVR-X1600H_upnp.xml")
             else:
                 content = "DATA"
         except FileNotFoundError:
