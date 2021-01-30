@@ -193,6 +193,21 @@ class DenonAVR(DenonAVRFoundation):
     def update_audyssey(self):
         """Get Audyssey settings."""
 
+    async def async_get_command(self, request: str) -> str:
+        """Send HTTP GET command to Denon AVR receiver asynchronously."""
+        return await self._device.api.async_get_command(request)
+
+    @run_async_synchronously(async_func=async_get_command)
+    def get_command(self, request: str) -> str:
+        """Send HTTP GET command to Denon AVR receiver."""
+
+    @run_async_synchronously(async_func=async_get_command)
+    def send_get_command(self, request: str) -> str:
+        """Send HTTP GET command to Denon AVR receiver...for compatibility."""
+
+    ##############
+    # Properties #
+    ##############
     @property
     def zone(self) -> str:
         """Return Zone of this instance."""
@@ -438,6 +453,9 @@ class DenonAVR(DenonAVRFoundation):
         """Turn DynamicEQ off."""
         await self.audyssey.async_dynamiceq_off()
 
+    ##########
+    # Setter #
+    ##########
     @run_async_synchronously(async_func=async_dynamic_eq_off)
     def dynamic_eq_off(self) -> None:
         """Turn DynamicEQ off."""
