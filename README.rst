@@ -4,7 +4,15 @@ denonavr
 .. |Build Status| .. image:: https://travis-ci.com/scarface-4711/denonavr.svg?branch=master
     :target: https://travis-ci.com/scarface-4711/denonavr
 
-Automation Library for Denon AVR receivers - current version 0.9.10
+Automation Library for Denon AVR receivers - current version 0.10.0
+
+Important change
+----------------
+
+This library switched to async in version 0.10.0.
+All sync methods are still available for a while in order not to break too many things.
+However using those methods is ineffecient, because they use the corresponding async methods
+by starting and stopping an own asyncio event loop for each command. Please switch to `async_` methods instead.
 
 Installation
 ------------

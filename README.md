@@ -1,10 +1,15 @@
 # denonavr
-[![Version](https://img.shields.io/badge/version-v0.9.10-orange.svg)](https://github.com/scarface-4711/denonavr)
+[![Version](https://img.shields.io/badge/version-v0.10.0-orange.svg)](https://github.com/scarface-4711/denonavr)
 [![Build Status](https://travis-ci.com/scarface-4711/denonavr.svg?branch=master)](https://travis-ci.com/scarface-4711/denonavr)
 [![PyPi](https://img.shields.io/pypi/v/denonavr.svg)](https://pypi.org/project/denonavr)
 [![License](https://img.shields.io/github/license/scarface-4711/denonavr.svg)](LICENSE)
 
-Automation Library for Denon AVR receivers - current version 0.9.10
+Automation Library for Denon AVR receivers - current version 0.10.0
+
+## Important change
+
+This library switched to async in version 0.10.0.
+All sync methods are still available for a while in order not to break too many things. However using those methods is ineffecient, because they use the corresponding async methods by starting and stopping an own asyncio event loop for each command. Please switch to `async_` methods instead.
 
 ## Installation
 
