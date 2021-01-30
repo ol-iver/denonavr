@@ -452,6 +452,80 @@ DTS
   </cmd>
 </tx>
 
+Fetching available surround modes
+This command will give you the surround mode list available for current selected genre
+(music, movie, game, pure)
+
+0300
+
+<?xml version="1.0" encoding="utf-8"?>
+<tx>
+  <cmd id="3">
+    <name>GetSoundModeList</name>
+    <list>
+      <param name="genrelist"></param>
+    </list>
+  </cmd>
+</tx>
+
+and you get a response like this
+
+<?xml version="1.0" encoding="UTF-8"?>
+<rx>
+   <cmd>
+      <name>GetSoundModeList</name>
+      <list>
+         <param name="genrelist" control="2">2</param>
+         <list>
+            <value>
+               <listno>1</listno>
+               <dispname>Stereo</dispname>
+               <selected>0</selected>
+            </value>
+            <value>
+               <listno>2</listno>
+               <dispname>Dolby Audio - Dolby Surround</dispname>
+               <selected>0</selected>
+            </value>
+            <value>
+               <listno>3</listno>
+               <dispname>DTS Neural:X</dispname>
+               <selected>0</selected>
+            </value>
+            <value>
+               <listno>4</listno>
+               <dispname>DTS Virtual:X</dispname>
+               <selected>0</selected>
+            </value>
+            <value>
+               <listno>5</listno>
+               <dispname>Multi Ch Stereo</dispname>
+               <selected>1</selected>
+            </value>
+            <value>
+               <listno>6</listno>
+               <dispname>Rock Arena</dispname>
+               <selected>0</selected>
+            </value>
+            <value>
+               <listno>7</listno>
+               <dispname>Jazz Club</dispname>
+               <selected>0</selected>
+            </value>
+            <value>
+               <listno>8</listno>
+               <dispname>Matrix</dispname>
+               <selected>0</selected>
+            </value>
+            <value>
+               <listno>9</listno>
+               <dispname>Virtual</dispname>
+               <selected>0</selected>
+            </value>
+         </list>
+      </list>
+   </cmd>
+</rx>
 
 
 
