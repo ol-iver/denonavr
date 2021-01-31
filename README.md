@@ -4,7 +4,7 @@
 [![PyPi](https://img.shields.io/pypi/v/denonavr.svg)](https://pypi.org/project/denonavr)
 [![License](https://img.shields.io/github/license/scarface-4711/denonavr.svg)](LICENSE)
 
-Automation Library for Denon AVR receivers - current version 0.10.0
+Automation Library for Denon AVR receivers - current version 0.10.1.dev1
 
 ## Important change
 

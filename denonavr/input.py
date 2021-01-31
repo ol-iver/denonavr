@@ -30,6 +30,13 @@ from .foundation import DenonAVRFoundation
 _LOGGER = logging.getLogger(__name__)
 
 
+def lower_string(value: Optional[str]) -> Optional[str]:
+    """Convert string to lower case."""
+    if value is None:
+        return value
+    return str(value).lower()
+
+
 def unescape_string(value: Optional[str]) -> Optional[str]:
     """Perform HTML unescape on value."""
     if value is None:
@@ -93,7 +100,7 @@ class DenonAVRInput(DenonAVRFoundation):
         default=attr.Factory(list))
 
     _state: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str),
+        converter=attr.converters.optional(lower_string),
         default=None)
     _input_func: Optional[str] = attr.ib(
         converter=attr.converters.optional(str),
