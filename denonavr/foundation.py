@@ -118,7 +118,9 @@ class DenonAVRDeviceInfo:
         """Identify receiver asynchronously."""
         # Test Deviceinfo.xml if receiver is a AVR-X with port 80 for pre 2016
         # devices and port 8080 devices 2016 and later
-        r_types = [AVR_X, AVR_X_2016]
+        # 2016 models has also some of the XML but not all, try first 2016
+        r_types = [AVR_X_2016, AVR_X]
+
         for r_type in r_types:
             self.api.port = r_type.port
             # This XML is needed to get the sources of the receiver
@@ -129,7 +131,11 @@ class DenonAVRDeviceInfo:
             except AvrTimoutError as err:
                 _LOGGER.debug(
                     "Timeout when identifying receiver", exc_info=err)
-                raise
+
+                # Raise error only when ran over all models
+                if r_types.index(r_type) == len(r_types) - 1:
+                    raise
+
             except AvrRequestError as err:
                 _LOGGER.debug(
                     "Request error when identifying receiver", exc_info=err)
