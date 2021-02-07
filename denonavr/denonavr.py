@@ -648,6 +648,42 @@ class DenonAVR(DenonAVRFoundation):
         Doesn't work, if Dynamic Equalizer is active.
         """
 
+    async def async_bass_up(self) -> None:
+        """
+        Increase level of Bass.
+
+        Note:
+        Doesn't work, if Dynamic Equalizer is active
+        """
+        await self.tonecontrol.async_bass_up()
+
+    @run_async_synchronously(async_func=async_bass_up)
+    def bass_up(self) -> None:
+        """
+        Increase level of Bass.
+
+        Note:
+        Doesn't work, if Dynamic Equalizer is active
+        """
+
+    async def async_bass_down(self) -> None:
+        """
+        Decrease level of Bass.
+
+        Note:
+        Doesn't work, if Dynamic Equalizer is active
+        """
+        await self.tonecontrol.async_bass_down()
+
+    @run_async_synchronously(async_func=async_bass_down)
+    def bass_down(self) -> None:
+        """
+        Decrease level of Bass.
+
+        Note:
+        Doesn't work, if Dynamic Equalizer is active
+        """
+
     async def async_set_treble(self, value: int) -> None:
         """
         Set receiver treble.
@@ -668,4 +704,40 @@ class DenonAVR(DenonAVRFoundation):
 
         Note:
         Doesn't work, if Dynamic Equalizer is active.
+        """
+
+    async def async_treble_up(self) -> None:
+        """
+        Increase level of Treble.
+
+        Note:
+        Doesn't work, if Dynamic Equalizer is active
+        """
+        await self.tonecontrol.async_treble_up()
+
+    @run_async_synchronously(async_func=async_treble_up)
+    def treble_up(self) -> None:
+        """
+        Increase level of Treble.
+
+        Note:
+        Doesn't work, if Dynamic Equalizer is active
+        """
+
+    async def async_treble_down(self) -> None:
+        """
+        Decrease level of Treble.
+
+        Note:
+        Doesn't work, if Dynamic Equalizer is active
+        """
+        await self.tonecontrol.async_treble_down()
+
+    @run_async_synchronously(async_func=async_treble_down)
+    def treble_down(self) -> None:
+        """
+        Decrease level of Treble.
+
+        Note:
+        Doesn't work, if Dynamic Equalizer is active
         """
