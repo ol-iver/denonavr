@@ -185,6 +185,14 @@ class DenonAVR(DenonAVRFoundation):
         Method executes the update method for the current receiver type.
         """
 
+    async def async_update_tonecontrol(self):
+        """Get Tonecontrol settings."""
+        await self.tonecontrol.async_update()
+
+    @run_async_synchronously(async_func=async_update_tonecontrol)
+    def update_tonecontrol(self):
+        """Get Tonecontrol settings."""
+
     async def async_update_audyssey(self):
         """Get Audyssey settings."""
         await self.audyssey.async_update()
