@@ -163,7 +163,7 @@ class DenonAVRToneControl(DenonAVRFoundation):
         if self.bass == 12:
             return
         await self.async_enable_tone_control()
-        await self.async_set_tone_control_command("bassvalue", self.bass + 1 )
+        await self.async_set_tone_control_command("bassvalue", self.bass + 1)
 
     async def async_bass_down(self) -> None:
         """
@@ -175,7 +175,7 @@ class DenonAVRToneControl(DenonAVRFoundation):
         if self.bass == 0:
             return
         await self.async_enable_tone_control()
-        await self.async_set_tone_control_command("bassvalue", self.bass - 1 )
+        await self.async_set_tone_control_command("bassvalue", self.bass - 1)
 
     async def async_set_treble(self, value: int) -> None:
         """
@@ -201,7 +201,9 @@ class DenonAVRToneControl(DenonAVRFoundation):
         if self.treble == 12:
             return
         await self.async_enable_tone_control()
-        await self.async_set_tone_control_command("treblevalue", self.treble + 1 )
+        await self.async_set_tone_control_command(
+            "treblevalue", self.treble + 1
+            )
 
     async def async_treble_down(self) -> None:
         """
@@ -213,7 +215,9 @@ class DenonAVRToneControl(DenonAVRFoundation):
         if self.treble == 0:
             return
         await self.async_enable_tone_control()
-        await self.async_set_tone_control_command("treblevalue", self.treble - 1 )
+        await self.async_set_tone_control_command(
+            "treblevalue", self.treble - 1
+            )
 
 
 def tone_control_factory(instance: DenonAVRFoundation) -> DenonAVRToneControl:
