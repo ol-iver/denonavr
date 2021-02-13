@@ -50,6 +50,9 @@ class DenonAVR(DenonAVRFoundation):
 
     :param add_zones: Additional Zones for which an instance are created
     :type add_zones: dict [str, str] or None
+
+    :param update_audyssey: If True Audyssey settings will be also updated.
+    :type update_audyssey: bool
     """
 
     _host: str = attr.ib(
@@ -74,6 +77,7 @@ class DenonAVR(DenonAVRFoundation):
             attr.validators.instance_of(dict)),
         default=attr.Factory(dict),
         init=False)
+    _update_audyssey: bool = attr.ib(converter=bool, default=False)
     audyssey: DenonAVRAudyssey = attr.ib(
         validator=attr.validators.instance_of(DenonAVRAudyssey),
         default=attr.Factory(audyssey_factory, takes_self=True),
@@ -172,10 +176,11 @@ class DenonAVR(DenonAVRFoundation):
             global_update=True, cache_id=cache_id)
         await self.vol.async_update(global_update=True, cache_id=cache_id)
 
-        # AppCommand0300.xml interface is very slow, thus it is not included
-        # into main update
-        # await self.audyssey.async_update(
-        #     global_update=True, cache_id=cache_id)
+        # AppCommand0300.xml interface is very slow, thus it is not enabled
+        # per default
+        if self._update_audyssey:
+            await self.audyssey.async_update(
+                global_update=True, cache_id=cache_id)
 
     @run_async_synchronously(async_func=async_update)
     def update(self):
