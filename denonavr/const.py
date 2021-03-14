@@ -102,7 +102,7 @@ SOUND_MODE_MAPPING = OrderedDict(
                        "DTS + NEURAL:X", "MULTI CH IN", "DTS-HD MSTR",
                        "DTS VIRTUAL:X", "DTS-HD + NEURAL:X", "DTS-HD",
                        "DTS + VIRTUAL:X", "DTS + DOLBY SURROUND",
-                       "DTS-HD + DOLBY SURROUND"]),
+                       "DTS-HD + DOLBY SURROUND", "DTS:X MSTR"]),
      ("AURO3D", ["AURO-3D", "AURO-2D SURROUND"]),
      ("MCH STEREO", ["MULTI CH STEREO", "MULTI_CH_STEREO", "MCH STEREO",
                      "MULTI CH IN 7.1"]),
