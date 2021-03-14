@@ -119,7 +119,7 @@ class DenonAVRDeviceInfo:
         # Test Deviceinfo.xml if receiver is a AVR-X with port 80 for pre 2016
         # devices and port 8080 devices 2016 and later
         # 2016 models has also some of the XML but not all, try first 2016
-        r_types = [AVR_X_2016, AVR_X]
+        r_types = [AVR_X, AVR_X_2016]
 
         for r_type in r_types:
             self.api.port = r_type.port
