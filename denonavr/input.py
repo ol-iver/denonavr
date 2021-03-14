@@ -737,7 +737,7 @@ class DenonAVRInput(DenonAVRFoundation):
         if (self._state == STATE_PLAYING and
                 self._input_func in self._netaudio_func_list):
             await self.async_pause()
-        if self._input_func in self._netaudio_func_list:
+        elif self._input_func in self._netaudio_func_list:
             await self.async_play()
 
     async def async_play(self) -> None:

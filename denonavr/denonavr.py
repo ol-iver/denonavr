@@ -501,7 +501,7 @@ class DenonAVR(DenonAVRFoundation):
         Valid values depend on the device and should be taken from
         "sound_mode_list".
         """
-        await self.soundmode.async_set_sound_mode()
+        await self.soundmode.async_set_sound_mode(sound_mode)
 
     @run_async_synchronously(async_func=async_set_sound_mode)
     def set_sound_mode(self, sound_mode: str) -> None:

@@ -157,7 +157,7 @@ class DenonAVRApi:
         tag = attr.evolve(tag, response_pattern=tuple())
 
         if tag not in self._appcommand_update_tags:
-            _LOGGER.info("Add tag %s to AppCommand update tuple", tag)
+            _LOGGER.debug("Add tag %s to AppCommand update tuple", tag)
             self._appcommand_update_tags = (*self._appcommand_update_tags, tag)
 
     def add_appcommand0300_update_tag(self, tag: AppCommandCmd) -> None:
@@ -169,7 +169,7 @@ class DenonAVRApi:
         tag = attr.evolve(tag, response_pattern=tuple())
 
         if tag not in self._appcommand0300_update_tags:
-            _LOGGER.info("Add tag %s to AppCommand0300 update tuple", tag)
+            _LOGGER.debug("Add tag %s to AppCommand0300 update tuple", tag)
             self._appcommand0300_update_tags = (
                 *self._appcommand0300_update_tags, tag)
 

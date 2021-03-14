@@ -14,7 +14,7 @@ import time
 import xml.etree.ElementTree as ET
 
 from functools import wraps
-from typing import Callable
+from typing import Callable, Coroutine
 
 import httpx
 
@@ -30,7 +30,7 @@ from .exceptions import (
 _LOGGER = logging.getLogger(__name__)
 
 
-def async_handle_receiver_exceptions(func: Callable) -> Callable:
+def async_handle_receiver_exceptions(func: Coroutine) -> Coroutine:
     """
     Handle exceptions raised when calling an Denon AVR endpoint asynchronously.
 
@@ -82,7 +82,7 @@ def set_cache_id(func: Callable) -> Callable:
     return wrapper
 
 
-def run_async_synchronously(async_func: Callable) -> Callable:
+def run_async_synchronously(async_func: Coroutine) -> Callable:
     """
     Decorate to run the configured asynchronous function synchronously instead.
 

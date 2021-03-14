@@ -15,7 +15,7 @@ import attr
 
 from .appcommand import AppCommands
 from .const import DENON_ATTR_SETATTR, STATE_ON
-from .exceptions import AvrProcessingError
+from .exceptions import AvrCommandError, AvrProcessingError
 from .foundation import DenonAVRFoundation
 
 
@@ -136,7 +136,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         Minimum is -80.0, maximum at 18.0
         """
         if volume < -80 or volume > 18:
-            raise ValueError("Invalid volume")
+            raise AvrCommandError("Invalid volume: {}".format(volume))
 
         await self._device.api.async_get_command(
             self._device.urls.command_set_volume.format(volume=volume))
