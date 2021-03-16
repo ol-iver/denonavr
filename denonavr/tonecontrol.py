@@ -96,6 +96,7 @@ class DenonAVRToneControl(DenonAVRFoundation):
             set_command=AppCommandCmdParam(name=parameter_type, text=value)),)
         await self._device.api.async_post_appcommand(
             self._device.urls.appcommand, cmd, cache_id=time.time())
+        await self.async_update()
 
     ##############
     # Properties #
