@@ -19,7 +19,7 @@ import httpx
 from .appcommand import AppCommandCmd, AppCommands
 from .api import DenonAVRApi
 from .exceptions import (
-    AvrProcessingError, AvrRequestError, AvrTimoutError,
+    AvrForbiddenError, AvrProcessingError, AvrRequestError, AvrTimoutError,
     AvrInvalidResponseError)
 from .const import (
     APPCOMMAND_CMD_TEXT, APPCOMMAND_NAME, AVR, AVR_X, AVR_X_2016,
@@ -65,6 +65,8 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(str),
         default=None)
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
+    _allow_recovery: bool = attr.ib(
+        converter=bool, default=False, init=False)
 
     def __attrs_post_init__(self) -> None:
         """Initialize special attributes."""
@@ -238,6 +240,21 @@ class DenonAVRDeviceInfo:
                 _LOGGER.debug(
                     "Timeout when verifying update method", exc_info=err)
                 raise
+            except AvrForbiddenError:
+                # Recovery in case receiver changes port from 80 to 8080 which
+                # might happen at Denon AVR-X 2016 receivers
+                if self._allow_recovery is True:
+                    self._allow_recovery = False
+                    _LOGGER.warning(
+                        "AppCommand.xml returns HTTP status 403. Running setup"
+                        " again once to check if receiver interface switched "
+                        "ports")
+                    self._is_setup = False
+                    await self.async_setup()
+                    await self.async_verify_avr_2016_update_method(
+                        cache_id=cache_id)
+                else:
+                    raise
             except AvrRequestError as err:
                 _LOGGER.debug(
                     "Request error when verifying update method", exc_info=err)
@@ -247,6 +264,7 @@ class DenonAVRDeviceInfo:
                         "AppCommand.xml interface")
                 self.use_avr_2016_update = False
             else:
+                self._allow_recovery = True
                 self.use_avr_2016_update = True
 
     def _set_friendly_name(self, xml: ET.Element) -> None:

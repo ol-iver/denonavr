@@ -121,7 +121,7 @@ async def async_send_ssdp_broadcast() -> Set[str]:
     results = await asyncio.gather(*tasks)
 
     for result in results:
-        _LOGGER.debug("################### %s", result)
+        _LOGGER.debug("SSDP broadcast result received: %s", result)
         urls = urls.union(result)
 
     _LOGGER.debug("Following devices found: %s", urls)
