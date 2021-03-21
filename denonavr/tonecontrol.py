@@ -96,7 +96,6 @@ class DenonAVRToneControl(DenonAVRFoundation):
             set_command=AppCommandCmdParam(name=parameter_type, text=value)),)
         await self._device.api.async_post_appcommand(
             self._device.urls.appcommand, cmd, cache_id=time.time())
-        await self.async_update()
 
     ##############
     # Properties #
@@ -165,6 +164,7 @@ class DenonAVRToneControl(DenonAVRFoundation):
             return
         await self.async_enable_tone_control()
         await self.async_set_tone_control_command("bassvalue", self.bass + 1)
+        await self.async_update()
 
     async def async_bass_down(self) -> None:
         """
@@ -177,6 +177,7 @@ class DenonAVRToneControl(DenonAVRFoundation):
             return
         await self.async_enable_tone_control()
         await self.async_set_tone_control_command("bassvalue", self.bass - 1)
+        await self.async_update()
 
     async def async_set_treble(self, value: int) -> None:
         """
@@ -205,6 +206,7 @@ class DenonAVRToneControl(DenonAVRFoundation):
         await self.async_set_tone_control_command(
             "treblevalue", self.treble + 1
             )
+        await self.async_update()
 
     async def async_treble_down(self) -> None:
         """
@@ -219,6 +221,7 @@ class DenonAVRToneControl(DenonAVRFoundation):
         await self.async_set_tone_control_command(
             "treblevalue", self.treble - 1
             )
+        await self.async_update()
 
 
 def tone_control_factory(instance: DenonAVRFoundation) -> DenonAVRToneControl:
