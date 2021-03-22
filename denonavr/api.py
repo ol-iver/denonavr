@@ -50,6 +50,9 @@ class DenonAVRApi:
             attr.validators.instance_of(AppCommandCmd),
             attr.validators.instance_of(tuple)),
         default=attr.Factory(tuple))
+    async_client: httpx.AsyncClient = attr.ib(
+        validator=attr.validators.in_((httpx.AsyncClient,)),
+        default=httpx.AsyncClient, init=False)
 
     def __hash__(self) -> int:
         """
@@ -71,7 +74,7 @@ class DenonAVRApi:
         endpoint = "http://{host}:{port}{request}".format(
             host=self.host, port=port, request=request)
 
-        async with httpx.AsyncClient() as client:
+        async with self.async_client() as client:
             res = await client.get(endpoint, timeout=self.timeout)
             res.raise_for_status()
 
@@ -91,7 +94,7 @@ class DenonAVRApi:
         endpoint = "http://{host}:{port}{request}".format(
             host=self.host, port=port, request=request)
 
-        async with httpx.AsyncClient() as client:
+        async with self.async_client() as client:
             res = await client.post(
                 endpoint, content=content, data=data, timeout=self.timeout)
             res.raise_for_status()

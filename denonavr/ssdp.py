@@ -13,7 +13,7 @@ import socket
 import re
 import xml.etree.ElementTree as ET
 
-from typing import Dict, Optional, Tuple, Set
+from typing import Dict, List, Optional, Tuple, Set
 from urllib.parse import urlparse
 
 import httpx
@@ -22,6 +22,8 @@ import netifaces
 from defusedxml.ElementTree import fromstring
 
 _LOGGER = logging.getLogger(__name__)
+
+AsyncClient = httpx.AsyncClient
 
 SSDP_ADDR = "239.255.255.250"
 SSDP_PORT = 1900
@@ -53,7 +55,7 @@ SUPPORTED_DEVICETYPES = [
 SUPPORTED_MANUFACTURERS = ["Denon", "DENON", "DENON PROFESSIONAL", "Marantz"]
 
 
-def ssdp_request(ssdp_st, ssdp_mx=SSDP_MX):
+def ssdp_request(ssdp_st: str, ssdp_mx: float = SSDP_MX) -> bytes:
     """Return request bytes for given st and mx."""
     return "\r\n".join([
         'M-SEARCH * HTTP/1.1',
@@ -64,7 +66,7 @@ def ssdp_request(ssdp_st, ssdp_mx=SSDP_MX):
         '', '']).encode('utf-8')
 
 
-def get_local_ips():
+def get_local_ips() -> List[str]:
     """Get IPs of local network adapters."""
     ips = []
     # pylint: disable=c-extension-no-member
@@ -75,7 +77,7 @@ def get_local_ips():
     return ips
 
 
-async def async_identify_denonavr_receivers():
+async def async_identify_denonavr_receivers() -> List[Dict]:
     """
     Identify DenonAVR using SSDP and SCPD queries.
 
@@ -90,7 +92,7 @@ async def async_identify_denonavr_receivers():
 
     for url in urls:
         try:
-            async with httpx.AsyncClient() as client:
+            async with AsyncClient() as client:
                 res = await client.get(url, timeout=5.0)
                 res.raise_for_status()
         except httpx.HTTPError:
@@ -128,7 +130,7 @@ async def async_send_ssdp_broadcast() -> Set[str]:
     return urls
 
 
-async def async_send_ssdp_broadcast_ip(ip_addr):
+async def async_send_ssdp_broadcast_ip(ip_addr: str) -> Set[str]:
     """Send SSDP broadcast messages to a single IP."""
     # Ignore 169.254.0.0/16 adresses
     if re.search("169.254.*.*", ip_addr):

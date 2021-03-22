@@ -13,11 +13,13 @@ import time
 from typing import Dict, List, Optional
 
 import attr
+import httpx
 
 from .decorators import run_async_synchronously
 from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
 from .const import (
     DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES)
+from .exceptions import AvrCommandError
 
 from .audyssey import DenonAVRAudyssey, audyssey_factory
 from .input import DenonAVRInput, input_factory
@@ -464,6 +466,17 @@ class DenonAVR(DenonAVRFoundation):
     ##########
     # Setter #
     ##########
+    def set_async_client(self, async_client: httpx.AsyncClient) -> None:
+        """
+        Set a custom httpx.AsyncClient for this instance.
+
+        This is a non-blocking method.
+        """
+        if not issubclass(async_client, httpx.AsyncClient):
+            raise AvrCommandError(
+                "Provided client is not a subclass of httpx.AsyncClient")
+        self._device.api.async_client = async_client
+
     @run_async_synchronously(async_func=async_dynamic_eq_off)
     def dynamic_eq_off(self) -> None:
         """Turn DynamicEQ off."""

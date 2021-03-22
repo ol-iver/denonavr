@@ -593,7 +593,7 @@ class DenonAVRInput(DenonAVRFoundation):
         # Test if image URL is accessable
         if self._image_available is None and self._image_url is not None:
             try:
-                async with httpx.AsyncClient() as client:
+                async with self._device.api.async_client() as client:
                     res = await client.get(
                         self._image_url, timeout=self._device.api.timeout)
                     res.raise_for_status()
