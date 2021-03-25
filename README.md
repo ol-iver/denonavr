@@ -1,15 +1,23 @@
 # denonavr
-[![Version](https://img.shields.io/badge/version-v0.10.1-orange.svg)](https://github.com/scarface-4711/denonavr)
+[![Version](https://img.shields.io/badge/version-v0.10.2-orange.svg)](https://github.com/scarface-4711/denonavr)
 [![Build Status](https://travis-ci.com/scarface-4711/denonavr.svg?branch=master)](https://travis-ci.com/scarface-4711/denonavr)
 [![PyPi](https://img.shields.io/pypi/v/denonavr.svg)](https://pypi.org/project/denonavr)
 [![License](https://img.shields.io/github/license/scarface-4711/denonavr.svg)](LICENSE)
 
-Automation Library for Denon AVR receivers - current version 0.10.2.dev1
+Automation Library for Denon AVR receivers - current version 0.10.2
 
 ## Important change
 
 This library switched to async in version 0.10.0.
 All sync methods are still available for a while in order not to break too many things. However using those methods is ineffecient, because they use the corresponding async methods by starting and stopping an own asyncio event loop for each command. Please switch to `async_` methods instead.
+
+There are a few changes.
+
+When you create a new instance of `DenonAVR` there are no API calls anymore in order to not blocking things in this case. For an initial setup where things like type of your receiver is determined you can call `(async_)setup()` and `(async_)update()`to populate the attributes. Calling `(async_)update()` invokes a call of `async_setup()` if the instance was not setup yet.
+
+The methods do not return True or False anymore. If they run successfull, they return `None`. Otherwise, an exception from a class you find in `denonavr/exceptions.py` is raised.
+
+It is not longer assumed that a command was successfull even when the receiver returns a HTTP 200. The reason is that this information is not reliable and the receivers return HTTP 200 at some endpoints even when a call failed. As an example, from now on you have to call `(async_)update()` aftern you called `(async_)power_off()` to see the `power` attribute changing.
 
 ## Installation
 
@@ -56,12 +64,11 @@ Some code examples for the Main Zone:
 ```
 >>> import denonavr
 >>> d = denonavr.DenonAVR("192.168.0.250")
+>>> d.update()
 >>> d.power
 'STANDBY'
 >>> d.power_on()
-True
 >>> d.update()
-True
 >>> d.power
 'ON'
 >>> d.name
@@ -73,29 +80,20 @@ True
 >>> d.image_url
 'http://192.168.0.250/NetAudio/art.asp-jpg?1480031583'
 >>> d.next_track()
-True
 >>> d.previous_track()
-True
 >>> d.volume
 -43.5
 >>> d.volume_up()
-True
 >>> d.update()
-True
 >>> d.volume
 -43.0
 >>> d.volume_down()
-True
 >>> d.set_volume(-40.0)
-True
 >>> d.update()
-True
 >>> d.volume
 -40.0
 >>> d.mute(True)
-True
 >>> d.mute(False)
-True
 >>> d.toggle_play_pause()
 >>> d.toggle_play_pause()
 >>> d.input_func
@@ -117,16 +115,15 @@ discovered_devices
 >>> instanced_devices = denonavr.init_all_receivers()
 >>> instanced_devices
 [<denonavr.denonavr.DenonAVR object at 0x000001AF8EA63E10>]
+>>> instanced_devices[0].update()
 >>> instanced_devices[0].power
 'STANDBY'
 >>> instanced_devices[0].power_on()
-True
 >>> instanced_devices[0].update()
-True
 >>> instanced_devices[0].power
 'ON'
 >>> instanced_devices[0].power_off()
-True
+>>> instanced_devices[0].update()
 >>> instanced_devices[0].power
 'STANDBY'
 ```
@@ -136,18 +133,17 @@ The code examples for the Main Zone instance d from above are working for all zo
 d.zones['Zone2'].power
 'OFF'
 d.zones['Zone2'].power_on()
-True
 d.zones['Zone2'].update()
-True
 d.zones['Zone2'].power
 'ON'
 d.zones['Zone2'].power_off()
-True
 d.zones['Zone2'].update()
-True
 d.zones['Zone2'].power
 'OFF
 ```
+
+## Collection of HTTP calls
+For a collection of HTTP calls for Denon receivers please have a look at the `doc` folder.
 
 ## License
 MIT
