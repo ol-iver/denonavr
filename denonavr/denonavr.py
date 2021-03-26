@@ -472,9 +472,9 @@ class DenonAVR(DenonAVRFoundation):
 
         This is a non-blocking method.
         """
-        if not issubclass(async_client, httpx.AsyncClient):
+        if not isinstance(async_client, httpx.AsyncClient):
             raise AvrCommandError(
-                "Provided client is not a subclass of httpx.AsyncClient")
+                "Provided client is not an instance of httpx.AsyncClient")
         self._device.api.async_client = async_client
 
     @run_async_synchronously(async_func=async_dynamic_eq_off)
