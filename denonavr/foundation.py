@@ -19,8 +19,8 @@ import httpx
 from .appcommand import AppCommandCmd, AppCommands
 from .api import DenonAVRApi
 from .exceptions import (
-    AvrForbiddenError, AvrProcessingError, AvrRequestError, AvrTimoutError,
-    AvrInvalidResponseError)
+    AvrForbiddenError, AvrNetworkError, AvrProcessingError, AvrRequestError,
+    AvrTimoutError, AvrInvalidResponseError)
 from .const import (
     APPCOMMAND_CMD_TEXT, APPCOMMAND_NAME, AVR, AVR_X, AVR_X_2016,
     DENON_ATTR_SETATTR, DENONAVR_URLS, DESCRIPTION_TYPES,
@@ -130,9 +130,9 @@ class DenonAVRDeviceInfo:
                 # Deviceinfo.xml is static and can be cached for the whole time
                 xml = await self.api.async_get_xml(
                     self.urls.deviceinfo, cache_id=0)
-            except AvrTimoutError as err:
+            except (AvrTimoutError, AvrNetworkError) as err:
                 _LOGGER.debug(
-                    "Timeout when identifying receiver", exc_info=err)
+                    "Connection error when identifying receiver", exc_info=err)
 
                 # Raise error only when ran over all models
                 if r_types.index(r_type) == len(r_types) - 1:
@@ -194,9 +194,10 @@ class DenonAVRDeviceInfo:
                 xml = await self.api.async_post_appcommand(
                     self.urls.appcommand,
                     (AppCommands.GetFriendlyName,))
-            except AvrTimoutError as err:
+            except (AvrTimoutError, AvrNetworkError) as err:
                 _LOGGER.debug(
-                    "Timeout when identifying update method", exc_info=err)
+                    "Connection error when identifying update method",
+                    exc_info=err)
                 raise
             except AvrRequestError as err:
                 _LOGGER.debug(
@@ -213,9 +214,10 @@ class DenonAVRDeviceInfo:
             if self.use_avr_2016_update is False:
                 try:
                     xml = await self.api.async_get_xml(self.urls.mainzone)
-                except AvrTimoutError as err:
+                except (AvrTimoutError, AvrNetworkError) as err:
                     _LOGGER.debug(
-                        "Timeout when identifying update method", exc_info=err)
+                        "Connection error when identifying update method",
+                        exc_info=err)
                     raise
                 except AvrRequestError as err:
                     _LOGGER.debug(
@@ -236,9 +238,10 @@ class DenonAVRDeviceInfo:
         else:
             try:
                 await self.api.async_get_global_appcommand(cache_id=cache_id)
-            except AvrTimoutError as err:
+            except (AvrTimoutError, AvrNetworkError) as err:
                 _LOGGER.debug(
-                    "Timeout when verifying update method", exc_info=err)
+                    "Connection error when verifying update method",
+                    exc_info=err)
                 raise
             except AvrForbiddenError:
                 # Recovery in case receiver changes port from 80 to 8080 which
@@ -299,6 +302,10 @@ class DenonAVRDeviceInfo:
             _LOGGER.debug("Timeout when identifying receiver", exc_info=err)
             raise AvrTimoutError(
                 "Timeout when identifying receiver", command) from err
+        except httpx.NetworkError as err:
+            _LOGGER.debug("Timeout when identifying receiver", exc_info=err)
+            raise AvrNetworkError(
+                "Network error when identifying receiver", command) from err
         except httpx.HTTPError as err:
             _LOGGER.error(
                 "During DenonAVR device identification, when trying to request"

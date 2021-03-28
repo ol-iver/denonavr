@@ -39,6 +39,10 @@ class AvrRequestError(DenonAvrError):
         super().__init__(message, *args, **kwargs)
 
 
+class AvrNetworkError(AvrRequestError):
+    """Define a network error during a HTTP request for Denon AVR."""
+
+
 class AvrTimoutError(AvrRequestError):
     """Define an error for timeouts during a HTTP request for Denon AVR."""
 

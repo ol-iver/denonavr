@@ -23,8 +23,6 @@ from defusedxml.ElementTree import fromstring
 
 _LOGGER = logging.getLogger(__name__)
 
-AsyncClient = httpx.AsyncClient()
-
 SSDP_ADDR = "239.255.255.250"
 SSDP_PORT = 1900
 SSDP_MX = 2
@@ -92,7 +90,7 @@ async def async_identify_denonavr_receivers() -> List[Dict]:
 
     for url in urls:
         try:
-            async with AsyncClient as client:
+            async with httpx.AsyncClient() as client:
                 res = await client.get(url, timeout=5.0)
                 res.raise_for_status()
         except httpx.HTTPError:
@@ -212,7 +210,8 @@ def evaluate_scpd_xml(url: str, body: str) -> Optional[Dict]:
         return device
     except (AttributeError, ValueError, ET.ParseError) as err:
         _LOGGER.error(
-            "Error occurred during evaluation of SCPD XML: %s", err)
+            "Error occurred during evaluation of SCPD XML from URI %s: %s",
+            url, err)
         return None
 
 

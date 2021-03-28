@@ -24,6 +24,7 @@ from defusedxml.ElementTree import ParseError
 from .exceptions import (
     AvrRequestError,
     AvrForbiddenError,
+    AvrNetworkError,
     AvrTimoutError,
     AvrInvalidResponseError)
 
@@ -56,7 +57,15 @@ def async_handle_receiver_exceptions(func: Coroutine) -> Coroutine:
                 exc_info=True)
             raise AvrTimoutError(
                 "TimeoutException: {}".format(err), err.request) from err
-        except (ET.ParseError, DefusedXmlException, ParseError) as err:
+        except httpx.NetworkError as err:
+            _LOGGER.debug(
+                "Network error exception on request %s", err.request,
+                exc_info=True)
+            raise AvrNetworkError(
+                "TimeoutException: {}".format(err), err.request) from err
+        except (
+                ET.ParseError, DefusedXmlException, ParseError,
+                UnicodeDecodeError) as err:
             _LOGGER.debug(
                 "Defusedxml parse error on request %s", (args, kwargs),
                 exc_info=True)

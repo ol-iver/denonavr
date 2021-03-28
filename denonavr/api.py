@@ -7,6 +7,7 @@ This module implements the REST API to Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
+import asyncio
 import logging
 import xml.etree.ElementTree as ET
 
@@ -31,6 +32,22 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
+def close_default_async_client(
+        instance: object,
+        attribute: attr.Attribute,
+        value: httpx.AsyncClient) -> httpx.AsyncClient:
+    """Close default AsyncClient when changed."""
+    # pylint: disable=protected-access
+    # Close self.async_client if it is changing and was still the default one
+    if (hash(instance.async_client) == instance._async_client_hash
+            and hash(value) != instance._async_client_hash):
+        _LOGGER.debug(
+            "AsyncClient changed, start closing default AsyncClient %s",
+            instance.async_client)
+        instance.close_async_client(instance.async_client)
+    return value
+
+
 @attr.s(auto_attribs=True, hash=False, on_setattr=DENON_ATTR_SETATTR)
 class DenonAVRApi:
     """Perform API calls to Denon AVR REST interface."""
@@ -50,9 +67,23 @@ class DenonAVRApi:
             attr.validators.instance_of(AppCommandCmd),
             attr.validators.instance_of(tuple)),
         default=attr.Factory(tuple))
+    _async_client_hash: int = attr.ib(
+        validator=attr.validators.instance_of(int), default=0, init=False)
     async_client: httpx.AsyncClient = attr.ib(
         validator=attr.validators.instance_of(httpx.AsyncClient),
-        factory=httpx.AsyncClient, init=False)
+        factory=httpx.AsyncClient, init=False,
+        on_setattr=[*DENON_ATTR_SETATTR, close_default_async_client])
+
+    def __attrs_post_init__(self) -> None:
+        """Initialize special attributes."""
+        # Hash default AsyncClient to check if it needs to be closed on __del__
+        self._async_client_hash = hash(self.async_client)
+
+    def __del__(self) -> None:
+        """Cleanup."""
+        # Close self.async_client if it is still the default client
+        if hash(self.async_client) == self._async_client_hash:
+            self.close_async_client(self.async_client)
 
     def __hash__(self) -> int:
         """
@@ -74,9 +105,8 @@ class DenonAVRApi:
         endpoint = "http://{host}:{port}{request}".format(
             host=self.host, port=port, request=request)
 
-        async with self.async_client as client:
-            res = await client.get(endpoint, timeout=self.timeout)
-            res.raise_for_status()
+        res = await self.async_client.get(endpoint, timeout=self.timeout)
+        res.raise_for_status()
 
         return res
 
@@ -94,10 +124,9 @@ class DenonAVRApi:
         endpoint = "http://{host}:{port}{request}".format(
             host=self.host, port=port, request=request)
 
-        async with self.async_client as client:
-            res = await client.post(
-                endpoint, content=content, data=data, timeout=self.timeout)
-            res.raise_for_status()
+        res = await self.async_client.post(
+            endpoint, content=content, data=data, timeout=self.timeout)
+        res.raise_for_status()
 
         return res
 
@@ -287,3 +316,29 @@ class DenonAVRApi:
         body.close()
 
         return body_bytes
+
+    @staticmethod
+    def close_async_client(async_client: httpx.AsyncClient) -> None:
+        """Close an AsnycClient."""
+        _LOGGER.debug("Closing AsyncClient %s", async_client)
+        close_client = __class__.async_close_async_client(async_client)
+        # Run AsyncClient aclose in existing event loop first,
+        # but don't close it
+        try:
+            loop = asyncio.get_event_loop()
+            loop.create_task(close_client)
+        except RuntimeError:
+            try:
+                loop = asyncio.new_event_loop()
+                loop.run_until_complete(close_client)
+            finally:
+                loop.close()
+
+    @staticmethod
+    async def async_close_async_client(
+            async_client: httpx.AsyncClient) -> None:
+        """Close AsyncClient asynchronously."""
+        await async_client.aclose()
+        _LOGGER.debug(
+            "AsyncClient %s is closed: %s", async_client,
+            async_client.is_closed)
