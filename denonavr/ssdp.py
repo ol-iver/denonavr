@@ -19,7 +19,8 @@ from urllib.parse import urlparse
 import httpx
 import netifaces
 
-from defusedxml.ElementTree import fromstring
+from defusedxml import DefusedXmlException
+from defusedxml.ElementTree import fromstring, ParseError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -208,7 +209,8 @@ def evaluate_scpd_xml(url: str, body: str) -> Optional[Dict]:
         device["friendlyName"] = (
             device_xml.find(SCPD_FRIENDLYNAME).text)
         return device
-    except (AttributeError, ValueError, ET.ParseError) as err:
+    except (AttributeError, ValueError, ET.ParseError, DefusedXmlException,
+            ParseError, UnicodeDecodeError) as err:
         _LOGGER.error(
             "Error occurred during evaluation of SCPD XML from URI %s: %s",
             url, err)
