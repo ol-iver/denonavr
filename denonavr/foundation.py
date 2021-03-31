@@ -129,7 +129,7 @@ class DenonAVRDeviceInfo:
             try:
                 # Deviceinfo.xml is static and can be cached for the whole time
                 xml = await self.api.async_get_xml(
-                    self.urls.deviceinfo, cache_id=0)
+                    self.urls.deviceinfo, cache_id=id(self))
             except (AvrTimoutError, AvrNetworkError) as err:
                 _LOGGER.debug(
                     "Connection error when identifying receiver", exc_info=err)

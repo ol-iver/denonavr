@@ -62,7 +62,7 @@ def async_handle_receiver_exceptions(func: Coroutine) -> Coroutine:
                 "Network error exception on request %s", err.request,
                 exc_info=True)
             raise AvrNetworkError(
-                "TimeoutException: {}".format(err), err.request) from err
+                "NetworkError: {}".format(err), err.request) from err
         except (
                 ET.ParseError, DefusedXmlException, ParseError,
                 UnicodeDecodeError) as err:
@@ -71,6 +71,27 @@ def async_handle_receiver_exceptions(func: Coroutine) -> Coroutine:
                 exc_info=True)
             raise AvrInvalidResponseError(
                 "XMLParseError: {}".format(err), (args, kwargs)) from err
+
+    return wrapper
+
+
+def cache_clear_on_exception(func: Coroutine) -> Coroutine:
+    """
+    Decorate a function to clear alru_cache if an exception occurs.
+
+    The decorator must be placed right before the @alru_cache decorator.
+    It prevents memory leaks in home-assistant when receiver instances are
+    created and deleted right away in case the device is offline on setup.
+    """
+
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        except Exception as err:
+            _LOGGER.debug("Exception %s raised, clearing cache", err)
+            func.cache_clear()
+            raise
 
     return wrapper
 

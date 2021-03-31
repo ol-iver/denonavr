@@ -179,7 +179,7 @@ class DenonAVRInput(DenonAVRFoundation):
         try:
             # Deviceinfo.xml is static and can be cached for the whole time
             xml = await self._device.api.async_get_xml(
-                self._device.urls.deviceinfo, cache_id=0)
+                self._device.urls.deviceinfo, cache_id=id(self._device))
         except AvrRequestError as err:
             _LOGGER.debug(
                 "Error when getting sources", exc_info=err)
@@ -592,8 +592,9 @@ class DenonAVRInput(DenonAVRFoundation):
 
         # Test if image URL is accessable
         if self._image_available is None and self._image_url is not None:
+            client = self._device.api.async_client_getter()
             try:
-                res = await self._device.api.async_client.get(
+                res = await client.get(
                     self._image_url, timeout=self._device.api.timeout)
                 res.raise_for_status()
             except httpx.TimeoutException:
@@ -607,6 +608,10 @@ class DenonAVRInput(DenonAVRFoundation):
                 self._image_url = None
             else:
                 self._image_available = True
+            finally:
+                # Close the default AsyncClient but keep custom clients open
+                if self._device.api.is_default_async_client():
+                    await client.aclose()
         # Already tested that image URL is not accessible
         elif self._image_available is False:
             self._image_url = None

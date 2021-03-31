@@ -7,12 +7,11 @@ This module implements the REST API to Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
-import asyncio
 import logging
 import xml.etree.ElementTree as ET
 
 from io import BytesIO
-from typing import Dict, Hashable, Optional, Tuple
+from typing import Callable, Dict, Hashable, Optional, Tuple
 
 import attr
 import httpx
@@ -23,6 +22,7 @@ from defusedxml.ElementTree import fromstring
 from .appcommand import AppCommandCmd
 from .decorators import (
     async_handle_receiver_exceptions,
+    cache_clear_on_exception,
     set_cache_id)
 from .exceptions import AvrInvalidResponseError
 from .const import (
@@ -32,20 +32,9 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-def close_default_async_client(
-        instance: object,
-        attribute: attr.Attribute,
-        value: httpx.AsyncClient) -> httpx.AsyncClient:
-    """Close default AsyncClient when changed."""
-    # pylint: disable=protected-access
-    # Close self.async_client if it is changing and was still the default one
-    if (hash(instance.async_client) == instance._async_client_hash
-            and hash(value) != instance._async_client_hash):
-        _LOGGER.debug(
-            "AsyncClient changed, start closing default AsyncClient %s",
-            instance.async_client)
-        instance.close_async_client(instance.async_client)
-    return value
+def get_default_async_client() -> httpx.AsyncClient:
+    """Get the default httpx.AsyncClient."""
+    return httpx.AsyncClient()
 
 
 @attr.s(auto_attribs=True, hash=False, on_setattr=DENON_ATTR_SETATTR)
@@ -67,23 +56,9 @@ class DenonAVRApi:
             attr.validators.instance_of(AppCommandCmd),
             attr.validators.instance_of(tuple)),
         default=attr.Factory(tuple))
-    _async_client_hash: int = attr.ib(
-        validator=attr.validators.instance_of(int), default=0, init=False)
-    async_client: httpx.AsyncClient = attr.ib(
-        validator=attr.validators.instance_of(httpx.AsyncClient),
-        factory=httpx.AsyncClient, init=False,
-        on_setattr=[*DENON_ATTR_SETATTR, close_default_async_client])
-
-    def __attrs_post_init__(self) -> None:
-        """Initialize special attributes."""
-        # Hash default AsyncClient to check if it needs to be closed on __del__
-        self._async_client_hash = hash(self.async_client)
-
-    def __del__(self) -> None:
-        """Cleanup."""
-        # Close self.async_client if it is still the default client
-        if hash(self.async_client) == self._async_client_hash:
-            self.close_async_client(self.async_client)
+    async_client_getter: Callable[[], httpx.AsyncClient] = attr.ib(
+        validator=attr.validators.is_callable(),
+        default=get_default_async_client, init=False)
 
     def __hash__(self) -> int:
         """
@@ -91,7 +66,7 @@ class DenonAVRApi:
 
         It should react on changes of host and port.
         """
-        return hash((id(self), self.host, self.port))
+        return hash((self.host, self.port))
 
     @async_handle_receiver_exceptions
     async def async_get(
@@ -105,8 +80,14 @@ class DenonAVRApi:
         endpoint = "http://{host}:{port}{request}".format(
             host=self.host, port=port, request=request)
 
-        res = await self.async_client.get(endpoint, timeout=self.timeout)
-        res.raise_for_status()
+        client = self.async_client_getter()
+        try:
+            res = await client.get(endpoint, timeout=self.timeout)
+            res.raise_for_status()
+        finally:
+            # Close the default AsyncClient but keep custom clients open
+            if self.is_default_async_client():
+                await client.aclose()
 
         return res
 
@@ -124,9 +105,15 @@ class DenonAVRApi:
         endpoint = "http://{host}:{port}{request}".format(
             host=self.host, port=port, request=request)
 
-        res = await self.async_client.post(
-            endpoint, content=content, data=data, timeout=self.timeout)
-        res.raise_for_status()
+        client = self.async_client_getter()
+        try:
+            res = await client.post(
+                endpoint, content=content, data=data, timeout=self.timeout)
+            res.raise_for_status()
+        finally:
+            # Close the default AsyncClient but keep custom clients open
+            if self.is_default_async_client():
+                await client.aclose()
 
         return res
 
@@ -139,6 +126,7 @@ class DenonAVRApi:
         return res.text
 
     @set_cache_id
+    @cache_clear_on_exception
     @alru_cache(maxsize=32, cache_exceptions=False)
     @async_handle_receiver_exceptions
     async def async_get_xml(
@@ -157,6 +145,7 @@ class DenonAVRApi:
         return xml_root
 
     @set_cache_id
+    @cache_clear_on_exception
     @alru_cache(maxsize=32, cache_exceptions=False)
     @async_handle_receiver_exceptions
     async def async_post_appcommand(
@@ -317,28 +306,6 @@ class DenonAVRApi:
 
         return body_bytes
 
-    @staticmethod
-    def close_async_client(async_client: httpx.AsyncClient) -> None:
-        """Close an AsnycClient."""
-        _LOGGER.debug("Closing AsyncClient %s", async_client)
-        close_client = __class__.async_close_async_client(async_client)
-        # Run AsyncClient aclose in existing event loop first,
-        # but don't close it
-        try:
-            loop = asyncio.get_event_loop()
-            loop.create_task(close_client)
-        except RuntimeError:
-            try:
-                loop = asyncio.new_event_loop()
-                loop.run_until_complete(close_client)
-            finally:
-                loop.close()
-
-    @staticmethod
-    async def async_close_async_client(
-            async_client: httpx.AsyncClient) -> None:
-        """Close AsyncClient asynchronously."""
-        await async_client.aclose()
-        _LOGGER.debug(
-            "AsyncClient %s is closed: %s", async_client,
-            async_client.is_closed)
+    def is_default_async_client(self) -> bool:
+        """Check if default httpx.AsyncCLient getter is used."""
+        return self.async_client_getter is get_default_async_client

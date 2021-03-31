@@ -10,7 +10,7 @@ This module implements the interface to Denon AVR receivers.
 import logging
 import time
 
-from typing import Dict, List, Optional
+from typing import Callable, Dict, List, Optional
 
 import attr
 import httpx
@@ -226,7 +226,8 @@ class DenonAVR(DenonAVRFoundation):
     @property
     def zones(self) -> Dict[str, DenonAVRFoundation]:
         """Return all Zone instances of the device."""
-        return self._zones
+        zones = self._zones.copy()
+        return zones
 
     @property
     def name(self) -> Optional[str]:
@@ -466,16 +467,18 @@ class DenonAVR(DenonAVRFoundation):
     ##########
     # Setter #
     ##########
-    def set_async_client(self, async_client: httpx.AsyncClient) -> None:
+    def set_async_client_getter(
+            self,
+            async_client_getter: Callable[[], httpx.AsyncClient]) -> None:
         """
-        Set a custom httpx.AsyncClient for this instance.
+        Set a custom httpx.AsyncClient getter for this instance.
 
+        The function provided must return an instance of httpx.AsyncClient.
         This is a non-blocking method.
         """
-        if not isinstance(async_client, httpx.AsyncClient):
-            raise AvrCommandError(
-                "Provided client is not an instance of httpx.AsyncClient")
-        self._device.api.async_client = async_client
+        if not callable(async_client_getter):
+            raise AvrCommandError("Provided object is not callable")
+        self._device.api.async_client_getter = async_client_getter
 
     @run_async_synchronously(async_func=async_dynamic_eq_off)
     def dynamic_eq_off(self) -> None:
