@@ -20,7 +20,7 @@ import httpx
 from .appcommand import AppCommands
 from .const import (
     ALBUM_COVERS_URL, APPCOMMAND_CMD_TEXT, AVR, AVR_X_2016, AVR_X,
-    CHANGE_INPUT_MAPPING, DENON_ATTR_SETATTR, NETAUDIO_SOURCES,
+    CHANGE_INPUT_MAPPING, DENON_ATTR_SETATTR, MAIN_ZONE, NETAUDIO_SOURCES,
     PLAYING_SOURCES, POWER_ON, SOURCE_MAPPING, STATE_PLAYING, STATE_PAUSED,
     STATIC_ALBUM_URL, ZONE2, ZONE3)
 from .exceptions import AvrCommandError, AvrProcessingError, AvrRequestError
@@ -293,7 +293,7 @@ class DenonAVRInput(DenonAVRFoundation):
             if self._device.receiver == AVR_X:
                 xml = await self._device.api.async_get_xml(
                     self._device.urls.status, cache_id=cache_id)
-            # URL only available for Main Zone.
+            # These are the input functions of Main Zone.
             elif self._device.receiver == AVR:
                 xml = await self._device.api.async_get_xml(
                    self._device.urls.mainzone, cache_id=cache_id)
@@ -497,7 +497,9 @@ class DenonAVRInput(DenonAVRFoundation):
                 self.appcommand_attrs, global_update=global_update,
                 cache_id=cache_id)
         elif self._device.use_avr_2016_update is False:
-            urls = [self._device.urls.status, self._device.urls.mainzone]
+            urls = [self._device.urls.status]
+            if self._device.zone == MAIN_ZONE:
+                urls.append(self._device.urls.mainzone)
             await self.async_update_attrs_status_xml(
                 self.status_xml_attrs, urls, cache_id=cache_id)
         else:

@@ -117,7 +117,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             self,
             global_update: bool = False,
             cache_id: Optional[Hashable] = None):
-        """Update volume status of device."""
+        """Update sound mode status of device."""
         if self._device.use_avr_2016_update is True:
             await self.async_update_attrs_appcommand(
                 self.appcommand_attrs, global_update=global_update,

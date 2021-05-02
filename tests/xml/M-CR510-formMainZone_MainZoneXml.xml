@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<FriendlyName><value>Marantz M-CR510</value></FriendlyName>
+<Power><value>ON</value></Power>
+<ZonePower><value></value></ZonePower>
+<Filter><value></value></Filter>
+<NoiseShaper><value></value></NoiseShaper>
+<DCFilter><value></value></DCFilter>
+<TopMenuLink><value></value></TopMenuLink>
+<ModelId><value>23</value></ModelId>
+<SalesArea><value>0</value></SalesArea>
+<InputFuncSelect><value>AUXB</value></InputFuncSelect>
+<NetFuncSelect><value>SERVER</value></NetFuncSelect>
+</item>

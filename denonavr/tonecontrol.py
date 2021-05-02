@@ -80,7 +80,7 @@ class DenonAVRToneControl(DenonAVRFoundation):
         if self._device.use_avr_2016_update is True:
             await self.async_update_attrs_appcommand(
                 self.appcommand_attrs, global_update=global_update,
-                cache_id=cache_id)
+                cache_id=cache_id, ignore_missing_response=True)
         elif self._device.use_avr_2016_update is False:
             # Not available
             pass

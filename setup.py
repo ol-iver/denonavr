@@ -4,7 +4,7 @@
 from setuptools import find_packages, setup
 
 setup(name='denonavr',
-      version='0.10.5',
+      version='0.10.6',
       description='Automation Library for Denon AVR receivers',
       long_description='Automation Library for Denon AVR receivers',
       url='https://github.com/scarface-4711/denonavr',
@@ -13,9 +13,9 @@ setup(name='denonavr',
       license='MIT',
       packages=find_packages(),
       install_requires=[
-          'async_lru>=1.0.2',
+          'asyncstdlib>=3.9.1',
           'attrs>=20.3.0',
-          'defusedxml>=0.6.0',
+          'defusedxml>=0.7.1',
           'httpx>=0.16.1',
           'netifaces>=0.10.9'],
       tests_require=['tox'],

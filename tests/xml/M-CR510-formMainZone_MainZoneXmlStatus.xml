@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<Zone><value>MainZone</value></Zone>
+<Power><value>ON</value></Power>
+<Model><value></value></Model>
+<InputFuncSelect><value>AUXB</value></InputFuncSelect>
+<MasterVolume><value>-75.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+</item>

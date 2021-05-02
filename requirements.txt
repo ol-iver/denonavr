@@ -1,5 +1,5 @@
-async_lru>=1.0.2
+asyncstdlib>=3.9.1
 attrs>=20.3.0
-defusedxml>=0.6.0
+defusedxml>=0.7.1
 httpx>=0.16.1
 netifaces>=0.10.9

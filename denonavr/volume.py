@@ -14,7 +14,7 @@ from typing import Hashable, Optional, Union
 import attr
 
 from .appcommand import AppCommands
-from .const import DENON_ATTR_SETATTR, STATE_ON
+from .const import DENON_ATTR_SETATTR, MAIN_ZONE, STATE_ON
 from .exceptions import AvrCommandError, AvrProcessingError
 from .foundation import DenonAVRFoundation
 
@@ -86,7 +86,9 @@ class DenonAVRVolume(DenonAVRFoundation):
                 self.appcommand_attrs, global_update=global_update,
                 cache_id=cache_id)
         elif self._device.use_avr_2016_update is False:
-            urls = [self._device.urls.status, self._device.urls.mainzone]
+            urls = [self._device.urls.status]
+            if self._device.zone == MAIN_ZONE:
+                urls.append(self._device.urls.mainzone)
             await self.async_update_attrs_status_xml(
                 self.status_xml_attrs, urls, cache_id=cache_id)
         else:

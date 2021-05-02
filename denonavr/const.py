@@ -152,7 +152,6 @@ COMMAND_SET_ZST_URL = "/goform/formiPhoneAppDirect.xml?MN"
 
 # Zone 2 URLs
 STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
-MAINZONE_Z2_URL = None
 COMMAND_SEL_SRC_Z2_URL = "/goform/formiPhoneAppDirect.xml?Z2"
 COMMAND_FAV_SRC_Z2_URL = "/goform/formiPhoneAppDirect.xml?Z2"
 COMMAND_POWER_ON_Z2_URL = "/goform/formiPhoneAppPower.xml?2+PowerOn"
@@ -165,7 +164,6 @@ COMMAND_MUTE_OFF_Z2_URL = "/goform/formiPhoneAppMute.xml?2+MuteOff"
 
 # Zone 3 URLs
 STATUS_Z3_URL = "/goform/formZone3_Zone3XmlStatus.xml"
-MAINZONE_Z3_URL = None
 COMMAND_SEL_SRC_Z3_URL = "/goform/formiPhoneAppDirect.xml?Z3"
 COMMAND_FAV_SRC_Z3_URL = "/goform/formiPhoneAppDirect.xml?Z3"
 COMMAND_POWER_ON_Z3_URL = "/goform/formiPhoneAppPower.xml?3+PowerOn"
@@ -204,7 +202,7 @@ ZONE2_URLS = ReceiverURLs(
     appcommand=APPCOMMAND_URL,
     appcommand0300=APPCOMMAND0300_URL,
     status=STATUS_Z2_URL,
-    mainzone=MAINZONE_Z2_URL,
+    mainzone=MAINZONE_URL,
     deviceinfo=DEVICEINFO_URL,
     netaudiostatus=NETAUDIOSTATUS_URL,
     tunerstatus=TUNERSTATUS_URL,
@@ -228,7 +226,7 @@ ZONE3_URLS = ReceiverURLs(
     appcommand=APPCOMMAND_URL,
     appcommand0300=APPCOMMAND0300_URL,
     status=STATUS_Z3_URL,
-    mainzone=MAINZONE_Z3_URL,
+    mainzone=MAINZONE_URL,
     deviceinfo=DEVICEINFO_URL,
     netaudiostatus=NETAUDIOSTATUS_URL,
     tunerstatus=TUNERSTATUS_URL,

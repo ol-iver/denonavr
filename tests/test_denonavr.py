@@ -39,6 +39,7 @@ TESTING_RECEIVERS = {
     "AVR-X4300H": (ZONE2_ZONE3, denonavr.const.AVR_X_2016),
     "AVR-X1100W": (ZONE2, denonavr.const.AVR_X),
     "SR6012": (ZONE2, denonavr.const.AVR_X_2016),
+    "M-CR510": (NO_ZONES, denonavr.const.AVR_X),
     }
 
 APPCOMMAND_URL = "/goform/AppCommand.xml"

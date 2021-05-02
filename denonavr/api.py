@@ -16,7 +16,7 @@ from typing import Callable, Dict, Hashable, Optional, Tuple
 import attr
 import httpx
 
-from async_lru import alru_cache
+from asyncstdlib import lru_cache
 from defusedxml.ElementTree import fromstring
 
 from .appcommand import AppCommandCmd
@@ -127,7 +127,7 @@ class DenonAVRApi:
 
     @set_cache_id
     @cache_clear_on_exception
-    @alru_cache(maxsize=32, cache_exceptions=False)
+    @lru_cache(maxsize=32)
     @async_handle_receiver_exceptions
     async def async_get_xml(
             self,
@@ -146,7 +146,7 @@ class DenonAVRApi:
 
     @set_cache_id
     @cache_clear_on_exception
-    @alru_cache(maxsize=32, cache_exceptions=False)
+    @lru_cache(maxsize=32)
     @async_handle_receiver_exceptions
     async def async_post_appcommand(
             self,

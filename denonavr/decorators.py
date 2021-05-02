@@ -77,9 +77,9 @@ def async_handle_receiver_exceptions(func: Coroutine) -> Coroutine:
 
 def cache_clear_on_exception(func: Coroutine) -> Coroutine:
     """
-    Decorate a function to clear alru_cache if an exception occurs.
+    Decorate a function to clear lru_cache if an exception occurs.
 
-    The decorator must be placed right before the @alru_cache decorator.
+    The decorator must be placed right before the @lru_cache decorator.
     It prevents memory leaks in home-assistant when receiver instances are
     created and deleted right away in case the device is offline on setup.
     """

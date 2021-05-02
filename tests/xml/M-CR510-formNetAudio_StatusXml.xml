@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<chFlag>
+<value>0</value>
+<value>8</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+</chFlag>
+<szLine>
+<value>Media Server</value>
+<value>RAZER: dnguyen800@hotmail.com:</value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value>   [    1/1  ]</value>
+<value></value>
+</szLine>
+<NetworkNewTop><value>0</value></NetworkNewTop>
+<iPodRemoteDirect><value>0</value></iPodRemoteDirect>
+<Art>
+<value>0</value>
+</Art>
+<Slideshow><value></value></Slideshow>
+<SlideshowLists>
+<value index='OFF'  table='OFF' param=''/>
+<value index='05'  table='05' param=''/>
+<value index='10'  table='10' param=''/>
+<value index='15'  table='15' param=''/>
+<value index='20'  table='20' param=''/>
+<value index='30'  table='30' param=''/>
+<value index='60'  table='60' param=''/>
+</SlideshowLists>
+<iRadio><value>0</value></iRadio>
+<iRadioSearch><value>0</value></iRadioSearch>
+<Flickr><value>0</value></Flickr>
+<FlickrSearch><value>0</value></FlickrSearch>
+<AddFlickrContact><value>0</value></AddFlickrContact>
+<HomeBtnClck><value>0</value></HomeBtnClck>
+<GetFavoriteList><value>0</value></GetFavoriteList>
+<FavoriteListPage><value>0</value></FavoriteListPage>
+<ModelId><value>23</value></ModelId>
+<SalesArea><value>0</value></SalesArea>
+<InputFuncSelect><value>AUXB</value></InputFuncSelect>
+<NetFuncSelect><value>SERVER</value></NetFuncSelect>
+</item>

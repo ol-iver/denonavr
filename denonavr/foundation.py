@@ -397,7 +397,9 @@ class DenonAVRDeviceInfo:
             cache_id: Optional[Hashable] = None):
         """Update power status from status xml."""
         # URLs to be scanned
-        urls = [self.urls.status, self.urls.mainzone]
+        urls = [self.urls.status]
+        if self.zone == MAIN_ZONE:
+            urls.append(self.urls.mainzone)
         # Variables with their tags to be updated
         update_attrs = {"_power": "./Power/value"}
 
@@ -550,6 +552,10 @@ class DenonAVRFoundation:
             raise AvrProcessingError(
                 "Not all attributes updated, those are left: {}".format(
                     update_attrs))
+        if update_attrs and ignore_missing_response is True:
+            _LOGGER.debug(
+                "Not all attributes updated, those are left and ignored "
+                "deliberately: %s", update_attrs)
 
     async def async_update_attrs_status_xml(
             self,
