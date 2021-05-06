@@ -123,6 +123,7 @@ class DenonAVRDeviceInfo:
         # 2016 models has also some of the XML but not all, try first 2016
         r_types = [AVR_X, AVR_X_2016]
 
+        timeout_errors = 0
         for r_type in r_types:
             self.api.port = r_type.port
             # This XML is needed to get the sources of the receiver
@@ -134,8 +135,9 @@ class DenonAVRDeviceInfo:
                 _LOGGER.debug(
                     "Connection error when identifying receiver", exc_info=err)
 
-                # Raise error only when ran over all models
-                if r_types.index(r_type) == len(r_types) - 1:
+                # Raise error only when occured at both types
+                timeout_errors += 1
+                if timeout_errors == len(r_types):
                     raise
 
             except AvrRequestError as err:

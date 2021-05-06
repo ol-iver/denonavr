@@ -63,6 +63,12 @@ def async_handle_receiver_exceptions(func: Coroutine) -> Coroutine:
                 exc_info=True)
             raise AvrNetworkError(
                 "NetworkError: {}".format(err), err.request) from err
+        except httpx.RemoteProtocolError as err:
+            _LOGGER.debug(
+                "Remote protocol error exception on request %s", err.request,
+                exc_info=True)
+            raise AvrInvalidResponseError(
+                "RemoteProtocolError: {}".format(err), err.request) from err
         except (
                 ET.ParseError, DefusedXmlException, ParseError,
                 UnicodeDecodeError) as err:
