@@ -40,6 +40,9 @@ TESTING_RECEIVERS = {
     "AVR-X1100W": (ZONE2, denonavr.const.AVR_X),
     "SR6012": (ZONE2, denonavr.const.AVR_X_2016),
     "M-CR510": (NO_ZONES, denonavr.const.AVR_X),
+    "AVC-X3700H": (ZONE2, denonavr.const.AVR_X_2016),
+    "AVR-X4000": (ZONE2_ZONE3, denonavr.const.AVR_X),
+    "SR6011": (ZONE2, denonavr.const.AVR_X),
     }
 
 APPCOMMAND_URL = "/goform/AppCommand.xml"
@@ -143,7 +146,7 @@ class TestMainFunctions:
             # Switch receiver and update to load new sample files
             self.testing_receiver = receiver
             self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
-            await self.denon.async_update()
+            await self.denon.async_setup()
             assert self.denon.receiver_type == spec[1].type, (
                 "Receiver type is {} not {} for receiver {}".format(
                     self.denon.receiver_type, spec[1].type, receiver))

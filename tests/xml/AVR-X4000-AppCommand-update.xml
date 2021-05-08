@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rx>
+<cmd>
+<zone1>ON</zone1>
+<zone2>OFF</zone2>
+<zone3>OFF</zone3>
+</cmd>
+<cmd>
+<zone1>
+<source>MPLAY</source>
+</zone1>
+<zone2>
+<source>MPLAY</source>
+</zone2>
+<zone3>
+<source>SOURCE</source>
+</zone3>
+</cmd>
+<cmd>
+<functionrename>
+<list>
+<name>TUNER</name>
+<rename>TUNER</rename>
+</list>
+<list>
+<name>CD</name>
+<rename>CD          </rename>
+</list>
+<list>
+<name>PHONO</name>
+<rename>PHONO       </rename>
+</list>
+<list>
+<name>NETWORK</name>
+<rename>NETWORK</rename>
+</list>
+<list>
+<name>DVD</name>
+<rename>DVD         </rename>
+</list>
+<list>
+<name>Blu-ray</name>
+<rename>Blu-ray     </rename>
+</list>
+<list>
+<name>TV AUDIO</name>
+<rename>TV AUDIO    </rename>
+</list>
+<list>
+<name>CBL/SAT</name>
+<rename>CBL/SAT     </rename>
+</list>
+<list>
+<name>GAME</name>
+<rename>KODI        </rename>
+</list>
+<list>
+<name>AUX1</name>
+<rename>AUX1        </rename>
+</list>
+<list>
+<name>AUX2</name>
+<rename>AUX2        </rename>
+</list>
+<list>
+<name>Media Player</name>
+<rename>APPLE TV    </rename>
+</list>
+<list>
+<name>iPod/USB</name>
+<rename>iPod/USB</rename>
+</list>
+<list>
+<name>SpotifyConnect</name>
+<rename>Spotify</rename>
+</list>
+</functionrename>
+</cmd>
+<cmd>
+<functiondelete>
+<list>
+<name>TUNER</name>
+<FuncName>TUNER</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>CD</name>
+<FuncName>CD</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>PHONO</name>
+<FuncName>PHONO</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>NETWORK</name>
+<FuncName>NETWORK</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>DVD</name>
+<FuncName>DVD</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>Blu-ray</name>
+<use>0</use>
+</list>
+<list>
+<name>TV AUDIO</name>
+<FuncName>TV AUDIO</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>CBL/SAT</name>
+<FuncName>CBL/SAT</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>GAME</name>
+<FuncName>GAME</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>AUX1</name>
+<FuncName>AUX1</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>AUX2</name>
+<FuncName>AUX2</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>Media Player</name>
+<FuncName>Media Player</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>iPod/USB</name>
+<FuncName>iPod/USB</FuncName>
+<use>0</use>
+</list>
+</functiondelete>
+</cmd>
+<cmd>
+<surround>PLII Cinema                    </surround>
+</cmd>
+<error>2</error>
+<cmd>
+<zone1>
+<volume>-30.0</volume>
+<disptype>RELATIVE</disptype>
+<dispvalue>-30.0dB</dispvalue>
+</zone1>
+<zone2>
+<volume>--</volume>
+<disptype>ABSOLUTE</disptype>
+<dispvalue>0.0</dispvalue>
+</zone2>
+<zone3>
+<volume>--</volume>
+<disptype>ABSOLUTE</disptype>
+<dispvalue>0.0</dispvalue>
+</zone3>
+</cmd>
+<cmd>
+<zone1>off</zone1>
+<zone2>off</zone2>
+<zone3>off</zone3>
+</cmd>
+</rx>

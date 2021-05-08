@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<Zone><value>ZONE3     </value></Zone>
+<Power><value>OFF</value></Power>
+<InputFuncList>
+<value>TUNER</value>
+<value>CD</value>
+<value>PHONO</value>
+<value>NETWORK</value>
+<value>DVD</value>
+<value>Blu-ray</value>
+<value>TV AUDIO</value>
+<value>CBL/SAT</value>
+<value>GAME</value>
+<value>AUX1</value>
+<value>AUX2</value>
+<value>Media Player</value>
+<value>iPod/USB</value>
+</InputFuncList>
+<RenameSource>
+<value><value>TUNER</value></value>
+<value><value>CD          </value></value>
+<value><value>PHONO       </value></value>
+<value><value>NETWORK</value></value>
+<value><value>DVD         </value></value>
+<value><value>Blu-ray     </value></value>
+<value><value>TV AUDIO    </value></value>
+<value><value>CBL/SAT     </value></value>
+<value><value>KODI        </value></value>
+<value><value>AUX1        </value></value>
+<value><value>AUX2        </value></value>
+<value><value>APPLE TV    </value></value>
+<value><value>iPod/USB</value></value>
+</RenameSource>
+<SourceDelete>
+<value>DEL</value>
+<value>DEL</value>
+<value>DEL</value>
+<value></value>
+<value>DEL</value>
+<value>DEL</value>
+<value>USE</value>
+<value>DEL</value>
+<value>USE</value>
+<value>DEL</value>
+<value>DEL</value>
+<value>USE</value>
+<value>DEL</value>
+</SourceDelete>
+<InputFuncSelect><value>SOURCE</value></InputFuncSelect>
+<VolumeDisplay><value>Relative</value></VolumeDisplay>
+<MasterVolume><value>--</value></MasterVolume>
+<Mute><value>off</value></Mute>
+</item>

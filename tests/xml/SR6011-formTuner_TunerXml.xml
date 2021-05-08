@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<Band><value></value></Band>
+<Preset><value></value></Preset>
+<PresetLists>
+<value index='0' skip='OFF' table='OFF' param=''/>
+<value index='1' skip='OFF' table='01' param='         008750'/>
+<value index='2' skip='OFF' table='02' param='         008910'/>
+<value index='3' skip='OFF' table='03' param='         009810'/>
+<value index='4' skip='OFF' table='04' param='         010800'/>
+<value index='5' skip='OFF' table='05' param='         009010'/>
+<value index='6' skip='OFF' table='06' param='         009010'/>
+<value index='7' skip='OFF' table='07' param='         009010'/>
+<value index='8' skip='OFF' table='08' param='         009010'/>
+<value index='9' skip='ON' table='09' param='         009010'/>
+<value index='10' skip='ON' table='10' param='         009010'/>
+<value index='11' skip='ON' table='11' param='         009010'/>
+<value index='12' skip='ON' table='12' param='         009010'/>
+<value index='13' skip='ON' table='13' param='         009010'/>
+<value index='14' skip='ON' table='14' param='         009010'/>
+<value index='15' skip='ON' table='15' param='         009010'/>
+<value index='16' skip='ON' table='16' param='         009010'/>
+<value index='17' skip='ON' table='17' param='         009010'/>
+<value index='18' skip='ON' table='18' param='         009010'/>
+<value index='19' skip='ON' table='19' param='         009010'/>
+<value index='20' skip='ON' table='20' param='         009010'/>
+<value index='21' skip='ON' table='21' param='         009010'/>
+<value index='22' skip='ON' table='22' param='         009010'/>
+<value index='23' skip='ON' table='23' param='         009010'/>
+<value index='24' skip='ON' table='24' param='         009010'/>
+<value index='25' skip='ON' table='25' param='         009010'/>
+<value index='26' skip='ON' table='26' param='         009010'/>
+<value index='27' skip='ON' table='27' param='         009010'/>
+<value index='28' skip='ON' table='28' param='         009010'/>
+<value index='29' skip='ON' table='29' param='         009010'/>
+<value index='30' skip='ON' table='30' param='         009010'/>
+<value index='31' skip='ON' table='31' param='         009010'/>
+<value index='32' skip='ON' table='32' param='         009010'/>
+<value index='33' skip='ON' table='33' param='         009010'/>
+<value index='34' skip='ON' table='34' param='         009010'/>
+<value index='35' skip='ON' table='35' param='         009010'/>
+<value index='36' skip='ON' table='36' param='         009010'/>
+<value index='37' skip='ON' table='37' param='         009010'/>
+<value index='38' skip='ON' table='38' param='         009010'/>
+<value index='39' skip='ON' table='39' param='         009010'/>
+<value index='40' skip='ON' table='40' param='         009010'/>
+<value index='41' skip='ON' table='41' param='         009010'/>
+<value index='42' skip='ON' table='42' param='         009010'/>
+<value index='43' skip='ON' table='43' param='         009010'/>
+<value index='44' skip='ON' table='44' param='         009010'/>
+<value index='45' skip='ON' table='45' param='         009010'/>
+<value index='46' skip='ON' table='46' param='         009010'/>
+<value index='47' skip='ON' table='47' param='         009010'/>
+<value index='48' skip='ON' table='48' param='         009010'/>
+<value index='49' skip='ON' table='49' param='         009010'/>
+<value index='50' skip='ON' table='50' param='         009010'/>
+<value index='51' skip='ON' table='51' param='         009010'/>
+<value index='52' skip='ON' table='52' param='         009010'/>
+<value index='53' skip='ON' table='53' param='         009010'/>
+<value index='54' skip='ON' table='54' param='         009010'/>
+<value index='55' skip='ON' table='55' param='         009010'/>
+<value index='56' skip='ON' table='56' param='         009010'/>
+</PresetLists>
+<Frequency><value> 0.00</value></Frequency>
+<Area><value>EUR</value></Area>
+<Mode><value></value></Mode>
+<ModelId><value>10</value></ModelId>
+<BrandId><value>MARANTZ_MODEL</value></BrandId>
+<SalesArea><value>4</value></SalesArea>
+<InputFuncSelect><value>AUX1-Front</value></InputFuncSelect>
+<NetFuncSelect><value>FAVORITES</value></NetFuncSelect>
+<selectSurround><value>Stereo                         </value></selectSurround>
+<VolumeDisplay><value>Relative</value></VolumeDisplay>
+<MasterVolume><value>-25.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<RemoteMaintenance><value></value></RemoteMaintenance>
+<SubwooferDisplay><value>FALSE</value></SubwooferDisplay>
+<Zone2VolDisp><value>TRUE</value></Zone2VolDisp>
+<SleepOff><value>Off</value></SleepOff>
+</item>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<FriendlyName><value>Marantz SR6011</value></FriendlyName>
+<Power><value>ON</value></Power>
+<ZonePower><value>ON</value></ZonePower>
+<RCSourceSelect><value>POS</value></RCSourceSelect>
+<RenameZone><value>MAIN ZONE </value></RenameZone>
+<TopMenuLink><value>ON</value></TopMenuLink>
+<VideoSelectDisp><value>OFF</value></VideoSelectDisp>
+<VideoSelect><value></value></VideoSelect>
+<VideoSelectOnOff><value>OFF</value></VideoSelectOnOff>
+<VideoSelectLists>
+<value index='ON' >On</value>
+<value index='OFF' >Off</value>
+</VideoSelectLists>
+<ECOModeDisp><value>ON</value></ECOModeDisp>
+<ECOMode><value></value></ECOMode>
+<ECOModeLists>
+<value index='ON'  table='ECO : ON' param=''/>
+<value index='OFF'  table='ECO : OFF' param=''/>
+<value index='AUTO'  table='ECO : AUTO' param=''/>
+</ECOModeLists>
+<AddSourceDisplay><value>FALSE</value></AddSourceDisplay>
+<ModelId><value>10</value></ModelId>
+<BrandId><value>MARANTZ_MODEL</value></BrandId>
+<SalesArea><value>4</value></SalesArea>
+<InputFuncSelect><value>AUX1-Front</value></InputFuncSelect>
+<NetFuncSelect><value>FAVORITES</value></NetFuncSelect>
+<selectSurround><value>Stereo                         </value></selectSurround>
+<VolumeDisplay><value>Relative</value></VolumeDisplay>
+<MasterVolume><value>-25.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<RemoteMaintenance><value></value></RemoteMaintenance>
+<SubwooferDisplay><value>FALSE</value></SubwooferDisplay>
+<Zone2VolDisp><value>TRUE</value></Zone2VolDisp>
+<SleepOff><value>Off</value></SleepOff>
+</item>

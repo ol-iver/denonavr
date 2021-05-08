@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<BTMessage><value>0</value></BTMessage>
+<chFlag>
+<value>0</value>
+<value>8</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+</chFlag>
+<szLine>
+<value>Online Music</value>
+<value>Media Server</value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value>   [    0/1  ]</value>
+<value></value>
+</szLine>
+<NetPlayingIcon><value>-1</value></NetPlayingIcon>
+<NetPlayingTitle><value></value></NetPlayingTitle>
+<NetworkNewTop><value>1</value></NetworkNewTop>
+<NetworkContentsList>
+<iContentsCnt><value>1</value></iContentsCnt>
+<L1Col1_Icon_off><value>../img/Mediaserver_off_MZ.png</value></L1Col1_Icon_off>
+<L1Col1_Icon_on><value>../img/Mediaserver_on_MZ.png</value></L1Col1_Icon_on>
+<L1Col1_CMD><value>SERVER</value></L1Col1_CMD>
+</NetworkContentsList>
+<iPodUSBTop><value>0</value></iPodUSBTop>
+<iPodRemoteDirect><value>0</value></iPodRemoteDirect>
+<Art>
+<value>0</value>
+</Art>
+<Slideshow><value></value></Slideshow>
+<SlideshowLists>
+<value index='OFF'  table='OFF' param=''/>
+<value index='05'  table='05' param=''/>
+<value index='10'  table='10' param=''/>
+<value index='15'  table='15' param=''/>
+<value index='20'  table='20' param=''/>
+<value index='30'  table='30' param=''/>
+<value index='60'  table='60' param=''/>
+</SlideshowLists>
+<iRadio><value>0</value></iRadio>
+<iRadioSearch><value>0</value></iRadioSearch>
+<NetAudioRandom><value>OFF</value></NetAudioRandom>
+<NetAudioRepeat><value>OFF</value></NetAudioRepeat>
+<ModelId><value>10</value></ModelId>
+<BrandId><value>MARANTZ_MODEL</value></BrandId>
+<SalesArea><value>4</value></SalesArea>
+<InputFuncSelect><value>AUX1-Front</value></InputFuncSelect>
+<NetFuncSelect><value>FAVORITES</value></NetFuncSelect>
+<selectSurround><value>Stereo                         </value></selectSurround>
+<VolumeDisplay><value>Relative</value></VolumeDisplay>
+<MasterVolume><value>-25.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<RemoteMaintenance><value></value></RemoteMaintenance>
+<SubwooferDisplay><value>FALSE</value></SubwooferDisplay>
+<Zone2VolDisp><value>TRUE</value></Zone2VolDisp>
+<SleepOff><value>Off</value></SleepOff>
+</item>
