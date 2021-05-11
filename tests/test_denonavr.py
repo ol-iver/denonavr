@@ -180,6 +180,11 @@ class TestMainFunctions:
             # Switch receiver and update to load new sample files
             self.testing_receiver = receiver
             self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
+            await self.denon.async_setup()
+            assert self.denon.name is not None, (
+                "Name is None for receiver {}".format(receiver))
+            assert self.denon.support_sound_mode is not None, (
+                "support_sound_mode is None for receiver {}".format(receiver))
             await self.denon.async_update()
             assert self.denon.power is not None, (
                 "Power status is None for receiver {}".format(receiver))

@@ -213,23 +213,23 @@ class DenonAVRDeviceInfo:
                 _LOGGER.info("AVR-X device, using AppCommand.xml interface")
                 self._set_friendly_name(xml)
 
-            if self.use_avr_2016_update is False:
-                try:
-                    xml = await self.api.async_get_xml(self.urls.mainzone)
-                except (AvrTimoutError, AvrNetworkError) as err:
-                    _LOGGER.debug(
-                        "Connection error when identifying update method",
-                        exc_info=err)
-                    raise
-                except AvrRequestError as err:
-                    _LOGGER.debug(
-                        "Request error getting friendly name", exc_info=err)
-                    _LOGGER.info(
-                        "Receiver name could not be determined. Using standard"
-                        " name: Denon AVR")
-                    self.friendly_name = "Denon AVR"
-                else:
-                    self._set_friendly_name(xml)
+        if self.use_avr_2016_update is False:
+            try:
+                xml = await self.api.async_get_xml(self.urls.mainzone)
+            except (AvrTimoutError, AvrNetworkError) as err:
+                _LOGGER.debug(
+                    "Connection error when identifying update method",
+                    exc_info=err)
+                raise
+            except AvrRequestError as err:
+                _LOGGER.debug(
+                    "Request error getting friendly name", exc_info=err)
+                _LOGGER.info(
+                    "Receiver name could not be determined. Using standard"
+                    " name: Denon AVR")
+                self.friendly_name = "Denon AVR"
+            else:
+                self._set_friendly_name(xml)
 
     async def async_verify_avr_2016_update_method(
             self, cache_id: Hashable = None) -> None:

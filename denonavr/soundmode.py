@@ -87,7 +87,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     status_xml_attrs_02 = {
         "_sound_mode_raw": "./SurrMode/value"}
 
-    def setup(self) -> None:
+    async def async_setup(self) -> None:
         """Ensure that the instance is initialized."""
         # Add tags for a potential AppCommand.xml update
         for tag in self.appcommand_attrs:
@@ -97,6 +97,8 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         # For AVR receiver it will be tested druing the first update
         if self._device.receiver in [AVR_X, AVR_X_2016]:
             self._support_sound_mode = True
+        else:
+            await self.async_update_sound_mode()
 
         self._is_setup = True
 
@@ -107,7 +109,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         """Update sound mode asynchronously."""
         # Ensure instance is setup before updating
         if self._is_setup is False:
-            self.setup()
+            await self.async_setup()
 
         # Update state
         await self.async_update_sound_mode(

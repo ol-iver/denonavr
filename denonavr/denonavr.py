@@ -135,7 +135,7 @@ class DenonAVR(DenonAVRFoundation):
 
         # Setup other functions
         self.input.setup()
-        self.soundmode.setup()
+        await self.soundmode.async_setup()
         self.tonecontrol.setup()
         self.vol.setup()
         self.audyssey.setup()
