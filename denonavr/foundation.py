@@ -329,6 +329,8 @@ class DenonAVRDeviceInfo:
                 self.api.host)
             return
 
+        if self.friendly_name is None and "friendlyName" in device_info:
+            self.friendly_name = device_info["friendlyName"]
         self.manufacturer = device_info["manufacturer"]
         self.model_name = device_info["modelName"]
         self.serial_number = device_info["serialNumber"]
