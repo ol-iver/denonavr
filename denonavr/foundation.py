@@ -20,7 +20,7 @@ from .appcommand import AppCommandCmd, AppCommands
 from .api import DenonAVRApi
 from .exceptions import (
     AvrForbiddenError, AvrNetworkError, AvrProcessingError, AvrRequestError,
-    AvrTimoutError, AvrInvalidResponseError)
+    AvrTimoutError)
 from .const import (
     APPCOMMAND_CMD_TEXT, APPCOMMAND_NAME, AVR, AVR_X, AVR_X_2016,
     DENON_ATTR_SETATTR, DENONAVR_URLS, DESCRIPTION_TYPES,
@@ -133,7 +133,8 @@ class DenonAVRDeviceInfo:
                     self.urls.deviceinfo, cache_id=id(self))
             except (AvrTimoutError, AvrNetworkError) as err:
                 _LOGGER.debug(
-                    "Connection error when identifying receiver", exc_info=err)
+                    "Connection error on port %s when identifying receiver",
+                    r_type.port, exc_info=err)
 
                 # Raise error only when occured at both types
                 timeout_errors += 1
@@ -142,7 +143,9 @@ class DenonAVRDeviceInfo:
 
             except AvrRequestError as err:
                 _LOGGER.debug(
-                    "Request error when identifying receiver", exc_info=err)
+                    "Request error on port %s when identifying receiver, "
+                    "device is not a %s receivers", r_type.port,
+                    r_type.type, exc_info=err)
             else:
                 is_avr_x = self._is_avr_x(xml)
                 if is_avr_x:
@@ -263,11 +266,13 @@ class DenonAVRDeviceInfo:
             except AvrRequestError as err:
                 _LOGGER.debug(
                     "Request error when verifying update method", exc_info=err)
-                if self.use_avr_2016_update is True:
-                    _LOGGER.error(
-                        "Error verifying update method, deactivate "
-                        "AppCommand.xml interface")
-                self.use_avr_2016_update = False
+                # Only AVR_X devices support both interfaces
+                if self.receiver == AVR_X:
+                    if self.use_avr_2016_update is True:
+                        _LOGGER.warning(
+                            "Error verifying Appcommand.xml update method, "
+                            "deactivate this interface")
+                    self.use_avr_2016_update = False
             else:
                 self._allow_recovery = True
                 self.use_avr_2016_update = True
@@ -300,15 +305,13 @@ class DenonAVRDeviceInfo:
         device_info = None
         try:
             res = await self.api.async_get(command, port=port)
-        except httpx.TimeoutException as err:
-            _LOGGER.debug("Timeout when identifying receiver", exc_info=err)
-            raise AvrTimoutError(
-                "Timeout when identifying receiver", command) from err
-        except httpx.NetworkError as err:
-            _LOGGER.debug("Timeout when identifying receiver", exc_info=err)
-            raise AvrNetworkError(
-                "Network error when identifying receiver", command) from err
-        except httpx.HTTPError as err:
+        except AvrTimoutError as err:
+            _LOGGER.debug("Timeout when getting device info", exc_info=err)
+            raise
+        except AvrNetworkError as err:
+            _LOGGER.debug("Network error getting device info", exc_info=err)
+            raise
+        except AvrRequestError as err:
             _LOGGER.error(
                 "During DenonAVR device identification, when trying to request"
                 " %s the following error occurred: %s", url, err)
@@ -319,11 +322,12 @@ class DenonAVRDeviceInfo:
             self.manufacturer = "Denon"
             self.model_name = "Unknown"
             self.serial_number = None
-            _LOGGER.debug("No device info")
-            raise AvrInvalidResponseError(
-                "Unable to get device information of host {}, Device is in a "
-                "corrupted state. Disconnect and reconnect power to the device"
-                " and try again.".format(self.api.host), command)
+            _LOGGER.warning(
+                "Unable to get device information of host %s, Device might be "
+                "in a corrupted state. Continuing without device information. "
+                "Disconnect and reconnect power to the device and try again.",
+                self.api.host)
+            return
 
         self.manufacturer = device_info["manufacturer"]
         self.model_name = device_info["modelName"]
