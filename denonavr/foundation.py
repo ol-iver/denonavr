@@ -291,7 +291,7 @@ class DenonAVRDeviceInfo:
                     self.friendly_name = name.strip()
                     break
         if self.friendly_name is None:
-            _LOGGER.error(
+            _LOGGER.warning(
                 "No FriendlyName found, using standard name: Denon AVR")
             self.friendly_name = "Denon AVR"
 
