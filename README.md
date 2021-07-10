@@ -9,15 +9,15 @@ Automation Library for Denon AVR receivers - current version 0.10.8
 ## Important change
 
 This library switched to async in version 0.10.0.
-All sync methods are still available for a while in order not to break too many things. However using those methods is ineffecient, because they use the corresponding async methods by starting and stopping an own asyncio event loop for each command. Please switch to `async_` methods instead.
+All sync methods are still available for a while in order not to break too many things. However using those methods is inefficient, because they use the corresponding async methods by starting and stopping its own asyncio event loop for each command. Please switch to `async_` methods instead.
 
 There are a few changes.
 
-When you create a new instance of `DenonAVR` there are no API calls anymore in order to not blocking things in this case. For an initial setup where things like type of your receiver is determined you can call `(async_)setup()` and `(async_)update()`to populate the attributes. Calling `(async_)update()` invokes a call of `async_setup()` if the instance was not setup yet.
+When you create a new instance of `DenonAVR` there are no API calls anymore in order to not block things. To initialize setup of your receiver you would use`(async_)setup()` and `(async_)update()` methods to populate the attributes. Calling `(async_)update()` invokes a call of `async_setup()` if the instance was not setup yet.
 
-The methods do not return True or False anymore. If they run successfull, they return `None`. Otherwise, an exception from a class you find in `denonavr/exceptions.py` is raised.
+The methods do not return `True` or `False` anymore. If they run successfully, they return `None`. Otherwise an exception is raised from a class in [denonavr/exceptions.py](https://github.com/scarface-4711/denonavr/blob/master/denonavr/exceptions.py). 
 
-It is not longer assumed that a command was successfull even when the receiver returns a HTTP 200. The reason is that this information is not reliable and the receivers return HTTP 200 at some endpoints even when a call failed. As an example, from now on you have to call `(async_)update()` aftern you called `(async_)power_off()` to see the `power` attribute changing.
+It is no longer assumed that a command was successful even when the receiver returns an HTTP 200. This is because the receiver can return an HTTP 200 from some endpoints even when the API call failed. As an example, you now have to call `(async_)update()` after you call `(async_)power_off()` to see the `power` attribute change.
 
 ## Installation
 
