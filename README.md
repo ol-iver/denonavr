@@ -100,7 +100,8 @@ Some code examples for the Main Zone:
 'Online Music'
 >>> d.input_func_list
 ['AUX', 'AUX2', 'Blu-ray', 'Bluetooth', 'CBL/SAT', 'CD', 'DVD', 'Game', 'Internet Radio', 'Media Player', 'Media Server', 'Online Music', 'Phono', 'TV Audio', 'Tuner', 'iPod/USB']
->>> d.input_func = "Tuner"
+>>> d.set_input_func("Tuner")
+>>> d.update()
 >>> d.input_func
 'Tuner'
 >>> d.power_off()
