@@ -21,8 +21,8 @@ from .appcommand import AppCommands
 from .const import (
     ALBUM_COVERS_URL, APPCOMMAND_CMD_TEXT, AVR, AVR_X_2016, AVR_X,
     CHANGE_INPUT_MAPPING, DENON_ATTR_SETATTR, MAIN_ZONE, NETAUDIO_SOURCES,
-    PLAYING_SOURCES, POWER_ON, SOURCE_MAPPING, STATE_PLAYING, STATE_PAUSED,
-    STATIC_ALBUM_URL, ZONE2, ZONE3)
+    PLAYING_SOURCES, POWER_ON, SOURCE_MAPPING, STATE_OFF, STATE_ON,
+    STATE_PLAYING, STATE_PAUSED, STATIC_ALBUM_URL, ZONE2, ZONE3)
 from .exceptions import AvrCommandError, AvrProcessingError, AvrRequestError
 from .foundation import DenonAVRFoundation
 
@@ -513,12 +513,14 @@ class DenonAVRInput(DenonAVRFoundation):
         # Now playing information is not implemented for 2016+ models, as
         # a HEOS API query needed. So only sync the power state for now.
         if self._device.receiver == AVR_X_2016:
-            self._state = self._device.power
+            self._state = (
+                STATE_ON if self._device.power == POWER_ON else STATE_OFF)
         elif (self._device.power == POWER_ON and
                 self._input_func in self._playing_func_list):
             await self._async_update_media_data(cache_id)
         else:
-            self._state = self._device.power
+            self._state = (
+                STATE_ON if self._device.power == POWER_ON else STATE_OFF)
             self._title = None
             self._artist = None
             self._album = None
