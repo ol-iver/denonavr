@@ -48,6 +48,25 @@ Writing `async` and `await` methods are outside the scope of the documentation. 
 -36.5
 ```
 
+### Power
+```
+>>> await d.async_power_on()
+>>> d.async_power_on
+>>> await d.async_update()
+>>> d.async_update
+>>> d.power
+'ON'
+
+>>> await d.async_power_off()
+>>> d.async_power_off
+>>> await d.async_update()
+>>> d.async_update
+>>> d.power
+'OFF'
+
+```
+
+
 ## Legacy Usage
 
 Note: Legacy sync methods are still available, but may be deprecated in the future.  It is recommended to use the `async` methods described above.
