@@ -14,10 +14,6 @@ As of version 0.10.0 and newer, the `denonavr` library has switched to using`asy
 
 Legacy synchronous methods are still availlable to avoid breaking existing implementations, but may be deprecated in the future.  Switching to `async` methods is recommended.  The existing sync methods are inefficient because they use the corresponding async methods by starting and stopping its own `asyncio` loop for each command.
 
-
-This library switched to async in version 0.10.0.
-All sync methods are still available for a while in order not to break too many things. However using those methods is inefficient, because they use the corresponding async methods by starting and stopping its own asyncio event loop for each command. Please switch to `async_` methods instead.
-
 ### Other changes:
 
 When creating a new instance of `DenonAVR` there are no longer any API calls to avoid blocking the event loop. To initialize setup of your receiver you would use`(async_)setup()` and `(async_)update()` methods to populate the attributes. Calling `(async_)update()` invokes a call of `async_setup()` if the instance was not setup yet.
