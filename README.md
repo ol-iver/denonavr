@@ -6,18 +6,25 @@
 
 Automation Library for Denon AVR receivers - current version 0.10.9.dev1
 
-## Important change
+## Important changes for version 0.10.0 and above
+
+### async
+
+As of version 0.10.0 and newer, the `denonavr` library has switched to using`async` methods to interact with Denon receivers.
+
+Legacy synchronous methods are still availlable to avoid breaking existing implementations, but may be deprecated in the future.  Switching to `async` methods is recommended.  The existing sync methods are inefficient because they use the corresponding async methods by starting and stopping its own `asyncio` loop for each command.
+
 
 This library switched to async in version 0.10.0.
 All sync methods are still available for a while in order not to break too many things. However using those methods is inefficient, because they use the corresponding async methods by starting and stopping its own asyncio event loop for each command. Please switch to `async_` methods instead.
 
-There are a few changes.
+### Other changes:
 
-When you create a new instance of `DenonAVR` there are no API calls anymore in order to not block things. To initialize setup of your receiver you would use`(async_)setup()` and `(async_)update()` methods to populate the attributes. Calling `(async_)update()` invokes a call of `async_setup()` if the instance was not setup yet.
+When creating a new instance of `DenonAVR` there are no longer any API calls to avoid blocking the event loop. To initialize setup of your receiver you would use`(async_)setup()` and `(async_)update()` methods to populate the attributes. Calling `(async_)update()` invokes a call of `async_setup()` if the instance was not setup yet.
 
-The methods do not return `True` or `False` anymore. If they run successfully, they return `None`. Otherwise an exception is raised from a class in [denonavr/exceptions.py](https://github.com/scarface-4711/denonavr/blob/master/denonavr/exceptions.py). 
+Methods do not return `True` or `False` anymore. If successful,  `None` is returned. Otherwise an exception is raised from a class in [denonavr/exceptions.py](https://github.com/scarface-4711/denonavr/blob/master/denonavr/exceptions.py). 
 
-It is no longer assumed that a command was successful even when the receiver returns an HTTP 200. This is because the receiver can return an HTTP 200 from some endpoints even when the API call failed. As an example, you now have to call `(async_)update()` after you call `(async_)power_off()` to see the `power` attribute change.
+It is no longer assumed that a command was successful even when the receiver returns an `HTTP 200 OK`. This is because the receiver can return an `HTTP 200 OK`  from some endpoints even when the API call has failed. As an example, you now have to call `(async_)update()` after you call `(async_)power_off()` to see the `power` attribute change.
 
 ## Installation
 
