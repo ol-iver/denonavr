@@ -32,7 +32,25 @@ or
 
 ```$ pip install --use-wheel denonavr```
   
-## Usage
+## Usage with `async`
+
+Writing `async` and `await` methods are outside the scope of the documentation.  You can test `async` usage from the Python REPL:
+
+`python3 -m asyncio`
+
+```
+>>> import asyncio
+>>> import denonavr
+>>> d = denonavr.DenonAVR("192.168.1.119")
+>>> await d.async_setup()
+>>> await d.async_update()
+>>> print(d.volume)
+-36.5
+```
+
+## Legacy Usage
+
+Note: Legacy sync methods are still available, but may be deprecated in the future.  It is recommended to use the `async` methods described above.
 
 For creation of a device you could use the following lines of codes
 ```
