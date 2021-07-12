@@ -140,6 +140,9 @@ class DenonAVRVolume(DenonAVRFoundation):
         if volume < -80 or volume > 18:
             raise AvrCommandError("Invalid volume: {}".format(volume))
 
+        # Round volume because only values which are a multi of 0.5 are working
+        volume = round(volume * 2) / 2.0
+
         await self._device.api.async_get_command(
             self._device.urls.command_set_volume.format(volume=volume))
 
