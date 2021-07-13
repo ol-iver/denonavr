@@ -34,9 +34,11 @@ or
   
 ## Usage with `async`
 
-Writing `async` and `await` methods are outside the scope of the documentation.  You can test `async` usage from the Python REPL:
+Writing `async` and `await` methods are outside the scope of the documentation.  You can test `async` usage from the Python REPL.  In a terminal run:
 
 `python3 -m asyncio`
+
+The `asyncio` library should automatically be imported in the REPL.  Import the `denonavr` library and set up your receiver.  If you know the  IP address, 
 
 ```
 >>> import asyncio
@@ -51,16 +53,20 @@ Writing `async` and `await` methods are outside the scope of the documentation. 
 ### Power
 ```
 >>> await d.async_power_on()
->>> d.async_power_on
 >>> await d.async_update()
 >>> d.power
 'ON'
 
 >>> await d.async_power_off()
->>> d.async_power_off
 >>> await d.async_update()
 >>> d.power
 'OFF'
+
+```
+### Sound
+```
+>>> await d.async_mute_on(True)
+>>> await d.async_mute_off(False)
 
 ```
 
