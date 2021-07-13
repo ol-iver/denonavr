@@ -50,7 +50,7 @@ The `asyncio` library should automatically be imported in the REPL.  Import the 
 -36.5
 ```
 
-### Power
+### Power & Input
 ```
 >>> await d.async_power_on()
 >>> await d.async_update()
@@ -61,6 +61,14 @@ The `asyncio` library should automatically be imported in the REPL.  Import the 
 >>> await d.async_update()
 >>> d.power
 'OFF'
+
+>>> d.input_func
+'Tuner'
+>>> await d.async_set_input_func("Phono")
+>>> d.input_func
+'Phono'
+
+
 
 ```
 ### Sound
