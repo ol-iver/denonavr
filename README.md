@@ -53,14 +53,12 @@ Writing `async` and `await` methods are outside the scope of the documentation. 
 >>> await d.async_power_on()
 >>> d.async_power_on
 >>> await d.async_update()
->>> d.async_update
 >>> d.power
 'ON'
 
 >>> await d.async_power_off()
 >>> d.async_power_off
 >>> await d.async_update()
->>> d.async_update
 >>> d.power
 'OFF'
 
