@@ -38,7 +38,7 @@ Writing `async` and `await` methods are outside the scope of the documentation. 
 
 `python3 -m asyncio`
 
-The `asyncio` library should automatically be imported in the REPL.  Import the `denonavr` library and set up your receiver.  If you know the  IP address, 
+The `asyncio` library should automatically be imported in the REPL.  Import the `denonavr` library and set up your receiver.  If you know the  IP address, enter it below replacing `192.168.1.119`.
 
 ```
 >>> import asyncio
@@ -68,8 +68,6 @@ The `asyncio` library should automatically be imported in the REPL.  Import the 
 >>> d.input_func
 'Phono'
 
-
-
 ```
 ### Sound
 ```
@@ -81,7 +79,7 @@ The `asyncio` library should automatically be imported in the REPL.  Import the 
 
 ## Legacy Usage
 
-Note: Legacy sync methods are still available, but may be deprecated in the future.  It is recommended to use the `async` methods described above.
+Note: Legacy sync methods are still available, but may be deprecated in the future.  It is recommended to use the `async` methods described above.  The existing sync methods in versions 0.9.10 and below are inefficient as they use the corresponding async methods by starting and stopping its own asyncio loop for each command.
 
 For creation of a device you could use the following lines of codes
 ```
