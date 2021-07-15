@@ -67,15 +67,24 @@ The `asyncio` library should automatically be imported in the REPL.  Import the 
 >>> await d.async_set_input_func("Phono")
 >>> d.input_func
 'Phono'
-
 ```
 ### Sound
 ```
 >>> await d.async_mute_on(True)
 >>> await d.async_mute_off(False)
-
 ```
 
+### Other methods
+
+Other `async` methods available include:
+
+* `d.async_bass_down`
+* `d.async_bass_up`
+* `d.async_treble_down`
+* `d.async_treble_up`
+* `d.async_volume_down`
+* `d.async_volume_up`
+* `d.async_set_volume(50)`
 
 ## Legacy Usage
 
