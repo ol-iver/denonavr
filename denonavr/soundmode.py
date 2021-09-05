@@ -223,7 +223,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             return
 
         if self.sound_mode == ALL_ZONE_STEREO:
-            self._async_set_all_zone_stereo(False)
+            await self._async_set_all_zone_stereo(False)
         # For selection of sound mode other names then at receiving sound modes
         # have to be used
         # Therefore source mapping is needed to get sound_mode
