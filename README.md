@@ -6,18 +6,21 @@
 
 Automation Library for Denon AVR receivers - current version 0.10.9.dev1
 
-## Important change
+## Important changes for version 0.10.0 and above
 
-This library switched to async in version 0.10.0.
-All sync methods are still available for a while in order not to break too many things. However using those methods is inefficient, because they use the corresponding async methods by starting and stopping its own asyncio event loop for each command. Please switch to `async_` methods instead.
+### async
 
-There are a few changes.
+As of version 0.10.0 and newer, the `denonavr` library has switched to using`async` methods to interact with Denon receivers.
 
-When you create a new instance of `DenonAVR` there are no API calls anymore in order to not block things. To initialize setup of your receiver you would use`(async_)setup()` and `(async_)update()` methods to populate the attributes. Calling `(async_)update()` invokes a call of `async_setup()` if the instance was not setup yet.
+Legacy synchronous methods are still availlable to avoid breaking existing implementations, but may be deprecated in the future.  Switching to `async` methods is recommended.  The existing sync methods are inefficient because they use the corresponding async methods by starting and stopping its own `asyncio` loop for each command.
 
-The methods do not return `True` or `False` anymore. If they run successfully, they return `None`. Otherwise an exception is raised from a class in [denonavr/exceptions.py](https://github.com/scarface-4711/denonavr/blob/master/denonavr/exceptions.py). 
+### Other changes:
 
-It is no longer assumed that a command was successful even when the receiver returns an HTTP 200. This is because the receiver can return an HTTP 200 from some endpoints even when the API call failed. As an example, you now have to call `(async_)update()` after you call `(async_)power_off()` to see the `power` attribute change.
+When creating a new instance of `DenonAVR` there are no longer any API calls to avoid blocking the event loop. To initialize setup of your receiver you would use`(async_)setup()` and `(async_)update()` methods to populate the attributes. Calling `(async_)update()` invokes a call of `async_setup()` if the instance was not setup yet.
+
+Methods do not return `True` or `False` anymore. If successful,  `None` is returned. Otherwise an exception is raised from a class in [denonavr/exceptions.py](https://github.com/scarface-4711/denonavr/blob/master/denonavr/exceptions.py). 
+
+It is no longer assumed that a command was successful even when the receiver returns an `HTTP 200 OK`. This is because the receiver can return an `HTTP 200 OK`  from some endpoints even when the API call has failed. As an example, you now have to call `(async_)update()` after you call `(async_)power_off()` to see the `power` attribute change.
 
 ## Installation
 
@@ -29,7 +32,63 @@ or
 
 ```$ pip install --use-wheel denonavr```
   
-## Usage
+## Usage with `async`
+
+Writing `async` and `await` methods are outside the scope of the documentation.  You can test `async` usage from the Python REPL.  In a terminal run:
+
+`python3 -m asyncio`
+
+The `asyncio` library should automatically be imported in the REPL.  Import the `denonavr` library and set up your receiver.  If you know the  IP address, enter it below replacing `192.168.1.119`.
+
+```
+>>> import asyncio
+>>> import denonavr
+>>> d = denonavr.DenonAVR("192.168.1.119")
+>>> await d.async_setup()
+>>> await d.async_update()
+>>> print(d.volume)
+-36.5
+```
+
+### Power & Input
+```
+>>> await d.async_power_on()
+>>> await d.async_update()
+>>> d.power
+'ON'
+
+>>> await d.async_power_off()
+>>> await d.async_update()
+>>> d.power
+'OFF'
+
+>>> d.input_func
+'Tuner'
+>>> await d.async_set_input_func("Phono")
+>>> d.input_func
+'Phono'
+```
+### Sound
+```
+>>> await d.async_mute_on(True)
+>>> await d.async_mute_off(False)
+```
+
+### Other methods
+
+Other `async` methods available include:
+
+* `d.async_bass_down`
+* `d.async_bass_up`
+* `d.async_treble_down`
+* `d.async_treble_up`
+* `d.async_volume_down`
+* `d.async_volume_up`
+* `d.async_set_volume(50)`
+
+## Legacy Usage
+
+Note: Legacy sync methods are still available, but may be deprecated in the future.  It is recommended to use the `async` methods described above.  The existing sync methods in versions 0.9.10 and below are inefficient as they use the corresponding async methods by starting and stopping its own asyncio loop for each command.
 
 For creation of a device you could use the following lines of codes
 ```
