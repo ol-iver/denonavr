@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rx>
+<cmd>
+<zone1>ON</zone1>
+</cmd>
+<cmd>
+<zone1>
+<source>AUXD</source>
+</zone1>
+</cmd>
+<cmd>
+<functionrename>
+<list>
+<name>LASTFM</name>
+<rename>Last.fm</rename>
+</list>
+<list>
+<name>IRADIO</name>
+<rename>Internet Radio</rename>
+</list>
+<list>
+<name>SERVER</name>
+<rename>Music Server</rename>
+</list>
+<list>
+<name>AUXB</name>
+<rename>AUX:Analog In</rename>
+</list>
+<list>
+<name>AUXC</name>
+<rename>Analog In 2</rename>
+</list>
+<list>
+<name>AUXD</name>
+<rename>AUX:Digital In</rename>
+</list>
+<list>
+<name>USB</name>
+<rename>Front USB</rename>
+</list>
+<list>
+<name>USB2</name>
+<rename>Rear USB</rename>
+</list>
+<list>
+<name>SpotifyConnect</name>
+<rename>Spotify</rename>
+</list>
+</functionrename>
+</cmd>
+<cmd>
+<functiondelete>
+<list>
+<name>Last.fm</name>
+<FuncName>Last.fm</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>Internet Radio</name>
+<FuncName>Internet Radio</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>Music Server</name>
+<FuncName>Music Server</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>AUX:Analog In</name>
+<FuncName>AUX2</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>Analog In 2</name>
+<FuncName>AUX3</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>AUX:Digital In</name>
+<FuncName>AUX4</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>Front USB</name>
+<FuncName>USB</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>Rear USB</name>
+<FuncName>USB2</FuncName>
+<use>1</use>
+</list>
+</functiondelete>
+</cmd>
+<cmd>
+<surround></surround>
+</cmd>
+<error>2</error>
+<cmd>
+<zone1>
+<volume>-50.0</volume>
+<disptype>RELATIVE</disptype>
+<dispvalue>-50.0dB</dispvalue>
+</zone1>
+</cmd>
+<cmd>
+<zone1>off</zone1>
+</cmd>
+</rx>

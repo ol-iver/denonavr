@@ -400,6 +400,11 @@ class DenonAVRInput(DenonAVRFoundation):
             renamed_sources, deleted_sources = await (
                 self.async_get_changed_sources_status_xml(cache_id=cache_id))
 
+        # Add new renamed_sources to receiver_sources
+        for key, value in renamed_sources.items():
+            if key not in receiver_sources:
+                receiver_sources[key] = value
+
         # Remove all deleted sources
         if self._show_all_inputs is False:
             for deleted_source in deleted_sources.items():
