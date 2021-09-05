@@ -95,8 +95,8 @@ class DenonAVRDeviceInfo:
         """Ensure that configuration is loaded from receiver asynchronously."""
         # Own setup
         await self.async_identify_receiver()
-        await self.async_identify_update_method()
         await self.async_get_device_info()
+        await self.async_identify_update_method()
 
         # Add tags for a potential AppCommand.xml update
         self.api.add_appcommand_update_tag(AppCommands.GetAllZonePowerStatus)
@@ -230,7 +230,8 @@ class DenonAVRDeviceInfo:
                 _LOGGER.info(
                     "Receiver name could not be determined. Using standard"
                     " name: Denon AVR")
-                self.friendly_name = "Denon AVR"
+                if self.friendly_name is None:
+                    self.friendly_name = "Denon AVR"
             else:
                 self._set_friendly_name(xml)
 
