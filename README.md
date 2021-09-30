@@ -1,8 +1,8 @@
 # denonavr
-[![Version](https://img.shields.io/badge/version-v0.10.9-orange.svg)](https://github.com/scarface-4711/denonavr)
-[![Build Status](https://travis-ci.com/scarface-4711/denonavr.svg?branch=master)](https://travis-ci.com/scarface-4711/denonavr)
+[![Version](https://img.shields.io/badge/version-v0.10.9-orange.svg)](https://github.com/ol-iver/denonavr)
+[![Build Status](https://travis-ci.com/ol-iver/denonavr.svg?branch=master)](https://travis-ci.com/ol-iver/denonavr)
 [![PyPi](https://img.shields.io/pypi/v/denonavr.svg)](https://pypi.org/project/denonavr)
-[![License](https://img.shields.io/github/license/scarface-4711/denonavr.svg)](LICENSE)
+[![License](https://img.shields.io/github/license/ol-iver/denonavr.svg)](LICENSE)
 
 Automation Library for Denon AVR receivers - current version 0.10.9
 
@@ -18,7 +18,7 @@ Legacy synchronous methods are still availlable to avoid breaking existing imple
 
 When creating a new instance of `DenonAVR` there are no longer any API calls to avoid blocking the event loop. To initialize setup of your receiver you would use`(async_)setup()` and `(async_)update()` methods to populate the attributes. Calling `(async_)update()` invokes a call of `async_setup()` if the instance was not setup yet.
 
-Methods do not return `True` or `False` anymore. If successful,  `None` is returned. Otherwise an exception is raised from a class in [denonavr/exceptions.py](https://github.com/scarface-4711/denonavr/blob/master/denonavr/exceptions.py). 
+Methods do not return `True` or `False` anymore. If successful,  `None` is returned. Otherwise an exception is raised from a class in [denonavr/exceptions.py](https://github.com/ol-iver/denonavr/blob/master/denonavr/exceptions.py). 
 
 It is no longer assumed that a command was successful even when the receiver returns an `HTTP 200 OK`. This is because the receiver can return an `HTTP 200 OK`  from some endpoints even when the API call has failed. As an example, you now have to call `(async_)update()` after you call `(async_)power_off()` to see the `power` attribute change.
 
@@ -209,7 +209,7 @@ For a collection of HTTP calls for Denon receivers please have a look at the `do
 MIT
 
 ## Author
-@scarface-4711: https://github.com/scarface-4711
+@ol-iver: https://github.com/ol-iver
 
 ## Contributors
 @soldag: https://github.com/soldag  
