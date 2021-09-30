@@ -10,7 +10,7 @@ reports=no
 # too-many-* - are not enforced for the sake of readability
 # too-few-* - same as too-many-*
 # abstract-method - with intro of async there are always methods missing
-# inconsistent-return-statements - doesn't handle raise
+# consider-using-f-string - not considered yet
 
 disable=
   abstract-class-little-used,
@@ -27,6 +27,7 @@ disable=
   too-many-return-statements,
   too-many-statements,
   unused-argument,
+  consider-using-f-string,
 
 [EXCEPTIONS]
 overgeneral-exceptions=Exception
