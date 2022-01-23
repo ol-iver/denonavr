@@ -1,3 +1,4 @@
+dist: focal
 language: python
 matrix:
   fast_finish: true
@@ -10,9 +11,11 @@ matrix:
       env: TOXENV=py38
     - python: "3.9"
       env: TOXENV=py39
-    - python: "3.8"
+    - python: "3.10"
+      env: TOXENV=py310
+    - python: "3.9"
       env: TOXENV=lint
-    - python: "3.8"
+    - python: "3.9"
       env: TOXENV=pylint
 install: pip install tox
 script: tox
