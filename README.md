@@ -1,10 +1,10 @@
 # denonavr
-[![Version](https://img.shields.io/badge/version-v0.10.9-orange.svg)](https://github.com/ol-iver/denonavr)
+[![Version](https://img.shields.io/badge/version-v0.10.10-orange.svg)](https://github.com/ol-iver/denonavr)
 [![Build Status](https://api.travis-ci.com/ol-iver/denonavr.svg?branch=main)](https://app.travis-ci.com/github/ol-iver/denonavr)
 [![PyPi](https://img.shields.io/pypi/v/denonavr.svg)](https://pypi.org/project/denonavr)
 [![License](https://img.shields.io/github/license/ol-iver/denonavr.svg)](LICENSE)
 
-Automation Library for Denon AVR receivers - current version 0.10.9
+Automation Library for Denon AVR receivers - current version 0.10.10
 
 ## Important changes for version 0.10.0 and above
 
