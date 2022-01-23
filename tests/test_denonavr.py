@@ -9,7 +9,7 @@ This module covers some basic automated tests of Denon AVR receivers.
 
 import httpx
 import pytest
-from pytest_httpx import HTTPXMock, to_response
+from pytest_httpx import HTTPXMock
 
 import denonavr
 
@@ -134,7 +134,7 @@ class TestMainFunctions:
         else:
             status_code = 200
 
-        resp = to_response(status_code=status_code, data=content)
+        resp = httpx.Response(status_code=status_code, content=content)
 
         return resp
 

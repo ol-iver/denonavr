@@ -1,5 +1,5 @@
-asyncstdlib>=3.9.1
-attrs>=20.3.0
+asyncstdlib>=3.10.2
+attrs>=21.2.0
 defusedxml>=0.7.1
-httpx>=0.16.1
-netifaces>=0.10.9
+httpx>=0.21.0
+netifaces>=0.11.0
