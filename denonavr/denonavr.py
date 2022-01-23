@@ -7,6 +7,7 @@ This module implements the interface to Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
+import asyncio
 import logging
 import time
 
@@ -76,6 +77,7 @@ class DenonAVR(DenonAVRFoundation):
             attr.validators.instance_of(dict)),
         default=attr.Factory(dict),
         init=False)
+    _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
     audyssey: DenonAVRAudyssey = attr.ib(
         validator=attr.validators.instance_of(DenonAVRAudyssey),
         default=attr.Factory(audyssey_factory, takes_self=True),
@@ -128,19 +130,20 @@ class DenonAVR(DenonAVRFoundation):
 
     async def async_setup(self) -> None:
         """Ensure that configuration is loaded from receiver asynchronously."""
-        # Device setup
-        await self._device.async_setup()
-        if self._name is None:
-            self._name = self._device.friendly_name
+        async with self._setup_lock:
+            # Device setup
+            await self._device.async_setup()
+            if self._name is None:
+                self._name = self._device.friendly_name
 
-        # Setup other functions
-        self.input.setup()
-        await self.soundmode.async_setup()
-        self.tonecontrol.setup()
-        self.vol.setup()
-        self.audyssey.setup()
+            # Setup other functions
+            self.input.setup()
+            await self.soundmode.async_setup()
+            self.tonecontrol.setup()
+            self.vol.setup()
+            self.audyssey.setup()
 
-        self._is_setup = True
+            self._is_setup = True
 
     @run_async_synchronously(async_func=async_setup)
     def setup(self) -> None:

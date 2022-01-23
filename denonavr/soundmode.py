@@ -7,6 +7,7 @@ This module implements the handler for sound mode of Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
+import asyncio
 from copy import deepcopy
 import logging
 
@@ -76,6 +77,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             attr.validators.instance_of(dict)),
         default=attr.Factory(sound_mode_rev_map_factory, takes_self=True),
         init=False)
+    _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
 
     # Update tags for attributes
     # AppCommand.xml interface
@@ -89,18 +91,19 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
     async def async_setup(self) -> None:
         """Ensure that the instance is initialized."""
-        # Add tags for a potential AppCommand.xml update
-        for tag in self.appcommand_attrs:
-            self._device.api.add_appcommand_update_tag(tag)
+        async with self._setup_lock:
+            # Add tags for a potential AppCommand.xml update
+            for tag in self.appcommand_attrs:
+                self._device.api.add_appcommand_update_tag(tag)
 
-        # Soundmode is always available for AVR-X and AVR-X-2016 receivers
-        # For AVR receiver it will be tested druing the first update
-        if self._device.receiver in [AVR_X, AVR_X_2016]:
-            self._support_sound_mode = True
-        else:
-            await self.async_update_sound_mode()
+            # Soundmode is always available for AVR-X and AVR-X-2016 receivers
+            # For AVR receiver it will be tested druing the first update
+            if self._device.receiver in [AVR_X, AVR_X_2016]:
+                self._support_sound_mode = True
+            else:
+                await self.async_update_sound_mode()
 
-        self._is_setup = True
+            self._is_setup = True
 
     async def async_update(
             self,

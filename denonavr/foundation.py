@@ -7,6 +7,7 @@ This module implements the foundation classes for Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
+import asyncio
 import logging
 import xml.etree.ElementTree as ET
 
@@ -67,6 +68,7 @@ class DenonAVRDeviceInfo:
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(
         converter=bool, default=False, init=False)
+    _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
 
     def __attrs_post_init__(self) -> None:
         """Initialize special attributes."""
@@ -93,15 +95,24 @@ class DenonAVRDeviceInfo:
 
     async def async_setup(self) -> None:
         """Ensure that configuration is loaded from receiver asynchronously."""
-        # Own setup
-        await self.async_identify_receiver()
-        await self.async_get_device_info()
-        await self.async_identify_update_method()
+        async with self._setup_lock:
+            # Own setup
+            # Reduce read timeout during receiver identification
+            # deviceinfo endpoint takes very long to return 404
+            timeout = self.api.timeout
+            self.api.timeout = httpx.Timeout(self.api.timeout.connect)
+            try:
+                await self.async_identify_receiver()
+                await self.async_get_device_info()
+            finally:
+                self.api.timeout = timeout
+            await self.async_identify_update_method()
 
-        # Add tags for a potential AppCommand.xml update
-        self.api.add_appcommand_update_tag(AppCommands.GetAllZonePowerStatus)
+            # Add tags for a potential AppCommand.xml update
+            self.api.add_appcommand_update_tag(
+                AppCommands.GetAllZonePowerStatus)
 
-        self._is_setup = True
+            self._is_setup = True
 
     async def async_update(
             self,
