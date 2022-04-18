@@ -49,7 +49,7 @@ jobs:
     name: Build and publish PyPi package
     needs: verify
     runs-on: ubuntu-latest
-    if: github.repository_owner == "ol-iver"
+    if: github.repository_owner == 'ol-iver'
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python
