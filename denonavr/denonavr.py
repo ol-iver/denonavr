@@ -322,7 +322,7 @@ class DenonAVR(DenonAVRFoundation):
         return self.soundmode.sound_mode_list
 
     @property
-    def sound_mode_map(self) -> Dict[str, str]:  # returns an OrderedDict
+    def sound_mode_map(self) -> Dict[str, str]:
         """Return a dict of available sound modes with their mapping values."""
         return self.soundmode.sound_mode_map
 

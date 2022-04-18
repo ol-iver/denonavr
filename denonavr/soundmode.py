@@ -11,7 +11,6 @@ import asyncio
 from copy import deepcopy
 import logging
 
-from collections import OrderedDict
 from typing import Dict, Hashable, Optional
 
 import attr
@@ -61,13 +60,13 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     _sound_mode_raw: Optional[str] = attr.ib(
         converter=attr.converters.optional(rstrip_string),
         default=None)
-    _sound_mode_map: Dict[str, str] = attr.ib(  # in fact it is an OrderedDict
+    _sound_mode_map: Dict[str, str] = attr.ib(
         validator=attr.validators.deep_mapping(
             attr.validators.instance_of(str),
             attr.validators.deep_iterable(
                 attr.validators.instance_of(str),
                 attr.validators.instance_of(list)),
-            attr.validators.instance_of(OrderedDict)),
+            attr.validators.instance_of(dict)),
         default=attr.Factory(lambda: deepcopy(SOUND_MODE_MAPPING)),
         init=False)
     _sound_mode_map_rev: Dict[str, str] = attr.ib(
@@ -197,7 +196,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         return list(self._sound_mode_map.keys())
 
     @property
-    def sound_mode_map(self) -> Dict[str, str]:  # returns an OrderedDict
+    def sound_mode_map(self) -> Dict[str, str]:
         """Return a dict of available sound modes with their mapping values."""
         return deepcopy(self._sound_mode_map)
 
