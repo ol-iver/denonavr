@@ -68,7 +68,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
                 attr.validators.instance_of(str),
                 attr.validators.instance_of(list)),
             attr.validators.instance_of(OrderedDict)),
-        default=SOUND_MODE_MAPPING,
+        default=attr.Factory(lambda: deepcopy(SOUND_MODE_MAPPING)),
         init=False)
     _sound_mode_map_rev: Dict[str, str] = attr.ib(
         validator=attr.validators.deep_mapping(
@@ -152,16 +152,16 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         """Match the raw_sound_mode to its corresponding sound_mode."""
         if self._sound_mode_raw is None:
             return None
+        smr_up = sound_mode_raw.upper()
         try:
-            sound_mode = self._sound_mode_map_rev[sound_mode_raw.upper()]
-            return sound_mode
+            sound_mode = self._sound_mode_map_rev[smr_up]
         except KeyError:
-            smr_up = sound_mode_raw.upper()
             self._sound_mode_map[smr_up] = [smr_up]
             self._sound_mode_map_rev = sound_mode_rev_map_factory(self)
+            sound_mode = sound_mode_raw
             _LOGGER.warning("Not able to match sound mode: '%s', "
                             "returning raw sound mode.", smr_up)
-        return sound_mode_raw
+        return sound_mode
 
     async def _async_set_all_zone_stereo(self, zst_on: bool) -> None:
         """
