@@ -4,7 +4,7 @@
 from setuptools import find_packages, setup
 
 setup(name='denonavr',
-      version='0.10.10',
+      version='0.10.11-dev',
       description='Automation Library for Denon AVR receivers',
       long_description='Automation Library for Denon AVR receivers',
       url='https://github.com/ol-iver/denonavr',
