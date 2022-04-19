@@ -409,8 +409,8 @@ class DenonAVRDeviceInfo:
         # Check if each attribute was updated
         if update_attrs:
             raise AvrProcessingError(
-                "Not all attributes updated, those are left: {}".format(
-                    update_attrs))
+                "Some attributes of zone {} not found on update: {}".format(
+                    self.zone, update_attrs))
 
     async def async_update_power_status_xml(
             self,
@@ -453,8 +453,8 @@ class DenonAVRDeviceInfo:
         # Check if each attribute was updated
         if update_attrs:
             raise AvrProcessingError(
-                "Not all attributes updated, those are left: {}".format(
-                    update_attrs))
+                "Some attributes of zone {} not found on update: {}".format(
+                    self.zone, update_attrs))
 
     ##############
     # Properties #
@@ -570,12 +570,12 @@ class DenonAVRFoundation:
         # Check if each attribute was updated
         if update_attrs and ignore_missing_response is False:
             raise AvrProcessingError(
-                "Not all attributes updated, those are left: {}".format(
-                    update_attrs))
+                "Some attributes of zone {} not found on update: {}".format(
+                    self._device.zone, update_attrs))
         if update_attrs and ignore_missing_response is True:
             _LOGGER.debug(
-                "Not all attributes updated, those are left and ignored "
-                "deliberately: %s", update_attrs)
+                "Some attributes of zone %s not found on update: %s",
+                self._device.zone, update_attrs)
 
     async def async_update_attrs_status_xml(
             self,
@@ -631,8 +631,8 @@ class DenonAVRFoundation:
         # Check if each attribute was updated
         if update_attrs and ignore_missing_response is False:
             raise AvrProcessingError(
-                "Not all attributes updated, those are left: {}".format(
-                    update_attrs))
+                "Some attributes of zone {} not found on update: {}".format(
+                    self._device.zone, update_attrs))
 
     @staticmethod
     def create_appcommand_search_strings(
