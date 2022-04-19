@@ -60,7 +60,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     _sound_mode_raw: Optional[str] = attr.ib(
         converter=attr.converters.optional(rstrip_string),
         default=None)
-    _sound_mode_map: Dict[str, str] = attr.ib(
+    _sound_mode_map: Dict[str, list] = attr.ib(
         validator=attr.validators.deep_mapping(
             attr.validators.instance_of(str),
             attr.validators.deep_iterable(
@@ -155,11 +155,34 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         try:
             sound_mode = self._sound_mode_map_rev[smr_up]
         except KeyError:
-            self._sound_mode_map[smr_up] = [smr_up]
+            # Estimate sound mode for unclassified input
+            if smr_up.find("DTS") != -1:
+                self._sound_mode_map["DTS SURROUND"].append(smr_up)
+                _LOGGER.warning("Not able to match sound mode: '%s', "
+                                "assuming 'DTS SURROUND'.", smr_up)
+            elif smr_up.find("DOLBY") != -1:
+                self._sound_mode_map["DOLBY DIGITAL"].append(smr_up)
+                _LOGGER.warning("Not able to match sound mode: '%s', "
+                                "assuming 'DOLBY DIGITAL'.", smr_up)
+            elif smr_up.find("MUSIC") != -1:
+                self._sound_mode_map["MUSIC"].append(smr_up)
+                _LOGGER.warning("Not able to match sound mode: '%s', "
+                                "assuming 'MUSIC'.", smr_up)
+            elif smr_up.find("AURO") != -1:
+                self._sound_mode_map["AURO3D"].append(smr_up)
+                _LOGGER.warning("Not able to match sound mode: '%s', "
+                                "assuming 'AURO3D'.", smr_up)
+            elif (smr_up.find("MOVIE") != -1 or smr_up.find("CINEMA") != -1):
+                self._sound_mode_map["MOVIE"].append(smr_up)
+                _LOGGER.warning("Not able to match sound mode: '%s', "
+                                "assuming 'MOVIE'.", smr_up)
+            else:
+                self._sound_mode_map[smr_up] = [smr_up]
+                _LOGGER.warning("Not able to match sound mode: '%s', "
+                                "returning raw sound mode.", smr_up)
             self._sound_mode_map_rev = sound_mode_rev_map_factory(self)
-            sound_mode = sound_mode_raw
-            _LOGGER.warning("Not able to match sound mode: '%s', "
-                            "returning raw sound mode.", smr_up)
+            sound_mode = self._sound_mode_map_rev[smr_up]
+
         return sound_mode
 
     async def _async_set_all_zone_stereo(self, zst_on: bool) -> None:
