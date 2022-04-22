@@ -11,7 +11,7 @@ import asyncio
 from copy import deepcopy
 import logging
 
-from typing import Dict, Hashable, Optional
+from typing import Dict, Hashable, List, Optional
 
 import attr
 
@@ -25,11 +25,19 @@ from .foundation import DenonAVRFoundation
 _LOGGER = logging.getLogger(__name__)
 
 
-def rstrip_string(value: Optional[str]) -> Optional[str]:
-    """Perform HTML unescape on value."""
+def convert_sound_mode(value: Optional[str]) -> Optional[str]:
+    """Convert to upper case and remove multiple spaces on value."""
     if value is None:
         return value
-    return (str(value)).rstrip()
+    return " ".join(str(value).upper().split())
+
+
+def sound_mode_map_factory() -> Dict[str, List]:
+    """Construct sound_mode map."""
+    sound_mode_map = {}
+    for matched_mode, sublist in SOUND_MODE_MAPPING.items():
+        sound_mode_map[matched_mode] = [convert_sound_mode(i) for i in sublist]
+    return sound_mode_map
 
 
 def sound_mode_rev_map_factory(instance: DenonAVRFoundation) -> Dict[str, str]:
@@ -46,7 +54,7 @@ def sound_mode_rev_map_factory(instance: DenonAVRFoundation) -> Dict[str, str]:
     mode_map_rev = {}
     for matched_mode, sublist in mode_map:
         for raw_mode in sublist:
-            mode_map_rev[raw_mode.upper()] = matched_mode
+            mode_map_rev[convert_sound_mode(raw_mode)] = matched_mode
     return mode_map_rev
 
 
@@ -58,7 +66,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         converter=attr.converters.optional(bool),
         default=None)
     _sound_mode_raw: Optional[str] = attr.ib(
-        converter=attr.converters.optional(rstrip_string),
+        converter=attr.converters.optional(convert_sound_mode),
         default=None)
     _sound_mode_map: Dict[str, list] = attr.ib(
         validator=attr.validators.deep_mapping(
@@ -67,8 +75,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
                 attr.validators.instance_of(str),
                 attr.validators.instance_of(list)),
             attr.validators.instance_of(dict)),
-        default=attr.Factory(lambda: deepcopy(SOUND_MODE_MAPPING)),
-        init=False)
+        default=attr.Factory(sound_mode_map_factory), init=False)
     _sound_mode_map_rev: Dict[str, str] = attr.ib(
         validator=attr.validators.deep_mapping(
             attr.validators.instance_of(str),
@@ -151,37 +158,37 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         """Match the raw_sound_mode to its corresponding sound_mode."""
         if self._sound_mode_raw is None:
             return None
-        smr_up = sound_mode_raw.upper()
+        smr_cv = convert_sound_mode(sound_mode_raw)
         try:
-            sound_mode = self._sound_mode_map_rev[smr_up]
+            sound_mode = self._sound_mode_map_rev[smr_cv]
         except KeyError:
             # Estimate sound mode for unclassified input
-            if smr_up.find("DTS") != -1:
-                self._sound_mode_map["DTS SURROUND"].append(smr_up)
+            if smr_cv.find("DTS") != -1:
+                self._sound_mode_map["DTS SURROUND"].append(smr_cv)
                 _LOGGER.warning("Not able to match sound mode: '%s', "
-                                "assuming 'DTS SURROUND'.", smr_up)
-            elif smr_up.find("DOLBY") != -1:
-                self._sound_mode_map["DOLBY DIGITAL"].append(smr_up)
+                                "assuming 'DTS SURROUND'.", smr_cv)
+            elif smr_cv.find("DOLBY") != -1:
+                self._sound_mode_map["DOLBY DIGITAL"].append(smr_cv)
                 _LOGGER.warning("Not able to match sound mode: '%s', "
-                                "assuming 'DOLBY DIGITAL'.", smr_up)
-            elif smr_up.find("MUSIC") != -1:
-                self._sound_mode_map["MUSIC"].append(smr_up)
+                                "assuming 'DOLBY DIGITAL'.", smr_cv)
+            elif smr_cv.find("MUSIC") != -1:
+                self._sound_mode_map["MUSIC"].append(smr_cv)
                 _LOGGER.warning("Not able to match sound mode: '%s', "
-                                "assuming 'MUSIC'.", smr_up)
-            elif smr_up.find("AURO") != -1:
-                self._sound_mode_map["AURO3D"].append(smr_up)
+                                "assuming 'MUSIC'.", smr_cv)
+            elif smr_cv.find("AURO") != -1:
+                self._sound_mode_map["AURO3D"].append(smr_cv)
                 _LOGGER.warning("Not able to match sound mode: '%s', "
-                                "assuming 'AURO3D'.", smr_up)
-            elif (smr_up.find("MOVIE") != -1 or smr_up.find("CINEMA") != -1):
-                self._sound_mode_map["MOVIE"].append(smr_up)
+                                "assuming 'AURO3D'.", smr_cv)
+            elif (smr_cv.find("MOVIE") != -1 or smr_cv.find("CINEMA") != -1):
+                self._sound_mode_map["MOVIE"].append(smr_cv)
                 _LOGGER.warning("Not able to match sound mode: '%s', "
-                                "assuming 'MOVIE'.", smr_up)
+                                "assuming 'MOVIE'.", smr_cv)
             else:
-                self._sound_mode_map[smr_up] = [smr_up]
+                self._sound_mode_map[smr_cv] = [smr_cv]
                 _LOGGER.warning("Not able to match sound mode: '%s', "
-                                "returning raw sound mode.", smr_up)
+                                "returning raw sound mode.", smr_cv)
             self._sound_mode_map_rev = sound_mode_rev_map_factory(self)
-            sound_mode = self._sound_mode_map_rev[smr_up]
+            sound_mode = self._sound_mode_map_rev[smr_cv]
 
         return sound_mode
 
