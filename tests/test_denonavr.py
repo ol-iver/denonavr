@@ -12,6 +12,7 @@ import pytest
 from pytest_httpx import HTTPXMock
 
 import denonavr
+from denonavr.const import SOUND_MODE_MAPPING
 
 FAKE_IP = "10.0.0.0"
 
@@ -44,6 +45,7 @@ TESTING_RECEIVERS = {
     "AVC-X3700H": (ZONE2, denonavr.const.AVR_X_2016),
     "AVR-X4000": (ZONE2_ZONE3, denonavr.const.AVR_X),
     "SR6011": (ZONE2, denonavr.const.AVR_X),
+    "AV7703": (ZONE2_ZONE3, denonavr.const.AVR_X_2016),
     }
 
 APPCOMMAND_URL = "/goform/AppCommand.xml"
@@ -191,3 +193,21 @@ class TestMainFunctions:
                 "Power status is None for receiver {}".format(receiver))
             assert self.denon.state is not None, (
                 "State is None for receiver {}".format(receiver))
+
+    @pytest.mark.asyncio
+    async def test_sound_mode(self, httpx_mock: HTTPXMock):
+        """Check if a valid sound mode is returned."""
+        httpx_mock.add_callback(self.custom_matcher)
+        for receiver, spec in TESTING_RECEIVERS.items():
+            # Switch receiver and update to load new sample files
+            self.testing_receiver = receiver
+            self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
+            # Switch through all functions and check if successful
+            for name in self.denon.zones:
+                print("Receiver: {}, Zone: {}".format(receiver, name))
+                await self.denon.zones[name].async_update()
+                support_sound_mode = self.denon.zones[name].support_sound_mode
+                sound_mode = self.denon.zones[name].sound_mode
+                assert (
+                    sound_mode in [*SOUND_MODE_MAPPING, None] or
+                    support_sound_mode is not True)

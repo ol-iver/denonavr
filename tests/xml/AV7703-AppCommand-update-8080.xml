@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rx>
+<cmd>
+<zone1>ON</zone1>
+<zone2>OFF</zone2>
+<zone3>OFF</zone3>
+</cmd>
+<cmd>
+<zone1>
+<source>MPLAY</source>
+</zone1>
+<zone2>
+<source>MPLAY</source>
+</zone2>
+<zone3>
+<source>NET</source>
+</zone3>
+</cmd>
+<cmd>
+<functionrename>
+<list>
+<name>CBL/SAT</name>
+<rename>CBL/SAT     </rename>
+</list>
+<list>
+<name>DVD</name>
+<rename>DVD         </rename>
+</list>
+<list>
+<name>Blu-ray</name>
+<rename>AppleTV     </rename>
+</list>
+<list>
+<name>GAME</name>
+<rename>XBOX        </rename>
+</list>
+<list>
+<name>AUX1</name>
+<rename>Front       </rename>
+</list>
+<list>
+<name>AUX2</name>
+<rename>Switch      </rename>
+</list>
+<list>
+<name>Media Player</name>
+<rename>Shield      </rename>
+</list>
+<list>
+<name>CD</name>
+<rename>CD          </rename>
+</list>
+<list>
+<name>HDRADIO</name>
+<rename>HD Radio</rename>
+</list>
+<list>
+<name>NETWORK</name>
+<rename>Online Music</rename>
+</list>
+<list>
+<name>TV AUDIO</name>
+<rename>TV Audio    </rename>
+</list>
+<list>
+<name>Bluetooth</name>
+<rename>Bluetooth</rename>
+</list>
+<list>
+<name>PHONO</name>
+<rename>Phono       </rename>
+</list>
+</functionrename>
+</cmd>
+<cmd>
+<functiondelete>
+<list>
+<name>CBL/SAT</name>
+<FuncName>CBL/SAT</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>DVD</name>
+<FuncName>DVD</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>Blu-ray</name>
+<FuncName>Blu-ray</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>GAME</name>
+<FuncName>GAME</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>AUX1</name>
+<FuncName>AUX1</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>AUX2</name>
+<FuncName>AUX2</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>Media Player</name>
+<FuncName>Media Player</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>CD</name>
+<FuncName>CD</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>HD Radio</name>
+<FuncName>HD Radio</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>NETWORK</name>
+<FuncName>NETWORK</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>TV AUDIO</name>
+<FuncName>TV AUDIO</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>Bluetooth</name>
+<FuncName>Bluetooth</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>PHONO</name>
+<FuncName>PHONO</FuncName>
+<use>0</use>
+</list>
+</functiondelete>
+</cmd>
+<cmd>
+<surround>Dolby Digital +   + Neural:X                                   </surround>
+</cmd>
+<cmd>
+<status>0</status>
+<adjust></adjust>
+<basslevel></basslevel>
+<bassvalue></bassvalue>
+<treblelevel></treblelevel>
+<treblevalue></treblevalue>
+</cmd>
+<cmd>
+<zone1>
+<volume>-40.0</volume>
+<state>variable</state>
+<limit>-10.0</limit>
+<disptype>ABSOLUTE</disptype>
+<dispvalue>40.0</dispvalue>
+</zone1>
+<zone2>
+<volume> -4</volume>
+<state>variable</state>
+<limit>  0.0</limit>
+<disptype>ABSOLUTE</disptype>
+<dispvalue> 76</dispvalue>
+</zone2>
+<zone3>
+<volume>-50</volume>
+<state>variable</state>
+<limit>-10.0</limit>
+<disptype>ABSOLUTE</disptype>
+<dispvalue> 30</dispvalue>
+</zone3>
+</cmd>
+<cmd>
+<zone1>off</zone1>
+<zone2>off</zone2>
+<zone3>off</zone3>
+</cmd>
+</rx>
