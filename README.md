@@ -224,3 +224,4 @@ MIT
 
 ## Users
 Home Assistant: https://github.com/home-assistant/home-assistant/
+denonavr-cli: https://pypi.org/project/denonavr-cli/
