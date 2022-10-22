@@ -177,7 +177,26 @@ class DenonAVR(DenonAVRFoundation):
         self.soundmode.sound_mode = parameter
 
     def process_sounddetail(self, parameter):
-        pass
+        if parameter == "TONE CTRL OFF":
+            pass
+        elif parameter == "TONE CTRL ON":
+            pass
+        elif parameter[0:3] == "BAS":
+            value = parameter[5:2]
+            self.tonecontrol.bass = int(value)
+        elif parameter[0:3] == "TRE":
+            value = parameter[5:2]
+            self.tonecontrol.treble = int(value)
+        elif parameter == "DYNEQ ON":
+            pass
+        elif parameter == "DYNEQ OFF":
+            pass
+        elif parameter[0:6] == "REFLEV":
+            pass
+        elif parameter[0:6] == "DYNVOL":
+            pass
+        elif parameter[0:6] == "MULTEQ":
+            pass
 
     
     def async_process_event(self, message):
