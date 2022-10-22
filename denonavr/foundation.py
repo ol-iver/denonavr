@@ -468,6 +468,10 @@ class DenonAVRDeviceInfo:
         """
         return self._power
 
+    @power.setter
+    def power(self, value: str):
+        self._power = value
+
     ##########
     # Setter #
     ##########

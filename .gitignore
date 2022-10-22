@@ -98,3 +98,5 @@ ENV/
 
 # Visual Studio Code
 .vscode/
+
+sample.py

@@ -644,6 +644,10 @@ class DenonAVRInput(DenonAVRFoundation):
         """Return the current input source as string."""
         return self._input_func
 
+    @input_func.setter
+    def input_func(self, value: str):
+        self._input_func = value
+
     @property
     def input_func_list(self) -> List[str]:
         """Return a list of available input sources as string."""

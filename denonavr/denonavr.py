@@ -8,6 +8,7 @@ This module implements the interface to Denon AVR receivers.
 """
 
 import asyncio
+from codecs import StreamReader, StreamWriter
 import logging
 import time
 
@@ -144,6 +145,66 @@ class DenonAVR(DenonAVRFoundation):
             self.audyssey.setup()
 
             self._is_setup = True
+
+    async def async_connect(self) -> None:
+        # Ensure that the device is setup
+        if self._is_setup is False:
+            await self.async_setup() 
+
+        self._socket_reader, self._socket_writer = await asyncio.open_connection(self._host, 23)
+
+    def process_power(self, parameter):
+        self._device.power = parameter
+
+    def process_volume(self, parameter):
+        if parameter[0:3] == "MAX":
+            return
+        if parameter == "---":
+            self.vol._volume = -80.0
+        else:
+            if len(parameter) < 3:
+                self.vol._volume = -80.0 + float(parameter)
+            else:
+                self.vol._volume = -80.0 + float(parameter[0:2]) + (0.1 * float(parameter[2]))
+    
+    def process_mute(self, parameter):
+        self.vol.muted = parameter
+
+    
+    def async_process_event(self, message):
+        if len(message) < 3:
+            return None
+        event = message[0:2]
+        parameter = message[2:]
+        if event == 'PW':
+            self.process_power(parameter)
+            print(self.power)
+        elif event == 'MV':
+            self.process_volume(parameter)
+            print(self.vol.volume)
+        elif event == 'MU':
+            self.process_mute(parameter)
+            print(self.vol.muted)
+        elif event == 'SI':
+            pass #input
+        elif event == 'MS':
+            pass #surround mode
+        elif event == 'PS':
+            pass #sound details
+
+
+    async def async_monitor(self) -> None:
+        data = bytearray()
+        while not self._socket_reader.at_eof():
+            chunk = await self._socket_reader.read(100)
+            for i in range(0,len(chunk)):
+                if chunk[i] != 13:
+                    data += chunk[i].to_bytes(1, byteorder='big')
+                else:
+                    self.async_process_event(str(data,'utf-8'))
+                    data = bytearray()
+
+
 
     @run_async_synchronously(async_func=async_setup)
     def setup(self) -> None:

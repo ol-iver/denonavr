@@ -14,7 +14,7 @@ from typing import Hashable, Optional, Union
 import attr
 
 from .appcommand import AppCommands
-from .const import DENON_ATTR_SETATTR, MAIN_ZONE, STATE_ON
+from .const import DENON_ATTR_SETATTR, MAIN_ZONE, STATE_ON, STATE_ON_CAPS
 from .exceptions import AvrCommandError, AvrProcessingError
 from .foundation import DenonAVRFoundation
 
@@ -24,7 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def convert_muted(value: str) -> bool:
     """Convert muted to bool."""
-    return bool(value == STATE_ON)
+    return bool(value == STATE_ON or value == STATE_ON_CAPS)
 
 
 def convert_volume(value: Union[float, str]) -> float:
@@ -107,6 +107,10 @@ class DenonAVRVolume(DenonAVRFoundation):
         """
         return self._muted
 
+    @muted.setter
+    def muted(self, value: str):
+        self._muted = value
+
     @property
     def volume(self) -> Optional[float]:
         """
@@ -116,6 +120,10 @@ class DenonAVRVolume(DenonAVRFoundation):
         Minimum is -80.0, maximum at 18.0
         """
         return self._volume
+
+    @volume.setter
+    def volume(self, value: float):
+        self._volume = value
 
     ##########
     # Setter #
