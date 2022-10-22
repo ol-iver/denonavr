@@ -170,6 +170,15 @@ class DenonAVR(DenonAVRFoundation):
     def process_mute(self, parameter):
         self.vol.muted = parameter
 
+    def process_input(self, parameter):
+        self.input.input_func = parameter
+
+    def process_surroundmode(self, parameter):
+        self.soundmode.sound_mode = parameter
+
+    def process_sounddetail(self, parameter):
+        pass
+
     
     def async_process_event(self, message):
         if len(message) < 3:
@@ -178,22 +187,19 @@ class DenonAVR(DenonAVRFoundation):
         parameter = message[2:]
         if event == 'PW':
             self.process_power(parameter)
-            print(self.power)
         elif event == 'MV':
             self.process_volume(parameter)
-            print(self.vol.volume)
+            print(self.volume)
         elif event == 'MU':
             self.process_mute(parameter)
-            print(self.vol.muted)
         elif event == 'SI':
-            pass #input
+            self.process_input(parameter)
         elif event == 'MS':
-            pass #surround mode
+            self.process_surroundmode(parameter)
         elif event == 'PS':
-            pass #sound details
+            self.process_sounddetail(parameter)
 
-
-    async def async_monitor(self) -> None:
+    async def _async_monitor(self):
         data = bytearray()
         while not self._socket_reader.at_eof():
             chunk = await self._socket_reader.read(100)
@@ -203,6 +209,9 @@ class DenonAVR(DenonAVRFoundation):
                 else:
                     self.async_process_event(str(data,'utf-8'))
                     data = bytearray()
+
+    def monitor_updates(self) -> asyncio.Task:
+        return asyncio.create_task(self._async_monitor())
 
 
 
