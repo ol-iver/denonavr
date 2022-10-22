@@ -9,6 +9,7 @@ This module implements the interface to Denon AVR receivers.
 
 import asyncio
 from codecs import StreamReader, StreamWriter
+from contextlib import suppress
 import logging
 import time
 
@@ -32,6 +33,7 @@ from .volume import DenonAVRVolume, volume_factory
 
 _LOGGER = logging.getLogger(__name__)
 
+_SOCKET_READ_TIMEOUT = 10
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
 class DenonAVR(DenonAVRFoundation):
@@ -151,7 +153,7 @@ class DenonAVR(DenonAVRFoundation):
         if self._is_setup is False:
             await self.async_setup()
         try:
-            self._socket_reader, self._socket_writer = await asyncio.wait_for(asyncio.open_connection(self._host, 23), timeout=5)
+            self._socket_reader, self._socket_writer = await asyncio.wait_for(asyncio.open_connection(self._host, 23), timeout=self._timeout)
         except asyncio.exceptions.TimeoutError as err:
             _LOGGER.debug(
                 "Socket timeout exception on connect",
@@ -231,13 +233,26 @@ class DenonAVR(DenonAVRFoundation):
     async def _async_monitor(self, callback):
         data = bytearray()
         while not self._socket_reader.at_eof():
-            chunk = await self._socket_reader.read(100)
-            for i in range(0,len(chunk)):
-                if chunk[i] != 13:
-                    data += chunk[i].to_bytes(1, byteorder='big')
-                else:
-                    self.async_process_event(str(data,'utf-8'), callback)
+            try:
+                chunk = await asyncio.wait_for(self._socket_reader.read(100), _SOCKET_READ_TIMEOUT)
+                for i in range(0,len(chunk)):
+                    if chunk[i] != 13:
+                        data += chunk[i].to_bytes(1, byteorder='big')
+                    else:
+                        self.async_process_event(str(data,'utf-8'), callback)
                     data = bytearray()
+            except Exception:
+                _LOGGER("Lost connection to receiver, reconnecting")
+                await self.async_close()
+                await self.async_connect()
+
+    async def async_close(self):
+        """Close the connection to the receiver."""
+        if self._socket_writer:
+            self._socket_writer.close()
+            with suppress(ConnectionError):
+                await self._socket_writer.wait_closed()
+            self._socket_writer = None
 
     def monitor_updates(self, callback) -> asyncio.Task:
         return asyncio.create_task(self._async_monitor(callback))
