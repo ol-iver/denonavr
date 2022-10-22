@@ -21,7 +21,7 @@ from .decorators import run_async_synchronously
 from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
 from .const import (
     DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES)
-from .exceptions import AvrCommandError
+from .exceptions import AvrCommandError, AvrTimoutError
 
 from .audyssey import DenonAVRAudyssey, audyssey_factory
 from .input import DenonAVRInput, input_factory
@@ -149,9 +149,15 @@ class DenonAVR(DenonAVRFoundation):
     async def async_connect(self) -> None:
         # Ensure that the device is setup
         if self._is_setup is False:
-            await self.async_setup() 
-
-        self._socket_reader, self._socket_writer = await asyncio.open_connection(self._host, 23)
+            await self.async_setup()
+        try:
+            self._socket_reader, self._socket_writer = await asyncio.wait_for(asyncio.open_connection(self._host, 23), timeout=5)
+        except asyncio.exceptions.TimeoutError as err:
+            _LOGGER.debug(
+                "Socket timeout exception on connect",
+                exc_info=True)
+            raise AvrTimoutError(
+                "TimeoutException: {}".format(err), "connect") from err
 
     def process_power(self, parameter):
         self._device.power = parameter
@@ -199,7 +205,7 @@ class DenonAVR(DenonAVRFoundation):
             pass
 
     
-    def async_process_event(self, message):
+    def async_process_event(self, message, callback):
         if len(message) < 3:
             return None
         event = message[0:2]
@@ -217,8 +223,12 @@ class DenonAVR(DenonAVRFoundation):
             self.process_surroundmode(parameter)
         elif event == 'PS':
             self.process_sounddetail(parameter)
+        else:
+            return
 
-    async def _async_monitor(self):
+        callback()        
+
+    async def _async_monitor(self, callback):
         data = bytearray()
         while not self._socket_reader.at_eof():
             chunk = await self._socket_reader.read(100)
@@ -226,11 +236,11 @@ class DenonAVR(DenonAVRFoundation):
                 if chunk[i] != 13:
                     data += chunk[i].to_bytes(1, byteorder='big')
                 else:
-                    self.async_process_event(str(data,'utf-8'))
+                    self.async_process_event(str(data,'utf-8'), callback)
                     data = bytearray()
 
-    def monitor_updates(self) -> asyncio.Task:
-        return asyncio.create_task(self._async_monitor())
+    def monitor_updates(self, callback) -> asyncio.Task:
+        return asyncio.create_task(self._async_monitor(callback))
 
 
 
