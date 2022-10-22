@@ -148,7 +148,12 @@ class DenonAVR(DenonAVRFoundation):
 
             self._is_setup = True
 
+    @run_async_synchronously(async_func=async_setup)
+    def setup(self) -> None:
+        """Ensure that configuration is loaded from receiver."""
+
     async def async_connect(self) -> None:
+        """ Connect to the receiver asynchronously."""
         # Ensure that the device is setup
         if self._is_setup is False:
             await self.async_setup()
@@ -160,6 +165,22 @@ class DenonAVR(DenonAVRFoundation):
                 exc_info=True)
             raise AvrTimoutError(
                 "TimeoutException: {}".format(err), "connect") from err
+
+    @run_async_synchronously(async_func=async_connect)
+    def connect(self) -> None:
+        """Connect to the receiver."""
+
+    async def async_close(self):
+        """Close the connection to the receiver asynchronously."""
+        if self._socket_writer:
+            self._socket_writer.close()
+            with suppress(ConnectionError):
+                await self._socket_writer.wait_closed()
+            self._socket_writer = None
+
+    @run_async_synchronously(async_func=async_close)
+    def close(self) -> None:
+        """Close the connection to the receiver."""
 
     def process_power(self, parameter):
         self._device.power = parameter
@@ -246,22 +267,8 @@ class DenonAVR(DenonAVRFoundation):
                 await self.async_close()
                 await self.async_connect()
 
-    async def async_close(self):
-        """Close the connection to the receiver."""
-        if self._socket_writer:
-            self._socket_writer.close()
-            with suppress(ConnectionError):
-                await self._socket_writer.wait_closed()
-            self._socket_writer = None
-
     def monitor_updates(self, callback) -> asyncio.Task:
         return asyncio.create_task(self._async_monitor(callback))
-
-
-
-    @run_async_synchronously(async_func=async_setup)
-    def setup(self) -> None:
-        """Ensure that configuration is loaded from receiver."""
 
     async def async_update(self):
         """
