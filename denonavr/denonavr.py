@@ -21,7 +21,7 @@ import httpx
 from .decorators import run_async_synchronously
 from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
 from .const import (
-    DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES)
+    DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES, ZONE2, ZONE3)
 from .exceptions import AvrCommandError, AvrTimoutError
 
 from .audyssey import DenonAVRAudyssey, audyssey_factory
@@ -170,7 +170,7 @@ class DenonAVR(DenonAVRFoundation):
     def connect(self) -> None:
         """Connect to the receiver."""
 
-    async def async_close(self):
+    async def async_close(self) -> None:
         """Close the connection to the receiver asynchronously."""
         if self._socket_writer:
             self._socket_writer.close()
@@ -182,40 +182,41 @@ class DenonAVR(DenonAVRFoundation):
     def close(self) -> None:
         """Close the connection to the receiver."""
 
-    def process_power(self, parameter):
-        self._device.power = parameter
+    def process_power(self, device, parameter):
+        setattr(device,"_power",parameter)
 
-    def process_volume(self, parameter):
+    def process_volume(self, device, parameter):
         if parameter[0:3] == "MAX":
             return
         if parameter == "---":
-            self.vol._volume = -80.0
+            setattr(device,"_volume", -80.0)
         else:
             if len(parameter) < 3:
-                self.vol._volume = -80.0 + float(parameter)
+                setattr(device,"_volume", -80.0 + float(parameter))
             else:
-                self.vol._volume = -80.0 + float(parameter[0:2]) + (0.1 * float(parameter[2]))
+                setattr(device,"_volume",-80.0 + float(parameter[0:2]) + (0.1 * float(parameter[2])))
+            print(getattr(device,"_volume"))
     
-    def process_mute(self, parameter):
-        self.vol.muted = parameter
+    def process_mute(self, device, parameter):
+        setattr(device, "_muted", parameter)
 
-    def process_input(self, parameter):
-        self.input.input_func = parameter
+    def process_input(self, device, parameter):
+        setattr(device, "_input_func", parameter)
 
-    def process_surroundmode(self, parameter):
+    def process_surroundmode(self, device, parameter):
         self.soundmode.sound_mode = parameter
 
-    def process_sounddetail(self, parameter):
+    def process_sounddetail(self, device, parameter):
         if parameter == "TONE CTRL OFF":
             pass
         elif parameter == "TONE CTRL ON":
             pass
         elif parameter[0:3] == "BAS":
             value = parameter[5:2]
-            self.tonecontrol.bass = int(value)
+            device.tonecontrol.bass = int(value)
         elif parameter[0:3] == "TRE":
             value = parameter[5:2]
-            self.tonecontrol.treble = int(value)
+            device.tonecontrol.treble = int(value)
         elif parameter == "DYNEQ ON":
             pass
         elif parameter == "DYNEQ OFF":
@@ -233,19 +234,37 @@ class DenonAVR(DenonAVRFoundation):
             return None
         event = message[0:2]
         parameter = message[2:]
+        zone = MAIN_ZONE
+
+        if event == 'Z2':
+            zone = ZONE2
+        elif event == 'Z3':
+            zone = ZONE3
+
+        zone_device : DenonAVR = self._zones[zone]
+
         if event == 'PW':
-            self.process_power(parameter)
+            self.process_power(self._device, parameter)
         elif event == 'MV':
-            self.process_volume(parameter)
+            self.process_volume(self.vol, parameter)
             print(self.volume)
         elif event == 'MU':
-            self.process_mute(parameter)
+            self.process_mute(self.vol, parameter)
         elif event == 'SI':
-            self.process_input(parameter)
+            self.process_input(self.input, parameter)
         elif event == 'MS':
-            self.process_surroundmode(parameter)
+            self.process_surroundmode(self.soundmode,parameter)
         elif event == 'PS':
-            self.process_sounddetail(parameter)
+            self.process_sounddetail(self._device,parameter)
+        elif event == 'Z2' or event == 'Z3':
+            if parameter == 'ON' or parameter == 'OFF':
+                self.process_power(zone_device, parameter)
+            elif parameter == 'MUON' or parameter == 'MUOFF':
+                self.process_mute(zone_device.vol, parameter)
+            elif parameter == 'CD' or parameter == 'USB DIRECT' or parameter == 'IPOD DIRECT':
+                self.process_input(zone_device.input, parameter)
+            elif parameter.isdigit():
+                self.process_volume(zone_device.vol, parameter)
         else:
             return
 
@@ -255,15 +274,15 @@ class DenonAVR(DenonAVRFoundation):
         data = bytearray()
         while not self._socket_reader.at_eof():
             try:
-                chunk = await asyncio.wait_for(self._socket_reader.read(100), _SOCKET_READ_TIMEOUT)
+                chunk = await asyncio.wait_for(self._socket_reader.read(100), 10)
                 for i in range(0,len(chunk)):
                     if chunk[i] != 13:
                         data += chunk[i].to_bytes(1, byteorder='big')
                     else:
                         self.async_process_event(str(data,'utf-8'), callback)
-                    data = bytearray()
-            except Exception:
-                _LOGGER("Lost connection to receiver, reconnecting")
+                        data = bytearray()
+            except asyncio.exceptions.TimeoutError as err:
+                _LOGGER.debug("Lost connection to receiver, reconnecting")
                 await self.async_close()
                 await self.async_connect()
 

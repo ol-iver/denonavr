@@ -107,10 +107,6 @@ class DenonAVRVolume(DenonAVRFoundation):
         """
         return self._muted
 
-    @muted.setter
-    def muted(self, value: str):
-        self._muted = value
-
     @property
     def volume(self) -> Optional[float]:
         """
@@ -120,10 +116,6 @@ class DenonAVRVolume(DenonAVRFoundation):
         Minimum is -80.0, maximum at 18.0
         """
         return self._volume
-
-    @volume.setter
-    def volume(self, value: float):
-        self._volume = value
 
     ##########
     # Setter #
