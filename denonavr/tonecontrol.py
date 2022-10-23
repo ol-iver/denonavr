@@ -105,10 +105,6 @@ class DenonAVRToneControl(DenonAVRFoundation):
         """Return value of bass."""
         return self._bass
 
-    @bass.setter
-    def bass(self, value: int):
-        self._bass = value
-
     @property
     def bass_level(self) -> Optional[str]:
         """Return level of bass."""
@@ -118,10 +114,6 @@ class DenonAVRToneControl(DenonAVRFoundation):
     def treble(self) -> Optional[int]:
         """Return value of treble."""
         return self._treble
-
-    @treble.setter
-    def treble(self, value: int):
-        self._treble = value
 
     @property
     def treble_level(self) -> Optional[str]:

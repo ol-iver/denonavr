@@ -220,10 +220,6 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         sound_mode_matched = self.match_sound_mode(self._sound_mode_raw)
         return sound_mode_matched
 
-    @sound_mode.setter
-    def sound_mode(self, value: str):
-        self._sound_mode_raw = value
-
     @property
     def sound_mode_list(self) -> None:
         """Return a list of available sound modes as string."""

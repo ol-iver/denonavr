@@ -195,7 +195,6 @@ class DenonAVR(DenonAVRFoundation):
                 setattr(device,"_volume", -80.0 + float(parameter))
             else:
                 setattr(device,"_volume",-80.0 + float(parameter[0:2]) + (0.1 * float(parameter[2])))
-            print(getattr(device,"_volume"))
     
     def process_mute(self, device, parameter):
         setattr(device, "_muted", parameter)
@@ -204,30 +203,29 @@ class DenonAVR(DenonAVRFoundation):
         setattr(device, "_input_func", parameter)
 
     def process_surroundmode(self, device, parameter):
-        self.soundmode.sound_mode = parameter
+        setattr(device, "_sound_mode", parameter)
 
     def process_sounddetail(self, device, parameter):
         if parameter == "TONE CTRL OFF":
-            pass
+            setattr(device.tonecontrol, "_tone_control_status", "1")
         elif parameter == "TONE CTRL ON":
-            pass
+            setattr(device.tonecontrol, "_tone_control_status", "0")
         elif parameter[0:3] == "BAS":
-            value = parameter[5:2]
-            device.tonecontrol.bass = int(value)
+            value = parameter[4:]
+            setattr(device.tonecontrol, "_bass", int(value))
         elif parameter[0:3] == "TRE":
-            value = parameter[5:2]
-            device.tonecontrol.treble = int(value)
+            value = parameter[4:]
+            setattr(device.tonecontrol, "_treble", int(value))
         elif parameter == "DYNEQ ON":
-            pass
+            setattr(device.audyssey, "_dynamiceq", "1")
         elif parameter == "DYNEQ OFF":
-            pass
+            setattr(device.audyssey, "_dynamiceq", "0")
         elif parameter[0:6] == "REFLEV":
-            pass
+            setattr(device.audyssey, "_reflevoffset", parameter[7:])
         elif parameter[0:6] == "DYNVOL":
-            pass
+            setattr(device.audyssey, "_dynamicvol", parameter[7:])
         elif parameter[0:6] == "MULTEQ":
-            pass
-
+            setattr(device.audyssey, "_multeq", parameter[7:])
     
     def async_process_event(self, message, callback):
         if len(message) < 3:
@@ -247,7 +245,6 @@ class DenonAVR(DenonAVRFoundation):
             self.process_power(self._device, parameter)
         elif event == 'MV':
             self.process_volume(self.vol, parameter)
-            print(self.volume)
         elif event == 'MU':
             self.process_mute(self.vol, parameter)
         elif event == 'SI':
@@ -255,7 +252,7 @@ class DenonAVR(DenonAVRFoundation):
         elif event == 'MS':
             self.process_surroundmode(self.soundmode,parameter)
         elif event == 'PS':
-            self.process_sounddetail(self._device,parameter)
+            self.process_sounddetail(self,parameter)
         elif event == 'Z2' or event == 'Z3':
             if parameter == 'ON' or parameter == 'OFF':
                 self.process_power(zone_device, parameter)
