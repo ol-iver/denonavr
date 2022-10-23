@@ -24,7 +24,7 @@ from .decorators import (
     async_handle_receiver_exceptions,
     cache_clear_on_exception,
     set_cache_id)
-from .exceptions import AvrInvalidResponseError
+from .exceptions import AvrIncompleteResponseError, AvrInvalidResponseError
 from .const import (
     APPCOMMAND_CMD_TEXT, APPCOMMAND_NAME, APPCOMMAND_URL, APPCOMMAND0300_URL,
     DENON_ATTR_SETATTR)
@@ -221,7 +221,7 @@ class DenonAVRApi:
         This is used to identitfy the result tags.
         """
         if len(cmd_list) != len(xml_root):
-            raise AvrInvalidResponseError(
+            raise AvrIncompleteResponseError(
                 "Invalid length of response XML. Query has {} elements, "
                 "response {}".format(len(cmd_list), len(xml_root)), request)
 
