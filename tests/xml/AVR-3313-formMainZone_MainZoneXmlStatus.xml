@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<Zone><value>MAIN ZONE </value></Zone>
+<Power><value>ON</value></Power>
+<InputFuncList>
+<value>FM</value>
+<value>CD</value>
+<value>PHONO</value>
+<value>NETWORK</value>
+<value>DVD</value>
+<value>Blu-ray</value>
+<value>TV AUDIO</value>
+<value>CBL/SAT</value>
+<value>GAME</value>
+<value>AUX1</value>
+<value>AUX2</value>
+<value>Media Player</value>
+<value>iPod/USB</value>
+</InputFuncList>
+<RenameSource>
+<value><value>FM</value></value>
+<value><value>CD          </value></value>
+<value><value>PHONO       </value></value>
+<value><value>NETWORK</value></value>
+<value><value>DVD         </value></value>
+<value><value>Blu-ray     </value></value>
+<value><value>TV AUDIO    </value></value>
+<value><value>CBL/SAT     </value></value>
+<value><value>GAME        </value></value>
+<value><value>AUX1        </value></value>
+<value><value>AUX2        </value></value>
+<value><value>MEDIA PLAYER</value></value>
+<value><value>iPod/USB</value></value>
+</RenameSource>
+<SourceDelete>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+<value>USE</value>
+</SourceDelete>
+<InputFuncSelect><value>SAT/CBL</value></InputFuncSelect>
+<VolumeDisplay><value>Absolute</value></VolumeDisplay>
+<RestorerMode><value>----</value></RestorerMode>
+<SurrMode><value>PLII Cinema                    </value></SurrMode>
+<MasterVolume><value>-70.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<Model><value>33XX E2</value></Model>
+</item>
