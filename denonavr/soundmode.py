@@ -26,10 +26,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def convert_sound_mode(value: Optional[str]) -> Optional[str]:
-    """Convert to upper case and remove multiple spaces on value."""
+    """Remove multiple spaces from value."""
     if value is None:
         return value
-    return " ".join(str(value).upper().split())
+    return " ".join(str(value).split())
 
 
 def sound_mode_map_factory() -> Dict[str, List]:
@@ -154,41 +154,41 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             raise AvrProcessingError(
                 "Device is not setup correctly, update method not set")
 
-    def match_sound_mode(self, sound_mode_raw: str) -> Optional[str]:
+    def match_sound_mode(self) -> Optional[str]:
         """Match the raw_sound_mode to its corresponding sound_mode."""
         if self._sound_mode_raw is None:
             return None
-        smr_cv = convert_sound_mode(sound_mode_raw)
+        smr_up = self._sound_mode_raw.upper()
         try:
-            sound_mode = self._sound_mode_map_rev[smr_cv]
+            sound_mode = self._sound_mode_map_rev[smr_up]
         except KeyError:
             # Estimate sound mode for unclassified input
-            if smr_cv.find("DTS") != -1:
-                self._sound_mode_map["DTS SURROUND"].append(smr_cv)
+            if smr_up.find("DTS") != -1:
+                self._sound_mode_map["DTS SURROUND"].append(smr_up)
                 _LOGGER.warning("Not able to match sound mode: '%s', "
-                                "assuming 'DTS SURROUND'.", smr_cv)
-            elif smr_cv.find("DOLBY") != -1:
-                self._sound_mode_map["DOLBY DIGITAL"].append(smr_cv)
+                                "assuming 'DTS SURROUND'.", smr_up)
+            elif smr_up.find("DOLBY") != -1:
+                self._sound_mode_map["DOLBY DIGITAL"].append(smr_up)
                 _LOGGER.warning("Not able to match sound mode: '%s', "
-                                "assuming 'DOLBY DIGITAL'.", smr_cv)
-            elif smr_cv.find("MUSIC") != -1:
-                self._sound_mode_map["MUSIC"].append(smr_cv)
+                                "assuming 'DOLBY DIGITAL'.", smr_up)
+            elif smr_up.find("MUSIC") != -1:
+                self._sound_mode_map["MUSIC"].append(smr_up)
                 _LOGGER.warning("Not able to match sound mode: '%s', "
-                                "assuming 'MUSIC'.", smr_cv)
-            elif smr_cv.find("AURO") != -1:
-                self._sound_mode_map["AURO3D"].append(smr_cv)
+                                "assuming 'MUSIC'.", smr_up)
+            elif smr_up.find("AURO") != -1:
+                self._sound_mode_map["AURO3D"].append(smr_up)
                 _LOGGER.warning("Not able to match sound mode: '%s', "
-                                "assuming 'AURO3D'.", smr_cv)
-            elif (smr_cv.find("MOVIE") != -1 or smr_cv.find("CINEMA") != -1):
-                self._sound_mode_map["MOVIE"].append(smr_cv)
+                                "assuming 'AURO3D'.", smr_up)
+            elif (smr_up.find("MOVIE") != -1 or smr_up.find("CINEMA") != -1):
+                self._sound_mode_map["MOVIE"].append(smr_up)
                 _LOGGER.warning("Not able to match sound mode: '%s', "
-                                "assuming 'MOVIE'.", smr_cv)
+                                "assuming 'MOVIE'.", smr_up)
             else:
-                self._sound_mode_map[smr_cv] = [smr_cv]
+                self._sound_mode_map[smr_up] = [smr_up]
                 _LOGGER.warning("Not able to match sound mode: '%s', "
-                                "returning raw sound mode.", smr_cv)
+                                "returning raw sound mode.", smr_up)
             self._sound_mode_map_rev = sound_mode_rev_map_factory(self)
-            sound_mode = self._sound_mode_map_rev[smr_cv]
+            sound_mode = self._sound_mode_map_rev[smr_up]
 
         return sound_mode
 
@@ -217,7 +217,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     @property
     def sound_mode(self) -> Optional[str]:
         """Return the matched current sound mode as a string."""
-        sound_mode_matched = self.match_sound_mode(self._sound_mode_raw)
+        sound_mode_matched = self.match_sound_mode()
         return sound_mode_matched
 
     @property
