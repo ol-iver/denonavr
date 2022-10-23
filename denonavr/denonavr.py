@@ -21,7 +21,7 @@ import httpx
 from .decorators import run_async_synchronously
 from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
 from .const import (
-    DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES, ZONE2, ZONE3)
+    DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES, ZONE2, ZONE3, ZONE_SOURCES)
 from .exceptions import AvrCommandError, AvrTimoutError
 
 from .audyssey import DenonAVRAudyssey, audyssey_factory
@@ -34,6 +34,7 @@ from .volume import DenonAVRVolume, volume_factory
 _LOGGER = logging.getLogger(__name__)
 
 _SOCKET_READ_TIMEOUT = 10
+_SOCKET_READ_SIZE = 135
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
 class DenonAVR(DenonAVRFoundation):
@@ -262,11 +263,11 @@ class DenonAVR(DenonAVRFoundation):
                 self._process_power(zone_device, parameter)
             elif parameter == 'MUON' or parameter == 'MUOFF':
                 self._process_mute(zone_device.vol, parameter)
-            elif parameter == 'CD' or parameter == 'USB DIRECT' or parameter == 'IPOD DIRECT':
+            elif parameter in ZONE_SOURCES:
                 self._process_input(zone_device.input, parameter)
             elif parameter.isdigit():
                 self._process_volume(zone_device.vol, parameter)
-        # Some command we don't care about, don't 
+        # Some command we don't care about, don't trigger a callback
         else:
             return
 
@@ -277,7 +278,7 @@ class DenonAVR(DenonAVRFoundation):
         data = bytearray()
         while not self._socket_reader.at_eof():
             try:
-                chunk = await asyncio.wait_for(self._socket_reader.read(135), 10)
+                chunk = await asyncio.wait_for(self._socket_reader.read(_SOCKET_READ_SIZE), 10)
                 for i in range(0,len(chunk)):
                     if chunk[i] != 13:
                         data += chunk[i].to_bytes(1, byteorder='big')
