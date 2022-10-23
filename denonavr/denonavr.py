@@ -11,6 +11,7 @@ import asyncio
 from codecs import StreamReader, StreamWriter
 from contextlib import suppress
 import logging
+from subprocess import call
 import time
 
 from typing import Callable, Dict, List, Optional
@@ -59,6 +60,7 @@ class DenonAVR(DenonAVRFoundation):
     :type add_zones: dict [str, str] or None
     """
 
+    _callbacks = []
     _host: str = attr.ib(
         converter=str, on_setattr=[*DENON_ATTR_SETATTR, set_api_host])
     _name: Optional[str] = attr.ib(
@@ -183,9 +185,17 @@ class DenonAVR(DenonAVRFoundation):
     def close(self) -> None:
         """Close the connection to the receiver."""
 
-    def monitor_updates(self, callback) -> asyncio.Task:
+    def monitor_updates(self) -> asyncio.Task:
         """Monitor the TCP connection for realtime updates."""
-        return asyncio.create_task(self._async_monitor(callback))
+        return asyncio.create_task(self._async_monitor())
+
+    def register_callback(self, callback=lambda *args, **kwargs: None):
+        """Adds a callback to be triggered when an event is received."""
+        self._callbacks.append(callback)
+
+    def unregister_callback(self, callback=lambda *args, **kwargs: None):
+        """Removes a callback that gets triggered when an event is received."""
+        self._callbacks.remove(callback)
 
     def _process_power(self, device, parameter):
         setattr(device,"_power",parameter)
@@ -232,7 +242,7 @@ class DenonAVR(DenonAVRFoundation):
         elif parameter[0:6] == "MULTEQ":
             setattr(device.audyssey, "_multeq", parameter[7:])
     
-    def _process_event(self, message, callback):
+    def _process_event(self, message):
         if len(message) < 3:
             return None
         event = message[0:2]
@@ -271,9 +281,10 @@ class DenonAVR(DenonAVRFoundation):
         else:
             return
 
-        callback()        
+        for callback in self._callbacks:
+            callback(self)        
 
-    async def _async_monitor(self, callback):
+    async def _async_monitor(self):
         """Reads the messages on the TCP socket."""
         data = bytearray()
         while not self._socket_reader.at_eof():
@@ -283,7 +294,7 @@ class DenonAVR(DenonAVRFoundation):
                     if chunk[i] != 13:
                         data += chunk[i].to_bytes(1, byteorder='big')
                     else:
-                        self._process_event(str(data,'utf-8'), callback)
+                        self._process_event(str(data,'utf-8'))
                         data = bytearray()
             except asyncio.exceptions.TimeoutError as err:
                 _LOGGER.debug("Lost connection to receiver, reconnecting")
