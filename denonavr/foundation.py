@@ -420,41 +420,31 @@ class DenonAVRDeviceInfo:
         urls = [self.urls.status]
         if self.zone == MAIN_ZONE:
             urls.append(self.urls.mainzone)
-        # Variables with their tags to be updated
-        update_attrs = {"_power": "./Power/value"}
+        else:
+            urls.append("{}?ZoneName={}".format(self.urls.mainzone, self.zone))
+        # Tags in XML which might contain information about zones power status
+        # ordered by their priority
+        tags = ["./ZonePower/value", "./Power/value"]
 
-        for url in urls:
-            try:
-                xml = await self.api.async_get_xml(
-                    url, cache_id=cache_id)
-            except AvrRequestError as err:
-                _LOGGER.debug(
-                    "Error when getting power status from url %s", url,
-                    exc_info=err)
-                continue
-            attrs = deepcopy(update_attrs)
-            for name, tag in attrs.items():
+        for tag in tags:
+            for url in urls:
                 try:
-                    # Check if attribute exists
-                    getattr(self, name)
-                    # Set new value
-                    setattr(self, name, xml.find(tag).text)
-                    # Done
-                    update_attrs.pop(name, None)
-                except (AttributeError, IndexError) as err:
+                    xml = await self.api.async_get_xml(
+                        url, cache_id=cache_id)
+                except AvrRequestError as err:
                     _LOGGER.debug(
-                        "Failed updating attribute %s for zone %s", name,
-                        self.zone, exc_info=err)
+                        "Error when getting power status from url %s", url,
+                        exc_info=err)
+                    continue
 
-            # All done, no need for continuing
-            if not update_attrs:
-                break
+                # Search for power tag
+                power_tag = xml.find(tag)
+                if power_tag is not None and power_tag.text is not None:
+                    self._power = power_tag.text
+                    return
 
-        # Check if each attribute was updated
-        if update_attrs:
-            raise AvrProcessingError(
-                "Some attributes of zone {} not found on update: {}".format(
-                    self.zone, update_attrs))
+        raise AvrProcessingError(
+            "Power attribute of zone {} not found on update".format(self.zone))
 
     ##############
     # Properties #
