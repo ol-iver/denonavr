@@ -368,17 +368,15 @@ class DenonAVRDeviceInfo:
             global_update: bool = False,
             cache_id: Optional[Hashable] = None):
         """Update power status from AppCommand.xml."""
-        # Collect tags for AppCommand.xml call
-        update_attrs = {"_power": AppCommands.GetAllZonePowerStatus}
-        tags = tuple(i for i in update_attrs.values())
-        # Execute call
+        power_appcommand = AppCommands.GetAllZonePowerStatus
         try:
             if global_update:
                 xml = await self.api.async_get_global_appcommand(
                     cache_id=cache_id)
             else:
                 xml = await self.api.async_post_appcommand(
-                    self.urls.appcommand, tags, cache_id=cache_id)
+                    self.urls.appcommand, tuple(power_appcommand),
+                    cache_id=cache_id)
         except AvrRequestError as err:
             _LOGGER.debug(
                 "Error when getting power status", exc_info=err)
@@ -387,32 +385,18 @@ class DenonAVRDeviceInfo:
         # Extract relevant information
         zone = self.get_own_zone()
 
-        attrs = deepcopy(update_attrs)
-        for name, tag in attrs.items():
-            try:
-                # Check if attribute exists
-                getattr(self, name)
-                # Set new value
-                setattr(
-                    self,
-                    name,
-                    xml.find("./cmd[@{attribute}='{cmd}']/{zone}".format(
-                        attribute=APPCOMMAND_CMD_TEXT,
-                        cmd=tag.cmd_text,
-                        zone=zone)).text)
-                # Done
-                update_attrs.pop(name, None)
+        # Search for power tag
+        power_tag = xml.find("./cmd[@{attribute}='{cmd}']/{zone}".format(
+            attribute=APPCOMMAND_CMD_TEXT,
+            cmd=power_appcommand.cmd_text,
+            zone=zone))
 
-            except (AttributeError, IndexError) as err:
-                _LOGGER.debug(
-                    "Failed updating attribute %s for zone %s", name,
-                    self.zone, exc_info=err)
-
-        # Check if each attribute was updated
-        if update_attrs:
+        if power_tag is None:
             raise AvrProcessingError(
-                "Some attributes of zone {} not found on update: {}".format(
-                    self.zone, update_attrs))
+                "Power attribute of zone {} not found on update".format(
+                    self.zone))
+
+        self._power = power_tag.text
 
     async def async_update_power_status_xml(
             self,
