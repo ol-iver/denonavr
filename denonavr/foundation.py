@@ -282,8 +282,8 @@ class DenonAVRDeviceInfo:
             # Only AVR_X devices support both interfaces
             if self.receiver == AVR_X:
                 _LOGGER.warning(
-                    "Error verifying Appcommand.xml update method, it returns"
-                    "an incomplete result set. Deactivate the interface")
+                    "Error verifying Appcommand.xml update method, it returns "
+                    "an incomplete result set. Deactivating the interface")
                 self.use_avr_2016_update = False
         else:
             if self._allow_recovery is False:
