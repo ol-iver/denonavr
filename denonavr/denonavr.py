@@ -182,10 +182,14 @@ class DenonAVR(DenonAVRFoundation):
     def close(self) -> None:
         """Close the connection to the receiver."""
 
-    def process_power(self, device, parameter):
+    def monitor_updates(self, callback) -> asyncio.Task:
+        """Monitor the TCP connection for realtime updates."""
+        return asyncio.create_task(self._async_monitor(callback))
+
+    def _process_power(self, device, parameter):
         setattr(device,"_power",parameter)
 
-    def process_volume(self, device, parameter):
+    def _process_volume(self, device, parameter):
         if parameter[0:3] == "MAX":
             return
         if parameter == "---":
@@ -196,16 +200,16 @@ class DenonAVR(DenonAVRFoundation):
             else:
                 setattr(device,"_volume",-80.0 + float(parameter[0:2]) + (0.1 * float(parameter[2])))
     
-    def process_mute(self, device, parameter):
+    def _process_mute(self, device, parameter):
         setattr(device, "_muted", parameter)
 
-    def process_input(self, device, parameter):
+    def _process_input(self, device, parameter):
         setattr(device, "_input_func", parameter)
 
-    def process_surroundmode(self, device, parameter):
+    def _process_surroundmode(self, device, parameter):
         setattr(device, "_sound_mode", parameter)
 
-    def process_sounddetail(self, device, parameter):
+    def _process_sounddetail(self, device, parameter):
         if parameter == "TONE CTRL OFF":
             setattr(device.tonecontrol, "_tone_control_status", "1")
         elif parameter == "TONE CTRL ON":
@@ -227,7 +231,7 @@ class DenonAVR(DenonAVRFoundation):
         elif parameter[0:6] == "MULTEQ":
             setattr(device.audyssey, "_multeq", parameter[7:])
     
-    def async_process_event(self, message, callback):
+    def _process_event(self, message, callback):
         if len(message) < 3:
             return None
         event = message[0:2]
@@ -242,49 +246,48 @@ class DenonAVR(DenonAVRFoundation):
         zone_device : DenonAVR = self._zones[zone]
 
         if event == 'PW':
-            self.process_power(self._device, parameter)
+            self._process_power(self._device, parameter)
         elif event == 'MV':
-            self.process_volume(self.vol, parameter)
+            self._process_volume(self.vol, parameter)
         elif event == 'MU':
-            self.process_mute(self.vol, parameter)
+            self._process_mute(self.vol, parameter)
         elif event == 'SI':
-            self.process_input(self.input, parameter)
+            self._process_input(self.input, parameter)
         elif event == 'MS':
-            self.process_surroundmode(self.soundmode,parameter)
+            self._process_surroundmode(self.soundmode,parameter)
         elif event == 'PS':
-            self.process_sounddetail(self,parameter)
+            self._process_sounddetail(self,parameter)
         elif event == 'Z2' or event == 'Z3':
             if parameter == 'ON' or parameter == 'OFF':
-                self.process_power(zone_device, parameter)
+                self._process_power(zone_device, parameter)
             elif parameter == 'MUON' or parameter == 'MUOFF':
-                self.process_mute(zone_device.vol, parameter)
+                self._process_mute(zone_device.vol, parameter)
             elif parameter == 'CD' or parameter == 'USB DIRECT' or parameter == 'IPOD DIRECT':
-                self.process_input(zone_device.input, parameter)
+                self._process_input(zone_device.input, parameter)
             elif parameter.isdigit():
-                self.process_volume(zone_device.vol, parameter)
+                self._process_volume(zone_device.vol, parameter)
+        # Some command we don't care about, don't 
         else:
             return
 
         callback()        
 
     async def _async_monitor(self, callback):
+        """Reads the messages on the TCP socket."""
         data = bytearray()
         while not self._socket_reader.at_eof():
             try:
-                chunk = await asyncio.wait_for(self._socket_reader.read(100), 10)
+                chunk = await asyncio.wait_for(self._socket_reader.read(135), 10)
                 for i in range(0,len(chunk)):
                     if chunk[i] != 13:
                         data += chunk[i].to_bytes(1, byteorder='big')
                     else:
-                        self.async_process_event(str(data,'utf-8'), callback)
+                        self._process_event(str(data,'utf-8'), callback)
                         data = bytearray()
             except asyncio.exceptions.TimeoutError as err:
                 _LOGGER.debug("Lost connection to receiver, reconnecting")
                 await self.async_close()
                 await self.async_connect()
-
-    def monitor_updates(self, callback) -> asyncio.Task:
-        return asyncio.create_task(self._async_monitor(callback))
 
     async def async_update(self):
         """
