@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<FriendlyName><value>DENON AVR-1713</value></FriendlyName>
+<Power><value>ON</value></Power>
+<ZonePower><value>ON</value></ZonePower>
+<RenameZone><value>MAIN ZONE</value></RenameZone>
+<TopMenuLink><value>OFF</value></TopMenuLink>
+<ModelId><value>2</value></ModelId>
+<SalesArea><value>1</value></SalesArea>
+<InputFuncSelect><value>NETWORK</value></InputFuncSelect>
+<NetFuncSelect><value>NET</value></NetFuncSelect>
+<selectSurround><value>PLII Game                      </value></selectSurround>
+<VolumeDisplay><value>Absolute</value></VolumeDisplay>
+<MasterVolume><value>-67.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<RemoteMaintenance><value>OFF</value></RemoteMaintenance>
+<SubwooferDisplay><value>FALSE</value></SubwooferDisplay>
+<Zone2VolDisp><value>TRUE</value></Zone2VolDisp>
+<LastfmDisplay><value>FALSE</value></LastfmDisplay>
+<SpotifyEnable><value>FALSE</value></SpotifyEnable>
+</item>

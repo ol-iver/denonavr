@@ -14,7 +14,7 @@ import time
 import xml.etree.ElementTree as ET
 
 from functools import wraps
-from typing import Callable, Coroutine
+from typing import Callable, Coroutine, TypeVar
 
 import httpx
 
@@ -30,8 +30,11 @@ from .exceptions import (
 
 _LOGGER = logging.getLogger(__name__)
 
+AnyT = TypeVar('AnyT')
 
-def async_handle_receiver_exceptions(func: Coroutine) -> Coroutine:
+
+def async_handle_receiver_exceptions(
+        func: Callable[..., AnyT]) -> Callable[..., AnyT]:
     """
     Handle exceptions raised when calling an Denon AVR endpoint asynchronously.
 
@@ -81,7 +84,7 @@ def async_handle_receiver_exceptions(func: Coroutine) -> Coroutine:
     return wrapper
 
 
-def cache_clear_on_exception(func: Coroutine) -> Coroutine:
+def cache_clear_on_exception(func: Callable[..., AnyT]) -> Callable[..., AnyT]:
     """
     Decorate a function to clear lru_cache if an exception occurs.
 
@@ -102,7 +105,7 @@ def cache_clear_on_exception(func: Coroutine) -> Coroutine:
     return wrapper
 
 
-def set_cache_id(func: Callable) -> Callable:
+def set_cache_id(func: Callable[..., AnyT]) -> Callable[..., AnyT]:
     """
     Decorate a function to add cache_id keyword argument if it is not present.
 

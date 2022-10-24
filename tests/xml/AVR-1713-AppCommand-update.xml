@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rx>
+<cmd>
+<zone1>ON</zone1>
+</cmd>
+<cmd>
+<zone1>
+<source>NET</source>
+</zone1>
+</cmd>
+<cmd>
+<functionrename>
+<list>
+<name>FM</name>
+<rename>FM</rename>
+</list>
+<list>
+<name>NETWORK</name>
+<rename>NETWORK</rename>
+</list>
+<list>
+<name>DVD</name>
+<rename>DVD         </rename>
+</list>
+<list>
+<name>Blu-ray</name>
+<rename>Blu-ray     </rename>
+</list>
+<list>
+<name>TV AUDIO</name>
+<rename>Squeezebox  </rename>
+</list>
+<list>
+<name>CBL/SAT</name>
+<rename>CBL/SAT     </rename>
+</list>
+<list>
+<name>GAME</name>
+<rename>GAME        </rename>
+</list>
+<list>
+<name>AUX</name>
+<rename>AUX         </rename>
+</list>
+<list>
+<name>iPod/USB</name>
+<rename>iPod/USB</rename>
+</list>
+</functionrename>
+</cmd>
+<cmd>
+<functiondelete>
+<list>
+<name>FM</name>
+<FuncName>FM</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>NETWORK</name>
+<FuncName>NETWORK</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>DVD</name>
+<FuncName>DVD</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>Blu-ray</name>
+<FuncName>Blu-ray</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>TV AUDIO</name>
+<FuncName>TV AUDIO</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>CBL/SAT</name>
+<FuncName>CBL/SAT</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>GAME</name>
+<FuncName>GAME</FuncName>
+<use>0</use>
+</list>
+<list>
+<name>AUX</name>
+<FuncName>AUX</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>iPod/USB</name>
+<FuncName>iPod/USB</FuncName>
+<use>1</use>
+</list>
+</functiondelete>
+</cmd>
+<cmd>
+<surround>PLII Game                      </surround>
+</cmd>
+<error>2</error>
+<cmd>
+<zone1>
+<volume>-67.0</volume>
+<disptype>ABSOLUTE</disptype>
+<dispvalue>13.0</dispvalue>
+</zone1>
+</cmd>
+<cmd>
+<zone1>off</zone1>
+</cmd>
+</rx>

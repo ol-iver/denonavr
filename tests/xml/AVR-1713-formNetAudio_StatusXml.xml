@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<chFlag>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>8</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+</chFlag>
+<szLine>
+<value>Network</value>
+<value>Favorites</value>
+<value>Internet Radio</value>
+<value>Media Server</value>
+<value>Last.Fm</value>
+<value>Flickr</value>
+<value></value>
+<value></value>
+<value>   [    0/5  ]</value>
+<value></value>
+</szLine>
+<NetworkNewTop><value>1</value></NetworkNewTop>
+<iPodRemoteDirect><value>0</value></iPodRemoteDirect>
+<Art>
+<value>0</value>
+</Art>
+<Slideshow><value></value></Slideshow>
+<SlideshowLists>
+<value index='OFF'  table='OFF' param=''/>
+<value index='05'  table='05' param=''/>
+<value index='10'  table='10' param=''/>
+<value index='15'  table='15' param=''/>
+<value index='20'  table='20' param=''/>
+<value index='30'  table='30' param=''/>
+<value index='60'  table='60' param=''/>
+</SlideshowLists>
+<iRadio><value>0</value></iRadio>
+<iRadioSearch><value>0</value></iRadioSearch>
+<Flickr><value>0</value></Flickr>
+<FlickrSearch><value>0</value></FlickrSearch>
+<AddFlickrContact><value>0</value></AddFlickrContact>
+<ModelId><value>2</value></ModelId>
+<SalesArea><value>1</value></SalesArea>
+<InputFuncSelect><value>NETWORK</value></InputFuncSelect>
+<NetFuncSelect><value>NET</value></NetFuncSelect>
+<selectSurround><value>PLII Game                      </value></selectSurround>
+<VolumeDisplay><value>Absolute</value></VolumeDisplay>
+<MasterVolume><value>-67.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<RemoteMaintenance><value>OFF</value></RemoteMaintenance>
+<SubwooferDisplay><value>FALSE</value></SubwooferDisplay>
+<Zone2VolDisp><value>TRUE</value></Zone2VolDisp>
+<LastfmDisplay><value>FALSE</value></LastfmDisplay>
+<SpotifyEnable><value>FALSE</value></SpotifyEnable>
+</item>
