@@ -20,8 +20,8 @@ import httpx
 from .appcommand import AppCommandCmd, AppCommands
 from .api import DenonAVRApi
 from .exceptions import (
-    AvrForbiddenError, AvrNetworkError, AvrProcessingError, AvrRequestError,
-    AvrTimoutError)
+    AvrForbiddenError, AvrIncompleteResponseError, AvrNetworkError,
+    AvrProcessingError, AvrRequestError, AvrTimoutError)
 from .const import (
     APPCOMMAND_CMD_TEXT, APPCOMMAND_NAME, AVR, AVR_X, AVR_X_2016,
     DENON_ATTR_SETATTR, DENONAVR_URLS, DESCRIPTION_TYPES,
@@ -248,46 +248,48 @@ class DenonAVRDeviceInfo:
 
     async def async_verify_avr_2016_update_method(
             self, cache_id: Hashable = None) -> None:
-        """Verify if avr 2016 update method is working with all tags."""
-        # AVR receivers do not support AppCommand.xml interface
-        if self.receiver == AVR:
-            self.use_avr_2016_update = False
-        else:
-            try:
-                await self.api.async_get_global_appcommand(cache_id=cache_id)
-            except (AvrTimoutError, AvrNetworkError) as err:
-                _LOGGER.debug(
-                    "Connection error when verifying update method",
-                    exc_info=err)
-                raise
-            except AvrForbiddenError:
-                # Recovery in case receiver changes port from 80 to 8080 which
-                # might happen at Denon AVR-X 2016 receivers
-                if self._allow_recovery is True:
-                    self._allow_recovery = False
-                    _LOGGER.warning(
-                        "AppCommand.xml returns HTTP status 403. Running setup"
-                        " again once to check if receiver interface switched "
-                        "ports")
-                    self._is_setup = False
-                    await self.async_setup()
-                    await self.async_verify_avr_2016_update_method(
-                        cache_id=cache_id)
-                else:
-                    raise
-            except AvrRequestError as err:
-                _LOGGER.debug(
-                    "Request error when verifying update method", exc_info=err)
-                # Only AVR_X devices support both interfaces
-                if self.receiver == AVR_X:
-                    if self.use_avr_2016_update is True:
-                        _LOGGER.warning(
-                            "Error verifying Appcommand.xml update method, "
-                            "deactivate this interface")
-                    self.use_avr_2016_update = False
+        """Verify if avr 2016 update method is working."""
+        # Nothing to do if Appcommand.xml interface is not supported
+        if self.use_avr_2016_update is False:
+            return
+
+        try:
+            # Result is cached that it can be reused during update
+            await self.api.async_get_global_appcommand(cache_id=cache_id)
+        except (AvrTimoutError, AvrNetworkError) as err:
+            _LOGGER.debug(
+                "Connection error when verifying update method",
+                exc_info=err)
+            raise
+        except AvrForbiddenError:
+            # Recovery in case receiver changes port from 80 to 8080 which
+            # might happen at Denon AVR-X 2016 receivers
+            if self._allow_recovery is True:
+                self._allow_recovery = False
+                _LOGGER.warning(
+                    "AppCommand.xml returns HTTP status 403. Running setup"
+                    " again once to check if receiver interface switched "
+                    "ports")
+                self._is_setup = False
+                await self.async_setup()
+                await self.async_verify_avr_2016_update_method(
+                    cache_id=cache_id)
             else:
-                self._allow_recovery = True
-                self.use_avr_2016_update = True
+                raise
+        except AvrIncompleteResponseError as err:
+            _LOGGER.debug(
+                "Request error when verifying update method", exc_info=err)
+            # Only AVR_X devices support both interfaces
+            if self.receiver == AVR_X:
+                _LOGGER.warning(
+                    "Error verifying Appcommand.xml update method, it returns "
+                    "an incomplete result set. Deactivating the interface")
+                self.use_avr_2016_update = False
+        else:
+            if self._allow_recovery is False:
+                _LOGGER.info(
+                    "AppCommand.xml recovered from HTTP status 403 error")
+            self._allow_recovery = True
 
     def _set_friendly_name(self, xml: ET.Element) -> None:
         """Set FriendlyName from result xml."""
@@ -366,17 +368,15 @@ class DenonAVRDeviceInfo:
             global_update: bool = False,
             cache_id: Optional[Hashable] = None):
         """Update power status from AppCommand.xml."""
-        # Collect tags for AppCommand.xml call
-        update_attrs = {"_power": AppCommands.GetAllZonePowerStatus}
-        tags = tuple(i for i in update_attrs.values())
-        # Execute call
+        power_appcommand = AppCommands.GetAllZonePowerStatus
         try:
             if global_update:
                 xml = await self.api.async_get_global_appcommand(
                     cache_id=cache_id)
             else:
                 xml = await self.api.async_post_appcommand(
-                    self.urls.appcommand, tags, cache_id=cache_id)
+                    self.urls.appcommand, tuple(power_appcommand),
+                    cache_id=cache_id)
         except AvrRequestError as err:
             _LOGGER.debug(
                 "Error when getting power status", exc_info=err)
@@ -385,32 +385,18 @@ class DenonAVRDeviceInfo:
         # Extract relevant information
         zone = self.get_own_zone()
 
-        attrs = deepcopy(update_attrs)
-        for name, tag in attrs.items():
-            try:
-                # Check if attribute exists
-                getattr(self, name)
-                # Set new value
-                setattr(
-                    self,
-                    name,
-                    xml.find("./cmd[@{attribute}='{cmd}']/{zone}".format(
-                        attribute=APPCOMMAND_CMD_TEXT,
-                        cmd=tag.cmd_text,
-                        zone=zone)).text)
-                # Done
-                update_attrs.pop(name, None)
+        # Search for power tag
+        power_tag = xml.find("./cmd[@{attribute}='{cmd}']/{zone}".format(
+            attribute=APPCOMMAND_CMD_TEXT,
+            cmd=power_appcommand.cmd_text,
+            zone=zone))
 
-            except (AttributeError, IndexError) as err:
-                _LOGGER.debug(
-                    "Failed updating attribute %s for zone %s", name,
-                    self.zone, exc_info=err)
-
-        # Check if each attribute was updated
-        if update_attrs:
+        if power_tag is None:
             raise AvrProcessingError(
-                "Some attributes of zone {} not found on update: {}".format(
-                    self.zone, update_attrs))
+                "Power attribute of zone {} not found on update".format(
+                    self.zone))
+
+        self._power = power_tag.text
 
     async def async_update_power_status_xml(
             self,
@@ -420,41 +406,31 @@ class DenonAVRDeviceInfo:
         urls = [self.urls.status]
         if self.zone == MAIN_ZONE:
             urls.append(self.urls.mainzone)
-        # Variables with their tags to be updated
-        update_attrs = {"_power": "./Power/value"}
+        else:
+            urls.append("{}?ZoneName={}".format(self.urls.mainzone, self.zone))
+        # Tags in XML which might contain information about zones power status
+        # ordered by their priority
+        tags = ["./ZonePower/value", "./Power/value"]
 
-        for url in urls:
-            try:
-                xml = await self.api.async_get_xml(
-                    url, cache_id=cache_id)
-            except AvrRequestError as err:
-                _LOGGER.debug(
-                    "Error when getting power status from url %s", url,
-                    exc_info=err)
-                continue
-            attrs = deepcopy(update_attrs)
-            for name, tag in attrs.items():
+        for tag in tags:
+            for url in urls:
                 try:
-                    # Check if attribute exists
-                    getattr(self, name)
-                    # Set new value
-                    setattr(self, name, xml.find(tag).text)
-                    # Done
-                    update_attrs.pop(name, None)
-                except (AttributeError, IndexError) as err:
+                    xml = await self.api.async_get_xml(
+                        url, cache_id=cache_id)
+                except AvrRequestError as err:
                     _LOGGER.debug(
-                        "Failed updating attribute %s for zone %s", name,
-                        self.zone, exc_info=err)
+                        "Error when getting power status from url %s", url,
+                        exc_info=err)
+                    continue
 
-            # All done, no need for continuing
-            if not update_attrs:
-                break
+                # Search for power tag
+                power_tag = xml.find(tag)
+                if power_tag is not None and power_tag.text is not None:
+                    self._power = power_tag.text
+                    return
 
-        # Check if each attribute was updated
-        if update_attrs:
-            raise AvrProcessingError(
-                "Some attributes of zone {} not found on update: {}".format(
-                    self.zone, update_attrs))
+        raise AvrProcessingError(
+            "Power attribute of zone {} not found on update".format(self.zone))
 
     ##############
     # Properties #

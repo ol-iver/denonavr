@@ -47,6 +47,10 @@ class AvrTimoutError(AvrRequestError):
     """Define an error for timeouts during a HTTP request for Denon AVR."""
 
 
+class AvrIncompleteResponseError(AvrRequestError):
+    """Define an error for incomplete responses of Denon AVR."""
+
+
 class AvrInvalidResponseError(AvrRequestError):
     """Define an error for invalid responses of Denon AVR."""
 

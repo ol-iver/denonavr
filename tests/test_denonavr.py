@@ -46,6 +46,8 @@ TESTING_RECEIVERS = {
     "AVR-X4000": (ZONE2_ZONE3, denonavr.const.AVR_X),
     "SR6011": (ZONE2, denonavr.const.AVR_X),
     "AV7703": (ZONE2_ZONE3, denonavr.const.AVR_X_2016),
+    "AVR-1713": (NO_ZONES, denonavr.const.AVR_X),
+    "AVR-3313": (ZONE2_ZONE3, denonavr.const.AVR_X),
     }
 
 APPCOMMAND_URL = "/goform/AppCommand.xml"

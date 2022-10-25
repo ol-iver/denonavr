@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<FriendlyName><value>DENON AVR-3313</value></FriendlyName>
+<Power><value>ON</value></Power>
+<ZonePower><value>ON</value></ZonePower>
+<RenameZone><value>MAIN ZONE </value></RenameZone>
+<TopMenuLink><value>OFF</value></TopMenuLink>
+<ModelId><value>6</value></ModelId>
+<SalesArea><value>1</value></SalesArea>
+<InputFuncSelect><value>CBL/SAT</value></InputFuncSelect>
+<NetFuncSelect><value>RHAPSODY</value></NetFuncSelect>
+<selectSurround><value>PLII Cinema                    </value></selectSurround>
+<VolumeDisplay><value>Absolute</value></VolumeDisplay>
+<MasterVolume><value>-70.0</value></MasterVolume>
+<Mute><value>off</value></Mute>
+<RemoteMaintenance><value>OFF</value></RemoteMaintenance>
+<SubwooferDisplay><value>FALSE</value></SubwooferDisplay>
+<Zone2VolDisp><value>TRUE</value></Zone2VolDisp>
+<LastfmDisplay><value>TRUE</value></LastfmDisplay>
+</item>
