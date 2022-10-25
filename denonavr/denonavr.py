@@ -8,7 +8,6 @@ This module implements the interface to Denon AVR receivers.
 """
 
 import asyncio
-from codecs import StreamReader, StreamWriter
 from contextlib import suppress
 import logging
 from subprocess import call
@@ -198,9 +197,11 @@ class DenonAVR(DenonAVRFoundation):
         self._callbacks.remove(callback)
 
     def _process_power(self, device, parameter):
+        """Process a power event."""
         setattr(device,"_power",parameter)
 
     def _process_volume(self, device, parameter):
+        """Process a volume event."""
         if parameter[0:3] == "MAX":
             return
         if parameter == "---":
@@ -212,15 +213,19 @@ class DenonAVR(DenonAVRFoundation):
                 setattr(device,"_volume",-80.0 + float(parameter[0:2]) + (0.1 * float(parameter[2])))
     
     def _process_mute(self, device, parameter):
+        """Process a mute event."""
         setattr(device, "_muted", parameter)
 
     def _process_input(self, device, parameter):
+        """Process an input source change event."""
         setattr(device, "_input_func", parameter)
 
     def _process_surroundmode(self, device, parameter):
+        """Process a surround mode event."""
         setattr(device, "_sound_mode", parameter)
 
     def _process_sounddetail(self, device, parameter):
+        """Process a sound detail event."""
         if parameter == "TONE CTRL OFF":
             setattr(device.tonecontrol, "_tone_control_status", "1")
         elif parameter == "TONE CTRL ON":
@@ -243,18 +248,23 @@ class DenonAVR(DenonAVRFoundation):
             setattr(device.audyssey, "_multeq", parameter[7:])
     
     def _process_event(self, message):
+        """Process a realtime event."""
         if len(message) < 3:
             return None
+
+        #Event is 2 characters
         event = message[0:2]
+        #Parameter is the remaining characters
         parameter = message[2:]
-        zone = MAIN_ZONE
 
-        if event == 'Z2':
-            zone = ZONE2
-        elif event == 'Z3':
-            zone = ZONE3
+        # Figure out the zone from the event
+        zone_device : DenonAVR = None
 
-        zone_device : DenonAVR = self._zones[zone]
+        if event == 'Z2' and ZONE2 in self._zones.keys():
+            zone_device = self._zones[ZONE2]
+        elif event == 'Z3' and ZONE3 in self._zones.keys():
+            zone_device = self._zones[ZONE3]
+
 
         if event == 'PW':
             self._process_power(self._device, parameter)
@@ -268,9 +278,9 @@ class DenonAVR(DenonAVRFoundation):
             self._process_surroundmode(self.soundmode,parameter)
         elif event == 'PS':
             self._process_sounddetail(self,parameter)
-        elif event == 'Z2' or event == 'Z3':
+        elif (event == 'Z2' or event == 'Z3') and zone_device is not None:
             if parameter == 'ON' or parameter == 'OFF':
-                self._process_power(zone_device, parameter)
+                self._process_power(zone_device._device, parameter)
             elif parameter == 'MUON' or parameter == 'MUOFF':
                 self._process_mute(zone_device.vol, parameter)
             elif parameter in ZONE_SOURCES:
@@ -281,8 +291,17 @@ class DenonAVR(DenonAVRFoundation):
         else:
             return
 
+        # Prevent double events when changing volume due to the undocument VSMAX event that we ignore
+        if event == 'MV' and parameter[0:3]=='MAX':
+            return
+
+        # Execute all callbacks in a try/catch so a bad callback doesn't cause others to not execute
         for callback in self._callbacks:
-            callback(self)        
+            try:
+                callback(self)        
+            except Exception as err:
+                _LOGGER.error(f"Event callback triggered an unhandled exception {err}")
+                pass
 
     async def _async_monitor(self):
         """Reads the messages on the TCP socket."""
@@ -291,6 +310,7 @@ class DenonAVR(DenonAVRFoundation):
             try:
                 chunk = await asyncio.wait_for(self._socket_reader.read(_SOCKET_READ_SIZE), 10)
                 for i in range(0,len(chunk)):
+                    # Messages are CR terminated
                     if chunk[i] != 13:
                         data += chunk[i].to_bytes(1, byteorder='big')
                     else:
