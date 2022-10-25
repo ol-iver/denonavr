@@ -247,7 +247,7 @@ class DenonAVR(DenonAVRFoundation):
         elif parameter[0:6] == "MULTEQ":
             setattr(device.audyssey, "_multeq", parameter[7:])
     
-    def _process_event(self, message):
+    async def _process_event(self, message):
         """Process a realtime event."""
         if len(message) < 3:
             return None
@@ -268,12 +268,14 @@ class DenonAVR(DenonAVRFoundation):
 
         if event == 'PW':
             self._process_power(self._device, parameter)
+            await self.input.async_update_media_state()
         elif event == 'MV':
             self._process_volume(self.vol, parameter)
         elif event == 'MU':
             self._process_mute(self.vol, parameter)
         elif event == 'SI':
             self._process_input(self.input, parameter)
+            await self.input.async_update_media_state()
         elif event == 'MS':
             self._process_surroundmode(self.soundmode,parameter)
         elif event == 'PS':
@@ -314,7 +316,7 @@ class DenonAVR(DenonAVRFoundation):
                     if chunk[i] != 13:
                         data += chunk[i].to_bytes(1, byteorder='big')
                     else:
-                        self._process_event(str(data,'utf-8'))
+                        await self._process_event(str(data,'utf-8'))
                         data = bytearray()
             except asyncio.exceptions.TimeoutError as err:
                 _LOGGER.debug("Lost connection to receiver, reconnecting")
