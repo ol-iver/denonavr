@@ -55,6 +55,11 @@ class DenonAVRVolume(DenonAVRFoundation):
         "_volume": "./MasterVolume/value",
         "_muted": "./Mute/value"}
 
+    def __attrs_post_init__(self) -> None:
+        """Initialize the callbacks"""
+        self._device.telnet_api.register_callback("MV", self._volume_callback)
+        self._device.telnet_api.register_callback("MU", self._mute_callback)
+
     def setup(self) -> None:
         """Ensure that the instance is initialized."""
         # Add tags for a potential AppCommand.xml update
@@ -62,6 +67,16 @@ class DenonAVRVolume(DenonAVRFoundation):
             self._device.api.add_appcommand_update_tag(tag)
 
         self._is_setup = True
+
+    def _volume_callback(self, zone: str, value: float) -> None:
+        """Handle a volume change event"""
+        if self._device.zone == zone:
+            self._volume = value
+
+    def _mute_callback(self, zone: str, value: str) -> None:
+        """Handle a muting change event"""
+        if self._device.zone == zone:
+            self._muted = value
 
     async def async_update(
             self,

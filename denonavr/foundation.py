@@ -18,7 +18,7 @@ import attr
 import httpx
 
 from .appcommand import AppCommandCmd, AppCommands
-from .api import DenonAVRApi
+from .api import DenonAVRApi, DenonAVRTelnetApi
 from .exceptions import (
     AvrForbiddenError, AvrIncompleteResponseError, AvrNetworkError,
     AvrProcessingError, AvrRequestError, AvrTimoutError)
@@ -42,6 +42,11 @@ class DenonAVRDeviceInfo:
         validator=attr.validators.instance_of(DenonAVRApi),
         default=attr.Factory(DenonAVRApi),
         kw_only=True)
+    telnet_api: DenonAVRTelnetApi = attr.ib(
+        validator=attr.validators.instance_of(DenonAVRTelnetApi),
+        default=attr.Factory(DenonAVRTelnetApi),
+        kw_only=True
+    )
     receiver: Optional[ReceiverType] = attr.ib(
         validator=attr.validators.optional(
             attr.validators.in_(VALID_RECEIVER_TYPES)),
@@ -71,7 +76,7 @@ class DenonAVRDeviceInfo:
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
 
     def __attrs_post_init__(self) -> None:
-        """Initialize special attributes."""
+        """Initialize special attributes and callbacks."""
         # URLs depending from value of self.zone attribute
         if self.zone == MAIN_ZONE:
             self.urls = DENONAVR_URLS
@@ -81,6 +86,13 @@ class DenonAVRDeviceInfo:
             self.urls = ZONE3_URLS
         else:
             raise ValueError("Invalid zone {}".format(self.zone))
+
+        self.telnet_api.register_callback("PW", self._power_callback)
+
+    def _power_callback(self, zone: str, value: str) -> None:
+        """Handle a volume change event"""
+        if self.zone == zone:
+            self._power = value
 
     def get_own_zone(self):
         """
@@ -111,6 +123,8 @@ class DenonAVRDeviceInfo:
             # Add tags for a potential AppCommand.xml update
             self.api.add_appcommand_update_tag(
                 AppCommands.GetAllZonePowerStatus)
+
+            await self.telnet_api.async_connect()
 
             self._is_setup = True
 
@@ -646,6 +660,7 @@ def set_api_host(
     """Change API host on host changes too."""
     # First change _device.api.host then return value
     instance._device.api.host = value  # pylint: disable=protected-access
+    instance._device.telnet_api.host = value
     return value
 
 

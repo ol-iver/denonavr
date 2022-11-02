@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-This module implements the REST API to Denon AVR receivers.
+This module implements the REST and Telnet APIs to Denon AVR receivers.
 
 :copyright: (c) 2021 by Oliver Goetz.
 :license: MIT, see LICENSE for more details.
 """
 
+import asyncio
+from contextlib import suppress
+import inspect
 import logging
 import xml.etree.ElementTree as ET
 
@@ -24,13 +27,14 @@ from .decorators import (
     async_handle_receiver_exceptions,
     cache_clear_on_exception,
     set_cache_id)
-from .exceptions import AvrIncompleteResponseError, AvrInvalidResponseError
+from .exceptions import AvrIncompleteResponseError, AvrInvalidResponseError, AvrTimoutError
 from .const import (
     APPCOMMAND_CMD_TEXT, APPCOMMAND_NAME, APPCOMMAND_URL, APPCOMMAND0300_URL,
-    DENON_ATTR_SETATTR)
+    DENON_ATTR_SETATTR, MAIN_ZONE, ZONE2, ZONE3, ZONE_SOURCES)
 
 _LOGGER = logging.getLogger(__name__)
 
+_SOCKET_READ_SIZE = 135
 
 def get_default_async_client() -> httpx.AsyncClient:
     """Get the default httpx.AsyncClient."""
@@ -309,3 +313,188 @@ class DenonAVRApi:
     def is_default_async_client(self) -> bool:
         """Check if default httpx.AsyncCLient getter is used."""
         return self.async_client_getter is get_default_async_client
+
+@attr.s(auto_attribs=True, hash=False, on_setattr=DENON_ATTR_SETATTR)
+class DenonAVRTelnetApi:
+
+    host: str = attr.ib(converter=str, default="localhost")
+    timeout: int = attr.ib(converter=int, default=10)
+    _telnet_task: asyncio.Task = attr.ib(default=None)
+    _callbacks: dict[str, Callable] = attr.ib(
+        validator=attr.validators.instance_of(dict),
+        default={}, init=False
+    )
+    
+    async def async_connect(self) -> asyncio.Task:
+        """ Connect to the receiver asynchronously."""
+        try:
+            self._socket_reader, self._socket_writer = await asyncio.wait_for(asyncio.open_connection(self.host, 23), timeout=self.timeout)
+            self._telnet_task = asyncio.create_task(self._async_monitor())
+            return self._telnet_task
+        except asyncio.exceptions.TimeoutError as err:
+            _LOGGER.debug(
+                "Socket timeout exception on connect",
+                exc_info=True)
+            raise AvrTimoutError(
+                "TimeoutException: {}".format(err), "connect") from err
+
+    async def async_disconnect(self) -> None:
+        """Close the connection to the receiver asynchronously."""
+        if self._telnet_task:
+            self._telnet_task.cancel()
+            self._telnet_task = None
+        if self._socket_writer:
+            self._socket_writer.close()
+            with suppress(ConnectionError):
+                await self._socket_writer.wait_closed()
+            self._socket_writer = None
+
+    async def _async_monitor(self):
+        """Reads the messages on the TCP socket."""
+        data = bytearray()
+        while not self._socket_reader.at_eof():
+            try:
+                chunk = await asyncio.wait_for(self._socket_reader.read(_SOCKET_READ_SIZE), self.timeout)
+                for i in range(0,len(chunk)):
+                    # Messages are CR terminated
+                    if chunk[i] != 13:
+                        data += chunk[i].to_bytes(1, byteorder='big')
+                    else:
+                        await self._process_event(str(data,'utf-8'))
+                        data = bytearray()
+            except asyncio.exceptions.TimeoutError as err:
+                _LOGGER.debug("Lost connection to receiver, reconnecting")
+                await self.async_disconnect()
+                await self.async_connect()
+
+    def register_callback(self, type: str="ALL", callback=lambda *args: any):
+        """Registers a callback handler for an event type."""       
+        if not type in self._callbacks.keys():
+            self._callbacks[type] = []
+        self._callbacks[type].append(callback)
+
+    def unregister_callback(self, type: str="ALL", callback=lambda *args: any):
+        """Unregisters a callback handler for an event type."""
+        if not type in self._callbacks.keys():
+            return
+        self._callbacks[type].remove(callback)
+
+    async def _process_event(self, message):
+        """Process a realtime event."""
+        if len(message) < 3:
+            return None
+
+        #Event is 2 characters
+        event = message[0:2]
+        #Parameter is the remaining characters
+        parameter = message[2:]
+
+        if event == 'PW':
+            await self._process_power(MAIN_ZONE, parameter)
+        elif event == 'MV':
+            await self._process_volume(MAIN_ZONE, parameter)
+        elif event == 'MU':
+            await self._process_mute(MAIN_ZONE, parameter)
+        elif event == 'SI':
+            await self._process_input(MAIN_ZONE, parameter)
+        elif event == 'MS':
+            await self._process_surroundmode(MAIN_ZONE, parameter)
+        elif event == 'PS':
+            await self._process_sounddetail(MAIN_ZONE, parameter)
+        
+        elif event == 'Z2' or event == 'Z3':
+            if event == 'Z2':
+                zone = ZONE2
+            else:
+                zone = ZONE3
+            if parameter == 'ON' or parameter == 'OFF':
+                await self._process_power(zone, parameter)
+            elif parameter == 'MUON' or parameter == 'MUOFF':
+                await self._process_mute(zone, parameter)
+            elif parameter in ZONE_SOURCES:
+                await self._process_input(zone, parameter)
+            elif parameter.isdigit():
+                await self._process_volume(zone, parameter)        
+
+    async def _trigger_callbacks(self, type: str, zone: str, value: any):
+        """Handle triggering the registered callbacks for the specified type"""
+        if type in self._callbacks.keys():
+            for callback in self._callbacks[type]:
+                try:
+                    if inspect.iscoroutinefunction(callback):
+                        await callback(zone, value)
+                    else:
+                        callback(zone, value)
+                except Exception as err:
+                    # We don't want a single bad callback to trip up the whole system and prevent further 
+                    # execution
+                    print(err)
+                    _LOGGER.error(f"Event callback triggered an unhandled exception {err}")
+
+        if "ALL" in self._callbacks.keys():
+            for callback in self._callbacks["ALL"]:
+                try:
+                    if inspect.iscoroutinefunction(callback):
+                        await callback(zone)
+                    else:
+                        callback(zone)
+                except Exception as err:
+                    _LOGGER.error(f"Event callback triggered an unhandled exception {err}")
+                
+        
+
+
+        
+    async def _process_power(self, zone, parameter):
+        """Process a power event."""
+        await self._trigger_callbacks("PW", zone, parameter)
+
+    async def _process_volume(self, zone, parameter):
+        """Process a volume event."""
+        if parameter[0:3] == "MAX":
+            return
+        if parameter == "---":
+            await self._trigger_callbacks("MV", zone, -80.0)
+        else:
+            if len(parameter) < 3:
+                await self._trigger_callbacks("MV", zone, -80.0 + float(parameter))
+            else:
+                await self._trigger_callbacks("MV", zone, -80.0 + float(parameter[0:2]) + (0.1 * float(parameter[2])))
+
+    async def _process_mute(self, zone, parameter):
+        """Process a mute event."""
+        await self._trigger_callbacks("MU", zone, parameter)
+
+    async def _process_input(self, zone, parameter):
+        """Process an input source change event."""
+        await self._trigger_callbacks("SI", zone, parameter)
+
+    async def _process_surroundmode(self, zone, parameter):
+        """Process a surround mode event."""
+        await self._trigger_callbacks("MS", zone, parameter)
+
+    async def _process_sounddetail(self, zone, parameter):
+        """Process a sound detail event."""
+        if parameter[0:3] == "BAS":
+            value = int(parameter[4:])
+            await self._trigger_callbacks("BAS", zone, value)
+        elif parameter[0:3] == "TRE":
+            value = int(parameter[4:])
+            await self._trigger_callbacks("TRE", zone, value)
+        elif parameter[0:6] == "REFLEV":
+            value = parameter[7:]
+            await self._trigger_callbacks("REFLEV", zone, value)
+        elif parameter[0:6] == "DYNVOL":
+            value = parameter[7:]
+            await self._trigger_callbacks("DYNVOL", zone, value)
+        elif parameter[0:6] == "MULTEQ":
+            value = parameter[7:]
+            await self._trigger_callbacks("MULTEQ", zone, value)
+        elif parameter == "DYNEQ ON":
+            await self._trigger_callbacks("DYNEQ", zone, "1")
+        elif parameter == "DYNEQ OFF":
+            await self._trigger_callbacks("DYNEQ", zone, "0")
+        if parameter == "TONE CTRL OFF":
+            await self._trigger_callbacks("TONE", zone, "1")
+        elif parameter == "TONE CTRL ON":
+            await self._trigger_callbacks("TONE", zone, "0")

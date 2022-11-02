@@ -58,6 +58,13 @@ class DenonAVRAudyssey(DenonAVRFoundation):
     appcommand0300_attrs = {
         AppCommands.GetAudyssey: None}
 
+    def __attrs_post_init__(self) -> None:
+        """Initialize the callbacks"""
+        self._device.telnet_api.register_callback("REFLEV", self._reflevoffset_callback)
+        self._device.telnet_api.register_callback("DYNVOL", self._dynamicvol_callback)
+        self._device.telnet_api.register_callback("MULTEQ", self._multeq_callback)
+        self._device.telnet_api.register_callback("DYNEQ", self._dynamiceq_callback)
+
     def setup(self) -> None:
         """Ensure that the instance is initialized."""
         # Add tags for a potential AppCommand.xml update
@@ -65,6 +72,26 @@ class DenonAVRAudyssey(DenonAVRFoundation):
             self._device.api.add_appcommand0300_update_tag(tag)
 
         self._is_setup = True
+
+    def _reflevoffset_callback(self, zone: str, value: str):
+        """Handle a ref level change event"""
+        if self._device.zone == zone:
+            self._reflevoffset = value
+
+    def _dynamicvol_callback(self, zone: str, value: str):
+        """Handle a dynamic volume change event"""
+        if self._device.zone == zone:
+            self._dynamicvol = value
+
+    def _multeq_callback(self, zone: str, value: str):
+        """Handle a multi EQ change event"""
+        if self._device.zone == zone:
+            self._multeq = value
+    
+    def _dynamiceq_callback(self, zone: str, value: str):
+        """Handle a dynamic EQ change event"""
+        if self._device.zone == zone:
+            self._dynamiceq = value
 
     async def async_update(
             self,

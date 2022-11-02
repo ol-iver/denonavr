@@ -33,9 +33,6 @@ from .volume import DenonAVRVolume, volume_factory
 
 _LOGGER = logging.getLogger(__name__)
 
-_SOCKET_READ_TIMEOUT = 10
-_SOCKET_READ_SIZE = 135
-
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
 class DenonAVR(DenonAVRFoundation):
     """
@@ -59,7 +56,6 @@ class DenonAVR(DenonAVRFoundation):
     :type add_zones: dict [str, str] or None
     """
 
-    _callbacks = []
     _host: str = attr.ib(
         converter=str, on_setattr=[*DENON_ATTR_SETATTR, set_api_host])
     _name: Optional[str] = attr.ib(
@@ -154,175 +150,6 @@ class DenonAVR(DenonAVRFoundation):
     def setup(self) -> None:
         """Ensure that configuration is loaded from receiver."""
 
-    async def async_connect(self) -> None:
-        """ Connect to the receiver asynchronously."""
-        # Ensure that the device is setup
-        if self._is_setup is False:
-            await self.async_setup()
-        try:
-            self._socket_reader, self._socket_writer = await asyncio.wait_for(asyncio.open_connection(self._host, 23), timeout=self._timeout)
-        except asyncio.exceptions.TimeoutError as err:
-            _LOGGER.debug(
-                "Socket timeout exception on connect",
-                exc_info=True)
-            raise AvrTimoutError(
-                "TimeoutException: {}".format(err), "connect") from err
-
-    @run_async_synchronously(async_func=async_connect)
-    def connect(self) -> None:
-        """Connect to the receiver."""
-
-    async def async_close(self) -> None:
-        """Close the connection to the receiver asynchronously."""
-        if self._socket_writer:
-            self._socket_writer.close()
-            with suppress(ConnectionError):
-                await self._socket_writer.wait_closed()
-            self._socket_writer = None
-
-    @run_async_synchronously(async_func=async_close)
-    def close(self) -> None:
-        """Close the connection to the receiver."""
-
-    def monitor_updates(self) -> asyncio.Task:
-        """Monitor the TCP connection for realtime updates."""
-        return asyncio.create_task(self._async_monitor())
-
-    def register_callback(self, callback=lambda *args, **kwargs: None):
-        """Adds a callback to be triggered when an event is received."""
-        self._callbacks.append(callback)
-
-    def unregister_callback(self, callback=lambda *args, **kwargs: None):
-        """Removes a callback that gets triggered when an event is received."""
-        self._callbacks.remove(callback)
-
-    def _process_power(self, device, parameter):
-        """Process a power event."""
-        setattr(device,"_power",parameter)
-
-    def _process_volume(self, device, parameter):
-        """Process a volume event."""
-        if parameter[0:3] == "MAX":
-            return
-        if parameter == "---":
-            setattr(device,"_volume", -80.0)
-        else:
-            if len(parameter) < 3:
-                setattr(device,"_volume", -80.0 + float(parameter))
-            else:
-                setattr(device,"_volume",-80.0 + float(parameter[0:2]) + (0.1 * float(parameter[2])))
-    
-    def _process_mute(self, device, parameter):
-        """Process a mute event."""
-        setattr(device, "_muted", parameter)
-
-    def _process_input(self, device, parameter):
-        """Process an input source change event."""
-        setattr(device, "_input_func", parameter)
-
-    def _process_surroundmode(self, device, parameter):
-        """Process a surround mode event."""
-        setattr(device, "_sound_mode", parameter)
-
-    def _process_sounddetail(self, device, parameter):
-        """Process a sound detail event."""
-        if parameter == "TONE CTRL OFF":
-            setattr(device.tonecontrol, "_tone_control_status", "1")
-        elif parameter == "TONE CTRL ON":
-            setattr(device.tonecontrol, "_tone_control_status", "0")
-        elif parameter[0:3] == "BAS":
-            value = parameter[4:]
-            setattr(device.tonecontrol, "_bass", int(value))
-        elif parameter[0:3] == "TRE":
-            value = parameter[4:]
-            setattr(device.tonecontrol, "_treble", int(value))
-        elif parameter == "DYNEQ ON":
-            setattr(device.audyssey, "_dynamiceq", "1")
-        elif parameter == "DYNEQ OFF":
-            setattr(device.audyssey, "_dynamiceq", "0")
-        elif parameter[0:6] == "REFLEV":
-            setattr(device.audyssey, "_reflevoffset", parameter[7:])
-        elif parameter[0:6] == "DYNVOL":
-            setattr(device.audyssey, "_dynamicvol", parameter[7:])
-        elif parameter[0:6] == "MULTEQ":
-            setattr(device.audyssey, "_multeq", parameter[7:])
-    
-    async def _process_event(self, message):
-        """Process a realtime event."""
-        if len(message) < 3:
-            return None
-
-        #Event is 2 characters
-        event = message[0:2]
-        #Parameter is the remaining characters
-        parameter = message[2:]
-
-        # Figure out the zone from the event
-        zone_device : DenonAVR = None
-
-        if event == 'Z2' and ZONE2 in self._zones.keys():
-            zone_device = self._zones[ZONE2]
-        elif event == 'Z3' and ZONE3 in self._zones.keys():
-            zone_device = self._zones[ZONE3]
-
-
-        if event == 'PW':
-            self._process_power(self._device, parameter)
-            await self.input.async_update_media_state()
-        elif event == 'MV':
-            self._process_volume(self.vol, parameter)
-        elif event == 'MU':
-            self._process_mute(self.vol, parameter)
-        elif event == 'SI':
-            self._process_input(self.input, parameter)
-            await self.input.async_update_media_state()
-        elif event == 'MS':
-            self._process_surroundmode(self.soundmode,parameter)
-        elif event == 'PS':
-            self._process_sounddetail(self,parameter)
-        elif (event == 'Z2' or event == 'Z3') and zone_device is not None:
-            if parameter == 'ON' or parameter == 'OFF':
-                self._process_power(zone_device._device, parameter)
-            elif parameter == 'MUON' or parameter == 'MUOFF':
-                self._process_mute(zone_device.vol, parameter)
-            elif parameter in ZONE_SOURCES:
-                self._process_input(zone_device.input, parameter)
-            elif parameter.isdigit():
-                self._process_volume(zone_device.vol, parameter)
-        # Some command we don't care about, don't trigger a callback
-        else:
-            return
-
-        # Prevent double events when changing volume due to the undocument VSMAX event that we ignore
-        if event == 'MV' and parameter[0:3]=='MAX':
-            return
-
-        # Execute all callbacks in a try/catch so a bad callback doesn't cause others to not execute
-        for callback in self._callbacks:
-            try:
-                callback(self)        
-            except Exception as err:
-                _LOGGER.error(f"Event callback triggered an unhandled exception {err}")
-                pass
-
-    async def _async_monitor(self):
-        """Reads the messages on the TCP socket."""
-        data = bytearray()
-        while not self._socket_reader.at_eof():
-            try:
-                chunk = await asyncio.wait_for(self._socket_reader.read(_SOCKET_READ_SIZE), 10)
-                for i in range(0,len(chunk)):
-                    # Messages are CR terminated
-                    if chunk[i] != 13:
-                        data += chunk[i].to_bytes(1, byteorder='big')
-                    else:
-                        await self._process_event(str(data,'utf-8'))
-                        data = bytearray()
-            except asyncio.exceptions.TimeoutError as err:
-                _LOGGER.debug("Lost connection to receiver, reconnecting")
-                await self.async_close()
-                await self.async_connect()
-
     async def async_update(self):
         """
         Get the latest status information from device asynchronously.
@@ -391,6 +218,12 @@ class DenonAVR(DenonAVRFoundation):
     @run_async_synchronously(async_func=async_get_command)
     def send_get_command(self, request: str) -> str:
         """Send HTTP GET command to Denon AVR receiver...for compatibility."""
+
+    def register_callback(self, callback: lambda *args: any):
+        self._device.telnet_api.register_callback(callback=callback)
+
+    def unregister_callback(self, callback:lambda *args: any):
+        self._device.telnet_api.unregister_callback(callback=callback)
 
     ##############
     # Properties #

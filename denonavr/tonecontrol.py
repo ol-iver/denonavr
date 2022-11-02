@@ -51,6 +51,12 @@ class DenonAVRToneControl(DenonAVRFoundation):
     appcommand_attrs = {
         AppCommands.GetToneControl: None}
 
+    def __attrs_post_init__(self) -> None:
+        """Initialize the callbacks"""
+        self._device.telnet_api.register_callback("BAS", self._bass_callback)
+        self._device.telnet_api.register_callback("TRE", self._treble_callback)
+        self._device.telnet_api.register_callback("TONE", self._tone_control_adjust_callback)
+
     def setup(self) -> None:
         """Ensure that the instance is initialized."""
         # Add tags for a potential AppCommand.xml update
@@ -58,6 +64,21 @@ class DenonAVRToneControl(DenonAVRFoundation):
             self._device.api.add_appcommand_update_tag(tag)
 
         self._is_setup = True
+
+    def _bass_callback(self, zone: str, value: int):
+        """Handle a bass level change event"""
+        if self._device.zone == zone:
+            self._bass = value
+    
+    def _treble_callback(self, zone: str, value: int):
+        """Handle a trble level change event"""
+        if self._device.zone == zone:
+            self._treble = value
+
+    def _tone_control_adjust_callback(self, zone: str, value: str):
+        """Handle a tone control adjust change event"""
+        if self._device.zone == zone:
+            self._tone_control_adjust = value
 
     async def async_update(
             self,
