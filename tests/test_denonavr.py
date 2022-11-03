@@ -145,7 +145,7 @@ class TestMainFunctions:
 
         return resp
 
-@pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_receiver_type(self, httpx_mock: HTTPXMock):
         with asynctest.patch("asyncio.open_connection") as debug_mock:
             debug_mock.return_value = (asyncio.StreamReader(), asyncio.StreamReader())
