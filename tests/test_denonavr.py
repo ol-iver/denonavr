@@ -78,6 +78,7 @@ class TestMainFunctions:
 
     testing_receiver = None
     denon = None
+    future = None
 
     def custom_matcher(self, request: httpx.Request, *args, **kwargs):
         """Match URLs to sample files."""
@@ -145,11 +146,14 @@ class TestMainFunctions:
 
         return resp
 
+    def _callback(self, zone):
+        self.future.set_result(True)
+
     @pytest.mark.asyncio
     async def test_receiver_type(self, httpx_mock: HTTPXMock):
+        """Check that receiver type is determined correctly."""
         with asynctest.patch("asyncio.open_connection") as debug_mock:
             debug_mock.return_value = (asyncio.StreamReader(), asyncio.StreamReader())
-            """Check that receiver type is determined correctly."""
             httpx_mock.add_callback(self.custom_matcher)
             for receiver, spec in TESTING_RECEIVERS.items():
                 print("Receiver: {}".format(receiver))
@@ -185,9 +189,9 @@ class TestMainFunctions:
 
     @pytest.mark.asyncio
     async def test_attributes_not_none(self, httpx_mock: HTTPXMock):
+        """Check that certain attributes are not None."""
         with asynctest.patch("asyncio.open_connection") as debug_mock:
             debug_mock.return_value = (asyncio.StreamReader(), asyncio.StreamReader())
-            """Check that certain attributes are not None."""
             httpx_mock.add_callback(self.custom_matcher)
             for receiver, spec in TESTING_RECEIVERS.items():
                 print("Receiver: {}".format(receiver))
@@ -207,9 +211,9 @@ class TestMainFunctions:
 
     @pytest.mark.asyncio
     async def test_sound_mode(self, httpx_mock: HTTPXMock):
+        """Check if a valid sound mode is returned."""
         with asynctest.patch("asyncio.open_connection") as debug_mock:
             debug_mock.return_value = (asyncio.StreamReader(), asyncio.StreamReader())
-            """Check if a valid sound mode is returned."""
             httpx_mock.add_callback(self.custom_matcher)
             for receiver, spec in TESTING_RECEIVERS.items():
                 # Switch receiver and update to load new sample files
@@ -227,6 +231,7 @@ class TestMainFunctions:
 
     @pytest.mark.asyncio
     async def test_receive_callback_called(self, httpx_mock: HTTPXMock):
+        """Check that the callback is triggered whena message is received."""
         with asynctest.patch("asyncio.open_connection") as debug_mock:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
@@ -235,98 +240,122 @@ class TestMainFunctions:
             self.denon = denonavr.DenonAVR(FAKE_IP)
             await self.denon.async_setup()
             mock = Mock()
+            self.future = asyncio.Future()
             self.denon.register_callback(mock.method)
+            self.denon.register_callback(self._callback)
             reader.feed_data(b"MUON\r")
-            await asyncio.sleep(0.1)
+            await self.future
             mock.method.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_mute_on(self, httpx_mock: HTTPXMock):
+        """Check that mute on is processed."""
         with asynctest.patch("asyncio.open_connection") as debug_mock:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
             
             self.denon = denonavr.DenonAVR(FAKE_IP)
+            self.future = asyncio.Future()
+            self.denon.register_callback(self._callback)
             await self.denon.async_setup()
             reader.feed_data(b"MUON\r")
-            await asyncio.sleep(0.1)
+            await self.future
             assert self.denon.muted
 
     @pytest.mark.asyncio
     async def test_mute_off(self, httpx_mock: HTTPXMock):
+        """Check that mute off is processed."""
         with asynctest.patch("asyncio.open_connection") as debug_mock:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
             
             self.denon = denonavr.DenonAVR(FAKE_IP)
+            self.future = asyncio.Future()
+            self.denon.register_callback(self._callback)
             await self.denon.async_setup()
             reader.feed_data(b"MUOFF\r")
-            await asyncio.sleep(0.1)
+            await self.future
             assert not self.denon.muted
 
     @pytest.mark.asyncio
     async def test_power_on(self, httpx_mock: HTTPXMock):
+        """Check that power on is processed."""
         with asynctest.patch("asyncio.open_connection") as debug_mock:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
             
             self.denon = denonavr.DenonAVR(FAKE_IP)
+            self.future = asyncio.Future()
+            self.denon.register_callback(self._callback)
             await self.denon.async_setup()
             reader.feed_data(b"PWON\r")
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.5)
             assert self.denon.power == "ON"
 
     @pytest.mark.asyncio
     async def test_power_off(self, httpx_mock: HTTPXMock):
+        """Check that power off is processed."""
         with asynctest.patch("asyncio.open_connection") as debug_mock:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
             
             self.denon = denonavr.DenonAVR(FAKE_IP)
+            self.future = asyncio.Future()
+            self.denon.register_callback(self._callback)
             await self.denon.async_setup()
             reader.feed_data(b"PWSTANDBY\r")
-            await asyncio.sleep(0.1)
+            await self.future
             assert self.denon.power == "STANDBY"
 
     @pytest.mark.asyncio
     async def test_volume_min(self, httpx_mock: HTTPXMock):
+        """Check that minimum volume is processed."""
         with asynctest.patch("asyncio.open_connection") as debug_mock:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
             
             self.denon = denonavr.DenonAVR(FAKE_IP)
+            self.future = asyncio.Future()
+            self.denon.register_callback(self._callback)
             await self.denon.async_setup()
             reader.feed_data(b"MV00\r")
-            await asyncio.sleep(0.1)
+            await self.future
             assert self.denon.volume == -80.0
 
     @pytest.mark.asyncio
     async def test_volume_wholenumber(self, httpx_mock: HTTPXMock):
+        """Check that whole number volume is processed."""
         with asynctest.patch("asyncio.open_connection") as debug_mock:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
             
             self.denon = denonavr.DenonAVR(FAKE_IP)
+            self.future = asyncio.Future()
+            self.denon.register_callback(self._callback)
             await self.denon.async_setup()
             reader.feed_data(b"MV56\r")
-            await asyncio.sleep(0.1)
+            await self.future
             assert self.denon.volume == -24.0
 
     @pytest.mark.asyncio
     async def test_volume_fraction(self, httpx_mock: HTTPXMock):
+        """Check that fractional volume is processed."""
         with asynctest.patch("asyncio.open_connection") as debug_mock:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
             
             self.denon = denonavr.DenonAVR(FAKE_IP)
+            self.future = asyncio.Future()
+            self.denon.register_callback(self._callback)
             await self.denon.async_setup()
             reader.feed_data(b"MV565\r")
-            await asyncio.sleep(0.1)
+            await self.future
             assert self.denon.volume == -23.5
+
