@@ -7,9 +7,12 @@ This module covers some basic automated tests of Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
+import asyncio
+from unittest.mock import Mock
 import httpx
 import pytest
 from pytest_httpx import HTTPXMock
+import asynctest
 
 import denonavr
 from denonavr.const import SOUND_MODE_MAPPING
@@ -144,72 +147,95 @@ class TestMainFunctions:
 
     @pytest.mark.asyncio
     async def test_receiver_type(self, httpx_mock: HTTPXMock):
-        """Check that receiver type is determined correctly."""
-        httpx_mock.add_callback(self.custom_matcher)
-        for receiver, spec in TESTING_RECEIVERS.items():
-            print("Receiver: {}".format(receiver))
-            # Switch receiver and update to load new sample files
-            self.testing_receiver = receiver
-            self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
-            await self.denon.async_setup()
-            assert self.denon.receiver_type == spec[1].type, (
-                "Receiver type is {} not {} for receiver {}".format(
-                    self.denon.receiver_type, spec[1].type, receiver))
-            assert self.denon.receiver_port == spec[1].port, (
-                "Receiver port is {} not {} for receiver {}".format(
-                    self.denon.receiver_port, spec[1].port, receiver))
+        with asynctest.patch("asyncio.open_connection") as debug_mock:
+            debug_mock.return_value = (asyncio.StreamReader(), asyncio.StreamReader())
+            """Check that receiver type is determined correctly."""
+            httpx_mock.add_callback(self.custom_matcher)
+            for receiver, spec in TESTING_RECEIVERS.items():
+                print("Receiver: {}".format(receiver))
+                # Switch receiver and update to load new sample files
+                self.testing_receiver = receiver
+                self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
+                await self.denon.async_setup()
+                assert self.denon.receiver_type == spec[1].type, (
+                    "Receiver type is {} not {} for receiver {}".format(
+                        self.denon.receiver_type, spec[1].type, receiver))
+                assert self.denon.receiver_port == spec[1].port, (
+                    "Receiver port is {} not {} for receiver {}".format(
+                        self.denon.receiver_port, spec[1].port, receiver))
 
     @pytest.mark.asyncio
     async def test_input_func_switch(self, httpx_mock: HTTPXMock):
         """Switch through all input functions of all tested receivers."""
-        httpx_mock.add_callback(self.custom_matcher)
-        for receiver, spec in TESTING_RECEIVERS.items():
-            # Switch receiver and update to load new sample files
-            self.testing_receiver = receiver
-            self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
-            # Switch through all functions and check if successful
-            for name, zone in self.denon.zones.items():
-                print("Receiver: {}, Zone: {}".format(receiver, name))
-                await self.denon.zones[name].async_update()
-                assert len(zone.input_func_list) > 0
-                for input_func in zone.input_func_list:
-                    await self.denon.zones[name].async_set_input_func(
-                        input_func)
+        with asynctest.patch("asyncio.open_connection") as debug_mock:
+            debug_mock.return_value = (asyncio.StreamReader(), asyncio.StreamReader())
+            httpx_mock.add_callback(self.custom_matcher)
+            for receiver, spec in TESTING_RECEIVERS.items():
+                # Switch receiver and update to load new sample files
+                self.testing_receiver = receiver
+                self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
+                # Switch through all functions and check if successful
+                for name, zone in self.denon.zones.items():
+                    print("Receiver: {}, Zone: {}".format(receiver, name))
+                    await self.denon.zones[name].async_update()
+                    assert len(zone.input_func_list) > 0
+                    for input_func in zone.input_func_list:
+                        await self.denon.zones[name].async_set_input_func(
+                            input_func)
 
     @pytest.mark.asyncio
     async def test_attributes_not_none(self, httpx_mock: HTTPXMock):
-        """Check that certain attributes are not None."""
-        httpx_mock.add_callback(self.custom_matcher)
-        for receiver, spec in TESTING_RECEIVERS.items():
-            print("Receiver: {}".format(receiver))
-            # Switch receiver and update to load new sample files
-            self.testing_receiver = receiver
-            self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
-            await self.denon.async_setup()
-            assert self.denon.name is not None, (
-                "Name is None for receiver {}".format(receiver))
-            assert self.denon.support_sound_mode is not None, (
-                "support_sound_mode is None for receiver {}".format(receiver))
-            await self.denon.async_update()
-            assert self.denon.power is not None, (
-                "Power status is None for receiver {}".format(receiver))
-            assert self.denon.state is not None, (
-                "State is None for receiver {}".format(receiver))
+        with asynctest.patch("asyncio.open_connection") as debug_mock:
+            debug_mock.return_value = (asyncio.StreamReader(), asyncio.StreamReader())
+            """Check that certain attributes are not None."""
+            httpx_mock.add_callback(self.custom_matcher)
+            for receiver, spec in TESTING_RECEIVERS.items():
+                print("Receiver: {}".format(receiver))
+                # Switch receiver and update to load new sample files
+                self.testing_receiver = receiver
+                self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
+                await self.denon.async_setup()
+                assert self.denon.name is not None, (
+                    "Name is None for receiver {}".format(receiver))
+                assert self.denon.support_sound_mode is not None, (
+                    "support_sound_mode is None for receiver {}".format(receiver))
+                await self.denon.async_update()
+                assert self.denon.power is not None, (
+                    "Power status is None for receiver {}".format(receiver))
+                assert self.denon.state is not None, (
+                    "State is None for receiver {}".format(receiver))
 
     @pytest.mark.asyncio
     async def test_sound_mode(self, httpx_mock: HTTPXMock):
-        """Check if a valid sound mode is returned."""
-        httpx_mock.add_callback(self.custom_matcher)
-        for receiver, spec in TESTING_RECEIVERS.items():
-            # Switch receiver and update to load new sample files
-            self.testing_receiver = receiver
-            self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
-            # Switch through all functions and check if successful
-            for name in self.denon.zones:
-                print("Receiver: {}, Zone: {}".format(receiver, name))
-                await self.denon.zones[name].async_update()
-                support_sound_mode = self.denon.zones[name].support_sound_mode
-                sound_mode = self.denon.zones[name].sound_mode
-                assert (
-                    sound_mode in [*SOUND_MODE_MAPPING, None] or
-                    support_sound_mode is not True)
+        with asynctest.patch("asyncio.open_connection") as debug_mock:
+            debug_mock.return_value = (asyncio.StreamReader(), asyncio.StreamReader())
+            """Check if a valid sound mode is returned."""
+            httpx_mock.add_callback(self.custom_matcher)
+            for receiver, spec in TESTING_RECEIVERS.items():
+                # Switch receiver and update to load new sample files
+                self.testing_receiver = receiver
+                self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
+                # Switch through all functions and check if successful
+                for name in self.denon.zones:
+                    print("Receiver: {}, Zone: {}".format(receiver, name))
+                    await self.denon.zones[name].async_update()
+                    support_sound_mode = self.denon.zones[name].support_sound_mode
+                    sound_mode = self.denon.zones[name].sound_mode
+                    assert (
+                        sound_mode in [*SOUND_MODE_MAPPING, None] or
+                        support_sound_mode is not True)
+
+    @pytest.mark.asyncio
+    async def test_receive_callback_called(self, httpx_mock: HTTPXMock):
+        with asynctest.patch("asyncio.open_connection") as debug_mock:
+            reader = asyncio.StreamReader()
+            debug_mock.return_value = (reader, asyncio.StreamReader())
+            httpx_mock.add_callback(self.custom_matcher)
+            
+            self.denon = denonavr.DenonAVR(FAKE_IP)
+            await self.denon.async_setup()
+            mock = Mock()
+            self.denon.register_callback(mock.method)
+            reader.feed_data(b"MUON\r")
+            await asyncio.sleep(5)
+            mock.method.assert_called_once()

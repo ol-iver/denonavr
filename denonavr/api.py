@@ -383,12 +383,12 @@ class DenonAVRTelnetApi:
         """Process a realtime event."""
         if len(message) < 3:
             return None
-
+        
         #Event is 2 characters
         event = message[0:2]
         #Parameter is the remaining characters
         parameter = message[2:]
-
+        
         if event == 'PW':
             await self._process_power(MAIN_ZONE, parameter)
         elif event == 'MV':
@@ -440,10 +440,6 @@ class DenonAVRTelnetApi:
                         callback(zone)
                 except Exception as err:
                     _LOGGER.error(f"Event callback triggered an unhandled exception {err}")
-                
-        
-
-
         
     async def _process_power(self, zone, parameter):
         """Process a power event."""
