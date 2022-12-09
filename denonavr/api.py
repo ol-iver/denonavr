@@ -355,17 +355,17 @@ class DenonAVRTelnetApi:
         while not self._socket_reader.at_eof():
             try:
                 chunk = await asyncio.wait_for(self._socket_reader.read(_SOCKET_READ_SIZE), self.timeout)
-                for i in range(0,len(chunk)):
-                    # Messages are CR terminated
-                    if chunk[i] != 13:
-                        data += chunk[i].to_bytes(1, byteorder='big')
-                    else:
-                        await self._process_event(str(data,'utf-8'))
-                        data = bytearray()
             except asyncio.exceptions.TimeoutError as err:
                 _LOGGER.debug("Lost connection to receiver, reconnecting")
                 await self.async_disconnect()
                 await self.async_connect()
+            for i in range(0,len(chunk)):
+                # Messages are CR terminated
+                if chunk[i] != 13:
+                    data += chunk[i].to_bytes(1, byteorder='big')
+                else:
+                    await self._process_event(str(data,'utf-8'))
+                    data = bytearray()
 
     def register_callback(self, type: str, callback: Callable[[str, str], Awaitable[None]]):
         """Registers a callback handler for an event type."""       
