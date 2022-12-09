@@ -21,7 +21,7 @@ import httpx
 from .decorators import run_async_synchronously
 from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
 from .const import (
-    DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES, ZONE2, ZONE3, ZONE_SOURCES)
+    DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES, ZONE2, ZONE3, TELNET_SOURCES)
 from .exceptions import AvrCommandError, AvrTimoutError
 
 from .audyssey import DenonAVRAudyssey, audyssey_factory

@@ -62,6 +62,12 @@ CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
                         "Media Server": "SERVER", "Spotify": "SPOTIFY",
                         "Flickr": "FLICKR", "Favorites": "FAVORITES"}
 
+TELNET_SOURCES = ["CD", "PHONO", "TUNER", "DVD", "BD", "TV", 
+    "SAT/CBL","MPLAY","GAME","HDRADIO","NET","PANDORA",
+    "SIRIUSXM","LASTFM","FLICKR","IRADIO","SERVER","FAVORITES",
+    "AUX1","AUX2","AUX3","AUX4","AUX5","AUX6","AUX7","BT","USB/IPOD",
+    "USB DIRECT", "IPOD DIRECT"]
+
 # Sound modes
 ALL_ZONE_STEREO = "ALL ZONE STEREO"
 
@@ -264,12 +270,6 @@ MAIN_ZONE = "Main"
 ZONE2 = "Zone2"
 ZONE3 = "Zone3"
 VALID_ZONES = [MAIN_ZONE, ZONE2, ZONE3]
-ZONE_SOURCES = ["CD", "PHONO", "TUNER", "DVD", "BD", "TV", 
-    "SAT/CBL","MPLAY","GAME","HDRADIO","NET","PANDORA",
-    "SIRIUSXM","LASTFM","FLICKR","IRADIO","SERVER","FAVORITES",
-    "AUX1","AUX2","AUX3","AUX4","AUX5","AUX6","AUX7","BT","USB/IPOD",
-    "USB DIRECT", "IPOD DIRECT"
-]
 
 # Setup additional zones
 NO_ZONES = None

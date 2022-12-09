@@ -30,7 +30,7 @@ from .decorators import (
 from .exceptions import AvrIncompleteResponseError, AvrInvalidResponseError, AvrTimoutError
 from .const import (
     APPCOMMAND_CMD_TEXT, APPCOMMAND_NAME, APPCOMMAND_URL, APPCOMMAND0300_URL,
-    DENON_ATTR_SETATTR, MAIN_ZONE, ZONE2, ZONE3, ZONE_SOURCES)
+    DENON_ATTR_SETATTR, MAIN_ZONE, ZONE2, ZONE3, TELNET_SOURCES)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -411,7 +411,7 @@ class DenonAVRTelnetApi:
                 await self._process_power(zone, parameter)
             elif parameter == 'MUON' or parameter == 'MUOFF':
                 await self._process_mute(zone, parameter)
-            elif parameter in ZONE_SOURCES:
+            elif parameter in TELNET_SOURCES:
                 await self._process_input(zone, parameter)
             elif parameter.isdigit():
                 await self._process_volume(zone, parameter)        
