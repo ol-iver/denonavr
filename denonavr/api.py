@@ -14,7 +14,7 @@ import logging
 import xml.etree.ElementTree as ET
 
 from io import BytesIO
-from typing import Callable, Dict, Hashable, Optional, Tuple
+from typing import Awaitable, Callable, Dict, Hashable, Optional, Tuple
 
 import attr
 import httpx
@@ -367,13 +367,13 @@ class DenonAVRTelnetApi:
                 await self.async_disconnect()
                 await self.async_connect()
 
-    def register_callback(self, type: str="ALL", callback=lambda *args: any):
+    def register_callback(self, type: str, callback: Callable[[str, str], Awaitable[None]]):
         """Registers a callback handler for an event type."""       
         if not type in self._callbacks.keys():
             self._callbacks[type] = []
         self._callbacks[type].append(callback)
 
-    def unregister_callback(self, type: str="ALL", callback=lambda *args: any):
+    def unregister_callback(self, type: str, callback: Callable[[str, str], Awaitable[None]]):
         """Unregisters a callback handler for an event type."""
         if not type in self._callbacks.keys():
             return
