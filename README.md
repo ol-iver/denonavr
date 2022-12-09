@@ -62,10 +62,10 @@ The `asyncio` library should automatically be imported in the REPL.  Import the 
 >>> await d.async_setup()
 >>> await d.async_update()
 >>> await d.async_connect()
->>> d.register_callback(_update_callback)
->>> await asyncio.wait([d.monitor_updates()])
 >>> def _update_callback(device):
 >>>>>> print(device.volume)
+>>> d.register_callback(_update_callback)
+>>> await asyncio.wait([d.monitor_updates()])
 ```
 
 ### Power & Input
