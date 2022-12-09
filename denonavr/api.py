@@ -329,14 +329,14 @@ class DenonAVRTelnetApi:
         """ Connect to the receiver asynchronously."""
         try:
             self._socket_reader, self._socket_writer = await asyncio.wait_for(asyncio.open_connection(self.host, 23), timeout=self.timeout)
-            self._telnet_task = asyncio.create_task(self._async_monitor())
-            return self._telnet_task
         except asyncio.exceptions.TimeoutError as err:
             _LOGGER.debug(
                 "Socket timeout exception on connect",
                 exc_info=True)
             raise AvrTimoutError(
                 "TimeoutException: {}".format(err), "connect") from err
+        self._telnet_task = asyncio.create_task(self._async_monitor())
+        return self._telnet_task
 
     async def async_disconnect(self) -> None:
         """Close the connection to the receiver asynchronously."""
