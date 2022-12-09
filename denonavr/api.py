@@ -428,7 +428,6 @@ class DenonAVRTelnetApi:
                 except Exception as err:
                     # We don't want a single bad callback to trip up the whole system and prevent further 
                     # execution
-                    print(err)
                     _LOGGER.error(f"Event callback triggered an unhandled exception {err}")
 
         if "ALL" in self._callbacks.keys():
