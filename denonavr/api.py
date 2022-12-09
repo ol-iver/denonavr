@@ -379,7 +379,7 @@ class DenonAVRTelnetApi:
             return
         self._callbacks[type].remove(callback)
 
-    async def _process_event(self, message):
+    async def _process_event(self, message: str):
         """Process a realtime event."""
         if len(message) < 3:
             return None
