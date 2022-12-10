@@ -63,17 +63,17 @@ class DenonAVRToneControl(DenonAVRFoundation):
 
         self._is_setup = True
 
-    def _bass_callback(self, zone: str, value: int):
+    def _bass_callback(self, zone: str, event:str, value: int):
         """Handle a bass level change event"""
         if self._device.zone == zone:
             self._bass = value
     
-    def _treble_callback(self, zone: str, value: int):
+    def _treble_callback(self, zone: str, event:str, value: int):
         """Handle a trble level change event"""
         if self._device.zone == zone:
             self._treble = value
 
-    def _tone_control_adjust_callback(self, zone: str, value: str):
+    def _tone_control_adjust_callback(self, zone: str, event:str, value: str):
         """Handle a tone control adjust change event"""
         if self._device.zone == zone:
             self._tone_control_adjust = value

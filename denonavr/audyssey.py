@@ -71,22 +71,22 @@ class DenonAVRAudyssey(DenonAVRFoundation):
 
         self._is_setup = True
 
-    def _reflevoffset_callback(self, zone: str, value: str):
+    def _reflevoffset_callback(self, zone: str, event:str, value: str):
         """Handle a ref level change event"""
         if self._device.zone == zone:
             self._reflevoffset = value
 
-    def _dynamicvol_callback(self, zone: str, value: str):
+    def _dynamicvol_callback(self, zone: str, event:str, value: str):
         """Handle a dynamic volume change event"""
         if self._device.zone == zone:
             self._dynamicvol = value
 
-    def _multeq_callback(self, zone: str, value: str):
+    def _multeq_callback(self, zone: str, event:str, value: str):
         """Handle a multi EQ change event"""
         if self._device.zone == zone:
             self._multeq = value
     
-    def _dynamiceq_callback(self, zone: str, value: str):
+    def _dynamiceq_callback(self, zone: str, event:str, value: str):
         """Handle a dynamic EQ change event"""
         if self._device.zone == zone:
             self._dynamiceq = value

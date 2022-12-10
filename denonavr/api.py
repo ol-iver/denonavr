@@ -367,7 +367,7 @@ class DenonAVRTelnetApi:
                     await self._process_event(str(data,'utf-8'))
                     data = bytearray()
 
-    def register_callback(self, type: str, callback: Callable[[str, str], Awaitable[None]]):
+    def register_callback(self, type: str, callback: Callable[[str, str, str], Awaitable[None]]):
         """Registers a callback handler for an event type."""
 
         # Validate the passed in type
@@ -378,7 +378,7 @@ class DenonAVRTelnetApi:
             self._callbacks[type] = []
         self._callbacks[type].append(callback)
 
-    def unregister_callback(self, type: str, callback: Callable[[str, str], Awaitable[None]]):
+    def unregister_callback(self, type: str, callback: Callable[[str, str, str], Awaitable[None]]):
         """Unregisters a callback handler for an event type."""
         if not type in self._callbacks.keys():
             return
@@ -393,43 +393,38 @@ class DenonAVRTelnetApi:
         event = message[0:2]
         #Parameter is the remaining characters
         parameter = message[2:]
-        
-        if event == 'PW':
-            await self._process_power(MAIN_ZONE, parameter)
-        elif event == 'MV':
-            await self._process_volume(MAIN_ZONE, parameter)
-        elif event == 'MU':
-            await self._process_mute(MAIN_ZONE, parameter)
-        elif event == 'SI':
-            await self._process_input(MAIN_ZONE, parameter)
-        elif event == 'MS':
-            await self._process_surroundmode(MAIN_ZONE, parameter)
-        elif event == 'PS':
-            await self._process_sounddetail(MAIN_ZONE, parameter)
-        
+
+        if event == 'MV':
+            # This seems undocumented by Denon and appears to basically be a 
+            # noop that goes along with volume changes. This is here to prevent
+            # duplicate callback calls.
+            if parameter[0:3] == "MAX":
+                return
+            await self._run_callbacks("MV", MAIN_ZONE, parameter)
         elif event == 'Z2' or event == 'Z3':
             if event == 'Z2':
                 zone = ZONE2
             else:
                 zone = ZONE3
             if parameter == 'ON' or parameter == 'OFF':
-                await self._process_power(zone, parameter)
+                await self._run_callbacks("PW", zone, parameter)
             elif parameter == 'MUON' or parameter == 'MUOFF':
-                await self._process_mute(zone, parameter)
+                await self._run_callbacks("MU", zone, parameter)
             elif parameter in TELNET_SOURCES:
-                await self._process_input(zone, parameter)
+                await self._run_callbacks("SI", zone, parameter)
             elif parameter.isdigit():
-                await self._process_volume(zone, parameter)        
+                await self._run_callbacks("MV", zone, parameter)
+        elif event == 'PS':
+            await self._process_sounddetail(MAIN_ZONE, parameter)
+        elif event in TELNET_EVENTS:
+            await self._run_callbacks(event, MAIN_ZONE, parameter)   
 
     async def _run_callbacks(self, event: str, zone: str, parameter: str):
         """Handle triggering the registered callbacks for the specified event"""
         if event in self._callbacks.keys():
             for callback in self._callbacks[event]:
                 try:
-                    if inspect.iscoroutinefunction(callback):
-                        await callback(zone, parameter)
-                    else:
-                        callback(zone, parameter)
+                    await callback(zone, event, parameter)
                 except Exception as err:
                     # We don't want a single bad callback to trip up the whole system and prevent further 
                     # execution
@@ -438,37 +433,9 @@ class DenonAVRTelnetApi:
         if "ALL" in self._callbacks.keys():
             for callback in self._callbacks["ALL"]:
                 try:
-                    await callback(event, parameter)
+                    await callback(zone, event, parameter)
                 except Exception as err:
-                    _LOGGER.error(f"Event callback triggered an unhandled exception {err}")
-        
-    async def _process_power(self, zone, parameter):
-        """Process a power event."""
-        await self._run_callbacks("PW", zone, parameter)
-
-    async def _process_volume(self, zone, parameter):
-        """Process a volume event."""
-        if parameter[0:3] == "MAX":
-            return
-        if parameter == "---":
-            await self._run_callbacks("MV", zone, -80.0)
-        else:
-            if len(parameter) < 3:
-                await self._run_callbacks("MV", zone, -80.0 + float(parameter))
-            else:
-                await self._run_callbacks("MV", zone, -80.0 + float(parameter[0:2]) + (0.1 * float(parameter[2])))
-
-    async def _process_mute(self, zone, parameter):
-        """Process a mute event."""
-        await self._run_callbacks("MU", zone, parameter)
-
-    async def _process_input(self, zone, parameter):
-        """Process an input source change event."""
-        await self._run_callbacks("SI", zone, parameter)
-
-    async def _process_surroundmode(self, zone, parameter):
-        """Process a surround mode event."""
-        await self._run_callbacks("MS", zone, parameter)
+                    _LOGGER.error(f"Event callback triggered an unhandled exception {err}")                     
 
     async def _process_sounddetail(self, zone, parameter):
         """Process a sound detail event."""

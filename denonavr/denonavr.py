@@ -223,10 +223,10 @@ class DenonAVR(DenonAVRFoundation):
     def send_get_command(self, request: str) -> str:
         """Send HTTP GET command to Denon AVR receiver...for compatibility."""
 
-    def register_callback(self, type: str, callback: Callable[[str, str], Awaitable[None]]):
+    def register_callback(self, type: str, callback: Callable[[str, str, str], Awaitable[None]]):
         self._device.telnet_api.register_callback(type, callback=callback)
 
-    def unregister_callback(self, type: str, callback: Callable[[str, str], Awaitable[None]]):
+    def unregister_callback(self, type: str, callback: Callable[[str, str, str], Awaitable[None]]):
         self._device.telnet_api.unregister_callback(type, callback=callback)
 
     async def async_telnet_connect(self):
