@@ -64,12 +64,14 @@ class DenonAVRAudyssey(DenonAVRFoundation):
         for tag in self.appcommand0300_attrs:
             self._device.api.add_appcommand0300_update_tag(tag)
 
-        self._device.telnet_api.register_callback("PS", self._sound_detail_callback)
+        self._device.telnet_api.register_callback(
+            "PS", self._sound_detail_callback
+        )
 
         self._is_setup = True
 
-    def _sound_detail_callback(self, zone: str, event:str, parameter: str):
-        """Handle a sound detail change event"""
+    def _sound_detail_callback(self, zone: str, event: str, parameter: str):
+        """Handle a sound detail change event."""
         if self._device.zone == zone:
             if parameter[0:6] == "REFLEV":
                 self._reflevoffset = parameter[7:]

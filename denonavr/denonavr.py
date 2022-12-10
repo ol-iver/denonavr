@@ -30,6 +30,7 @@ from .volume import DenonAVRVolume, volume_factory
 
 _LOGGER = logging.getLogger(__name__)
 
+
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
 class DenonAVR(DenonAVRFoundation):
     """
@@ -220,11 +221,19 @@ class DenonAVR(DenonAVRFoundation):
     def send_get_command(self, request: str) -> str:
         """Send HTTP GET command to Denon AVR receiver...for compatibility."""
 
-    def register_callback(self, event: str, callback: Callable[[str, str, str], Awaitable[None]]):
+    def register_callback(
+        self,
+        event: str,
+        callback: Callable[[str, str, str], Awaitable[None]]
+    ):
         """Register a callback for telnet events."""
         self._device.telnet_api.register_callback(event, callback=callback)
 
-    def unregister_callback(self, event: str, callback: Callable[[str, str, str], Awaitable[None]]):
+    def unregister_callback(
+        self,
+        event: str,
+        callback: Callable[[str, str, str], Awaitable[None]]
+    ):
         """Unregister a callback for telnet events."""
         self._device.telnet_api.unregister_callback(event, callback=callback)
 

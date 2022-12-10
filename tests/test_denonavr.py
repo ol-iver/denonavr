@@ -153,7 +153,10 @@ class TestMainFunctions:
     async def test_receiver_type(self, httpx_mock: HTTPXMock):
         """Check that receiver type is determined correctly."""
         with asynctest.patch("asyncio.open_connection") as debug_mock:
-            debug_mock.return_value = (asyncio.StreamReader(), asyncio.StreamReader())
+            debug_mock.return_value = (
+                asyncio.StreamReader(),
+                asyncio.StreamReader()
+            )
             httpx_mock.add_callback(self.custom_matcher)
             for receiver, spec in TESTING_RECEIVERS.items():
                 print("Receiver: {}".format(receiver))
@@ -172,7 +175,10 @@ class TestMainFunctions:
     async def test_input_func_switch(self, httpx_mock: HTTPXMock):
         """Switch through all input functions of all tested receivers."""
         with asynctest.patch("asyncio.open_connection") as debug_mock:
-            debug_mock.return_value = (asyncio.StreamReader(), asyncio.StreamReader())
+            debug_mock.return_value = (
+                asyncio.StreamReader(),
+                asyncio.StreamReader()
+            )
             httpx_mock.add_callback(self.custom_matcher)
             for receiver, spec in TESTING_RECEIVERS.items():
                 # Switch receiver and update to load new sample files
@@ -191,7 +197,10 @@ class TestMainFunctions:
     async def test_attributes_not_none(self, httpx_mock: HTTPXMock):
         """Check that certain attributes are not None."""
         with asynctest.patch("asyncio.open_connection") as debug_mock:
-            debug_mock.return_value = (asyncio.StreamReader(), asyncio.StreamReader())
+            debug_mock.return_value = (
+                asyncio.StreamReader(),
+                asyncio.StreamReader()
+            )
             httpx_mock.add_callback(self.custom_matcher)
             for receiver, spec in TESTING_RECEIVERS.items():
                 print("Receiver: {}".format(receiver))
@@ -202,7 +211,8 @@ class TestMainFunctions:
                 assert self.denon.name is not None, (
                     "Name is None for receiver {}".format(receiver))
                 assert self.denon.support_sound_mode is not None, (
-                    "support_sound_mode is None for receiver {}".format(receiver))
+                    "support_sound_mode is None for receiver {}".format(
+                        receiver))
                 await self.denon.async_update()
                 assert self.denon.power is not None, (
                     "Power status is None for receiver {}".format(receiver))
@@ -213,7 +223,10 @@ class TestMainFunctions:
     async def test_sound_mode(self, httpx_mock: HTTPXMock):
         """Check if a valid sound mode is returned."""
         with asynctest.patch("asyncio.open_connection") as debug_mock:
-            debug_mock.return_value = (asyncio.StreamReader(), asyncio.StreamReader())
+            debug_mock.return_value = (
+                asyncio.StreamReader(),
+                asyncio.StreamReader()
+            )
             httpx_mock.add_callback(self.custom_matcher)
             for receiver, spec in TESTING_RECEIVERS.items():
                 # Switch receiver and update to load new sample files
@@ -222,9 +235,10 @@ class TestMainFunctions:
                 # Switch through all functions and check if successful
                 for name in self.denon.zones:
                     print("Receiver: {}, Zone: {}".format(receiver, name))
-                    await self.denon.zones[name].async_update()
-                    support_sound_mode = self.denon.zones[name].support_sound_mode
-                    sound_mode = self.denon.zones[name].sound_mode
+                    zone = self.denon.zones[name]
+                    await zone.async_update()
+                    support_sound_mode = zone.support_sound_mode
+                    sound_mode = zone.sound_mode
                     assert (
                         sound_mode in [*SOUND_MODE_MAPPING, None] or
                         support_sound_mode is not True)

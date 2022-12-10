@@ -87,8 +87,8 @@ class DenonAVRDeviceInfo:
         else:
             raise ValueError("Invalid zone {}".format(self.zone))
 
-    def _power_callback(self, zone: str, event:str, value: str) -> None:
-        """Handle a power change event"""
+    def _power_callback(self, zone: str, event: str, value: str) -> None:
+        """Handle a power change event."""
         if self.zone == zone:
             self._power = value
 
@@ -657,8 +657,9 @@ def set_api_host(
         value: str) -> str:
     """Change API host on host changes too."""
     # First change _device.api.host then return value
-    instance._device.api.host = value  # pylint: disable=protected-access
-    instance._device.telnet_api.host = value # pylint: disable=protected-access
+    # pylint: disable=protected-access
+    instance._device.api.host = value
+    instance._device.telnet_api.host = value
     return value
 
 

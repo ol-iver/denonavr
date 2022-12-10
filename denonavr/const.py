@@ -63,10 +63,11 @@ CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
                         "Flickr": "FLICKR", "Favorites": "FAVORITES"}
 
 TELNET_SOURCES = ["CD", "PHONO", "TUNER", "DVD", "BD", "TV",
-    "SAT/CBL","MPLAY","GAME","HDRADIO","NET","PANDORA",
-    "SIRIUSXM","LASTFM","FLICKR","IRADIO","SERVER","FAVORITES",
-    "AUX1","AUX2","AUX3","AUX4","AUX5","AUX6","AUX7","BT","USB/IPOD",
-    "USB DIRECT", "IPOD DIRECT"]
+                  "SAT/CBL", "MPLAY", "GAME", "HDRADIO", "NET", "PANDORA",
+                  "SIRIUSXM", "LASTFM", "FLICKR", "IRADIO", "SERVER",
+                  "FAVORITES", "AUX1", "AUX2", "AUX3", "AUX4", "AUX5",
+                  "AUX6", "AUX7", "BT", "USB/IPOD", "USB DIRECT",
+                  "IPOD DIRECT"]
 
 # Sound modes
 ALL_ZONE_STEREO = "ALL ZONE STEREO"
