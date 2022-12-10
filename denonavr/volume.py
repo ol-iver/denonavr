@@ -55,16 +55,14 @@ class DenonAVRVolume(DenonAVRFoundation):
         "_volume": "./MasterVolume/value",
         "_muted": "./Mute/value"}
 
-    def __attrs_post_init__(self) -> None:
-        """Initialize the callbacks"""
-        self._device.telnet_api.register_callback("MV", self._volume_callback)
-        self._device.telnet_api.register_callback("MU", self._mute_callback)
-
     def setup(self) -> None:
         """Ensure that the instance is initialized."""
         # Add tags for a potential AppCommand.xml update
         for tag in self.appcommand_attrs:
             self._device.api.add_appcommand_update_tag(tag)
+
+        self._device.telnet_api.register_callback("MV", self._volume_callback)
+        self._device.telnet_api.register_callback("MU", self._mute_callback)
 
         self._is_setup = True
 

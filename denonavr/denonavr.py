@@ -144,6 +144,10 @@ class DenonAVR(DenonAVRFoundation):
             self.vol.setup()
             self.audyssey.setup()
 
+            for zone_name, zone_item in self._zones.items():
+                if zone_name != self.zone:
+                    await zone_item.async_setup()
+
             self._is_setup = True
 
     @run_async_synchronously(async_func=async_setup)

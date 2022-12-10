@@ -140,11 +140,6 @@ class DenonAVRInput(DenonAVRFoundation):
     status_xml_attrs = {
         "_input_func": "./InputFuncSelect/value"}
 
-    def __attrs_post_init__(self) -> None:
-        """Initialize the callbacks"""
-        self._device.telnet_api.register_callback("SI", self._input_callback)
-        self._device.telnet_api.register_callback("PW", self._power_callback)
-
     def setup(self) -> None:
         """Ensure that the instance is initialized."""
         # Add tags for a potential AppCommand.xml update
@@ -158,6 +153,9 @@ class DenonAVRInput(DenonAVRFoundation):
         # For update of state
         for tag in self.appcommand_attrs:
             self._device.api.add_appcommand_update_tag(tag)
+
+        self._device.telnet_api.register_callback("SI", self._input_callback)
+        self._device.telnet_api.register_callback("PW", self._power_callback)
 
         self._is_setup = True
 

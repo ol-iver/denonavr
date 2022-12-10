@@ -87,10 +87,8 @@ class DenonAVRDeviceInfo:
         else:
             raise ValueError("Invalid zone {}".format(self.zone))
 
-        self.telnet_api.register_callback("PW", self._power_callback)
-
     def _power_callback(self, zone: str, value: str) -> None:
-        """Handle a volume change event"""
+        """Handle a power change event"""
         if self.zone == zone:
             self._power = value
 
@@ -124,7 +122,10 @@ class DenonAVRDeviceInfo:
             self.api.add_appcommand_update_tag(
                 AppCommands.GetAllZonePowerStatus)
 
-            await self.telnet_api.async_connect()
+            if self.zone == MAIN_ZONE:
+                await self.telnet_api.async_connect()
+
+            self.telnet_api.register_callback("PW", self._power_callback)
 
             self._is_setup = True
 

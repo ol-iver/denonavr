@@ -93,11 +93,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     status_xml_attrs_01 = {
         "_sound_mode_raw": "./selectSurround/value"}
     status_xml_attrs_02 = {
-        "_sound_mode_raw": "./SurrMode/value"}
-
-    def __attrs_post_init__(self) -> None:
-        """Initialize the callbacks"""
-        self._device.telnet_api.register_callback("MS", self._soundmode_callback)
+        "_sound_mode_raw": "./SurrMode/value"}        
 
     async def async_setup(self) -> None:
         """Ensure that the instance is initialized."""
@@ -113,6 +109,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             else:
                 await self.async_update_sound_mode()
 
+            self._device.telnet_api.register_callback("MS", self._soundmode_callback)
 
             self._is_setup = True
 
