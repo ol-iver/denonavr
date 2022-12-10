@@ -120,10 +120,7 @@ class DenonAVRDeviceInfo:
 
             # Add tags for a potential AppCommand.xml update
             self.api.add_appcommand_update_tag(
-                AppCommands.GetAllZonePowerStatus)
-
-            if self.zone == MAIN_ZONE:
-                await self.telnet_api.async_connect()
+                AppCommands.GetAllZonePowerStatus)               
 
             self.telnet_api.register_callback("PW", self._power_callback)
 

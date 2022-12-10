@@ -60,6 +60,7 @@ The `asyncio` library should automatically be imported in the REPL.  Import the 
 >>> import denonavr
 >>> d = denonavr.DenonAVR("192.168.1.119")
 >>> await d.async_setup()
+>>> await d.async_telnet_connect()
 >>> await d.async_update()
 >>> def _update_callback(device):
 >>>>>> print(device.volume)
