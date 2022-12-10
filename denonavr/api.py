@@ -30,7 +30,7 @@ from .decorators import (
 from .exceptions import AvrIncompleteResponseError, AvrInvalidResponseError, AvrTimoutError
 from .const import (
     APPCOMMAND_CMD_TEXT, APPCOMMAND_NAME, APPCOMMAND_URL, APPCOMMAND0300_URL,
-    DENON_ATTR_SETATTR, MAIN_ZONE, ZONE2, ZONE3, TELNET_SOURCES)
+    DENON_ATTR_SETATTR, MAIN_ZONE, TELNET_EVENTS, ZONE2, ZONE3, TELNET_SOURCES)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -368,7 +368,12 @@ class DenonAVRTelnetApi:
                     data = bytearray()
 
     def register_callback(self, type: str, callback: Callable[[str, str], Awaitable[None]]):
-        """Registers a callback handler for an event type."""       
+        """Registers a callback handler for an event type."""
+
+        # Validate the passed in type
+        if type != "ALL" and not type in TELNET_EVENTS:
+            raise ValueError("{} is not a valid callback type.".format(type))
+                
         if not type in self._callbacks.keys():
             self._callbacks[type] = []
         self._callbacks[type].append(callback)
