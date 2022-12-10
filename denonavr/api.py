@@ -433,6 +433,8 @@ class DenonAVRTelnetApi:
                 try:
                     await callback(zone, event, parameter)
                 except Exception as err:
+                    # We don't want a single bad callback to trip up the whole system and prevent further 
+                    # execution
                     _LOGGER.error(f"Event callback triggered an unhandled exception {err}")
 
 
