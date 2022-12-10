@@ -146,7 +146,7 @@ class TestMainFunctions:
 
         return resp
 
-    def _callback(self, zone):
+    def _callback(self, event, parameter):
         self.future.set_result(True)
 
     @pytest.mark.asyncio

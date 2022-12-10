@@ -421,15 +421,15 @@ class DenonAVRTelnetApi:
             elif parameter.isdigit():
                 await self._process_volume(zone, parameter)        
 
-    async def _trigger_callbacks(self, type: str, zone: str, value: any):
-        """Handle triggering the registered callbacks for the specified type"""
-        if type in self._callbacks.keys():
-            for callback in self._callbacks[type]:
+    async def _run_callbacks(self, event: str, zone: str, parameter: str):
+        """Handle triggering the registered callbacks for the specified event"""
+        if event in self._callbacks.keys():
+            for callback in self._callbacks[event]:
                 try:
                     if inspect.iscoroutinefunction(callback):
-                        await callback(zone, value)
+                        await callback(zone, parameter)
                     else:
-                        callback(zone, value)
+                        callback(zone, parameter)
                 except Exception as err:
                     # We don't want a single bad callback to trip up the whole system and prevent further 
                     # execution
@@ -438,63 +438,60 @@ class DenonAVRTelnetApi:
         if "ALL" in self._callbacks.keys():
             for callback in self._callbacks["ALL"]:
                 try:
-                    if inspect.iscoroutinefunction(callback):
-                        await callback(zone)
-                    else:
-                        callback(zone)
+                    await callback(event, parameter)
                 except Exception as err:
                     _LOGGER.error(f"Event callback triggered an unhandled exception {err}")
         
     async def _process_power(self, zone, parameter):
         """Process a power event."""
-        await self._trigger_callbacks("PW", zone, parameter)
+        await self._run_callbacks("PW", zone, parameter)
 
     async def _process_volume(self, zone, parameter):
         """Process a volume event."""
         if parameter[0:3] == "MAX":
             return
         if parameter == "---":
-            await self._trigger_callbacks("MV", zone, -80.0)
+            await self._run_callbacks("MV", zone, -80.0)
         else:
             if len(parameter) < 3:
-                await self._trigger_callbacks("MV", zone, -80.0 + float(parameter))
+                await self._run_callbacks("MV", zone, -80.0 + float(parameter))
             else:
-                await self._trigger_callbacks("MV", zone, -80.0 + float(parameter[0:2]) + (0.1 * float(parameter[2])))
+                await self._run_callbacks("MV", zone, -80.0 + float(parameter[0:2]) + (0.1 * float(parameter[2])))
 
     async def _process_mute(self, zone, parameter):
         """Process a mute event."""
-        await self._trigger_callbacks("MU", zone, parameter)
+        await self._run_callbacks("MU", zone, parameter)
 
     async def _process_input(self, zone, parameter):
         """Process an input source change event."""
-        await self._trigger_callbacks("SI", zone, parameter)
+        await self._run_callbacks("SI", zone, parameter)
 
     async def _process_surroundmode(self, zone, parameter):
         """Process a surround mode event."""
-        await self._trigger_callbacks("MS", zone, parameter)
+        await self._run_callbacks("MS", zone, parameter)
 
     async def _process_sounddetail(self, zone, parameter):
         """Process a sound detail event."""
         if parameter[0:3] == "BAS":
             value = int(parameter[4:])
-            await self._trigger_callbacks("BAS", zone, value)
+            await self._run_callbacks("BAS", zone, value)
         elif parameter[0:3] == "TRE":
             value = int(parameter[4:])
-            await self._trigger_callbacks("TRE", zone, value)
+            await self._run_callbacks("TRE", zone, value)
         elif parameter[0:6] == "REFLEV":
             value = parameter[7:]
-            await self._trigger_callbacks("REFLEV", zone, value)
+            await self._run_callbacks("REFLEV", zone, value)
         elif parameter[0:6] == "DYNVOL":
             value = parameter[7:]
-            await self._trigger_callbacks("DYNVOL", zone, value)
+            await self._run_callbacks("DYNVOL", zone, value)
         elif parameter[0:6] == "MULTEQ":
             value = parameter[7:]
-            await self._trigger_callbacks("MULTEQ", zone, value)
+            await self._run_callbacks("MULTEQ", zone, value)
         elif parameter == "DYNEQ ON":
-            await self._trigger_callbacks("DYNEQ", zone, "1")
+            await self._run_callbacks("DYNEQ", zone, "1")
         elif parameter == "DYNEQ OFF":
-            await self._trigger_callbacks("DYNEQ", zone, "0")
+            await self._run_callbacks("DYNEQ", zone, "0")
         if parameter == "TONE CTRL OFF":
-            await self._trigger_callbacks("TONE", zone, "1")
+            await self._run_callbacks("TONE", zone, "1")
         elif parameter == "TONE CTRL ON":
-            await self._trigger_callbacks("TONE", zone, "0")
+            await self._run_callbacks("TONE", zone, "0")
