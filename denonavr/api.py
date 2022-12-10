@@ -414,8 +414,6 @@ class DenonAVRTelnetApi:
                 await self._run_callbacks("SI", zone, parameter)
             elif parameter.isdigit():
                 await self._run_callbacks("MV", zone, parameter)
-        elif event == 'PS':
-            await self._process_sounddetail(MAIN_ZONE, parameter)
         elif event in TELNET_EVENTS:
             await self._run_callbacks(event, MAIN_ZONE, parameter)   
 
@@ -435,30 +433,8 @@ class DenonAVRTelnetApi:
                 try:
                     await callback(zone, event, parameter)
                 except Exception as err:
-                    _LOGGER.error(f"Event callback triggered an unhandled exception {err}")                     
+                    _LOGGER.error(f"Event callback triggered an unhandled exception {err}")
 
-    async def _process_sounddetail(self, zone, parameter):
-        """Process a sound detail event."""
-        if parameter[0:3] == "BAS":
-            value = int(parameter[4:])
-            await self._run_callbacks("BAS", zone, value)
-        elif parameter[0:3] == "TRE":
-            value = int(parameter[4:])
-            await self._run_callbacks("TRE", zone, value)
-        elif parameter[0:6] == "REFLEV":
-            value = parameter[7:]
-            await self._run_callbacks("REFLEV", zone, value)
-        elif parameter[0:6] == "DYNVOL":
-            value = parameter[7:]
-            await self._run_callbacks("DYNVOL", zone, value)
-        elif parameter[0:6] == "MULTEQ":
-            value = parameter[7:]
-            await self._run_callbacks("MULTEQ", zone, value)
-        elif parameter == "DYNEQ ON":
-            await self._run_callbacks("DYNEQ", zone, "1")
-        elif parameter == "DYNEQ OFF":
-            await self._run_callbacks("DYNEQ", zone, "0")
-        if parameter == "TONE CTRL OFF":
-            await self._run_callbacks("TONE", zone, "1")
-        elif parameter == "TONE CTRL ON":
-            await self._run_callbacks("TONE", zone, "0")
+
+
+

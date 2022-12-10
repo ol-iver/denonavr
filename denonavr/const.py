@@ -255,7 +255,7 @@ ZONE3_URLS = ReceiverURLs(
     command_play=COMMAND_PLAY)
 
 # Telnet Commands
-TELNET_EVENTS = ["PW", "MV", "MU", "SI", "MS", "PS", "BAS", "TRE", "REFLEV", "DYNVOL", "MULTEQ", "DYNEQ", "TONE"]     
+TELNET_EVENTS = ["PW", "MV", "MU", "SI", "MS", "PS"]     
 
 # States
 POWER_ON = "ON"

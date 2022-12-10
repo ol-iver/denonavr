@@ -64,32 +64,23 @@ class DenonAVRAudyssey(DenonAVRFoundation):
         for tag in self.appcommand0300_attrs:
             self._device.api.add_appcommand0300_update_tag(tag)
 
-        self._device.telnet_api.register_callback("REFLEV", self._reflevoffset_callback)
-        self._device.telnet_api.register_callback("DYNVOL", self._dynamicvol_callback)
-        self._device.telnet_api.register_callback("MULTEQ", self._multeq_callback)
-        self._device.telnet_api.register_callback("DYNEQ", self._dynamiceq_callback)
+        self._device.telnet_api.register_callback("PS", self._sound_detail_callback)
 
         self._is_setup = True
 
-    def _reflevoffset_callback(self, zone: str, event:str, value: str):
-        """Handle a ref level change event"""
+    def _sound_detail_callback(self, zone: str, event:str, parameter: str):
+        """Handle a sound detail change event"""
         if self._device.zone == zone:
-            self._reflevoffset = value
-
-    def _dynamicvol_callback(self, zone: str, event:str, value: str):
-        """Handle a dynamic volume change event"""
-        if self._device.zone == zone:
-            self._dynamicvol = value
-
-    def _multeq_callback(self, zone: str, event:str, value: str):
-        """Handle a multi EQ change event"""
-        if self._device.zone == zone:
-            self._multeq = value
-    
-    def _dynamiceq_callback(self, zone: str, event:str, value: str):
-        """Handle a dynamic EQ change event"""
-        if self._device.zone == zone:
-            self._dynamiceq = value
+            if parameter[0:6] == "REFLEV":
+                self._reflevoffset = parameter[7:]
+            elif parameter[0:6] == "DYNVOL":
+                self._dynamicvol = parameter[7:]
+            elif parameter[0:6] == "MULTEQ":
+                self._multeq = parameter[7:]
+            elif parameter == "DYNEQ ON":
+                self._dynamiceq = "1"
+            elif parameter == "DYNEQ OFF":
+                self._dynamiceq = "0"
 
     async def async_update(
             self,

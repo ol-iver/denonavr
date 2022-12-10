@@ -57,26 +57,21 @@ class DenonAVRToneControl(DenonAVRFoundation):
         for tag in self.appcommand_attrs:
             self._device.api.add_appcommand_update_tag(tag)
 
-        self._device.telnet_api.register_callback("BAS", self._bass_callback)
-        self._device.telnet_api.register_callback("TRE", self._treble_callback)
-        self._device.telnet_api.register_callback("TONE", self._tone_control_adjust_callback)
+        self._device.telnet_api.register_callback("PS", self._sound_detail_callback)
 
         self._is_setup = True
 
-    def _bass_callback(self, zone: str, event:str, value: int):
-        """Handle a bass level change event"""
+    def _sound_detail_callback(self, zone: str, event:str, parameter: str):
+        """Handle a sound detail change event"""
         if self._device.zone == zone:
-            self._bass = value
-    
-    def _treble_callback(self, zone: str, event:str, value: int):
-        """Handle a trble level change event"""
-        if self._device.zone == zone:
-            self._treble = value
-
-    def _tone_control_adjust_callback(self, zone: str, event:str, value: str):
-        """Handle a tone control adjust change event"""
-        if self._device.zone == zone:
-            self._tone_control_adjust = value
+            if parameter[0:3] == "BAS":
+                self._bass = int(parameter[4:])
+            elif parameter[0:3] == "TRE":
+                self._treble = int(parameter[4:])
+            elif parameter == "TONE CTRL OFF":
+                self._tone_control_adjust = "0"
+            elif parameter == "TONE CTRL ON":
+                self._tone_control_adjust = "1"
 
     async def async_update(
             self,
