@@ -72,7 +72,7 @@ class DenonAVRVolume(DenonAVRFoundation):
             if len(value) < 3:
                 self._volume = -80.0 + float(value)
             else:
-                self._volume = -80.0 + float(value[0:2]) + (0.1 * float(value[2]))   
+                self._volume = -80.0 + float(value[0:2]) + (0.1 * float(value[2]))
 
     def _mute_callback(self, zone: str, event:str, value: str) -> None:
         """Handle a muting change event"""

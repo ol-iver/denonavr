@@ -227,7 +227,7 @@ class TestMainFunctions:
                     sound_mode = self.denon.zones[name].sound_mode
                     assert (
                         sound_mode in [*SOUND_MODE_MAPPING, None] or
-                        support_sound_mode is not True)    
+                        support_sound_mode is not True)
 
     @pytest.mark.asyncio
     async def test_receive_callback_called(self, httpx_mock: HTTPXMock):
@@ -236,7 +236,7 @@ class TestMainFunctions:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
-            
+
             self.denon = denonavr.DenonAVR(FAKE_IP)
             await self.denon.async_setup()
             await self.denon.async_telnet_connect()
@@ -255,7 +255,7 @@ class TestMainFunctions:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
-            
+
             self.denon = denonavr.DenonAVR(FAKE_IP)
             self.future = asyncio.Future()
             self.denon.register_callback("ALL", self._callback)
@@ -272,7 +272,7 @@ class TestMainFunctions:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
-            
+
             self.denon = denonavr.DenonAVR(FAKE_IP)
             self.future = asyncio.Future()
             self.denon.register_callback("ALL", self._callback)
@@ -289,7 +289,7 @@ class TestMainFunctions:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
-            
+
             self.denon = denonavr.DenonAVR(FAKE_IP)
             self.future = asyncio.Future()
             self.denon.register_callback("ALL", self._callback)
@@ -306,7 +306,7 @@ class TestMainFunctions:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
-            
+
             self.denon = denonavr.DenonAVR(FAKE_IP)
             self.future = asyncio.Future()
             self.denon.register_callback("ALL", self._callback)
@@ -323,7 +323,7 @@ class TestMainFunctions:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
-            
+
             self.denon = denonavr.DenonAVR(FAKE_IP)
             self.future = asyncio.Future()
             self.denon.register_callback("ALL", self._callback)
@@ -340,7 +340,7 @@ class TestMainFunctions:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
-            
+
             self.denon = denonavr.DenonAVR(FAKE_IP)
             self.future = asyncio.Future()
             self.denon.register_callback("ALL", self._callback)
@@ -357,7 +357,7 @@ class TestMainFunctions:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
-            
+
             self.denon = denonavr.DenonAVR(FAKE_IP)
             self.future = asyncio.Future()
             self.denon.register_callback("ALL", self._callback)
@@ -366,4 +366,3 @@ class TestMainFunctions:
             reader.feed_data(b"MV565\r")
             await self.future
             assert self.denon.volume == -23.5
-

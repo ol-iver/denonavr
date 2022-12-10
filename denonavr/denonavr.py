@@ -8,9 +8,7 @@ This module implements the interface to Denon AVR receivers.
 """
 
 import asyncio
-from contextlib import suppress
 import logging
-from subprocess import call
 import time
 
 from typing import Awaitable, Callable, Dict, List, Optional
@@ -20,9 +18,8 @@ import httpx
 
 from .decorators import run_async_synchronously
 from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
-from .const import (
-    DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES, ZONE2, ZONE3, TELNET_SOURCES)
-from .exceptions import AvrCommandError, AvrTimoutError
+from .const import (DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES)
+from .exceptions import AvrCommandError
 
 from .audyssey import DenonAVRAudyssey, audyssey_factory
 from .input import DenonAVRInput, input_factory
@@ -223,11 +220,13 @@ class DenonAVR(DenonAVRFoundation):
     def send_get_command(self, request: str) -> str:
         """Send HTTP GET command to Denon AVR receiver...for compatibility."""
 
-    def register_callback(self, type: str, callback: Callable[[str, str, str], Awaitable[None]]):
-        self._device.telnet_api.register_callback(type, callback=callback)
+    def register_callback(self, event: str, callback: Callable[[str, str, str], Awaitable[None]]):
+        """Register a callback for telnet events."""
+        self._device.telnet_api.register_callback(event, callback=callback)
 
-    def unregister_callback(self, type: str, callback: Callable[[str, str, str], Awaitable[None]]):
-        self._device.telnet_api.unregister_callback(type, callback=callback)
+    def unregister_callback(self, event: str, callback: Callable[[str, str, str], Awaitable[None]]):
+        """Unregister a callback for telnet events."""
+        self._device.telnet_api.unregister_callback(event, callback=callback)
 
     async def async_telnet_connect(self):
         """Connect to the telnet interface of the receiver."""

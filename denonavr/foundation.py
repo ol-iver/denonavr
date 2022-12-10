@@ -120,7 +120,7 @@ class DenonAVRDeviceInfo:
 
             # Add tags for a potential AppCommand.xml update
             self.api.add_appcommand_update_tag(
-                AppCommands.GetAllZonePowerStatus)               
+                AppCommands.GetAllZonePowerStatus)
 
             self.telnet_api.register_callback("PW", self._power_callback)
 
@@ -658,7 +658,7 @@ def set_api_host(
     """Change API host on host changes too."""
     # First change _device.api.host then return value
     instance._device.api.host = value  # pylint: disable=protected-access
-    instance._device.telnet_api.host = value
+    instance._device.telnet_api.host = value # pylint: disable=protected-access
     return value
 
 

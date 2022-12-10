@@ -9,7 +9,6 @@ This module implements the REST and Telnet APIs to Denon AVR receivers.
 
 import asyncio
 from contextlib import suppress
-import inspect
 import logging
 import xml.etree.ElementTree as ET
 
@@ -316,19 +315,24 @@ class DenonAVRApi:
 
 @attr.s(auto_attribs=True, hash=False, on_setattr=DENON_ATTR_SETATTR)
 class DenonAVRTelnetApi:
+    """Handle Telnet responses from the Denon AVR Telnet interface."""
 
     host: str = attr.ib(converter=str, default="localhost")
     timeout: int = attr.ib(converter=int, default=10)
     _telnet_task: asyncio.Task = attr.ib(default=None)
+    _socket_reader: asyncio.StreamReader = attr.ib(default=None)
+    _socket_writer: asyncio.StreamWriter = attr.ib(default=None)
     _callbacks: dict[str, Callable] = attr.ib(
         validator=attr.validators.instance_of(dict),
         default={}, init=False
     )
-    
+
     async def async_connect(self) -> asyncio.Task:
         """ Connect to the receiver asynchronously."""
         try:
-            self._socket_reader, self._socket_writer = await asyncio.wait_for(asyncio.open_connection(self.host, 23), timeout=self.timeout)
+            self._socket_reader, self._socket_writer = await asyncio.wait_for(
+                asyncio.open_connection(self.host, 23), timeout=self.timeout
+            )
         except asyncio.exceptions.TimeoutError as err:
             _LOGGER.debug(
                 "Socket timeout exception on connect",
@@ -354,12 +358,14 @@ class DenonAVRTelnetApi:
         data = bytearray()
         while not self._socket_reader.at_eof():
             try:
-                chunk = await asyncio.wait_for(self._socket_reader.read(_SOCKET_READ_SIZE), self.timeout)
-            except asyncio.exceptions.TimeoutError as err:
+                chunk = await asyncio.wait_for(
+                    self._socket_reader.read(_SOCKET_READ_SIZE), self.timeout
+                )
+            except asyncio.exceptions.TimeoutError:
                 _LOGGER.debug("Lost connection to receiver, reconnecting")
                 await self.async_disconnect()
                 await self.async_connect()
-            for i in range(0,len(chunk)):
+            for i in range(0,len(chunk)): # pylint: disable=consider-using-enumerate
                 # Messages are CR terminated
                 if chunk[i] != 13:
                     data += chunk[i].to_bytes(1, byteorder='big')
@@ -367,55 +373,55 @@ class DenonAVRTelnetApi:
                     await self._process_event(str(data,'utf-8'))
                     data = bytearray()
 
-    def register_callback(self, type: str, callback: Callable[[str, str, str], Awaitable[None]]):
+    def register_callback(self, event: str, callback: Callable[[str, str, str], Awaitable[None]]):
         """Registers a callback handler for an event type."""
 
         # Validate the passed in type
-        if type != "ALL" and not type in TELNET_EVENTS:
-            raise ValueError("{} is not a valid callback type.".format(type))
-                
-        if not type in self._callbacks.keys():
-            self._callbacks[type] = []
-        self._callbacks[type].append(callback)
+        if event != "ALL" and not event in TELNET_EVENTS:
+            raise ValueError("{} is not a valid callback type.".format(event))
 
-    def unregister_callback(self, type: str, callback: Callable[[str, str, str], Awaitable[None]]):
+        if not event in self._callbacks.keys():
+            self._callbacks[event] = []
+        self._callbacks[event].append(callback)
+
+    def unregister_callback(self, event: str, callback: Callable[[str, str, str], Awaitable[None]]):
         """Unregisters a callback handler for an event type."""
-        if not type in self._callbacks.keys():
+        if not event in self._callbacks.keys():
             return
-        self._callbacks[type].remove(callback)
+        self._callbacks[event].remove(callback)
 
     async def _process_event(self, message: str):
         """Process a realtime event."""
         if len(message) < 3:
             return None
-        
+
         #Event is 2 characters
         event = message[0:2]
         #Parameter is the remaining characters
         parameter = message[2:]
 
         if event == 'MV':
-            # This seems undocumented by Denon and appears to basically be a 
+            # This seems undocumented by Denon and appears to basically be a
             # noop that goes along with volume changes. This is here to prevent
             # duplicate callback calls.
             if parameter[0:3] == "MAX":
                 return
             await self._run_callbacks("MV", MAIN_ZONE, parameter)
-        elif event == 'Z2' or event == 'Z3':
+        elif event in ('Z2', 'Z3'):
             if event == 'Z2':
                 zone = ZONE2
             else:
                 zone = ZONE3
-            if parameter == 'ON' or parameter == 'OFF':
+            if parameter in ('ON', 'OFF'):
                 await self._run_callbacks("PW", zone, parameter)
-            elif parameter == 'MUON' or parameter == 'MUOFF':
+            elif parameter in ('MUON', 'MUOFF'):
                 await self._run_callbacks("MU", zone, parameter)
             elif parameter in TELNET_SOURCES:
                 await self._run_callbacks("SI", zone, parameter)
             elif parameter.isdigit():
                 await self._run_callbacks("MV", zone, parameter)
         elif event in TELNET_EVENTS:
-            await self._run_callbacks(event, MAIN_ZONE, parameter)   
+            await self._run_callbacks(event, MAIN_ZONE, parameter)
 
     async def _run_callbacks(self, event: str, zone: str, parameter: str):
         """Handle triggering the registered callbacks for the specified event"""
@@ -423,20 +429,16 @@ class DenonAVRTelnetApi:
             for callback in self._callbacks[event]:
                 try:
                     await callback(zone, event, parameter)
-                except Exception as err:
-                    # We don't want a single bad callback to trip up the whole system and prevent further 
-                    # execution
-                    _LOGGER.error(f"Event callback triggered an unhandled exception {err}")
+                except Exception as err: # pylint: disable=broad-except
+                    # We don't want a single bad callback to trip up the whole system
+                    # and prevent further execution
+                    _LOGGER.error("Event callback triggered an unhandled exception %s", err)
 
         if "ALL" in self._callbacks.keys():
             for callback in self._callbacks["ALL"]:
                 try:
                     await callback(zone, event, parameter)
-                except Exception as err:
-                    # We don't want a single bad callback to trip up the whole system and prevent further 
-                    # execution
-                    _LOGGER.error(f"Event callback triggered an unhandled exception {err}")
-
-
-
-
+                except Exception as err: # pylint: disable=broad-except
+                    # We don't want a single bad callback to trip up the whole system
+                    # and prevent further execution
+                    _LOGGER.error("Event callback triggered an unhandled exception %s", err)

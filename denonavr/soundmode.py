@@ -93,7 +93,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     status_xml_attrs_01 = {
         "_sound_mode_raw": "./selectSurround/value"}
     status_xml_attrs_02 = {
-        "_sound_mode_raw": "./SurrMode/value"}        
+        "_sound_mode_raw": "./SurrMode/value"}
 
     async def async_setup(self) -> None:
         """Ensure that the instance is initialized."""
