@@ -239,10 +239,11 @@ class TestMainFunctions:
             
             self.denon = denonavr.DenonAVR(FAKE_IP)
             await self.denon.async_setup()
+            await self.denon.async_telnet_connect()
             mock = Mock()
             self.future = asyncio.Future()
-            self.denon.register_callback(mock.method)
-            self.denon.register_callback(self._callback)
+            self.denon.register_callback("ALL", mock.method)
+            self.denon.register_callback("ALL", self._callback)
             reader.feed_data(b"MUON\r")
             await self.future
             mock.method.assert_called_once()
@@ -257,8 +258,9 @@ class TestMainFunctions:
             
             self.denon = denonavr.DenonAVR(FAKE_IP)
             self.future = asyncio.Future()
-            self.denon.register_callback(self._callback)
+            self.denon.register_callback("ALL", self._callback)
             await self.denon.async_setup()
+            await self.denon.async_telnet_connect()
             reader.feed_data(b"MUON\r")
             await self.future
             assert self.denon.muted
@@ -273,8 +275,9 @@ class TestMainFunctions:
             
             self.denon = denonavr.DenonAVR(FAKE_IP)
             self.future = asyncio.Future()
-            self.denon.register_callback(self._callback)
+            self.denon.register_callback("ALL", self._callback)
             await self.denon.async_setup()
+            await self.denon.async_telnet_connect()
             reader.feed_data(b"MUOFF\r")
             await self.future
             assert not self.denon.muted
@@ -289,8 +292,9 @@ class TestMainFunctions:
             
             self.denon = denonavr.DenonAVR(FAKE_IP)
             self.future = asyncio.Future()
-            self.denon.register_callback(self._callback)
+            self.denon.register_callback("ALL", self._callback)
             await self.denon.async_setup()
+            await self.denon.async_telnet_connect()
             reader.feed_data(b"PWON\r")
             await asyncio.sleep(0.5)
             assert self.denon.power == "ON"
@@ -305,8 +309,9 @@ class TestMainFunctions:
             
             self.denon = denonavr.DenonAVR(FAKE_IP)
             self.future = asyncio.Future()
-            self.denon.register_callback(self._callback)
+            self.denon.register_callback("ALL", self._callback)
             await self.denon.async_setup()
+            await self.denon.async_telnet_connect()
             reader.feed_data(b"PWSTANDBY\r")
             await self.future
             assert self.denon.power == "STANDBY"
@@ -321,8 +326,9 @@ class TestMainFunctions:
             
             self.denon = denonavr.DenonAVR(FAKE_IP)
             self.future = asyncio.Future()
-            self.denon.register_callback(self._callback)
+            self.denon.register_callback("ALL", self._callback)
             await self.denon.async_setup()
+            await self.denon.async_telnet_connect()
             reader.feed_data(b"MV00\r")
             await self.future
             assert self.denon.volume == -80.0
@@ -337,8 +343,9 @@ class TestMainFunctions:
             
             self.denon = denonavr.DenonAVR(FAKE_IP)
             self.future = asyncio.Future()
-            self.denon.register_callback(self._callback)
+            self.denon.register_callback("ALL", self._callback)
             await self.denon.async_setup()
+            await self.denon.async_telnet_connect()
             reader.feed_data(b"MV56\r")
             await self.future
             assert self.denon.volume == -24.0
@@ -353,8 +360,9 @@ class TestMainFunctions:
             
             self.denon = denonavr.DenonAVR(FAKE_IP)
             self.future = asyncio.Future()
-            self.denon.register_callback(self._callback)
+            self.denon.register_callback("ALL", self._callback)
             await self.denon.async_setup()
+            await self.denon.async_telnet_connect()
             reader.feed_data(b"MV565\r")
             await self.future
             assert self.denon.volume == -23.5
