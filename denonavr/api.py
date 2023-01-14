@@ -325,7 +325,7 @@ class DenonAVRTelnetApi:
     _telnet_task: asyncio.Task = attr.ib(default=None)
     _socket_reader: asyncio.StreamReader = attr.ib(default=None)
     _socket_writer: asyncio.StreamWriter = attr.ib(default=None)
-    _callbacks: dict[str, Callable] = attr.ib(
+    _callbacks: Dict[str, Callable] = attr.ib(
         validator=attr.validators.instance_of(dict),
         default={}, init=False
     )
