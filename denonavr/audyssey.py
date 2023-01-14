@@ -72,17 +72,19 @@ class DenonAVRAudyssey(DenonAVRFoundation):
 
     def _sound_detail_callback(self, zone: str, event: str, parameter: str):
         """Handle a sound detail change event."""
-        if self._device.zone == zone:
-            if parameter[0:6] == "REFLEV":
-                self._reflevoffset = parameter[7:]
-            elif parameter[0:6] == "DYNVOL":
-                self._dynamicvol = parameter[7:]
-            elif parameter[0:6] == "MULTEQ":
-                self._multeq = parameter[7:]
-            elif parameter == "DYNEQ ON":
-                self._dynamiceq = "1"
-            elif parameter == "DYNEQ OFF":
-                self._dynamiceq = "0"
+        if self._device.zone != zone:
+            return
+
+        if parameter[0:6] == "REFLEV":
+            self._reflevoffset = parameter[7:]
+        elif parameter[0:6] == "DYNVOL":
+            self._dynamicvol = parameter[7:]
+        elif parameter[0:6] == "MULTEQ":
+            self._multeq = parameter[7:]
+        elif parameter == "DYNEQ ON":
+            self._dynamiceq = "1"
+        elif parameter == "DYNEQ OFF":
+            self._dynamiceq = "0"
 
     async def async_update(
             self,
