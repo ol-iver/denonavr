@@ -405,34 +405,40 @@ class DenonAVRTelnetApi:
         """Process a realtime event."""
         if len(message) < 3:
             return None
+        zone = MAIN_ZONE
 
         # Event is 2 characters
         event = message[0:2]
         # Parameter is the remaining characters
         parameter = message[2:]
-
-        if event == 'MV':
+        
+        if event == "MV":
             # This seems undocumented by Denon and appears to basically be a
             # noop that goes along with volume changes. This is here to prevent
             # duplicate callback calls.
             if parameter[0:3] == "MAX":
                 return
-            await self._run_callbacks("MV", MAIN_ZONE, parameter)
-        elif event in ('Z2', 'Z3'):
-            if event == 'Z2':
+
+        if event in ("Z2", "Z3"):
+            if event == "Z2":
                 zone = ZONE2
             else:
                 zone = ZONE3
-            if parameter in ('ON', 'OFF'):
-                await self._run_callbacks("PW", zone, parameter)
-            elif parameter in ('MUON', 'MUOFF'):
-                await self._run_callbacks("MU", zone, parameter)
+
+            if parameter in ("ON", "OFF"):
+                event = "PW"
             elif parameter in TELNET_SOURCES:
-                await self._run_callbacks("SI", zone, parameter)
+                event = "SI"
             elif parameter.isdigit():
-                await self._run_callbacks("MV", zone, parameter)
-        elif event in TELNET_EVENTS:
-            await self._run_callbacks(event, MAIN_ZONE, parameter)
+                event = "MV"
+            elif parameter[0:2] in TELNET_EVENTS:
+                event = parameter[0:2]
+                parameter = parameter[2:]
+
+        if event not in TELNET_EVENTS:
+            return
+
+        await self._run_callbacks(event, zone, parameter)
 
     async def _run_callbacks(self, event: str, zone: str, parameter: str):
         """Handle triggering the registered callbacks for the event."""
