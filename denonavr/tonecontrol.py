@@ -66,15 +66,17 @@ class DenonAVRToneControl(DenonAVRFoundation):
 
     def _sound_detail_callback(self, zone: str, event: str, parameter: str):
         """Handle a sound detail change event."""
-        if self._device.zone == zone:
-            if parameter[0:3] == "BAS":
-                self._bass = int(parameter[4:])
-            elif parameter[0:3] == "TRE":
-                self._treble = int(parameter[4:])
-            elif parameter == "TONE CTRL OFF":
-                self._tone_control_adjust = "0"
-            elif parameter == "TONE CTRL ON":
-                self._tone_control_adjust = "1"
+        if self._device.zone != zone:
+            return
+
+        if parameter[0:3] == "BAS":
+            self._bass = int(parameter[4:])
+        elif parameter[0:3] == "TRE":
+            self._treble = int(parameter[4:])
+        elif parameter == "TONE CTRL OFF":
+            self._tone_control_adjust = "0"
+        elif parameter == "TONE CTRL ON":
+            self._tone_control_adjust = "1"
 
     async def async_update(
             self,

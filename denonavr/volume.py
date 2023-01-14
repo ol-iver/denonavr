@@ -68,18 +68,22 @@ class DenonAVRVolume(DenonAVRFoundation):
 
     def _volume_callback(self, zone: str, event: str, value: str) -> None:
         """Handle a volume change event."""
-        if self._device.zone == zone:
-            if len(value) < 3:
-                self._volume = -80.0 + float(value)
-            else:
-                whole_number = float(value[0:2])
-                fraction = (0.1 * float(value[2]))
-                self._volume = -80.0 + whole_number + fraction
+        if self._device.zone != zone:
+            return
+
+        if len(value) < 3:
+            self._volume = -80.0 + float(value)
+        else:
+            whole_number = float(value[0:2])
+            fraction = (0.1 * float(value[2]))
+            self._volume = -80.0 + whole_number + fraction
 
     def _mute_callback(self, zone: str, event: str, value: str) -> None:
         """Handle a muting change event."""
-        if self._device.zone == zone:
-            self._muted = value
+        if self._device.zone != zone:
+            return
+
+        self._muted = value
 
     async def async_update(
             self,
