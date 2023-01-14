@@ -411,7 +411,7 @@ class DenonAVRTelnetApi:
         event = message[0:2]
         # Parameter is the remaining characters
         parameter = message[2:]
-        
+
         if event == "MV":
             # This seems undocumented by Denon and appears to basically be a
             # noop that goes along with volume changes. This is here to prevent
