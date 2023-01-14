@@ -62,10 +62,9 @@ The `asyncio` library should automatically be imported in the REPL.  Import the 
 >>> await d.async_setup()
 >>> await d.async_telnet_connect()
 >>> await d.async_update()
->>> def _update_callback(zone, event, parameter):
->>>>>> print(d.volume)
->>> d.register_callback(_update_callback)
->>> await asyncio.wait([d.monitor_updates()])
+>>> def update_callback(zone, event, parameter):
+>>>>>> print("Zone: " + zone + " Event: " + event + " Parameter: " + parameter)
+>>> d.register_callback("ALL", update_callback)
 ```
 
 ### Power & Input
