@@ -195,8 +195,7 @@ class TestMainFunctions:
             assert self.denon.name is not None, (
                 "Name is None for receiver {}".format(receiver))
             assert self.denon.support_sound_mode is not None, (
-                "support_sound_mode is None for receiver {}".format(
-                    receiver))
+                "support_sound_mode is None for receiver {}".format(receiver))
             await self.denon.async_update()
             assert self.denon.power is not None, (
                 "Power status is None for receiver {}".format(receiver))
@@ -214,10 +213,9 @@ class TestMainFunctions:
             # Switch through all functions and check if successful
             for name in self.denon.zones:
                 print("Receiver: {}, Zone: {}".format(receiver, name))
-                zone = self.denon.zones[name]
-                await zone.async_update()
-                support_sound_mode = zone.support_sound_mode
-                sound_mode = zone.sound_mode
+                await self.denon.zones[name].async_update()
+                support_sound_mode = self.denon.zones[name].support_sound_mode
+                sound_mode = self.denon.zones[name].sound_mode
                 assert (
                     sound_mode in [*SOUND_MODE_MAPPING, None] or
                     support_sound_mode is not True)
