@@ -310,7 +310,7 @@ class TestMainFunctions:
             await self.denon.async_setup()
             await self.denon.async_telnet_connect()
             reader.feed_data(b"PWON\r")
-            await asyncio.sleep(0.5)
+            await self.future
             assert self.denon.power == "ON"
 
     @pytest.mark.asyncio
