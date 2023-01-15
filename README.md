@@ -1,5 +1,5 @@
 # denonavr
-[![Version](https://img.shields.io/badge/version-v0.10.12-orange.svg)](https://github.com/ol-iver/denonavr)
+[![Release](https://img.shields.io/github/v/release/ol-iver/denonavr?sort=semver)](https://github.com/ol-iver/denonavr/releases/latest)
 [![Build Status](https://github.com/ol-iver/denonavr/actions/workflows/python-tests.yml/badge.svg)](https://github.com/ol-iver/denonavr/actions/workflows/python-tests.yml)
 [![PyPi](https://img.shields.io/pypi/v/denonavr.svg)](https://pypi.org/project/denonavr)
 [![License](https://img.shields.io/github/license/ol-iver/denonavr.svg)](LICENSE)
