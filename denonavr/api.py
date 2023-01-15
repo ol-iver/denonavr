@@ -336,7 +336,7 @@ class DenonAVRTelnetApi:
             self._socket_reader, self._socket_writer = await asyncio.wait_for(
                 asyncio.open_connection(self.host, 23), timeout=self.timeout
             )
-        except asyncio.exceptions.TimeoutError as err:
+        except asyncio.TimeoutError as err:
             _LOGGER.debug(
                 "Socket timeout exception on connect",
                 exc_info=True)
@@ -364,7 +364,7 @@ class DenonAVRTelnetApi:
                 chunk = await asyncio.wait_for(
                     self._socket_reader.read(_SOCKET_READ_SIZE), self.timeout
                 )
-            except asyncio.exceptions.TimeoutError:
+            except asyncio.TimeoutError:
                 _LOGGER.debug("Lost connection to receiver, reconnecting")
                 await self.async_disconnect()
                 await self.async_connect()

@@ -4,7 +4,7 @@
 from setuptools import find_packages, setup
 
 setup(name='denonavr',
-      version='0.10.12',
+      version='0.11.0-dev',
       description='Automation Library for Denon AVR receivers',
       long_description='Automation Library for Denon AVR receivers',
       url='https://github.com/ol-iver/denonavr',
@@ -21,7 +21,7 @@ setup(name='denonavr',
       tests_require=['tox'],
       platforms=['any'],
       zip_safe=False,
-      python_requires=">=3.6",
+      python_requires=">=3.7",
       classifiers=[
           "Development Status :: 4 - Beta",
           "Intended Audience :: Developers",
@@ -29,9 +29,9 @@ setup(name='denonavr',
           "Operating System :: OS Independent",
           "Topic :: Software Development :: Libraries",
           "Topic :: Home Automation",
-          "Programming Language :: Python :: 3.6",
           "Programming Language :: Python :: 3.7",
           "Programming Language :: Python :: 3.8",
           "Programming Language :: Python :: 3.9",
-          "Programming Language :: Python :: 3.10"
+          "Programming Language :: Python :: 3.10",
+          "Programming Language :: Python :: 3.11"
           ])
