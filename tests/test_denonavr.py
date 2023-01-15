@@ -397,7 +397,7 @@ class TestMainFunctions:
 class AsyncMock(mock.MagicMock):
     """Mocking async methods compatible to python 3.7."""
 
-    # pylint: disable=invalid-overridden-method
+    # pylint: disable=invalid-overridden-method,useless-super-delegation
     async def __call__(self, *args, **kwargs):
         """Call."""
         return super().__call__(*args, **kwargs)
