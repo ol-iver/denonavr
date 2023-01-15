@@ -6,6 +6,10 @@
 
 Automation Library for Denon AVR receivers
 
+### TCP monitoring
+
+In addition to retrieving the current device status via HTTP calls, this version also adds the ability to setup a task that will connect to the receiver on TCP port 23 and listen for real-time events to notify of status changes. This provides instant updates via a callback when the device status changes.
+
 ## Important changes for version 0.10.0 and above
 
 ### async
@@ -48,6 +52,19 @@ The `asyncio` library should automatically be imported in the REPL.  Import the 
 >>> await d.async_update()
 >>> print(d.volume)
 -36.5
+```
+
+### Monitoring with TCP
+```
+>>> import asyncio
+>>> import denonavr
+>>> d = denonavr.DenonAVR("192.168.1.119")
+>>> await d.async_setup()
+>>> await d.async_telnet_connect()
+>>> await d.async_update()
+>>> def update_callback(zone, event, parameter):
+>>>>>> print("Zone: " + zone + " Event: " + event + " Parameter: " + parameter)
+>>> d.register_callback("ALL", update_callback)
 ```
 
 ### Power & Input

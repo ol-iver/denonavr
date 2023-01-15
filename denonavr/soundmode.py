@@ -109,7 +109,19 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             else:
                 await self.async_update_sound_mode()
 
+            self._device.telnet_api.register_callback(
+                "MS",
+                self._soundmode_callback
+            )
+
             self._is_setup = True
+
+    def _soundmode_callback(self, zone: str, event: str, value: str) -> None:
+        """Handle a sound mode change event."""
+        if self._device.zone != zone:
+            return
+
+        self._sound_mode_raw = value
 
     async def async_update(
             self,

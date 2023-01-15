@@ -24,7 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def convert_muted(value: str) -> bool:
     """Convert muted to bool."""
-    return bool(value == STATE_ON)
+    return bool(value.lower() == STATE_ON)
 
 
 def convert_volume(value: Union[float, str]) -> float:
@@ -61,7 +61,29 @@ class DenonAVRVolume(DenonAVRFoundation):
         for tag in self.appcommand_attrs:
             self._device.api.add_appcommand_update_tag(tag)
 
+        self._device.telnet_api.register_callback("MV", self._volume_callback)
+        self._device.telnet_api.register_callback("MU", self._mute_callback)
+
         self._is_setup = True
+
+    def _volume_callback(self, zone: str, event: str, value: str) -> None:
+        """Handle a volume change event."""
+        if self._device.zone != zone:
+            return
+
+        if len(value) < 3:
+            self._volume = -80.0 + float(value)
+        else:
+            whole_number = float(value[0:2])
+            fraction = (0.1 * float(value[2]))
+            self._volume = -80.0 + whole_number + fraction
+
+    def _mute_callback(self, zone: str, event: str, value: str) -> None:
+        """Handle a muting change event."""
+        if self._device.zone != zone:
+            return
+
+        self._muted = value
 
     async def async_update(
             self,

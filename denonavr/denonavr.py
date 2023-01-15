@@ -11,15 +11,14 @@ import asyncio
 import logging
 import time
 
-from typing import Callable, Dict, List, Optional
+from typing import Awaitable, Callable, Dict, List, Optional
 
 import attr
 import httpx
 
 from .decorators import run_async_synchronously
 from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
-from .const import (
-    DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES)
+from .const import (DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES)
 from .exceptions import AvrCommandError
 
 from .audyssey import DenonAVRAudyssey, audyssey_factory
@@ -143,6 +142,10 @@ class DenonAVR(DenonAVRFoundation):
             self.vol.setup()
             self.audyssey.setup()
 
+            for zone_name, zone_item in self._zones.items():
+                if zone_name != self.zone:
+                    await zone_item.async_setup()
+
             self._is_setup = True
 
     @run_async_synchronously(async_func=async_setup)
@@ -217,6 +220,30 @@ class DenonAVR(DenonAVRFoundation):
     @run_async_synchronously(async_func=async_get_command)
     def send_get_command(self, request: str) -> str:
         """Send HTTP GET command to Denon AVR receiver...for compatibility."""
+
+    def register_callback(
+        self,
+        event: str,
+        callback: Callable[[str, str, str], Awaitable[None]]
+    ):
+        """Register a callback for telnet events."""
+        self._device.telnet_api.register_callback(event, callback=callback)
+
+    def unregister_callback(
+        self,
+        event: str,
+        callback: Callable[[str, str, str], Awaitable[None]]
+    ):
+        """Unregister a callback for telnet events."""
+        self._device.telnet_api.unregister_callback(event, callback=callback)
+
+    async def async_telnet_connect(self):
+        """Connect to the telnet interface of the receiver."""
+        await self._device.telnet_api.async_connect()
+
+    async def async_telnet_disconnect(self):
+        """Disconnect from the telnet interface of the receiver."""
+        await self._device.telnet_api.async_disconnect()
 
     ##############
     # Properties #

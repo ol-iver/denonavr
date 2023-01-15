@@ -62,6 +62,13 @@ CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
                         "Media Server": "SERVER", "Spotify": "SPOTIFY",
                         "Flickr": "FLICKR", "Favorites": "FAVORITES"}
 
+TELNET_SOURCES = ["CD", "PHONO", "TUNER", "DVD", "BD", "TV",
+                  "SAT/CBL", "MPLAY", "GAME", "HDRADIO", "NET", "PANDORA",
+                  "SIRIUSXM", "LASTFM", "FLICKR", "IRADIO", "SERVER",
+                  "FAVORITES", "AUX1", "AUX2", "AUX3", "AUX4", "AUX5",
+                  "AUX6", "AUX7", "BT", "USB/IPOD", "USB DIRECT",
+                  "IPOD DIRECT"]
+
 # Sound modes
 ALL_ZONE_STEREO = "ALL ZONE STEREO"
 
@@ -247,6 +254,9 @@ ZONE3_URLS = ReceiverURLs(
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
     command_play=COMMAND_PLAY)
+
+# Telnet Commands
+TELNET_EVENTS = ["PW", "MV", "MU", "SI", "MS", "PS"]
 
 # States
 POWER_ON = "ON"

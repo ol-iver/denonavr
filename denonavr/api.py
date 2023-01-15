@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-This module implements the REST API to Denon AVR receivers.
+This module implements the REST and Telnet APIs to Denon AVR receivers.
 
 :copyright: (c) 2021 by Oliver Goetz.
 :license: MIT, see LICENSE for more details.
 """
 
+import asyncio
+from contextlib import suppress
 import logging
 import xml.etree.ElementTree as ET
 
 from io import BytesIO
-from typing import Callable, Dict, Hashable, Optional, Tuple
+from typing import Awaitable, Callable, Dict, Hashable, Optional, Tuple
 
 import attr
 import httpx
@@ -24,12 +26,15 @@ from .decorators import (
     async_handle_receiver_exceptions,
     cache_clear_on_exception,
     set_cache_id)
-from .exceptions import AvrIncompleteResponseError, AvrInvalidResponseError
+from .exceptions import (
+    AvrIncompleteResponseError, AvrInvalidResponseError, AvrTimoutError)
 from .const import (
     APPCOMMAND_CMD_TEXT, APPCOMMAND_NAME, APPCOMMAND_URL, APPCOMMAND0300_URL,
-    DENON_ATTR_SETATTR)
+    DENON_ATTR_SETATTR, MAIN_ZONE, TELNET_EVENTS, ZONE2, ZONE3, TELNET_SOURCES)
 
 _LOGGER = logging.getLogger(__name__)
+
+_SOCKET_READ_SIZE = 135
 
 
 def get_default_async_client() -> httpx.AsyncClient:
@@ -309,3 +314,154 @@ class DenonAVRApi:
     def is_default_async_client(self) -> bool:
         """Check if default httpx.AsyncCLient getter is used."""
         return self.async_client_getter is get_default_async_client
+
+
+@attr.s(auto_attribs=True, hash=False, on_setattr=DENON_ATTR_SETATTR)
+class DenonAVRTelnetApi:
+    """Handle Telnet responses from the Denon AVR Telnet interface."""
+
+    host: str = attr.ib(converter=str, default="localhost")
+    timeout: int = attr.ib(converter=int, default=10)
+    _telnet_task: asyncio.Task = attr.ib(default=None)
+    _socket_reader: asyncio.StreamReader = attr.ib(default=None)
+    _socket_writer: asyncio.StreamWriter = attr.ib(default=None)
+    _callbacks: Dict[str, Callable] = attr.ib(
+        validator=attr.validators.instance_of(dict),
+        default={}, init=False
+    )
+
+    async def async_connect(self) -> asyncio.Task:
+        """Connect to the receiver asynchronously."""
+        try:
+            self._socket_reader, self._socket_writer = await asyncio.wait_for(
+                asyncio.open_connection(self.host, 23), timeout=self.timeout
+            )
+        except asyncio.TimeoutError as err:
+            _LOGGER.debug(
+                "Socket timeout exception on connect",
+                exc_info=True)
+            raise AvrTimoutError(
+                "TimeoutException: {}".format(err), "connect") from err
+        self._telnet_task = asyncio.create_task(self._async_monitor())
+        return self._telnet_task
+
+    async def async_disconnect(self) -> None:
+        """Close the connection to the receiver asynchronously."""
+        if self._telnet_task:
+            self._telnet_task.cancel()
+            self._telnet_task = None
+        if self._socket_writer:
+            self._socket_writer.close()
+            with suppress(ConnectionError):
+                await self._socket_writer.wait_closed()
+            self._socket_writer = None
+
+    async def _async_monitor(self):
+        """Read the messages on the TCP socket."""
+        data = bytearray()
+        while not self._socket_reader.at_eof():
+            try:
+                chunk = await asyncio.wait_for(
+                    self._socket_reader.read(_SOCKET_READ_SIZE), self.timeout
+                )
+            except asyncio.TimeoutError:
+                _LOGGER.debug("Lost connection to receiver, reconnecting")
+                await self.async_disconnect()
+                await self.async_connect()
+            # pylint: disable=consider-using-enumerate
+            for i in range(0, len(chunk)):
+                # Messages are CR terminated
+                if chunk[i] != 13:
+                    data += chunk[i].to_bytes(1, byteorder='big')
+                else:
+                    await self._process_event(str(data, 'utf-8'))
+                    data = bytearray()
+
+    def register_callback(
+        self,
+        event: str,
+        callback: Callable[[str, str, str], Awaitable[None]]
+    ):
+        """Register a callback handler for an event type."""
+        # Validate the passed in type
+        if event != "ALL" and event not in TELNET_EVENTS:
+            raise ValueError("{} is not a valid callback type.".format(event))
+
+        if event not in self._callbacks.keys():
+            self._callbacks[event] = []
+        self._callbacks[event].append(callback)
+
+    def unregister_callback(
+        self,
+        event: str,
+        callback: Callable[[str, str, str], Awaitable[None]]
+    ):
+        """Unregister a callback handler for an event type."""
+        if event not in self._callbacks.keys():
+            return
+        self._callbacks[event].remove(callback)
+
+    async def _process_event(self, message: str):
+        """Process a realtime event."""
+        if len(message) < 3:
+            return None
+        zone = MAIN_ZONE
+
+        # Event is 2 characters
+        event = message[0:2]
+        # Parameter is the remaining characters
+        parameter = message[2:]
+
+        if event == "MV":
+            # This seems undocumented by Denon and appears to basically be a
+            # noop that goes along with volume changes. This is here to prevent
+            # duplicate callback calls.
+            if parameter[0:3] == "MAX":
+                return
+
+        if event in ("Z2", "Z3"):
+            if event == "Z2":
+                zone = ZONE2
+            else:
+                zone = ZONE3
+
+            if parameter in ("ON", "OFF"):
+                event = "PW"
+            elif parameter in TELNET_SOURCES:
+                event = "SI"
+            elif parameter.isdigit():
+                event = "MV"
+            elif parameter[0:2] in TELNET_EVENTS:
+                event = parameter[0:2]
+                parameter = parameter[2:]
+
+        if event not in TELNET_EVENTS:
+            return
+
+        await self._run_callbacks(event, zone, parameter)
+
+    async def _run_callbacks(self, event: str, zone: str, parameter: str):
+        """Handle triggering the registered callbacks for the event."""
+        if event in self._callbacks.keys():
+            for callback in self._callbacks[event]:
+                try:
+                    await callback(zone, event, parameter)
+                except Exception as err:  # pylint: disable=broad-except
+                    # We don't want a single bad callback to trip up the
+                    # whole system and prevent further execution
+                    _LOGGER.error(
+                        "Event callback triggered an unhandled exception %s",
+                        err
+                    )
+
+        if "ALL" in self._callbacks.keys():
+            for callback in self._callbacks["ALL"]:
+                try:
+                    await callback(zone, event, parameter)
+                except Exception as err:  # pylint: disable=broad-except
+                    # We don't want a single bad callback to trip up the
+                    # whole system and prevent further execution
+                    _LOGGER.error(
+                        "Event callback triggered an unhandled exception %s",
+                        err
+                    )

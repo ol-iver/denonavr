@@ -154,7 +154,25 @@ class DenonAVRInput(DenonAVRFoundation):
         for tag in self.appcommand_attrs:
             self._device.api.add_appcommand_update_tag(tag)
 
+        self._device.telnet_api.register_callback("SI", self._input_callback)
+        self._device.telnet_api.register_callback("PW", self._power_callback)
+
         self._is_setup = True
+
+    async def _input_callback(self, zone: str, event: str, value: str):
+        """Handle an input change event."""
+        if self._device.zone != zone:
+            return
+
+        self._input_func = value
+        await self.async_update_media_state()
+
+    async def _power_callback(self, zone: str, event: str, value: str):
+        """Handle a power change event."""
+        if self._device.zone != zone:
+            return
+
+        await self.async_update_media_state()
 
     async def async_update(
             self,
