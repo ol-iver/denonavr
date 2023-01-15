@@ -229,16 +229,16 @@ MIT
 @ol-iver: https://github.com/ol-iver
 
 ## Contributors
-@soldag: https://github.com/soldag
-@shapiromatron: https://github.com/shapiromatron
-@glance-: https://github.com/glance-
-@p3dda: https://github.com/p3dda
-@russel: https://github.com/russell
-@starkillerOG: https://github.com/starkillerOG
-@andrewsayre: https://github.com/andrewsayre
-@JPHutchins: https://github.com/JPHutchins
-@MarBra: https://github.com/MarBra
-@dcmeglio: https://github.com/dcmeglio
+@soldag: https://github.com/soldag  
+@shapiromatron: https://github.com/shapiromatron  
+@glance-: https://github.com/glance-  
+@p3dda: https://github.com/p3dda  
+@russel: https://github.com/russell  
+@starkillerOG: https://github.com/starkillerOG  
+@andrewsayre: https://github.com/andrewsayre  
+@JPHutchins: https://github.com/JPHutchins  
+@MarBra: https://github.com/MarBra  
+@dcmeglio: https://github.com/dcmeglio  
 
 ## Users
 Home Assistant: https://github.com/home-assistant/home-assistant/
