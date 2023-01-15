@@ -9,10 +9,10 @@ This module covers some basic automated tests of Denon AVR receivers.
 
 import asyncio
 from unittest.mock import Mock
+from unittest import mock
 import httpx
 import pytest
 from pytest_httpx import HTTPXMock
-from unittest import mock
 
 import denonavr
 from denonavr.const import SOUND_MODE_MAPPING
