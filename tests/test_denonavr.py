@@ -12,7 +12,7 @@ from unittest.mock import Mock
 import httpx
 import pytest
 from pytest_httpx import HTTPXMock
-import asynctest
+from unittest import mock
 
 import denonavr
 from denonavr.const import SOUND_MODE_MAPPING
@@ -152,7 +152,7 @@ class TestMainFunctions:
     @pytest.mark.asyncio
     async def test_receiver_type(self, httpx_mock: HTTPXMock):
         """Check that receiver type is determined correctly."""
-        with asynctest.patch("asyncio.open_connection") as debug_mock:
+        with mock.patch("asyncio.open_connection") as debug_mock:
             debug_mock.return_value = (
                 asyncio.StreamReader(),
                 asyncio.StreamReader()
@@ -174,7 +174,7 @@ class TestMainFunctions:
     @pytest.mark.asyncio
     async def test_input_func_switch(self, httpx_mock: HTTPXMock):
         """Switch through all input functions of all tested receivers."""
-        with asynctest.patch("asyncio.open_connection") as debug_mock:
+        with mock.patch("asyncio.open_connection") as debug_mock:
             debug_mock.return_value = (
                 asyncio.StreamReader(),
                 asyncio.StreamReader()
@@ -196,7 +196,7 @@ class TestMainFunctions:
     @pytest.mark.asyncio
     async def test_attributes_not_none(self, httpx_mock: HTTPXMock):
         """Check that certain attributes are not None."""
-        with asynctest.patch("asyncio.open_connection") as debug_mock:
+        with mock.patch("asyncio.open_connection") as debug_mock:
             debug_mock.return_value = (
                 asyncio.StreamReader(),
                 asyncio.StreamReader()
@@ -222,7 +222,7 @@ class TestMainFunctions:
     @pytest.mark.asyncio
     async def test_sound_mode(self, httpx_mock: HTTPXMock):
         """Check if a valid sound mode is returned."""
-        with asynctest.patch("asyncio.open_connection") as debug_mock:
+        with mock.patch("asyncio.open_connection") as debug_mock:
             debug_mock.return_value = (
                 asyncio.StreamReader(),
                 asyncio.StreamReader()
@@ -246,7 +246,7 @@ class TestMainFunctions:
     @pytest.mark.asyncio
     async def test_receive_callback_called(self, httpx_mock: HTTPXMock):
         """Check that the callback is triggered whena message is received."""
-        with asynctest.patch("asyncio.open_connection") as debug_mock:
+        with mock.patch("asyncio.open_connection") as debug_mock:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
@@ -254,18 +254,18 @@ class TestMainFunctions:
             self.denon = denonavr.DenonAVR(FAKE_IP)
             await self.denon.async_setup()
             await self.denon.async_telnet_connect()
-            mock = Mock()
+            mock_obj = Mock()
             self.future = asyncio.Future()
-            self.denon.register_callback("ALL", mock.method)
+            self.denon.register_callback("ALL", mock_obj.method)
             self.denon.register_callback("ALL", self._callback)
             reader.feed_data(b"MUON\r")
             await self.future
-            mock.method.assert_called_once()
+            mock_obj.method.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_mute_on(self, httpx_mock: HTTPXMock):
         """Check that mute on is processed."""
-        with asynctest.patch("asyncio.open_connection") as debug_mock:
+        with mock.patch("asyncio.open_connection") as debug_mock:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
@@ -282,7 +282,7 @@ class TestMainFunctions:
     @pytest.mark.asyncio
     async def test_mute_off(self, httpx_mock: HTTPXMock):
         """Check that mute off is processed."""
-        with asynctest.patch("asyncio.open_connection") as debug_mock:
+        with mock.patch("asyncio.open_connection") as debug_mock:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
@@ -299,7 +299,7 @@ class TestMainFunctions:
     @pytest.mark.asyncio
     async def test_power_on(self, httpx_mock: HTTPXMock):
         """Check that power on is processed."""
-        with asynctest.patch("asyncio.open_connection") as debug_mock:
+        with mock.patch("asyncio.open_connection") as debug_mock:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
@@ -316,7 +316,7 @@ class TestMainFunctions:
     @pytest.mark.asyncio
     async def test_power_off(self, httpx_mock: HTTPXMock):
         """Check that power off is processed."""
-        with asynctest.patch("asyncio.open_connection") as debug_mock:
+        with mock.patch("asyncio.open_connection") as debug_mock:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
@@ -333,7 +333,7 @@ class TestMainFunctions:
     @pytest.mark.asyncio
     async def test_volume_min(self, httpx_mock: HTTPXMock):
         """Check that minimum volume is processed."""
-        with asynctest.patch("asyncio.open_connection") as debug_mock:
+        with mock.patch("asyncio.open_connection") as debug_mock:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
@@ -350,7 +350,7 @@ class TestMainFunctions:
     @pytest.mark.asyncio
     async def test_volume_wholenumber(self, httpx_mock: HTTPXMock):
         """Check that whole number volume is processed."""
-        with asynctest.patch("asyncio.open_connection") as debug_mock:
+        with mock.patch("asyncio.open_connection") as debug_mock:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
@@ -367,7 +367,7 @@ class TestMainFunctions:
     @pytest.mark.asyncio
     async def test_volume_fraction(self, httpx_mock: HTTPXMock):
         """Check that fractional volume is processed."""
-        with asynctest.patch("asyncio.open_connection") as debug_mock:
+        with mock.patch("asyncio.open_connection") as debug_mock:
             reader = asyncio.StreamReader()
             debug_mock.return_value = (reader, asyncio.StreamReader())
             httpx_mock.add_callback(self.custom_matcher)
