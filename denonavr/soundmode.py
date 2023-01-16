@@ -116,7 +116,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
             self._is_setup = True
 
-    def _soundmode_callback(self, zone: str, event: str, value: str) -> None:
+    async def _soundmode_callback(self, zone: str, event: str, value: str) -> None:
         """Handle a sound mode change event."""
         if self._device.zone != zone:
             return

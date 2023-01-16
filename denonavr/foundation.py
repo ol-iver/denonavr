@@ -87,7 +87,7 @@ class DenonAVRDeviceInfo:
         else:
             raise ValueError("Invalid zone {}".format(self.zone))
 
-    def _power_callback(self, zone: str, event: str, value: str) -> None:
+    async def _power_callback(self, zone: str, event: str, value: str) -> None:
         """Handle a power change event."""
         if self.zone == zone:
             self._power = value
