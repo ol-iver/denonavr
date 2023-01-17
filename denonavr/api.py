@@ -8,7 +8,6 @@ This module implements the REST and Telnet APIs to Denon AVR receivers.
 """
 
 import asyncio
-from contextlib import suppress
 import logging
 import xml.etree.ElementTree as ET
 
@@ -27,7 +26,8 @@ from .decorators import (
     cache_clear_on_exception,
     set_cache_id)
 from .exceptions import (
-    AvrIncompleteResponseError, AvrInvalidResponseError, AvrTimoutError)
+    AvrIncompleteResponseError, AvrInvalidResponseError, AvrNetworkError,
+    AvrTimoutError)
 from .const import (
     APPCOMMAND_CMD_TEXT, APPCOMMAND_NAME, APPCOMMAND_URL, APPCOMMAND0300_URL,
     DENON_ATTR_SETATTR, MAIN_ZONE, TELNET_EVENTS, ZONE2, ZONE3, TELNET_SOURCES)
@@ -321,53 +321,98 @@ class DenonAVRTelnetApi:
     """Handle Telnet responses from the Denon AVR Telnet interface."""
 
     host: str = attr.ib(converter=str, default="localhost")
-    timeout: int = attr.ib(converter=int, default=10)
-    _telnet_task: asyncio.Task = attr.ib(default=None)
-    _socket_reader: asyncio.StreamReader = attr.ib(default=None)
-    _socket_writer: asyncio.StreamWriter = attr.ib(default=None)
+    timeout: float = attr.ib(converter=float, default=5.0)
+    _healthy: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(bool),
+        default=None)
+    _connect_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
+    _monitor_task: asyncio.Task = attr.ib(default=None)
+    _reader: asyncio.StreamReader = attr.ib(default=None)
+    _writer: asyncio.StreamWriter = attr.ib(default=None)
     _callbacks: Dict[str, Callable] = attr.ib(
         validator=attr.validators.instance_of(dict),
-        default={}, init=False
-    )
+        default=attr.Factory(dict), init=False)
 
-    async def async_connect(self) -> asyncio.Task:
+    async def async_connect(self) -> None:
         """Connect to the receiver asynchronously."""
-        try:
-            self._socket_reader, self._socket_writer = await asyncio.wait_for(
-                asyncio.open_connection(self.host, 23), timeout=self.timeout
-            )
-        except asyncio.TimeoutError as err:
-            _LOGGER.debug(
-                "Socket timeout exception on connect",
-                exc_info=True)
-            raise AvrTimoutError(
-                "TimeoutException: {}".format(err), "connect") from err
-        self._telnet_task = asyncio.create_task(self._async_monitor())
-        return self._telnet_task
+        async with self._connect_lock:
+            if self.connected is True:
+                return
+            try:
+                self._reader, self._writer = await asyncio.wait_for(
+                    asyncio.open_connection(self.host, 23),
+                    timeout=self.timeout)
+            except asyncio.TimeoutError as err:
+                _LOGGER.debug("Timeout exception on telnet connect")
+                raise AvrTimoutError(
+                    "TimeoutException: {}".format(err),
+                    "telnet connect") from err
+            except ConnectionRefusedError as err:
+                _LOGGER.debug(
+                    "Connection refused on telnet connect", exc_info=True)
+                raise AvrNetworkError(
+                    "NetworkError: {}".format(err), "telnet connect") from err
+            self._healthy = True
+            self._monitor_task = asyncio.create_task(self._async_monitor())
 
     async def async_disconnect(self) -> None:
         """Close the connection to the receiver asynchronously."""
-        if self._telnet_task:
-            self._telnet_task.cancel()
-            self._telnet_task = None
-        if self._socket_writer:
-            self._socket_writer.close()
-            with suppress(ConnectionError):
-                await self._socket_writer.wait_closed()
-            self._socket_writer = None
+        async with self._connect_lock:
+            if self._monitor_task is not None:
+                self._monitor_task.cancel()
+                self._monitor_task = None
+            if self._writer is not None:
+                self._writer.close()
+                await self._writer.wait_closed()
+
+            self._reader = None
+            self._writer = None
+            self._healthy = None
+
+    async def _async_reconnect(self) -> None:
+        """Reconnect to the receiver asynchronously."""
+        async with self._connect_lock:
+            if self.connected is False:
+                return
+            self._healthy = False
+            self._writer.close()
+            await self._writer.wait_closed()
+
+        backoff = 0.5
+        while self.connected is True and self._healthy is False:
+            try:
+                self._reader, self._writer = await asyncio.wait_for(
+                    asyncio.open_connection(self.host, 23),
+                    timeout=self.timeout)
+            except asyncio.TimeoutError:
+                _LOGGER.debug("Timeout exception on telnet reconnect")
+            except ConnectionRefusedError:
+                _LOGGER.debug(
+                    "Connection refused on telnet reconnect", exc_info=True)
+            else:
+                _LOGGER.info("Telnet reconnected")
+                self._healthy = True
+                self._monitor_task = asyncio.create_task(self._async_monitor())
+                return
+
+            await asyncio.sleep(backoff)
+            backoff = min(30.0, backoff*2)
 
     async def _async_monitor(self):
         """Read the messages on the TCP socket."""
         data = bytearray()
-        while not self._socket_reader.at_eof():
+        while not self._reader.at_eof():
             try:
-                chunk = await asyncio.wait_for(
-                    self._socket_reader.read(_SOCKET_READ_SIZE), self.timeout
-                )
-            except asyncio.TimeoutError:
-                _LOGGER.debug("Lost connection to receiver, reconnecting")
-                await self.async_disconnect()
-                await self.async_connect()
+                chunk = await self._reader.read(_SOCKET_READ_SIZE)
+            except IOError:
+                _LOGGER.info(
+                    "Lost telnet connection to receiver, reconnecting")
+                self._monitor_task = asyncio.create_task(
+                    self._async_reconnect())
+                return
+            except asyncio.CancelledError:
+                _LOGGER.debug("Stopped telnet monitoring")
+                return
             # pylint: disable=consider-using-enumerate
             for i in range(0, len(chunk)):
                 # Messages are CR terminated
@@ -376,6 +421,11 @@ class DenonAVRTelnetApi:
                 else:
                     await self._process_event(str(data, 'utf-8'))
                     data = bytearray()
+
+        if self.connected is True:
+            _LOGGER.info(
+                "Telnet connection terminated by receiver, reconnecting")
+            self._monitor_task = asyncio.create_task(self._async_reconnect())
 
     def register_callback(
         self,
@@ -465,3 +515,16 @@ class DenonAVRTelnetApi:
                         "Event callback triggered an unhandled exception %s",
                         err
                     )
+
+    ##############
+    # Properties #
+    ##############
+    @property
+    def connected(self) -> bool:
+        """Return True if telnet is connected."""
+        return self._reader is not None and self._writer is not None
+
+    @property
+    def healthy(self) -> Optional[bool]:
+        """Return True if telnet connection is healthy."""
+        return self._healthy

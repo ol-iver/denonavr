@@ -431,6 +431,16 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.receiver.type
 
     @property
+    def telnet_connected(self) -> bool:
+        """Return True if telnet is connected."""
+        return self._device.telnet_api.connected
+
+    @property
+    def telnet_healthy(self) -> Optional[bool]:
+        """Return True if telnet connection is healthy."""
+        return self._device.telnet_api.healthy
+
+    @property
     def show_all_inputs(self) -> Optional[bool]:
         """Indicate if all inputs are shown or just active one."""
         return self._show_all_inputs

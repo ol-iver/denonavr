@@ -64,7 +64,11 @@ class DenonAVRToneControl(DenonAVRFoundation):
 
         self._is_setup = True
 
-    async def _sound_detail_callback(self, zone: str, event: str, parameter: str):
+    async def _sound_detail_callback(
+            self,
+            zone: str,
+            event: str,
+            parameter: str) -> None:
         """Handle a sound detail change event."""
         if self._device.zone != zone:
             return

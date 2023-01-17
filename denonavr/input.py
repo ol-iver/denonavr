@@ -159,15 +159,15 @@ class DenonAVRInput(DenonAVRFoundation):
 
         self._is_setup = True
 
-    async def _input_callback(self, zone: str, event: str, value: str):
+    async def _input_callback(self, zone: str, event: str, parameter: str):
         """Handle an input change event."""
         if self._device.zone != zone:
             return
 
-        self._input_func = value
+        self._input_func = parameter
         await self.async_update_media_state()
 
-    async def _power_callback(self, zone: str, event: str, value: str):
+    async def _power_callback(self, zone: str, event: str, parameter: str):
         """Handle a power change event."""
         if self._device.zone != zone:
             return

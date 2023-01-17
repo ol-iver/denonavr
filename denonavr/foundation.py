@@ -87,10 +87,14 @@ class DenonAVRDeviceInfo:
         else:
             raise ValueError("Invalid zone {}".format(self.zone))
 
-    async def _power_callback(self, zone: str, event: str, value: str) -> None:
+    async def _power_callback(
+            self,
+            zone: str,
+            event: str,
+            parameter: str) -> None:
         """Handle a power change event."""
         if self.zone == zone:
-            self._power = value
+            self._power = parameter
 
     def get_own_zone(self):
         """
@@ -670,7 +674,9 @@ def set_api_timeout(
     """Change API timeout on timeout changes too."""
     # First change _device.api.host then return value
     timeout = httpx.Timeout(value, read=max(value, 15.0))
-    instance._device.api.timeout = timeout  # pylint: disable=protected-access
+    # pylint: disable=protected-access
+    instance._device.api.timeout = timeout
+    instance._device.telnet_api.timeout = value
     return value
 
 
