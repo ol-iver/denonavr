@@ -351,7 +351,13 @@ class DenonAVRTelnetApi:
                 _LOGGER.debug(
                     "Connection refused on telnet connect", exc_info=True)
                 raise AvrNetworkError(
-                    "NetworkError: {}".format(err), "telnet connect") from err
+                    "ConnectionRefusedError: {}".format(err),
+                    "telnet connect") from err
+            except (OSError, IOError) as err:
+                _LOGGER.debug(
+                    "Connection failed on telnet reconnect", exc_info=True)
+                raise AvrNetworkError(
+                    "OSError: {}".format(err), "telnet connect") from err
             self._healthy = True
             self._monitor_task = asyncio.create_task(self._async_monitor())
 
@@ -389,6 +395,12 @@ class DenonAVRTelnetApi:
             except ConnectionRefusedError:
                 _LOGGER.debug(
                     "Connection refused on telnet reconnect", exc_info=True)
+            except (OSError, IOError):
+                _LOGGER.debug(
+                    "Connection failed on telnet reconnect", exc_info=True)
+            except Exception:    # pylint: disable=broad-except
+                _LOGGER.error(
+                    "Unexpected exception on telnet reconnect", exc_info=True)
             else:
                 _LOGGER.info("Telnet reconnected")
                 self._healthy = True
@@ -403,8 +415,9 @@ class DenonAVRTelnetApi:
         data = bytearray()
         while not self._reader.at_eof():
             try:
-                chunk = await self._reader.read(_SOCKET_READ_SIZE)
-            except IOError:
+                chunk = await asyncio.wait_for(
+                    self._reader.read(_SOCKET_READ_SIZE), 30.0)
+            except (asyncio.TimeoutError, IOError, OSError):
                 _LOGGER.info(
                     "Lost telnet connection to receiver, reconnecting")
                 self._monitor_task = asyncio.create_task(
@@ -412,6 +425,11 @@ class DenonAVRTelnetApi:
                 return
             except asyncio.CancelledError:
                 _LOGGER.debug("Stopped telnet monitoring")
+                return
+            except Exception:    # pylint: disable=broad-except
+                _LOGGER.error(
+                    "Unexpected exception while monitoring telnet",
+                    exc_info=True)
                 return
             # pylint: disable=consider-using-enumerate
             for i in range(0, len(chunk)):
