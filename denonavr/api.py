@@ -321,7 +321,7 @@ class DenonAVRTelnetApi:
     """Handle Telnet responses from the Denon AVR Telnet interface."""
 
     host: str = attr.ib(converter=str, default="localhost")
-    timeout: float = attr.ib(converter=float, default=5.0)
+    timeout: float = attr.ib(converter=float, default=2.0)
     _healthy: Optional[bool] = attr.ib(
         converter=attr.converters.optional(bool),
         default=None)
