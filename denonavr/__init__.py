@@ -18,7 +18,7 @@ from .decorators import run_async_synchronously
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 __title__ = "denonavr"
-__version__ = "0.11.0-dev"
+__version__ = "0.11.0"
 
 
 async def async_discover():
