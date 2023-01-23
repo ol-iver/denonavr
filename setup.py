@@ -11,7 +11,7 @@ setup(name='denonavr',
       author='Oliver Goetz',
       author_email='scarface@mywoh.de',
       license='MIT',
-      packages=find_packages(),
+      packages=find_packages(exclude=["tests"]),
       install_requires=[
           'asyncstdlib>=3.10.2',
           'attrs>=21.2.0',
