@@ -34,8 +34,6 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-_SOCKET_READ_SIZE = 135
-
 
 def get_default_async_client() -> httpx.AsyncClient:
     """Get the default httpx.AsyncClient."""
@@ -415,9 +413,15 @@ class DenonAVRTelnetApi:
         data = bytearray()
         while not self._reader.at_eof():
             try:
-                chunk = await asyncio.wait_for(
-                    self._reader.read(_SOCKET_READ_SIZE), 30.0)
-            except (asyncio.TimeoutError, IOError, OSError):
+                data = await asyncio.wait_for(
+                    self._reader.readuntil(b"\r"), timeout=30.0
+                )
+            except (
+                asyncio.IncompleteReadError,
+                asyncio.TimeoutError,
+                IOError,
+                OSError
+            ):
                 _LOGGER.info(
                     "Lost telnet connection to receiver, reconnecting")
                 self._monitor_task = asyncio.create_task(
@@ -431,14 +435,8 @@ class DenonAVRTelnetApi:
                     "Unexpected exception while monitoring telnet",
                     exc_info=True)
                 return
-            # pylint: disable=consider-using-enumerate
-            for i in range(0, len(chunk)):
-                # Messages are CR terminated
-                if chunk[i] != 13:
-                    data += chunk[i].to_bytes(1, byteorder='big')
-                else:
-                    await self._process_event(str(data, 'utf-8'))
-                    data = bytearray()
+
+            await self._process_event(str(data[:-1], 'utf-8'))
 
         if self.connected is True:
             _LOGGER.info(
