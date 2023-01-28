@@ -396,146 +396,244 @@ class TestMainFunctions:
     @pytest.mark.asyncio
     async def test_receive_callback_called(self, httpx_mock: HTTPXMock):
         """Check that the callback is triggered whena message is received."""
-        with mock.patch("asyncio.open_connection",
-                        new_callable=AsyncMock) as debug_mock:
-            reader = asyncio.StreamReader()
-            debug_mock.return_value = (reader, asyncio.StreamReader())
-            httpx_mock.add_callback(self.custom_matcher)
+        transport = mock.Mock()
+        protocol = DenonAVRTelnetProtocol(None, None)
 
-            self.denon = denonavr.DenonAVR(FAKE_IP)
-            await self.denon.async_setup()
+        def create_conn(proto_lambda, host, port):
+            proto = proto_lambda()
+            # pylint: disable=protected-access
+            protocol._on_connection_lost = proto._on_connection_lost
+            # pylint: disable=protected-access
+            protocol._on_message = proto._on_message
+            return [transport, proto]
+
+        httpx_mock.add_callback(self.custom_matcher)
+
+        self.denon = denonavr.DenonAVR(FAKE_IP)
+        await self.denon.async_setup()
+        with mock.patch(
+            "asyncio.get_event_loop",
+            new_callable=mock.Mock
+        ) as debug_mock:
+            debug_mock.return_value.create_connection = AsyncMock(
+                side_effect=create_conn
+            )
             await self.denon.async_telnet_connect()
             mock_obj = mock.Mock()
             self.future = asyncio.Future()
             self.denon.register_callback("ALL", mock_obj.method)
             self.denon.register_callback("ALL", self._callback)
-            reader.feed_data(b"MUON\r")
+            protocol.data_received(b"MUON\r")
             await self.future
             mock_obj.method.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_mute_on(self, httpx_mock: HTTPXMock):
         """Check that mute on is processed."""
-        with mock.patch("asyncio.open_connection",
-                        new_callable=AsyncMock) as debug_mock:
-            reader = asyncio.StreamReader()
-            debug_mock.return_value = (reader, asyncio.StreamReader())
-            httpx_mock.add_callback(self.custom_matcher)
+        transport = mock.Mock()
+        protocol = DenonAVRTelnetProtocol(None, None)
 
-            self.denon = denonavr.DenonAVR(FAKE_IP)
+        def create_conn(proto_lambda, host, port):
+            proto = proto_lambda()
+            # pylint: disable=protected-access
+            protocol._on_message = proto._on_message
+            return [transport, proto]
+
+        httpx_mock.add_callback(self.custom_matcher)
+        self.denon = denonavr.DenonAVR(FAKE_IP)
+        await self.denon.async_setup()
+        with mock.patch(
+            "asyncio.get_event_loop",
+            new_callable=mock.Mock
+        ) as debug_mock:
+            debug_mock.return_value.create_connection = AsyncMock(
+                side_effect=create_conn
+            )
+            await self.denon.async_telnet_connect()
+            protocol.connection_made(transport)
             self.future = asyncio.Future()
             self.denon.register_callback("ALL", self._callback)
-            await self.denon.async_setup()
-            await self.denon.async_telnet_connect()
-            reader.feed_data(b"MUON\r")
+            protocol.data_received(b"MUON\r")
             await self.future
             assert self.denon.muted
 
     @pytest.mark.asyncio
     async def test_mute_off(self, httpx_mock: HTTPXMock):
         """Check that mute off is processed."""
-        with mock.patch("asyncio.open_connection",
-                        new_callable=AsyncMock) as debug_mock:
-            reader = asyncio.StreamReader()
-            debug_mock.return_value = (reader, asyncio.StreamReader())
-            httpx_mock.add_callback(self.custom_matcher)
+        transport = mock.Mock()
+        protocol = DenonAVRTelnetProtocol(None, None)
 
-            self.denon = denonavr.DenonAVR(FAKE_IP)
+        def create_conn(proto_lambda, host, port):
+            proto = proto_lambda()
+            # pylint: disable=protected-access
+            protocol._on_message = proto._on_message
+            return [transport, proto]
+
+        httpx_mock.add_callback(self.custom_matcher)
+        self.denon = denonavr.DenonAVR(FAKE_IP)
+        await self.denon.async_setup()
+        with mock.patch(
+            "asyncio.get_event_loop",
+            new_callable=mock.Mock
+        ) as debug_mock:
+            debug_mock.return_value.create_connection = AsyncMock(
+                side_effect=create_conn
+            )
+            await self.denon.async_telnet_connect()
+            protocol.connection_made(transport)
             self.future = asyncio.Future()
             self.denon.register_callback("ALL", self._callback)
-            await self.denon.async_setup()
-            await self.denon.async_telnet_connect()
-            reader.feed_data(b"MUOFF\r")
+            protocol.data_received(b"MUOFF\r")
             await self.future
             assert not self.denon.muted
 
     @pytest.mark.asyncio
     async def test_power_on(self, httpx_mock: HTTPXMock):
         """Check that power on is processed."""
-        with mock.patch("asyncio.open_connection",
-                        new_callable=AsyncMock) as debug_mock:
-            reader = asyncio.StreamReader()
-            debug_mock.return_value = (reader, asyncio.StreamReader())
-            httpx_mock.add_callback(self.custom_matcher)
+        transport = mock.Mock()
+        protocol = DenonAVRTelnetProtocol(None, None)
 
-            self.denon = denonavr.DenonAVR(FAKE_IP)
+        def create_conn(proto_lambda, host, port):
+            proto = proto_lambda()
+            # pylint: disable=protected-access
+            protocol._on_message = proto._on_message
+            return [transport, proto]
+
+        httpx_mock.add_callback(self.custom_matcher)
+        self.denon = denonavr.DenonAVR(FAKE_IP)
+        await self.denon.async_setup()
+        with mock.patch(
+            "asyncio.get_event_loop",
+            new_callable=mock.Mock
+        ) as debug_mock:
+            debug_mock.return_value.create_connection = AsyncMock(
+                side_effect=create_conn
+            )
+            await self.denon.async_telnet_connect()
+            protocol.connection_made(transport)
             self.future = asyncio.Future()
             self.denon.register_callback("ALL", self._callback)
-            await self.denon.async_setup()
-            await self.denon.async_telnet_connect()
-            reader.feed_data(b"PWON\r")
+            protocol.data_received(b"PWON\r")
             await self.future
             assert self.denon.power == "ON"
 
     @pytest.mark.asyncio
     async def test_power_off(self, httpx_mock: HTTPXMock):
         """Check that power off is processed."""
-        with mock.patch("asyncio.open_connection",
-                        new_callable=AsyncMock) as debug_mock:
-            reader = asyncio.StreamReader()
-            debug_mock.return_value = (reader, asyncio.StreamReader())
-            httpx_mock.add_callback(self.custom_matcher)
+        transport = mock.Mock()
+        protocol = DenonAVRTelnetProtocol(None, None)
 
-            self.denon = denonavr.DenonAVR(FAKE_IP)
+        def create_conn(proto_lambda, host, port):
+            proto = proto_lambda()
+            # pylint: disable=protected-access
+            protocol._on_message = proto._on_message
+            return [transport, proto]
+
+        httpx_mock.add_callback(self.custom_matcher)
+        self.denon = denonavr.DenonAVR(FAKE_IP)
+        await self.denon.async_setup()
+        with mock.patch(
+            "asyncio.get_event_loop",
+            new_callable=mock.Mock
+        ) as debug_mock:
+            debug_mock.return_value.create_connection = AsyncMock(
+                side_effect=create_conn
+            )
+            await self.denon.async_telnet_connect()
+            protocol.connection_made(transport)
             self.future = asyncio.Future()
             self.denon.register_callback("ALL", self._callback)
-            await self.denon.async_setup()
-            await self.denon.async_telnet_connect()
-            reader.feed_data(b"PWSTANDBY\r")
+            protocol.data_received(b"PWSTANDBY\r")
             await self.future
             assert self.denon.power == "STANDBY"
 
     @pytest.mark.asyncio
     async def test_volume_min(self, httpx_mock: HTTPXMock):
         """Check that minimum volume is processed."""
-        with mock.patch("asyncio.open_connection",
-                        new_callable=AsyncMock) as debug_mock:
-            reader = asyncio.StreamReader()
-            debug_mock.return_value = (reader, asyncio.StreamReader())
-            httpx_mock.add_callback(self.custom_matcher)
+        transport = mock.Mock()
+        protocol = DenonAVRTelnetProtocol(None, None)
 
-            self.denon = denonavr.DenonAVR(FAKE_IP)
+        def create_conn(proto_lambda, host, port):
+            proto = proto_lambda()
+            # pylint: disable=protected-access
+            protocol._on_message = proto._on_message
+            return [transport, proto]
+
+        httpx_mock.add_callback(self.custom_matcher)
+        self.denon = denonavr.DenonAVR(FAKE_IP)
+        await self.denon.async_setup()
+        with mock.patch(
+            "asyncio.get_event_loop",
+            new_callable=mock.Mock
+        ) as debug_mock:
+            debug_mock.return_value.create_connection = AsyncMock(
+                side_effect=create_conn
+            )
+            await self.denon.async_telnet_connect()
+            protocol.connection_made(transport)
             self.future = asyncio.Future()
             self.denon.register_callback("ALL", self._callback)
-            await self.denon.async_setup()
-            await self.denon.async_telnet_connect()
-            reader.feed_data(b"MV00\r")
+            protocol.data_received(b"MV00\r")
             await self.future
             assert self.denon.volume == -80.0
 
     @pytest.mark.asyncio
     async def test_volume_wholenumber(self, httpx_mock: HTTPXMock):
         """Check that whole number volume is processed."""
-        with mock.patch("asyncio.open_connection",
-                        new_callable=AsyncMock) as debug_mock:
-            reader = asyncio.StreamReader()
-            debug_mock.return_value = (reader, asyncio.StreamReader())
-            httpx_mock.add_callback(self.custom_matcher)
+        transport = mock.Mock()
+        protocol = DenonAVRTelnetProtocol(None, None)
 
-            self.denon = denonavr.DenonAVR(FAKE_IP)
+        def create_conn(proto_lambda, host, port):
+            proto = proto_lambda()
+            # pylint: disable=protected-access
+            protocol._on_message = proto._on_message
+            return [transport, proto]
+
+        httpx_mock.add_callback(self.custom_matcher)
+        self.denon = denonavr.DenonAVR(FAKE_IP)
+        await self.denon.async_setup()
+        with mock.patch(
+            "asyncio.get_event_loop",
+            new_callable=mock.Mock
+        ) as debug_mock:
+            debug_mock.return_value.create_connection = AsyncMock(
+                side_effect=create_conn
+            )
+            await self.denon.async_telnet_connect()
+            protocol.connection_made(transport)
             self.future = asyncio.Future()
             self.denon.register_callback("ALL", self._callback)
-            await self.denon.async_setup()
-            await self.denon.async_telnet_connect()
-            reader.feed_data(b"MV56\r")
+            protocol.data_received(b"MV56\r")
             await self.future
             assert self.denon.volume == -24.0
 
     @pytest.mark.asyncio
     async def test_volume_fraction(self, httpx_mock: HTTPXMock):
         """Check that fractional volume is processed."""
-        with mock.patch("asyncio.open_connection",
-                        new_callable=AsyncMock) as debug_mock:
-            reader = asyncio.StreamReader()
-            debug_mock.return_value = (reader, asyncio.StreamReader())
-            httpx_mock.add_callback(self.custom_matcher)
+        transport = mock.Mock()
+        protocol = DenonAVRTelnetProtocol(None, None)
 
-            self.denon = denonavr.DenonAVR(FAKE_IP)
+        def create_conn(proto_lambda, host, port):
+            proto = proto_lambda()
+            # pylint: disable=protected-access
+            protocol._on_message = proto._on_message
+            return [transport, proto]
+
+        httpx_mock.add_callback(self.custom_matcher)
+        self.denon = denonavr.DenonAVR(FAKE_IP)
+        await self.denon.async_setup()
+        with mock.patch(
+            "asyncio.get_event_loop",
+            new_callable=mock.Mock
+        ) as debug_mock:
+            debug_mock.return_value.create_connection = AsyncMock(
+                side_effect=create_conn
+            )
+            await self.denon.async_telnet_connect()
+            protocol.connection_made(transport)
             self.future = asyncio.Future()
             self.denon.register_callback("ALL", self._callback)
-            await self.denon.async_setup()
-            await self.denon.async_telnet_connect()
-            reader.feed_data(b"MV565\r")
+            protocol.data_received(b"MV565\r")
             await self.future
             assert self.denon.volume == -23.5
 
