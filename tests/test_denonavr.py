@@ -14,6 +14,7 @@ import pytest
 from pytest_httpx import HTTPXMock
 
 import denonavr
+from denonavr.api import DenonAVRTelnetProtocol
 from denonavr.const import SOUND_MODE_MAPPING
 
 FAKE_IP = "10.0.0.0"
@@ -219,6 +220,77 @@ class TestMainFunctions:
                 assert (
                     sound_mode in [*SOUND_MODE_MAPPING, None] or
                     support_sound_mode is not True)
+
+    @pytest.mark.asyncio
+    async def test_protocol_connected(self):
+        """Connected after connection made."""
+        proto = DenonAVRTelnetProtocol(None, None)
+        transport = AsyncMock()
+        proto.connection_made(transport)
+
+        assert proto.connected is True
+
+    @pytest.mark.asyncio
+    async def test_protocol_not_connected(self):
+        """Not connected when connection not made."""
+        proto = DenonAVRTelnetProtocol(None, None)
+
+        assert proto.connected is False
+
+    @pytest.mark.asyncio
+    async def test_protocol_writes_to_transport(self):
+        """Write writes to transport."""
+        proto = DenonAVRTelnetProtocol(None, None)
+        transport = mock.Mock()
+        proto.connection_made(transport)
+
+        proto.write("abc")
+
+        transport.write.assert_called_with("abc".encode("utf-8"))
+
+    @pytest.mark.asyncio
+    async def test_protocol_close_closes_transport(self):
+        """Write writes to transport."""
+        proto = DenonAVRTelnetProtocol(None, None)
+        transport = mock.Mock()
+        proto.connection_made(transport)
+
+        proto.close()
+
+        transport.close.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_protocol_full_message_triggers_callback(self):
+        """Read callback triggered for CR terminated message."""
+        data_received_mock = mock.Mock()
+        proto = DenonAVRTelnetProtocol(data_received_mock, None)
+        transport = mock.Mock()
+        proto.connection_made(transport)
+        proto.data_received(b"abc\r")
+
+        data_received_mock.assert_called_with(b"abc".decode("utf-8"))
+
+    @pytest.mark.asyncio
+    async def test_protocol_partial_message_does_not_triggers_callback(self):
+        """Read callback not triggered for non CR terminated message."""
+        data_received_mock = mock.Mock()
+        proto = DenonAVRTelnetProtocol(data_received_mock, None)
+        transport = mock.Mock()
+        proto.connection_made(transport)
+        proto.data_received(b"abc")
+
+        data_received_mock.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_protocol_connection_lost_triggers_callback(self):
+        """Connection lost triggers callback."""
+        conn_lost_mock = mock.Mock()
+        proto = DenonAVRTelnetProtocol(None, conn_lost_mock)
+        transport = mock.Mock()
+        proto.connection_made(transport)
+        proto.connection_lost(Exception())
+
+        conn_lost_mock.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_receive_callback_called(self, httpx_mock: HTTPXMock):
