@@ -465,7 +465,8 @@ class DenonAVRTelnetApi:
             # Keep the connection alive
             _LOGGER.debug("%s: Sending keep alive", self.host)
 
-            self._protocol.write("PW?\r")
+            # Use a command that won't trigger any callbacks
+            self._protocol.write("CV?\r")
         self._schedule_monitor()
 
     def _disconnected(self) -> None:
@@ -499,7 +500,7 @@ class DenonAVRTelnetApi:
         backoff = 0.5
 
         async with self._connect_lock:
-            while self._connection_enabled is True:
+            while self._connection_enabled is True and not self.healthy:
                 try:
                     await self._async_establish_connection()
                 except AvrTimoutError:
