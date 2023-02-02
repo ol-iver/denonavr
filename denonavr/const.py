@@ -74,12 +74,14 @@ ALL_ZONE_STEREO = "ALL ZONE STEREO"
 
 SOUND_MODE_MAPPING = {
     "MUSIC": ["PLII MUSIC", "DTS NEO:6 MUSIC", "DTS NEO:6 M", "DOLBY D +NEO:X M",
-              "DTS NEO:X MUSIC", "DOLBY PL2 MUSIC", "DOLBY PL2 M", "PLIIX MUSIC"],
+              "DTS NEO:X MUSIC", "DOLBY PL2 MUSIC", "DOLBY PL2 M", "PLIIX MUSIC",
+              "DOLBY PL2 x music"],
     "MOVIE": ["PLII MOVIE", "PLII CINEMA", "DTS NEO:X CINEMA",
               "DTS NEO:6 CINEMA", "DTS NEO:6 C", "DOLBY D +NEO:X C",
               "PLIIX CINEMA", "DOLBY PLII MOVIE", "MULTI IN + VIRTUAL:X",
-              "DOLBY PL2 CINEMA", "DOLBY PL2 C"],
-    "GAME": ["PLII GAME", "DOLBY D +NEO:X G", "DOLBY PL2 GAME", "DOLBY PL2 G"],
+              "DOLBY PL2 CINEMA", "DOLBY PL2 C", "DOLBY PL2 x movie"],
+    "GAME": ["PLII GAME", "DOLBY D +NEO:X G", "DOLBY PL2 GAME", "DOLBY PL2 G",
+             "DOLBY PL2 x game"],
     "AUTO": ["None"],
     "STANDARD": ["None2"],
     "VIRTUAL": ["VIRTUAL"],
