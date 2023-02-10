@@ -79,7 +79,7 @@ class DenonAVRVolume(DenonAVRFoundation):
             self._volume = -80.0 + float(parameter)
         else:
             whole_number = float(parameter[0:2])
-            fraction = (0.1 * float(parameter[2]))
+            fraction = 0.1 * float(parameter[2])
             self._volume = -80.0 + whole_number + fraction
 
     async def _mute_callback(
