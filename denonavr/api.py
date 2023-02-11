@@ -503,8 +503,8 @@ class DenonAVRTelnetApi:
         """Reconnect to the receiver asynchronously."""
         backoff = 0.5
 
-        async with self._connect_lock:
-            while self._connection_enabled is True and not self.healthy:
+        while self._connection_enabled is True and not self.healthy:
+            async with self._connect_lock:
                 try:
                     await self._async_establish_connection()
                 except AvrTimoutError:
@@ -524,8 +524,8 @@ class DenonAVRTelnetApi:
                     _LOGGER.info("%s: Telnet reconnected", self.host)
                     return
 
-                await asyncio.sleep(backoff)
-                backoff = min(30.0, backoff*2)
+            await asyncio.sleep(backoff)
+            backoff = min(30.0, backoff*2)
 
     def register_callback(
         self,
