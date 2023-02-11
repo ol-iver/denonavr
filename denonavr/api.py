@@ -9,13 +9,12 @@ This module implements the REST and Telnet APIs to Denon AVR receivers.
 
 import asyncio
 import logging
+import sys
+import time
 import xml.etree.ElementTree as ET
 
-import time
 from io import BytesIO
 from typing import cast, Awaitable, Callable, Dict, Hashable, Optional, Tuple
-import async_timeout
-
 import attr
 import httpx
 
@@ -33,6 +32,11 @@ from .exceptions import (
 from .const import (
     APPCOMMAND_CMD_TEXT, APPCOMMAND_NAME, APPCOMMAND_URL, APPCOMMAND0300_URL,
     DENON_ATTR_SETATTR, MAIN_ZONE, TELNET_EVENTS, ZONE2, ZONE3, TELNET_SOURCES)
+
+if sys.version_info[:2] < (3, 11):
+    from async_timeout import timeout as asyncio_timeout
+else:
+    from asyncio import timeout as asyncio_timeout
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -397,10 +401,10 @@ class DenonAVRTelnetApi:
         loop = asyncio.get_event_loop()
         _LOGGER.debug("%s: establishing telnet connection", self.host)
         try:
-            async with async_timeout.timeout(self.timeout):
+            async with asyncio_timeout(self.timeout):
                 transport_protocol = await loop.create_connection(
                     lambda: DenonAVRTelnetProtocol(
-                        on_connection_lost=self._disconnected,
+                        on_connection_lost=self._handle_disconnected,
                         on_message=self._process_event
                     ),
                     self.host,
@@ -458,7 +462,7 @@ class DenonAVRTelnetApi:
             )
             if self._protocol:
                 self._protocol.close()
-            self._disconnected()
+            self._handle_disconnected()
             return
 
         if time_since_response > _MONITOR_INTERVAL and self._protocol:
@@ -469,7 +473,7 @@ class DenonAVRTelnetApi:
             self._protocol.write("SLP?\r")
         self._schedule_monitor()
 
-    def _disconnected(self) -> None:
+    def _handle_disconnected(self) -> None:
         """Handle disconnected."""
         _LOGGER.debug("%s: disconnected", self.host)
         self._protocol = None
