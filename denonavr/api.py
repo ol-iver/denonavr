@@ -469,8 +469,7 @@ class DenonAVRTelnetApi:
             # Keep the connection alive
             _LOGGER.debug("%s: Sending keep alive", self.host)
 
-            # Use a command that won't trigger any callbacks
-            self._protocol.write("SLP?\r")
+            self._protocol.write("PW?\r")
         self._schedule_monitor()
 
     def _handle_disconnected(self) -> None:
