@@ -79,7 +79,7 @@ SOUND_MODE_MAPPING = {
     "MOVIE": ["PLII MOVIE", "PLII CINEMA", "DTS NEO:X CINEMA",
               "DTS NEO:6 CINEMA", "DTS NEO:6 C", "DOLBY D +NEO:X C",
               "PLIIX CINEMA", "DOLBY PLII MOVIE", "MULTI IN + VIRTUAL:X",
-              "DOLBY PL2 CINEMA", "DOLBY PL2 C", "DOLBY PL2 x movie"],
+              "DOLBY PL2 CINEMA", "DOLBY PL2 C", "DOLBY PL2 X MOVIE"],
     "GAME": ["PLII GAME", "DOLBY D +NEO:X G", "DOLBY PL2 GAME", "DOLBY PL2 G",
              "DOLBY PL2 X GAME"],
     "AUTO": ["None"],
