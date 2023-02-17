@@ -239,6 +239,7 @@ MIT
 @JPHutchins: https://github.com/JPHutchins  
 @MarBra: https://github.com/MarBra  
 @dcmeglio: https://github.com/dcmeglio  
+@bdraco: https://github.com/bdraco  
 
 ## Users
 Home Assistant: https://github.com/home-assistant/home-assistant/
