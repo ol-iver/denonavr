@@ -486,6 +486,7 @@ class DenonAVRTelnetApi:
         async with self._connect_lock:
             self._connection_enabled = False
             self._stop_monitor()
+            reconnect_task = self._reconnect_task
             if self._reconnect_task is not None:
                 self._reconnect_task.cancel()
                 self._reconnect_task = None
@@ -493,10 +494,11 @@ class DenonAVRTelnetApi:
                 self._protocol.close()
                 self._protocol = None
 
-            try:
-                await self._reconnect_task
-            except asyncio.CancelledError:
-                pass
+            if reconnect_task is not None:
+                try:
+                    await reconnect_task
+                except asyncio.CancelledError:
+                    pass
 
     async def _async_reconnect(self) -> None:
         """Reconnect to the receiver asynchronously."""
