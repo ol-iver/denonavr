@@ -58,16 +58,19 @@ SOURCE_MAPPING = {
     "Media Player": "MPLAY", "AUX": "AUX1", "Tuner": "TUNER",
     "FM": "TUNER", "SpotifyConnect": "Spotify Connect"}
 
-CHANGE_INPUT_MAPPING = {"Internet Radio": "IRP", "Online Music": "NET",
-                        "Media Server": "SERVER", "Spotify": "SPOTIFY",
-                        "Flickr": "FLICKR", "Favorites": "FAVORITES"}
+CHANGE_INPUT_MAPPING = {
+    "Favorites": "FAVORITES", "Flickr": "FLICKR", "Internet Radio": "IRP",
+    "Media Server": "SERVER", "Online Music": "NET", "Spotify": "SPOTIFY"}
 
-TELNET_SOURCES = ["CD", "PHONO", "TUNER", "DVD", "BD", "TV",
-                  "SAT/CBL", "MPLAY", "GAME", "HDRADIO", "NET", "PANDORA",
-                  "SIRIUSXM", "LASTFM", "FLICKR", "IRADIO", "SERVER",
-                  "FAVORITES", "AUX1", "AUX2", "AUX3", "AUX4", "AUX5",
-                  "AUX6", "AUX7", "BT", "USB/IPOD", "USB DIRECT",
-                  "IPOD DIRECT"]
+TELNET_SOURCES = [
+    "CD", "PHONO", "TUNER", "DVD", "BD", "TV", "SAT/CBL", "MPLAY", "GAME",
+    "HDRADIO", "NET", "PANDORA", "SIRIUSXM", "LASTFM", "FLICKR", "IRADIO",
+    "IRP", "SERVER", "FAVORITES", "AUX1", "AUX2", "AUX3", "AUX4", "AUX5",
+    "AUX6", "AUX7", "BT", "USB/IPOD", "USB DIRECT", "IPOD DIRECT"]
+
+TELNET_MAPPING = {
+    "FAVORITES": "Favorites", "FLICKR": "Flickr", "IRADIO": "Internet Radio",
+    "IRP": "Internet Radio", "SERVER": "Media Server", "SPOTIFY": "Spotify"}
 
 # Sound modes
 ALL_ZONE_STEREO = "ALL ZONE STEREO"

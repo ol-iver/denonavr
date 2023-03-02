@@ -22,7 +22,8 @@ from .const import (
     ALBUM_COVERS_URL, APPCOMMAND_CMD_TEXT, AVR, AVR_X_2016, AVR_X,
     CHANGE_INPUT_MAPPING, DENON_ATTR_SETATTR, MAIN_ZONE, NETAUDIO_SOURCES,
     PLAYING_SOURCES, POWER_ON, SOURCE_MAPPING, STATE_OFF, STATE_ON,
-    STATE_PLAYING, STATE_PAUSED, STATIC_ALBUM_URL, ZONE2, ZONE3)
+    STATE_PLAYING, STATE_PAUSED, STATIC_ALBUM_URL, TELNET_MAPPING, ZONE2,
+    ZONE3)
 from .exceptions import AvrCommandError, AvrProcessingError, AvrRequestError
 from .foundation import DenonAVRFoundation
 
@@ -164,7 +165,7 @@ class DenonAVRInput(DenonAVRFoundation):
         if self._device.zone != zone:
             return
 
-        self._input_func = parameter
+        self._input_func = TELNET_MAPPING.get(parameter, parameter)
         await self.async_update_media_state()
 
     async def _power_callback(self, zone: str, event: str, parameter: str):
