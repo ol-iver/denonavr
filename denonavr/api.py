@@ -8,6 +8,7 @@ This module implements the REST and Telnet APIs to Denon AVR receivers.
 """
 
 import asyncio
+import contextlib
 import logging
 import sys
 import time
@@ -356,7 +357,8 @@ class DenonAVRTelnetProtocol(asyncio.Protocol):
         self._buffer += data
         while b"\r" in self._buffer:
             line, _, self._buffer = self._buffer.partition(b"\r")
-            self._on_message(line.decode("utf-8"))
+            with contextlib.suppress(UnicodeDecodeError):
+                self._on_message(line.decode("utf-8"))
 
     def connection_made(self, transport: asyncio.Transport) -> None:
         """Handle connection made."""
@@ -437,6 +439,7 @@ class DenonAVRTelnetApi:
         self._connection_enabled = True
         self._last_message_time = time.monotonic()
         self._schedule_monitor()
+        self._protocol.write("PW?\r")
 
     def _schedule_monitor(self) -> None:
         """Start the monitor task."""
@@ -468,7 +471,6 @@ class DenonAVRTelnetApi:
         if time_since_response > _MONITOR_INTERVAL and self._protocol:
             # Keep the connection alive
             _LOGGER.debug("%s: Sending keep alive", self.host)
-
             self._protocol.write("PW?\r")
         self._schedule_monitor()
 
@@ -532,7 +534,7 @@ class DenonAVRTelnetApi:
         self,
         event: str,
         callback: Callable[[str, str, str], Awaitable[None]]
-    ):
+    ) -> None:
         """Register a callback handler for an event type."""
         # Validate the passed in type
         if event != "ALL" and event not in TELNET_EVENTS:
@@ -546,14 +548,15 @@ class DenonAVRTelnetApi:
         self,
         event: str,
         callback: Callable[[str, str, str], Awaitable[None]]
-    ):
+    ) -> None:
         """Unregister a callback handler for an event type."""
         if event not in self._callbacks.keys():
             return
         self._callbacks[event].remove(callback)
 
-    def _process_event(self, message: str):
+    def _process_event(self, message: str) -> None:
         """Process a realtime event."""
+        _LOGGER.debug("Incoming Telnet message: %s", message)
         self._last_message_time = time.monotonic()
         if len(message) < 3:
             return
@@ -590,9 +593,10 @@ class DenonAVRTelnetApi:
         if event not in TELNET_EVENTS:
             return
 
-        asyncio.create_task(self._run_callbacks(event, zone, parameter))
+        asyncio.create_task(self._async_run_callbacks(event, zone, parameter))
 
-    async def _run_callbacks(self, event: str, zone: str, parameter: str):
+    async def _async_run_callbacks(
+            self, event: str, zone: str, parameter: str) -> None:
         """Handle triggering the registered callbacks for the event."""
         if event in self._callbacks.keys():
             for callback in self._callbacks[event]:
@@ -619,6 +623,10 @@ class DenonAVRTelnetApi:
                         self.host,
                         err
                     )
+
+    def send_command(self, command: str) -> None:
+        """Send a telnet command to the receiver."""
+        self._protocol.write("{}\r".format(command))
 
     ##############
     # Properties #

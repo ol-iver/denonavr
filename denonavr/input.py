@@ -7,9 +7,9 @@ This module implements the handler for input functions of Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
+import asyncio
 import logging
 import html
-import time
 
 from copy import deepcopy
 from typing import Dict, Hashable, List, Optional, Tuple
@@ -29,6 +29,8 @@ from .foundation import DenonAVRFoundation
 
 
 _LOGGER = logging.getLogger(__name__)
+
+_MEDIA_UPDATE_INTERVAL = 10
 
 
 def lower_string(value: Optional[str]) -> Optional[str]:
@@ -99,6 +101,9 @@ class DenonAVRInput(DenonAVRFoundation):
             attr.validators.instance_of(str),
             attr.validators.instance_of(list)),
         default=attr.Factory(list))
+    _media_update_handle: asyncio.TimerHandle = attr.ib(default=None)
+    _input_func_update_lock: asyncio.Lock = attr.ib(
+        default=attr.Factory(asyncio.Lock))
 
     _state: Optional[str] = attr.ib(
         converter=attr.converters.optional(lower_string),
@@ -155,25 +160,211 @@ class DenonAVRInput(DenonAVRFoundation):
         for tag in self.appcommand_attrs:
             self._device.api.add_appcommand_update_tag(tag)
 
-        self._device.telnet_api.register_callback("SI", self._input_callback)
-        self._device.telnet_api.register_callback("PW", self._power_callback)
+        self._device.telnet_api.register_callback(
+            "SI", self._async_input_callback)
+        self._device.telnet_api.register_callback(
+            "PW", self._async_power_callback)
+        self._device.telnet_api.register_callback(
+            "NS", self._async_netaudio_callback)
+        self._device.telnet_api.register_callback(
+            "TF", self._async_tuner_callback)
+        self._device.telnet_api.register_callback(
+            "HD", self._async_hdtuner_callback)
+        self._device.telnet_api.register_callback(
+            "SS", self._async_input_func_update_callback)
 
         self._is_setup = True
 
-    async def _input_callback(self, zone: str, event: str, parameter: str):
+    async def _async_input_callback(
+            self, zone: str, event: str, parameter: str) -> None:
         """Handle an input change event."""
         if self._device.zone != zone:
             return
 
         self._input_func = TELNET_MAPPING.get(parameter, parameter)
-        await self.async_update_media_state()
 
-    async def _power_callback(self, zone: str, event: str, parameter: str):
+        if self._device.power != POWER_ON:
+            pass
+        elif self._input_func in self._netaudio_func_list:
+            self._stop_media_update()
+            self._schedule_netaudio_update()
+        elif self._input_func in ["Tuner", "TUNER"]:
+            self._stop_media_update()
+            self._schedule_tuner_update()
+        elif self._input_func in ["HD Radio", "HDRADIO"]:
+            self._stop_media_update()
+            self._schedule_hdtuner_update()
+        else:
+            self._stop_media_update()
+            self._state = STATE_ON
+            self._title = None
+            self._artist = None
+            self._album = None
+            self._band = None
+            self._frequency = None
+            self._station = None
+            self._image_url = None
+
+    async def _async_power_callback(
+            self, zone: str, event: str, parameter: str) -> None:
         """Handle a power change event."""
         if self._device.zone != zone:
             return
 
-        await self.async_update_media_state()
+        if parameter != POWER_ON:
+            self._stop_media_update()
+            self._state = STATE_OFF
+            self._title = None
+            self._artist = None
+            self._album = None
+            self._band = None
+            self._frequency = None
+            self._station = None
+            self._image_url = None
+        elif self._input_func in self._netaudio_func_list:
+            self._stop_media_update()
+            self._schedule_netaudio_update()
+        elif self._input_func in ["Tuner", "TUNER"]:
+            self._stop_media_update()
+            self._schedule_tuner_update()
+        elif self._input_func in ["HD Radio", "HDRADIO"]:
+            self._stop_media_update()
+            self._schedule_hdtuner_update()
+
+    def _stop_media_update(self) -> None:
+        """Stop the media update task."""
+        if self._media_update_handle is not None:
+            self._media_update_handle.cancel()
+            self._media_update_handle = None
+
+    def _schedule_netaudio_update(self) -> None:
+        """Schedule a netaudio update task."""
+        self._state = STATE_PLAYING
+        loop = asyncio.get_event_loop()
+        self._media_update_handle = loop.call_later(
+            _MEDIA_UPDATE_INTERVAL,
+            self._update_netaudio
+        )
+
+    def _update_netaudio(self) -> None:
+        """Update netaudio information."""
+        self._device.telnet_api.send_command("NSE")
+        self._schedule_netaudio_update()
+
+    async def _async_netaudio_callback(
+            self, zone: str, event: str, parameter: str) -> None:
+        """Handle a netaudio update event."""
+        if self._device.power != POWER_ON:
+            return
+        if self._input_func not in self._netaudio_func_list:
+            return
+
+        if parameter.startswith("E1"):
+            self._title = parameter[2:].strip()
+        elif parameter.startswith("E2"):
+            self._artist = parameter[2:].strip()
+        elif parameter.startswith("E4"):
+            self._album = parameter[2:].strip()
+        self._band = None
+        self._frequency = None
+        self._station = None
+
+        # Refresh cover with a hash for media URL when track is changing
+        self._image_url = (ALBUM_COVERS_URL.format(
+            host=self._device.api.host, port=self._device.api.port,
+            hash=hash((self._title, self._artist, self._album))))
+        await self._async_test_image_accessable()
+
+    def _schedule_tuner_update(self) -> None:
+        """Schedule a tuner update task."""
+        self._state = STATE_PLAYING
+        loop = asyncio.get_event_loop()
+        self._media_update_handle = loop.call_later(
+            _MEDIA_UPDATE_INTERVAL,
+            self._update_tuner
+        )
+
+    def _update_tuner(self) -> None:
+        """Update tuner information."""
+        self._device.telnet_api.send_command("TFAN?")
+        self._device.telnet_api.send_command("TFANNAME?")
+        self._schedule_tuner_update()
+
+    async def _async_tuner_callback(
+            self, zone: str, event: str, parameter: str) -> None:
+        """Handle a tuner update event."""
+        if self._device.power != POWER_ON:
+            return
+        if self._input_func not in ["Tuner", "TUNER"]:
+            return
+
+        if parameter.startswith("ANNAME"):
+            self._station = parameter[6:].strip()
+        elif len(parameter) == 8:
+            self._frequency = "{}.{}".format(
+                parameter[2:6], parameter[6:]).strip("0")
+            if parameter[2:] > "050000":
+                self._band = "AM"
+            else:
+                self._band = "FM"
+
+        self._title = None
+        self._artist = None
+        self._album = None
+
+        # No special cover, using a static one
+        self._image_url = (
+            STATIC_ALBUM_URL.format(
+                host=self._device.api.host, port=self._device.api.port))
+        await self._async_test_image_accessable()
+
+    def _schedule_hdtuner_update(self) -> None:
+        """Schedule a HD tuner update task."""
+        self._state = STATE_PLAYING
+        loop = asyncio.get_event_loop()
+        self._media_update_handle = loop.call_later(
+            _MEDIA_UPDATE_INTERVAL,
+            self._update_hdtuner
+        )
+
+    def _update_hdtuner(self) -> None:
+        """Update HD tuner information."""
+        self._device.telnet_api.send_command("HD?")
+        self._schedule_hdtuner_update()
+
+    async def _async_hdtuner_callback(
+            self, zone: str, event: str, parameter: str) -> None:
+        """Handle an HD tuner update event."""
+        if self._device.power != POWER_ON:
+            return
+        if self._input_func not in ["HD Radio", "HDRADIO"]:
+            return
+
+        if parameter.startswith("ARTIST"):
+            self._artist = parameter[6:].strip()
+        elif parameter.startswith("TITLE"):
+            self._title = parameter[5:].strip()
+        elif parameter.startswith("ALBUM"):
+            self._album = parameter[5:].strip()
+        elif parameter.startswith("ST NAME"):
+            self._station = parameter[7:].strip()
+
+        self._band = None
+        self._frequency = None
+
+        # No special cover, using a static one
+        self._image_url = (
+            STATIC_ALBUM_URL.format(
+                host=self._device.api.host, port=self._device.api.port))
+        await self._async_test_image_accessable()
+
+    async def _async_input_func_update_callback(
+            self, zone: str, event: str, parameter: str) -> None:
+        """Handle input func update events."""
+        if self._input_func_update_lock.locked() is True:
+            return
+        async with self._input_func_update_lock:
+            await self.async_update_inputfuncs()
 
     async def async_update(
             self,
@@ -555,13 +746,10 @@ class DenonAVRInput(DenonAVRFoundation):
 
     async def _async_update_media_data(
             self,
-            cache_id: Optional[Hashable] = None):
+            cache_id: Optional[Hashable] = None) -> None:
         """Update media data of device."""
         urls = []
         status_xml_attrs = {}
-
-        # Hash attributes to check for changed track afterwards
-        img_change_hash = hash((self._title, self._artist, self._album))
 
         if self._input_func in self._netaudio_func_list:
             urls = [self._device.urls.netaudiostatus]
@@ -608,16 +796,16 @@ class DenonAVRInput(DenonAVRFoundation):
             status_xml_attrs, urls, cache_id=cache_id)
 
         if self._input_func in self._netaudio_func_list:
-            if img_change_hash != hash(
-                    (self._title, self._artist, self._album)):
-                # Refresh cover with a new time stamp for media URL
-                # when track is changing
-                self._image_url = (ALBUM_COVERS_URL.format(
-                    host=self._device.api.host, port=self._device.api.port,
-                    time=int(time.time())))
-                # On track change assume device is PLAYING
-                self._state = STATE_PLAYING
+            # Refresh cover with a hash for media URL when track is changing
+            self._image_url = (ALBUM_COVERS_URL.format(
+                host=self._device.api.host, port=self._device.api.port,
+                hash=hash((self._title, self._artist, self._album))))
+            # On track change assume device is PLAYING
+            self._state = STATE_PLAYING
 
+        await self._async_test_image_accessable()
+
+    async def _async_test_image_accessable(self) -> None:
         # Test if image URL is accessable
         if self._image_available is None and self._image_url is not None:
             client = self._device.api.async_client_getter()

@@ -59,12 +59,12 @@ class DenonAVRToneControl(DenonAVRFoundation):
 
         self._device.telnet_api.register_callback(
             "PS",
-            self._sound_detail_callback
+            self._async_sound_detail_callback
         )
 
         self._is_setup = True
 
-    async def _sound_detail_callback(
+    async def _async_sound_detail_callback(
             self,
             zone: str,
             event: str,

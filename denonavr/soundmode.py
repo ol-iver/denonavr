@@ -111,12 +111,12 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
             self._device.telnet_api.register_callback(
                 "MS",
-                self._soundmode_callback
+                self._async_soundmode_callback
             )
 
             self._is_setup = True
 
-    async def _soundmode_callback(
+    async def _async_soundmode_callback(
             self,
             zone: str,
             event: str,

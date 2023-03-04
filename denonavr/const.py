@@ -135,7 +135,7 @@ NETAUDIO_SOURCES = (
 
 # Image URLs
 STATIC_ALBUM_URL = "http://{host}:{port}/img/album%20art_S.png"
-ALBUM_COVERS_URL = "http://{host}:{port}/NetAudio/art.asp-jpg?{time}"
+ALBUM_COVERS_URL = "http://{host}:{port}/NetAudio/art.asp-jpg?{hash}"
 
 # General URLs
 APPCOMMAND_URL = "/goform/AppCommand.xml"
@@ -261,7 +261,7 @@ ZONE3_URLS = ReceiverURLs(
     command_play=COMMAND_PLAY)
 
 # Telnet Commands
-TELNET_EVENTS = ["PW", "MV", "MU", "SI", "MS", "PS"]
+TELNET_EVENTS = ["HD", "MS", "MU", "MV", "NS", "PS", "PW", "SI", "SS", "TF"]
 
 # States
 POWER_ON = "ON"

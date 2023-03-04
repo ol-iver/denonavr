@@ -61,12 +61,14 @@ class DenonAVRVolume(DenonAVRFoundation):
         for tag in self.appcommand_attrs:
             self._device.api.add_appcommand_update_tag(tag)
 
-        self._device.telnet_api.register_callback("MV", self._volume_callback)
-        self._device.telnet_api.register_callback("MU", self._mute_callback)
+        self._device.telnet_api.register_callback(
+            "MV", self._async_volume_callback)
+        self._device.telnet_api.register_callback(
+            "MU", self._async_mute_callback)
 
         self._is_setup = True
 
-    async def _volume_callback(
+    async def _async_volume_callback(
             self,
             zone: str,
             event: str,
@@ -82,7 +84,7 @@ class DenonAVRVolume(DenonAVRFoundation):
             fraction = 0.1 * float(parameter[2])
             self._volume = -80.0 + whole_number + fraction
 
-    async def _mute_callback(
+    async def _async_mute_callback(
             self,
             zone: str,
             event: str,
