@@ -59,7 +59,7 @@ SOURCE_MAPPING = {
     "FM": "TUNER", "SpotifyConnect": "Spotify Connect"}
 
 CHANGE_INPUT_MAPPING = {
-    "Favorites": "FAVORITES", "Flickr": "FLICKR", "Internet Radio": "IRP",
+    "Favorites": "FAVORITES", "Flickr": "FLICKR", "Internet Radio": "IRADIO",
     "Media Server": "SERVER", "Online Music": "NET", "Spotify": "SPOTIFY"}
 
 TELNET_SOURCES = [
