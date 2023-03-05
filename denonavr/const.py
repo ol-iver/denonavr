@@ -124,14 +124,16 @@ SOUND_MODE_MAPPING = {
     ALL_ZONE_STEREO: ["ALL ZONE STEREO"]}
 
 # Receiver sources
-PLAYING_SOURCES = (
+PLAYING_SOURCES = {
     "Online Music", "Media Server", "iPod/USB", "Bluetooth",
     "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
-    "TUNER", "NET/USB", "HDRADIO", "Music Server", "NETWORK", "NET")
-NETAUDIO_SOURCES = (
+    "TUNER", "NET/USB", "HDRADIO", "Music Server", "NETWORK", "NET"}
+NETAUDIO_SOURCES = {
     "Online Music", "Media Server", "iPod/USB", "Bluetooth",
     "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
-    "NET/USB", "Music Server", "NETWORK", "NET")
+    "NET/USB", "Music Server", "NETWORK", "NET"}
+TUNER_SOURCES = {"Tuner", "TUNER"}
+HDTUNER_SOURCES = {"HD Radio", "HDRADIO"}
 
 # Image URLs
 STATIC_ALBUM_URL = "http://{host}:{port}/img/album%20art_S.png"
@@ -261,7 +263,7 @@ ZONE3_URLS = ReceiverURLs(
     command_play=COMMAND_PLAY)
 
 # Telnet Commands
-TELNET_EVENTS = ["HD", "MS", "MU", "MV", "NS", "PS", "PW", "SI", "SS", "TF"]
+TELNET_EVENTS = {"HD", "MS", "MU", "MV", "NS", "PS", "PW", "SI", "SS", "TF"}
 
 # States
 POWER_ON = "ON"

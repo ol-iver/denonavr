@@ -20,10 +20,10 @@ import httpx
 from .appcommand import AppCommands
 from .const import (
     ALBUM_COVERS_URL, APPCOMMAND_CMD_TEXT, AVR, AVR_X_2016, AVR_X,
-    CHANGE_INPUT_MAPPING, DENON_ATTR_SETATTR, MAIN_ZONE, NETAUDIO_SOURCES,
-    PLAYING_SOURCES, POWER_ON, SOURCE_MAPPING, STATE_OFF, STATE_ON,
-    STATE_PLAYING, STATE_PAUSED, STATIC_ALBUM_URL, TELNET_MAPPING, ZONE2,
-    ZONE3)
+    CHANGE_INPUT_MAPPING, DENON_ATTR_SETATTR, HDTUNER_SOURCES, MAIN_ZONE,
+    NETAUDIO_SOURCES, PLAYING_SOURCES, POWER_ON, SOURCE_MAPPING, STATE_OFF,
+    STATE_ON, STATE_PLAYING, STATE_PAUSED, STATIC_ALBUM_URL, TELNET_MAPPING,
+    TUNER_SOURCES, ZONE2, ZONE3)
 from .exceptions import AvrCommandError, AvrProcessingError, AvrRequestError
 from .foundation import DenonAVRFoundation
 
@@ -184,26 +184,13 @@ class DenonAVRInput(DenonAVRFoundation):
         self._input_func = TELNET_MAPPING.get(parameter, parameter)
 
         if self._device.power != POWER_ON:
-            pass
-        elif self._input_func in self._netaudio_func_list:
-            self._stop_media_update()
-            self._schedule_netaudio_update()
-        elif self._input_func in ["Tuner", "TUNER"]:
-            self._stop_media_update()
-            self._schedule_tuner_update()
-        elif self._input_func in ["HD Radio", "HDRADIO"]:
-            self._stop_media_update()
-            self._schedule_hdtuner_update()
+            return
+
+        if self._schedule_media_updates() is True:
+            self._state = STATE_PLAYING
         else:
-            self._stop_media_update()
+            self._unset_media_state()
             self._state = STATE_ON
-            self._title = None
-            self._artist = None
-            self._album = None
-            self._band = None
-            self._frequency = None
-            self._station = None
-            self._image_url = None
 
     async def _async_power_callback(
             self, zone: str, event: str, parameter: str) -> None:
@@ -213,23 +200,31 @@ class DenonAVRInput(DenonAVRFoundation):
 
         if parameter != POWER_ON:
             self._stop_media_update()
+            self._unset_media_state()
             self._state = STATE_OFF
-            self._title = None
-            self._artist = None
-            self._album = None
-            self._band = None
-            self._frequency = None
-            self._station = None
-            self._image_url = None
-        elif self._input_func in self._netaudio_func_list:
+        elif self._schedule_media_updates() is True:
+            self._state = STATE_PLAYING
+        else:
+            self._unset_media_state()
+            self._state = STATE_ON
+
+    def _schedule_media_updates(self) -> bool:
+        """Schedule media state updates in telnet callbacks."""
+        if self._input_func in self._netaudio_func_list:
             self._stop_media_update()
             self._schedule_netaudio_update()
-        elif self._input_func in ["Tuner", "TUNER"]:
+            return True
+        if self._input_func in TUNER_SOURCES:
             self._stop_media_update()
             self._schedule_tuner_update()
-        elif self._input_func in ["HD Radio", "HDRADIO"]:
+            return True
+        if self._input_func in HDTUNER_SOURCES:
             self._stop_media_update()
             self._schedule_hdtuner_update()
+            return True
+
+        self._stop_media_update()
+        return False
 
     def _stop_media_update(self) -> None:
         """Stop the media update task."""
@@ -239,10 +234,12 @@ class DenonAVRInput(DenonAVRFoundation):
 
     def _schedule_netaudio_update(self) -> None:
         """Schedule a netaudio update task."""
-        self._state = STATE_PLAYING
         loop = asyncio.get_event_loop()
+        delay = _MEDIA_UPDATE_INTERVAL
+        if self._media_update_handle is None:
+            delay = 0
         self._media_update_handle = loop.call_later(
-            _MEDIA_UPDATE_INTERVAL,
+            delay,
             self._update_netaudio
         )
 
@@ -277,10 +274,12 @@ class DenonAVRInput(DenonAVRFoundation):
 
     def _schedule_tuner_update(self) -> None:
         """Schedule a tuner update task."""
-        self._state = STATE_PLAYING
         loop = asyncio.get_event_loop()
+        delay = _MEDIA_UPDATE_INTERVAL
+        if self._media_update_handle is None:
+            delay = 0
         self._media_update_handle = loop.call_later(
-            _MEDIA_UPDATE_INTERVAL,
+            delay,
             self._update_tuner
         )
 
@@ -320,10 +319,12 @@ class DenonAVRInput(DenonAVRFoundation):
 
     def _schedule_hdtuner_update(self) -> None:
         """Schedule a HD tuner update task."""
-        self._state = STATE_PLAYING
         loop = asyncio.get_event_loop()
+        delay = _MEDIA_UPDATE_INTERVAL
+        if self._media_update_handle is None:
+            delay = 0
         self._media_update_handle = loop.call_later(
-            _MEDIA_UPDATE_INTERVAL,
+            delay,
             self._update_hdtuner
         )
 
@@ -736,13 +737,7 @@ class DenonAVRInput(DenonAVRFoundation):
         else:
             self._state = (
                 STATE_ON if self._device.power == POWER_ON else STATE_OFF)
-            self._title = None
-            self._artist = None
-            self._album = None
-            self._band = None
-            self._frequency = None
-            self._station = None
-            self._image_url = None
+            self._unset_media_state()
 
     async def _async_update_media_data(
             self,
@@ -761,7 +756,7 @@ class DenonAVRInput(DenonAVRFoundation):
             self._frequency = None
             self._station = None
             # Image URL and state are detected after update
-        elif self._input_func in ["Tuner", "TUNER"]:
+        elif self._input_func in TUNER_SOURCES:
             urls = [self._device.urls.tunerstatus]
             status_xml_attrs = {
                 "_band": "./Band/value",
@@ -776,7 +771,7 @@ class DenonAVRInput(DenonAVRFoundation):
                     host=self._device.api.host, port=self._device.api.port))
             # Assume Tuner is always PLAYING
             self._state = STATE_PLAYING
-        elif self._input_func in ["HD Radio", "HDRADIO"]:
+        elif self._input_func in HDTUNER_SOURCES:
             urls = [self._device.urls.hdtunerstatus]
             status_xml_attrs = {
                 "_artist": "./Artist/value",
@@ -806,7 +801,7 @@ class DenonAVRInput(DenonAVRFoundation):
         await self._async_test_image_accessable()
 
     async def _async_test_image_accessable(self) -> None:
-        # Test if image URL is accessable
+        """Test if image URL is accessable."""
         if self._image_available is None and self._image_url is not None:
             client = self._device.api.async_client_getter()
             try:
@@ -831,6 +826,16 @@ class DenonAVRInput(DenonAVRFoundation):
         # Already tested that image URL is not accessible
         elif self._image_available is False:
             self._image_url = None
+
+    def _unset_media_state(self) -> None:
+        """Unsets media state attributes."""
+        self._title = None
+        self._artist = None
+        self._album = None
+        self._band = None
+        self._frequency = None
+        self._station = None
+        self._image_url = None
 
     ##############
     # Properties #
