@@ -624,9 +624,10 @@ class DenonAVRTelnetApi:
                         err
                     )
 
-    def send_command(self, command: str) -> None:
-        """Send a telnet command to the receiver."""
-        self._protocol.write("{}\r".format(command))
+    def send_commands(self, *commands: str) -> None:
+        """Send telnet commands to the receiver."""
+        for command in commands:
+            self._protocol.write("{}\r".format(command))
 
     ##############
     # Properties #
