@@ -65,12 +65,12 @@ class DenonAVRAudyssey(DenonAVRFoundation):
             self._device.api.add_appcommand0300_update_tag(tag)
 
         self._device.telnet_api.register_callback(
-            "PS", self._sound_detail_callback
+            "PS", self._async_sound_detail_callback
         )
 
         self._is_setup = True
 
-    async def _sound_detail_callback(
+    async def _async_sound_detail_callback(
             self,
             zone: str,
             event: str,

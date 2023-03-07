@@ -87,7 +87,7 @@ class DenonAVRDeviceInfo:
         else:
             raise ValueError("Invalid zone {}".format(self.zone))
 
-    async def _power_callback(
+    async def _async_power_callback(
             self,
             zone: str,
             event: str,
@@ -96,7 +96,7 @@ class DenonAVRDeviceInfo:
         if self.zone == zone:
             self._power = parameter
 
-    def get_own_zone(self):
+    def get_own_zone(self) -> str:
         """
         Get zone from actual instance.
 
@@ -126,7 +126,7 @@ class DenonAVRDeviceInfo:
             self.api.add_appcommand_update_tag(
                 AppCommands.GetAllZonePowerStatus)
 
-            self.telnet_api.register_callback("PW", self._power_callback)
+            self.telnet_api.register_callback("PW", self._async_power_callback)
 
             self._is_setup = True
 
@@ -368,7 +368,7 @@ class DenonAVRDeviceInfo:
     async def async_update_power(
             self,
             global_update: bool = False,
-            cache_id: Optional[Hashable] = None):
+            cache_id: Optional[Hashable] = None) -> None:
         """Update power status of device."""
         if self.use_avr_2016_update is True:
             await self.async_update_power_appcommand(
@@ -382,7 +382,7 @@ class DenonAVRDeviceInfo:
     async def async_update_power_appcommand(
             self,
             global_update: bool = False,
-            cache_id: Optional[Hashable] = None):
+            cache_id: Optional[Hashable] = None) -> None:
         """Update power status from AppCommand.xml."""
         power_appcommand = AppCommands.GetAllZonePowerStatus
         try:
@@ -416,7 +416,7 @@ class DenonAVRDeviceInfo:
 
     async def async_update_power_status_xml(
             self,
-            cache_id: Optional[Hashable] = None):
+            cache_id: Optional[Hashable] = None) -> None:
         """Update power status from status xml."""
         # URLs to be scanned
         urls = [self.urls.status]
