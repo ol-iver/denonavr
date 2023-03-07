@@ -129,7 +129,7 @@ PLAYING_SOURCES = {
     "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
     "TUNER", "NET/USB", "HDRADIO", "Music Server", "NETWORK", "NET"}
 NETAUDIO_SOURCES = {
-    "Online Music", "Media Server", "iPod/USB", "Bluetooth",
+    "AirPlay", "Online Music", "Media Server", "iPod/USB", "Bluetooth",
     "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
     "NET/USB", "Music Server", "NETWORK", "NET"}
 TUNER_SOURCES = {"Tuner", "TUNER"}
