@@ -30,7 +30,7 @@ from .foundation import DenonAVRFoundation
 
 _LOGGER = logging.getLogger(__name__)
 
-_MEDIA_UPDATE_INTERVAL = 10
+_MEDIA_UPDATE_INTERVAL = 5
 
 
 def lower_string(value: Optional[str]) -> Optional[str]:
