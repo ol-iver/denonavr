@@ -1,0 +1,94 @@
+[build-system]
+requires = ["setuptools>=61.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "denonavr"
+version = "0.11.2-dev"
+authors = [{name = "Oliver Goetz", email = "scarface@mywoh.de"}]
+license = {text = "MIT"}
+description = "Automation Library for Denon AVR receivers"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Home Automation",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+requires-python = ">=3.7"
+dependencies = [
+    "asyncstdlib>=3.10.2",
+    "attrs>=21.2.0",
+    "defusedxml>=0.7.1",
+    "httpx>=0.23.1",
+    "netifaces>=0.11.0",
+    'async-timeout>=4.0.2; python_version < "3.11"',
+]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown; charset=UTF-8"
+
+[project.urls]
+Homepage = "https://github.com/ol-iver/denonavr"
+Source = "https://github.com/ol-iver/denonavr"
+Tracker = "https://github.com/ol-iver/denonavr/issues"
+
+[project.optional-dependencies]
+testing = [
+    "pydocstyle",
+    "pylint",
+    "pytest",
+    "pytest-cov",
+    "pytest-timeout",
+    "pytest-asyncio",
+    "pytest-httpx",
+    "flake8-docstrings",
+    "flake8",
+]
+
+[tool.setuptools]
+zip-safe = false
+platforms = ["any"]
+license-files = ["LICENSE"]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+exclude = ["tests"]
+namespaces = false
+
+[tool.pylint.exceptions]
+overgeneral-exceptions = ["builtins.BaseException", "builtins.Exception"]
+
+[tool.pylint."messages control"]
+# Reasons disabled:
+# abstract-method - with intro of async there are always methods missing
+# consider-using-f-string - not considered yet
+# cyclic-import - doesn't test if both import on load
+# duplicate-code - unavoidable
+# too-many-* - are not enforced for the sake of readability
+# too-few-* - same as too-many-*
+# unused-argument - generic callbacks and setup methods create a lot of warnings
+
+disable = [
+  "abstract-method",
+  "consider-using-f-string",
+  "cyclic-import",
+  "duplicate-code",
+  "too-few-public-methods",
+  "too-many-arguments",
+  "too-many-branches",
+  "too-many-instance-attributes",
+  "too-many-lines",
+  "too-many-locals",
+  "too-many-public-methods",
+  "too-many-return-statements",
+  "too-many-statements",
+  "unused-argument",
+]
