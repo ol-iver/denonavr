@@ -124,16 +124,14 @@ SOUND_MODE_MAPPING = {
     ALL_ZONE_STEREO: ["ALL ZONE STEREO"]}
 
 # Receiver sources
-PLAYING_SOURCES = {
-    "Online Music", "Media Server", "iPod/USB", "Bluetooth",
-    "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
-    "TUNER", "NET/USB", "HDRADIO", "Music Server", "NETWORK", "NET"}
 NETAUDIO_SOURCES = {
     "AirPlay", "Online Music", "Media Server", "iPod/USB", "Bluetooth",
     "Internet Radio", "Favorites", "SpotifyConnect", "Flickr",
     "NET/USB", "Music Server", "NETWORK", "NET"}
 TUNER_SOURCES = {"Tuner", "TUNER"}
 HDTUNER_SOURCES = {"HD Radio", "HDRADIO"}
+PLAYING_SOURCES = set().union(
+    *[NETAUDIO_SOURCES, TUNER_SOURCES, HDTUNER_SOURCES])
 
 # Image URLs
 STATIC_ALBUM_URL = "http://{host}:{port}/img/album%20art_S.png"
