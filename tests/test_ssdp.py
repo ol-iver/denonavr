@@ -9,8 +9,8 @@ from denonavr.ssdp import evaluate_scpd_xml
 def get_sample_content(filename):
     """Return sample content form file."""
     with open(
-            "tests/xml/{filename}".format(
-                filename=filename), encoding="utf-8") as file:
+        "tests/xml/{filename}".format(filename=filename), encoding="utf-8"
+    ) as file:
         return file.read()
 
 

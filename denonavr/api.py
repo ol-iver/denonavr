@@ -26,13 +26,26 @@ from .appcommand import AppCommandCmd
 from .decorators import (
     async_handle_receiver_exceptions,
     cache_clear_on_exception,
-    set_cache_id)
+    set_cache_id,
+)
 from .exceptions import (
-    AvrIncompleteResponseError, AvrInvalidResponseError, AvrNetworkError,
-    AvrTimoutError)
+    AvrIncompleteResponseError,
+    AvrInvalidResponseError,
+    AvrNetworkError,
+    AvrTimoutError,
+)
 from .const import (
-    APPCOMMAND_CMD_TEXT, APPCOMMAND_NAME, APPCOMMAND_URL, APPCOMMAND0300_URL,
-    DENON_ATTR_SETATTR, MAIN_ZONE, TELNET_EVENTS, ZONE2, ZONE3, TELNET_SOURCES)
+    APPCOMMAND_CMD_TEXT,
+    APPCOMMAND_NAME,
+    APPCOMMAND_URL,
+    APPCOMMAND0300_URL,
+    DENON_ATTR_SETATTR,
+    MAIN_ZONE,
+    TELNET_EVENTS,
+    ZONE2,
+    ZONE3,
+    TELNET_SOURCES,
+)
 
 if sys.version_info[:2] < (3, 11):
     from async_timeout import timeout as asyncio_timeout
@@ -57,20 +70,27 @@ class DenonAVRApi:
     port: int = attr.ib(converter=int, default=80)
     timeout: httpx.Timeout = attr.ib(
         validator=attr.validators.instance_of(httpx.Timeout),
-        default=httpx.Timeout(2.0, read=15.0))
+        default=httpx.Timeout(2.0, read=15.0),
+    )
     _appcommand_update_tags: Tuple[AppCommandCmd] = attr.ib(
         validator=attr.validators.deep_iterable(
             attr.validators.instance_of(AppCommandCmd),
-            attr.validators.instance_of(tuple)),
-        default=attr.Factory(tuple))
+            attr.validators.instance_of(tuple),
+        ),
+        default=attr.Factory(tuple),
+    )
     _appcommand0300_update_tags: Tuple[AppCommandCmd] = attr.ib(
         validator=attr.validators.deep_iterable(
             attr.validators.instance_of(AppCommandCmd),
-            attr.validators.instance_of(tuple)),
-        default=attr.Factory(tuple))
+            attr.validators.instance_of(tuple),
+        ),
+        default=attr.Factory(tuple),
+    )
     async_client_getter: Callable[[], httpx.AsyncClient] = attr.ib(
         validator=attr.validators.is_callable(),
-        default=get_default_async_client, init=False)
+        default=get_default_async_client,
+        init=False,
+    )
 
     def __hash__(self) -> int:
         """
@@ -82,15 +102,15 @@ class DenonAVRApi:
 
     @async_handle_receiver_exceptions
     async def async_get(
-            self,
-            request: str,
-            port: Optional[int] = None) -> httpx.Response:
+        self, request: str, port: Optional[int] = None
+    ) -> httpx.Response:
         """Call GET endpoint of Denon AVR receiver asynchronously."""
         # Use default port of the receiver if no different port is specified
         port = port if port is not None else self.port
 
         endpoint = "http://{host}:{port}{request}".format(
-            host=self.host, port=port, request=request)
+            host=self.host, port=port, request=request
+        )
 
         client = self.async_client_getter()
         try:
@@ -105,22 +125,25 @@ class DenonAVRApi:
 
     @async_handle_receiver_exceptions
     async def async_post(
-            self,
-            request: str,
-            content: Optional[bytes] = None,
-            data: Optional[Dict] = None,
-            port: Optional[int] = None) -> httpx.Response:
+        self,
+        request: str,
+        content: Optional[bytes] = None,
+        data: Optional[Dict] = None,
+        port: Optional[int] = None,
+    ) -> httpx.Response:
         """Call POST endpoint of Denon AVR receiver asynchronously."""
         # Use default port of the receiver if no different port is specified
         port = port if port is not None else self.port
 
         endpoint = "http://{host}:{port}{request}".format(
-            host=self.host, port=port, request=request)
+            host=self.host, port=port, request=request
+        )
 
         client = self.async_client_getter()
         try:
             res = await client.post(
-                endpoint, content=content, data=data, timeout=self.timeout)
+                endpoint, content=content, data=data, timeout=self.timeout
+            )
             res.raise_for_status()
         finally:
             # Close the default AsyncClient but keep custom clients open
@@ -142,10 +165,8 @@ class DenonAVRApi:
     @lru_cache(maxsize=32)
     @async_handle_receiver_exceptions
     async def async_get_xml(
-            self,
-            request: str,
-            cache_id: Hashable = None
-            ) -> ET.Element:
+        self, request: str, cache_id: Hashable = None
+    ) -> ET.Element:
         """Return XML data from HTTP GET endpoint asynchronously."""
         # HTTP GET to endpoint
         res = await self.async_get(request)
@@ -161,11 +182,8 @@ class DenonAVRApi:
     @lru_cache(maxsize=32)
     @async_handle_receiver_exceptions
     async def async_post_appcommand(
-            self,
-            request: str,
-            cmds: Tuple[AppCommandCmd],
-            cache_id: Hashable = None
-            ) -> ET.Element:
+        self, request: str, cmds: Tuple[AppCommandCmd], cache_id: Hashable = None
+    ) -> ET.Element:
         """Return XML from Appcommand(0300) endpoint asynchronously."""
         # Prepare XML body for POST call
         content = self.prepare_appcommand_body(cmds)
@@ -203,13 +221,11 @@ class DenonAVRApi:
 
         if tag not in self._appcommand0300_update_tags:
             _LOGGER.debug("Add tag %s to AppCommand0300 update tuple", tag)
-            self._appcommand0300_update_tags = (
-                *self._appcommand0300_update_tags, tag)
+            self._appcommand0300_update_tags = (*self._appcommand0300_update_tags, tag)
 
     async def async_get_global_appcommand(
-            self,
-            appcommand0300: bool = False,
-            cache_id: Optional[Hashable] = None) -> ET.Element:
+        self, appcommand0300: bool = False, cache_id: Optional[Hashable] = None
+    ) -> ET.Element:
         """Get XML structure for full AppCommand update."""
         if appcommand0300:
             tags = self._appcommand0300_update_tags
@@ -223,10 +239,8 @@ class DenonAVRApi:
 
     @staticmethod
     def add_query_tags_to_result(
-            request: str,
-            cmd_list: Tuple[AppCommandCmd],
-            xml_root: ET.Element
-            ) -> ET.Element:
+        request: str, cmd_list: Tuple[AppCommandCmd], xml_root: ET.Element
+    ) -> ET.Element:
         """
         Add query tags to corresponding elements of result XML.
 
@@ -235,13 +249,17 @@ class DenonAVRApi:
         if len(cmd_list) != len(xml_root):
             raise AvrIncompleteResponseError(
                 "Invalid length of response XML. Query has {} elements, "
-                "response {}".format(len(cmd_list), len(xml_root)), request)
+                "response {}".format(len(cmd_list), len(xml_root)),
+                request,
+            )
 
         for i, child in enumerate(xml_root):
             if child.tag not in ["cmd", "error"]:
                 raise AvrInvalidResponseError(
-                    "Returned document contains a tag other than \"cmd\" and "
-                    "\"error\": {}".format(child.tag), request)
+                    'Returned document contains a tag other than "cmd" and '
+                    '"error": {}'.format(child.tag),
+                    request,
+                )
             # Find corresponding attributes from request XML if set and add
             # tag to cmd element
             if cmd_list[i].cmd_text is not None:
@@ -255,8 +273,7 @@ class DenonAVRApi:
     def check_xml_validity(request: str, xml_root: ET.Element) -> None:
         """Check if there is a valid Denon XML and not a HTML page."""
         if xml_root.tag == "html":
-            raise AvrInvalidResponseError(
-                "Returned document contains HTML", request)
+            raise AvrInvalidResponseError("Returned document contains HTML", request)
 
     @staticmethod
     def prepare_appcommand_body(cmd_list: Tuple[AppCommandCmd]) -> bytes:
@@ -267,8 +284,7 @@ class DenonAVRApi:
         # Denon AppCommand.xml acts weird. It returns an error when the tx
         # element consists of more than 5 cmd elements, but it accepts
         # multiple XML root elements
-        chunks = [cmd_list[i:i+5] for i in range(
-            0, len(cmd_list), 5)]
+        chunks = [cmd_list[i : i + 5] for i in range(0, len(cmd_list), 5)]
 
         for i, chunk in enumerate(chunks):
             # Prepare POST XML body for AppCommand.xml
@@ -308,8 +324,7 @@ class DenonAVRApi:
 
             xml_tree = ET.ElementTree(xml_root)
             # XML declaration only for the first chunk
-            xml_tree.write(
-                body, encoding="utf-8", xml_declaration=bool(i == 0))
+            xml_tree.write(body, encoding="utf-8", xml_declaration=bool(i == 0))
 
         body_bytes = body.getvalue()
 
@@ -327,9 +342,7 @@ class DenonAVRTelnetProtocol(asyncio.Protocol):
     """Protocol for the Denon AVR Telnet interface."""
 
     def __init__(
-        self,
-        on_message: Callable[[str], None],
-        on_connection_lost: Callable[[], None]
+        self, on_message: Callable[[str], None], on_connection_lost: Callable[[], None]
     ) -> None:
         """Initialize the protocol."""
         self._buffer = b""
@@ -379,8 +392,8 @@ class DenonAVRTelnetApi:
     timeout: float = attr.ib(converter=float, default=2.0)
     _connection_enabled: bool = attr.ib(default=False)
     _healthy: Optional[bool] = attr.ib(
-        converter=attr.converters.optional(bool),
-        default=None)
+        converter=attr.converters.optional(bool), default=None
+    )
     _last_message_time: float = attr.ib(default=-1.0)
     _connect_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
     _reconnect_task: asyncio.Task = attr.ib(default=None)
@@ -388,7 +401,9 @@ class DenonAVRTelnetApi:
     _protocol: DenonAVRTelnetProtocol = attr.ib(default=None)
     _callbacks: Dict[str, Callable] = attr.ib(
         validator=attr.validators.instance_of(dict),
-        default=attr.Factory(dict), init=False)
+        default=attr.Factory(dict),
+        init=False,
+    )
 
     async def async_connect(self) -> None:
         """Connect to the receiver asynchronously."""
@@ -407,33 +422,28 @@ class DenonAVRTelnetApi:
                 transport_protocol = await loop.create_connection(
                     lambda: DenonAVRTelnetProtocol(
                         on_connection_lost=self._handle_disconnected,
-                        on_message=self._process_event
+                        on_message=self._process_event,
                     ),
                     self.host,
-                    23
+                    23,
                 )
         except asyncio.TimeoutError as err:
             _LOGGER.debug("%s: Timeout exception on telnet connect", self.host)
             raise AvrTimoutError(
-                "TimeoutException: {}".format(err),
-                "telnet connect") from err
+                "TimeoutException: {}".format(err), "telnet connect"
+            ) from err
         except ConnectionRefusedError as err:
             _LOGGER.debug(
-                "%s: Connection refused on telnet connect",
-                self.host,
-                exc_info=True
+                "%s: Connection refused on telnet connect", self.host, exc_info=True
             )
             raise AvrNetworkError(
-                "ConnectionRefusedError: {}".format(err),
-                "telnet connect") from err
+                "ConnectionRefusedError: {}".format(err), "telnet connect"
+            ) from err
         except (OSError, IOError) as err:
             _LOGGER.debug(
-                "%s: Connection failed on telnet reconnect",
-                self.host,
-                exc_info=True
+                "%s: Connection failed on telnet reconnect", self.host, exc_info=True
             )
-            raise AvrNetworkError(
-                "OSError: {}".format(err), "telnet connect") from err
+            raise AvrNetworkError("OSError: {}".format(err), "telnet connect") from err
         _LOGGER.debug("%s: telnet connection complete", self.host)
         self._protocol = cast(DenonAVRTelnetProtocol, transport_protocol[1])
         self._connection_enabled = True
@@ -444,10 +454,7 @@ class DenonAVRTelnetApi:
     def _schedule_monitor(self) -> None:
         """Start the monitor task."""
         loop = asyncio.get_event_loop()
-        self._monitor_handle = loop.call_later(
-            _MONITOR_INTERVAL,
-            self._monitor
-        )
+        self._monitor_handle = loop.call_later(_MONITOR_INTERVAL, self._monitor)
 
     def _stop_monitor(self) -> None:
         """Stop the monitor task."""
@@ -460,8 +467,7 @@ class DenonAVRTelnetApi:
         time_since_response = time.monotonic() - self._last_message_time
         if time_since_response > _MONITOR_INTERVAL * 2:
             _LOGGER.info(
-                "%s: Keep alive failed, disconnecting and reconnecting",
-                self.host
+                "%s: Keep alive failed, disconnecting and reconnecting", self.host
             )
             if self._protocol:
                 self._protocol.close()
@@ -512,28 +518,25 @@ class DenonAVRTelnetApi:
                     await self._async_establish_connection()
                 except AvrTimoutError:
                     _LOGGER.debug(
-                        "%s: Timeout exception on telnet reconnect",
-                        self.host
+                        "%s: Timeout exception on telnet reconnect", self.host
                     )
                 except AvrNetworkError as ex:
                     _LOGGER.debug("%s: %s", self.host, ex, exc_info=True)
-                except Exception:    # pylint: disable=broad-except
+                except Exception:  # pylint: disable=broad-except
                     _LOGGER.error(
                         "%s: Unexpected exception on telnet reconnect",
                         self.host,
-                        exc_info=True
+                        exc_info=True,
                     )
                 else:
                     _LOGGER.info("%s: Telnet reconnected", self.host)
                     return
 
             await asyncio.sleep(backoff)
-            backoff = min(30.0, backoff*2)
+            backoff = min(30.0, backoff * 2)
 
     def register_callback(
-        self,
-        event: str,
-        callback: Callable[[str, str, str], Awaitable[None]]
+        self, event: str, callback: Callable[[str, str, str], Awaitable[None]]
     ) -> None:
         """Register a callback handler for an event type."""
         # Validate the passed in type
@@ -545,9 +548,7 @@ class DenonAVRTelnetApi:
         self._callbacks[event].append(callback)
 
     def unregister_callback(
-        self,
-        event: str,
-        callback: Callable[[str, str, str], Awaitable[None]]
+        self, event: str, callback: Callable[[str, str, str], Awaitable[None]]
     ) -> None:
         """Unregister a callback handler for an event type."""
         if event not in self._callbacks.keys():
@@ -595,8 +596,7 @@ class DenonAVRTelnetApi:
 
         asyncio.create_task(self._async_run_callbacks(event, zone, parameter))
 
-    async def _async_run_callbacks(
-            self, event: str, zone: str, parameter: str) -> None:
+    async def _async_run_callbacks(self, event: str, zone: str, parameter: str) -> None:
         """Handle triggering the registered callbacks for the event."""
         if event in self._callbacks.keys():
             for callback in self._callbacks[event]:
@@ -608,7 +608,7 @@ class DenonAVRTelnetApi:
                     _LOGGER.error(
                         "%s: Event callback caused an unhandled exception %s",
                         self.host,
-                        err
+                        err,
                     )
 
         if "ALL" in self._callbacks.keys():
@@ -621,7 +621,7 @@ class DenonAVRTelnetApi:
                     _LOGGER.error(
                         "%s: Event callback caused an unhandled exception %s",
                         self.host,
-                        err
+                        err,
                     )
 
     def send_commands(self, *commands: str) -> None:
