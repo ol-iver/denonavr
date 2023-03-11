@@ -7,20 +7,18 @@ This module implements a discovery function for Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
-import logging
 import asyncio
-import socket
+import logging
 import re
+import socket
 import xml.etree.ElementTree as ET
-
-from typing import Dict, List, Optional, Tuple, Set
+from typing import Dict, List, Optional, Set, Tuple
 from urllib.parse import urlparse
 
 import httpx
 import netifaces
-
 from defusedxml import DefusedXmlException
-from defusedxml.ElementTree import fromstring, ParseError
+from defusedxml.ElementTree import ParseError, fromstring
 
 _LOGGER = logging.getLogger(__name__)
 

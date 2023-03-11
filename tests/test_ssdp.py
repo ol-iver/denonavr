@@ -3,6 +3,7 @@
 """Tests for ssdp."""
 
 import pytest
+
 from denonavr.ssdp import evaluate_scpd_xml
 
 

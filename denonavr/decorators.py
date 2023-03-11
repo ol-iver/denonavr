@@ -12,21 +12,19 @@ import inspect
 import logging
 import time
 import xml.etree.ElementTree as ET
-
 from functools import wraps
 from typing import Callable, Coroutine, TypeVar
 
 import httpx
-
 from defusedxml import DefusedXmlException
 from defusedxml.ElementTree import ParseError
 
 from .exceptions import (
-    AvrRequestError,
     AvrForbiddenError,
-    AvrNetworkError,
-    AvrTimoutError,
     AvrInvalidResponseError,
+    AvrNetworkError,
+    AvrRequestError,
+    AvrTimoutError,
 )
 
 _LOGGER = logging.getLogger(__name__)

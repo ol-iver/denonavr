@@ -8,7 +8,6 @@ This module implements the Audyssey settings of Denon AVR receivers.
 """
 
 import logging
-
 from typing import Hashable, List, Optional
 
 import attr
@@ -23,8 +22,8 @@ from .const import (
     REF_LVL_OFFSET_MAP,
     REF_LVL_OFFSET_MAP_LABELS,
 )
-from .foundation import DenonAVRFoundation, convert_string_int_bool
 from .exceptions import AvrCommandError, AvrProcessingError
+from .foundation import DenonAVRFoundation, convert_string_int_bool
 
 _LOGGER = logging.getLogger(__name__)
 

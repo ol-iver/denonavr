@@ -9,16 +9,14 @@ This module implements the handler for state of Denon AVR receivers.
 
 import logging
 import time
-
 from typing import Hashable, Optional
 
 import attr
 
 from .appcommand import AppCommandCmdParam, AppCommands
 from .const import DENON_ATTR_SETATTR
-from .exceptions import AvrProcessingError, AvrCommandError
+from .exceptions import AvrCommandError, AvrProcessingError
 from .foundation import DenonAVRFoundation, convert_string_int_bool
-
 
 _LOGGER = logging.getLogger(__name__)
 

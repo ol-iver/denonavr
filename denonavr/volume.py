@@ -8,7 +8,6 @@ This module implements the handler for volume of Denon AVR receivers.
 """
 
 import logging
-
 from typing import Hashable, Optional, Union
 
 import attr
@@ -17,7 +16,6 @@ from .appcommand import AppCommands
 from .const import DENON_ATTR_SETATTR, MAIN_ZONE, STATE_ON
 from .exceptions import AvrCommandError, AvrProcessingError
 from .foundation import DenonAVRFoundation
-
 
 _LOGGER = logging.getLogger(__name__)
 

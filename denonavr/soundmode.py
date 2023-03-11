@@ -8,24 +8,22 @@ This module implements the handler for sound mode of Denon AVR receivers.
 """
 
 import asyncio
-from copy import deepcopy
 import logging
-
+from copy import deepcopy
 from typing import Dict, Hashable, List, Optional
 
 import attr
 
 from .appcommand import AppCommands
 from .const import (
+    ALL_ZONE_STEREO,
     AVR_X,
     AVR_X_2016,
-    ALL_ZONE_STEREO,
     DENON_ATTR_SETATTR,
     SOUND_MODE_MAPPING,
 )
 from .exceptions import AvrProcessingError
 from .foundation import DenonAVRFoundation
-
 
 _LOGGER = logging.getLogger(__name__)
 

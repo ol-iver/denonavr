@@ -8,7 +8,6 @@ This module inherits constants for Denon AVR receivers.
 """
 
 import re
-
 from collections import namedtuple
 
 import attr

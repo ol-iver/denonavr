@@ -13,16 +13,27 @@ import logging
 import sys
 import time
 import xml.etree.ElementTree as ET
-
 from io import BytesIO
-from typing import cast, Awaitable, Callable, Dict, Hashable, Optional, Tuple
+from typing import Awaitable, Callable, Dict, Hashable, Optional, Tuple, cast
+
 import attr
 import httpx
-
 from asyncstdlib import lru_cache
 from defusedxml.ElementTree import fromstring
 
 from .appcommand import AppCommandCmd
+from .const import (
+    APPCOMMAND0300_URL,
+    APPCOMMAND_CMD_TEXT,
+    APPCOMMAND_NAME,
+    APPCOMMAND_URL,
+    DENON_ATTR_SETATTR,
+    MAIN_ZONE,
+    TELNET_EVENTS,
+    TELNET_SOURCES,
+    ZONE2,
+    ZONE3,
+)
 from .decorators import (
     async_handle_receiver_exceptions,
     cache_clear_on_exception,
@@ -33,18 +44,6 @@ from .exceptions import (
     AvrInvalidResponseError,
     AvrNetworkError,
     AvrTimoutError,
-)
-from .const import (
-    APPCOMMAND_CMD_TEXT,
-    APPCOMMAND_NAME,
-    APPCOMMAND_URL,
-    APPCOMMAND0300_URL,
-    DENON_ATTR_SETATTR,
-    MAIN_ZONE,
-    TELNET_EVENTS,
-    ZONE2,
-    ZONE3,
-    TELNET_SOURCES,
 )
 
 if sys.version_info[:2] < (3, 11):

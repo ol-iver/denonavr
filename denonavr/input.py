@@ -8,9 +8,8 @@ This module implements the handler for input functions of Denon AVR receivers.
 """
 
 import asyncio
-import logging
 import html
-
+import logging
 from copy import deepcopy
 from typing import Dict, Hashable, List, Optional, Tuple
 
@@ -22,8 +21,8 @@ from .const import (
     ALBUM_COVERS_URL,
     APPCOMMAND_CMD_TEXT,
     AVR,
-    AVR_X_2016,
     AVR_X,
+    AVR_X_2016,
     CHANGE_INPUT_MAPPING,
     DENON_ATTR_SETATTR,
     HDTUNER_SOURCES,
@@ -34,8 +33,8 @@ from .const import (
     SOURCE_MAPPING,
     STATE_OFF,
     STATE_ON,
-    STATE_PLAYING,
     STATE_PAUSED,
+    STATE_PLAYING,
     STATIC_ALBUM_URL,
     TELNET_MAPPING,
     TUNER_SOURCES,
@@ -44,7 +43,6 @@ from .const import (
 )
 from .exceptions import AvrCommandError, AvrProcessingError, AvrRequestError
 from .foundation import DenonAVRFoundation
-
 
 _LOGGER = logging.getLogger(__name__)
 
