@@ -42,10 +42,10 @@ jobs:
         python -m flake8 denonavr tests --count --show-source --statistics
     - name: Check code formatting with isort
       run: |
-        python -m isort denonavr/. tests/. --check
+        python -m isort denonavr/. tests/. --check --verbose
     - name: Check code formatting with black
       run: |
-        python -m black denonavr tests --check
+        python -m black denonavr tests --check --verbose
     - name: Integration test with pytest
       run: |
         python -m pytest tests --timeout=30 --durations=10
