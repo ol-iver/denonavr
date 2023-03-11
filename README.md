@@ -3,6 +3,7 @@
 [![Build Status](https://github.com/ol-iver/denonavr/actions/workflows/python-tests.yml/badge.svg)](https://github.com/ol-iver/denonavr/actions/workflows/python-tests.yml)
 [![PyPi](https://img.shields.io/pypi/v/denonavr.svg)](https://pypi.org/project/denonavr)
 [![License](https://img.shields.io/github/license/ol-iver/denonavr.svg)](LICENSE)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 Automation Library for Denon AVR receivers
 
