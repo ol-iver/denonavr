@@ -10,10 +10,11 @@ Automation Library for Denon AVR receivers.
 # Set default logging handler to avoid "No handler found" warnings.
 import logging
 
+from .decorators import run_async_synchronously
+
 # Import denonavr module
 from .denonavr import DenonAVR
 from .ssdp import async_identify_denonavr_receivers
-from .decorators import run_async_synchronously
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 

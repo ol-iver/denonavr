@@ -63,8 +63,14 @@ include-package-data = false
 exclude = ["tests"]
 namespaces = false
 
+[tool.isort]
+profile = "black"
+
 [tool.pylint.exceptions]
 overgeneral-exceptions = ["builtins.BaseException", "builtins.Exception"]
+
+[tool.pylint.format]
+max-line-length = "88"
 
 [tool.pylint."messages control"]
 # Reasons disabled:

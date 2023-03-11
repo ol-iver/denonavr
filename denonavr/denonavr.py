@@ -10,23 +10,20 @@ This module implements the interface to Denon AVR receivers.
 import asyncio
 import logging
 import time
-
 from typing import Awaitable, Callable, Dict, List, Optional
 
 import attr
 import httpx
 
-from .decorators import run_async_synchronously
-from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
-from .const import (DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES)
-from .exceptions import AvrCommandError
-
 from .audyssey import DenonAVRAudyssey, audyssey_factory
+from .const import DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES
+from .decorators import run_async_synchronously
+from .exceptions import AvrCommandError
+from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
 from .input import DenonAVRInput, input_factory
 from .soundmode import DenonAVRSoundMode, sound_mode_factory
 from .tonecontrol import DenonAVRToneControl, tone_control_factory
 from .volume import DenonAVRVolume, volume_factory
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -54,49 +51,59 @@ class DenonAVR(DenonAVRFoundation):
     :type add_zones: dict [str, str] or None
     """
 
-    _host: str = attr.ib(
-        converter=str, on_setattr=[*DENON_ATTR_SETATTR, set_api_host])
+    _host: str = attr.ib(converter=str, on_setattr=[*DENON_ATTR_SETATTR, set_api_host])
     _name: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None)
+        converter=attr.converters.optional(str), default=None
+    )
     _show_all_inputs: bool = attr.ib(converter=bool, default=False)
     _add_zones: Optional[Dict[str, str]] = attr.ib(
-        validator=attr.validators.optional(attr.validators.deep_mapping(
-            attr.validators.in_(VALID_ZONES),
-            attr.validators.optional(attr.validators.instance_of(str)),
-            attr.validators.instance_of(dict))),
-        default=None)
+        validator=attr.validators.optional(
+            attr.validators.deep_mapping(
+                attr.validators.in_(VALID_ZONES),
+                attr.validators.optional(attr.validators.instance_of(str)),
+                attr.validators.instance_of(dict),
+            )
+        ),
+        default=None,
+    )
     _timeout: float = attr.ib(
-        converter=float,
-        on_setattr=[*DENON_ATTR_SETATTR, set_api_timeout],
-        default=2.0)
+        converter=float, on_setattr=[*DENON_ATTR_SETATTR, set_api_timeout], default=2.0
+    )
     _zones: Dict[str, DenonAVRFoundation] = attr.ib(
         validator=attr.validators.deep_mapping(
             attr.validators.in_(VALID_ZONES),
             attr.validators.instance_of(DenonAVRFoundation),
-            attr.validators.instance_of(dict)),
+            attr.validators.instance_of(dict),
+        ),
         default=attr.Factory(dict),
-        init=False)
+        init=False,
+    )
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
     audyssey: DenonAVRAudyssey = attr.ib(
         validator=attr.validators.instance_of(DenonAVRAudyssey),
         default=attr.Factory(audyssey_factory, takes_self=True),
-        init=False)
+        init=False,
+    )
     input: DenonAVRInput = attr.ib(
         validator=attr.validators.instance_of(DenonAVRInput),
         default=attr.Factory(input_factory, takes_self=True),
-        init=False)
+        init=False,
+    )
     soundmode: DenonAVRSoundMode = attr.ib(
         validator=attr.validators.instance_of(DenonAVRSoundMode),
         default=attr.Factory(sound_mode_factory, takes_self=True),
-        init=False)
+        init=False,
+    )
     tonecontrol: DenonAVRToneControl = attr.ib(
         validator=attr.validators.instance_of(DenonAVRToneControl),
         default=attr.Factory(tone_control_factory, takes_self=True),
-        init=False)
+        init=False,
+    )
     vol: DenonAVRVolume = attr.ib(
         validator=attr.validators.instance_of(DenonAVRVolume),
         default=attr.Factory(volume_factory, takes_self=True),
-        init=False)
+        init=False,
+    )
 
     def __attrs_post_init__(self) -> None:
         """Initialize special attributes."""
@@ -124,7 +131,8 @@ class DenonAVR(DenonAVRFoundation):
                 device=zone_device,
                 name=zonename,
                 timeout=self._timeout,
-                show_all_inputs=self._show_all_inputs)
+                show_all_inputs=self._show_all_inputs,
+            )
             self._zones[zone] = zone_inst
 
     async def async_setup(self) -> None:
@@ -166,18 +174,15 @@ class DenonAVR(DenonAVRFoundation):
         cache_id = time.time()
 
         # Verify update method
-        await self._device.async_verify_avr_2016_update_method(
-            cache_id=cache_id)
+        await self._device.async_verify_avr_2016_update_method(cache_id=cache_id)
 
         # Update device
         await self._device.async_update(global_update=True, cache_id=cache_id)
 
         # Update other functions
         await self.input.async_update(global_update=True, cache_id=cache_id)
-        await self.soundmode.async_update(
-            global_update=True, cache_id=cache_id)
-        await self.tonecontrol.async_update(
-            global_update=True, cache_id=cache_id)
+        await self.soundmode.async_update(global_update=True, cache_id=cache_id)
+        await self.tonecontrol.async_update(global_update=True, cache_id=cache_id)
         await self.vol.async_update(global_update=True, cache_id=cache_id)
 
         # AppCommand0300.xml interface is very slow, thus it is not included
@@ -226,17 +231,13 @@ class DenonAVR(DenonAVRFoundation):
         self._device.telnet_api.send_commands(*commands)
 
     def register_callback(
-        self,
-        event: str,
-        callback: Callable[[str, str, str], Awaitable[None]]
+        self, event: str, callback: Callable[[str, str, str], Awaitable[None]]
     ):
         """Register a callback for telnet events."""
         self._device.telnet_api.register_callback(event, callback=callback)
 
     def unregister_callback(
-        self,
-        event: str,
-        callback: Callable[[str, str, str], Awaitable[None]]
+        self, event: str, callback: Callable[[str, str, str], Awaitable[None]]
     ):
         """Unregister a callback for telnet events."""
         self._device.telnet_api.unregister_callback(event, callback=callback)
@@ -512,8 +513,8 @@ class DenonAVR(DenonAVRFoundation):
     # Setter #
     ##########
     def set_async_client_getter(
-            self,
-            async_client_getter: Callable[[], httpx.AsyncClient]) -> None:
+        self, async_client_getter: Callable[[], httpx.AsyncClient]
+    ) -> None:
         """
         Set a custom httpx.AsyncClient getter for this instance.
 

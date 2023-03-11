@@ -9,6 +9,7 @@ This module covers some basic automated tests of Denon AVR receivers.
 
 import asyncio
 from unittest import mock
+
 import httpx
 import pytest
 from pytest_httpx import HTTPXMock
@@ -52,7 +53,7 @@ TESTING_RECEIVERS = {
     "AV7703": (ZONE2_ZONE3, denonavr.const.AVR_X_2016),
     "AVR-1713": (NO_ZONES, denonavr.const.AVR_X),
     "AVR-3313": (ZONE2_ZONE3, denonavr.const.AVR_X),
-    }
+}
 
 APPCOMMAND_URL = "/goform/AppCommand.xml"
 STATUS_URL = "/goform/formMainZone_MainZoneXmlStatus.xml"
@@ -69,8 +70,9 @@ DESCRIPTION_URL2 = "/upnp/desc/aios_device/aios_device.xml"
 
 def get_sample_content(filename):
     """Return sample content form file."""
-    with open("tests/xml/{filename}".format(filename=filename),
-              encoding="utf-8") as file:
+    with open(
+        "tests/xml/{filename}".format(filename=filename), encoding="utf-8"
+    ) as file:
         return file.read()
 
 
@@ -92,36 +94,50 @@ class TestMainFunctions:
             if request.url.path == STATUS_URL:
                 content = get_sample_content(
                     "{receiver}-formMainZone_MainZoneXmlStatus{port}"
-                    ".xml".format(
-                        receiver=self.testing_receiver, port=port_suffix))
+                    ".xml".format(receiver=self.testing_receiver, port=port_suffix)
+                )
             elif request.url.path == STATUS_Z2_URL:
                 content = get_sample_content(
                     "{receiver}-formZone2_Zone2XmlStatus{port}.xml".format(
-                        receiver=self.testing_receiver, port=port_suffix))
+                        receiver=self.testing_receiver, port=port_suffix
+                    )
+                )
             elif request.url.path == STATUS_Z3_URL:
                 content = get_sample_content(
                     "{receiver}-formZone3_Zone3XmlStatus{port}.xml".format(
-                        receiver=self.testing_receiver, port=port_suffix))
+                        receiver=self.testing_receiver, port=port_suffix
+                    )
+                )
             elif request.url.path == MAINZONE_URL:
                 content = get_sample_content(
                     "{receiver}-formMainZone_MainZoneXml{port}.xml".format(
-                        receiver=self.testing_receiver, port=port_suffix))
+                        receiver=self.testing_receiver, port=port_suffix
+                    )
+                )
             elif request.url.path == DEVICEINFO_URL:
                 content = get_sample_content(
                     "{receiver}-Deviceinfo{port}.xml".format(
-                        receiver=self.testing_receiver, port=port_suffix))
+                        receiver=self.testing_receiver, port=port_suffix
+                    )
+                )
             elif request.url.path == NETAUDIOSTATUS_URL:
                 content = get_sample_content(
                     "{receiver}-formNetAudio_StatusXml{port}.xml".format(
-                        receiver=self.testing_receiver, port=port_suffix))
+                        receiver=self.testing_receiver, port=port_suffix
+                    )
+                )
             elif request.url.path == TUNERSTATUS_URL:
                 content = get_sample_content(
                     "{receiver}-formTuner_TunerXml{port}.xml".format(
-                        receiver=self.testing_receiver, port=port_suffix))
+                        receiver=self.testing_receiver, port=port_suffix
+                    )
+                )
             elif request.url.path == HDTUNERSTATUS_URL:
                 content = get_sample_content(
                     "{receiver}-formTuner_HdXml{port}.xml".format(
-                        receiver=self.testing_receiver, port=port_suffix))
+                        receiver=self.testing_receiver, port=port_suffix
+                    )
+                )
             elif request.url.path == APPCOMMAND_URL:
                 content_str = request.read().decode("utf-8")
                 if "GetFriendlyName" in content_str:
@@ -130,9 +146,9 @@ class TestMainFunctions:
                     ep_suffix = "-update"
                 content = get_sample_content(
                     "{receiver}-AppCommand{ep}{port}.xml".format(
-                        receiver=self.testing_receiver,
-                        port=port_suffix,
-                        ep=ep_suffix))
+                        receiver=self.testing_receiver, port=port_suffix, ep=ep_suffix
+                    )
+                )
             elif request.url.path in [DESCRIPTION_URL1, DESCRIPTION_URL2]:
                 content = get_sample_content("AVR-X1600H_upnp.xml")
             else:
@@ -160,12 +176,16 @@ class TestMainFunctions:
             self.testing_receiver = receiver
             self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
             await self.denon.async_setup()
-            assert self.denon.receiver_type == spec[1].type, (
-                "Receiver type is {} not {} for receiver {}".format(
-                    self.denon.receiver_type, spec[1].type, receiver))
-            assert self.denon.receiver_port == spec[1].port, (
-                "Receiver port is {} not {} for receiver {}".format(
-                    self.denon.receiver_port, spec[1].port, receiver))
+            assert (
+                self.denon.receiver_type == spec[1].type
+            ), "Receiver type is {} not {} for receiver {}".format(
+                self.denon.receiver_type, spec[1].type, receiver
+            )
+            assert (
+                self.denon.receiver_port == spec[1].port
+            ), "Receiver port is {} not {} for receiver {}".format(
+                self.denon.receiver_port, spec[1].port, receiver
+            )
 
     @pytest.mark.asyncio
     async def test_input_func_switch(self, httpx_mock: HTTPXMock):
@@ -181,8 +201,7 @@ class TestMainFunctions:
                 await self.denon.zones[name].async_update()
                 assert len(zone.input_func_list) > 0
                 for input_func in zone.input_func_list:
-                    await self.denon.zones[name].async_set_input_func(
-                        input_func)
+                    await self.denon.zones[name].async_set_input_func(input_func)
 
     @pytest.mark.asyncio
     async def test_attributes_not_none(self, httpx_mock: HTTPXMock):
@@ -194,15 +213,19 @@ class TestMainFunctions:
             self.testing_receiver = receiver
             self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
             await self.denon.async_setup()
-            assert self.denon.name is not None, (
-                "Name is None for receiver {}".format(receiver))
-            assert self.denon.support_sound_mode is not None, (
-                "support_sound_mode is None for receiver {}".format(receiver))
+            assert self.denon.name is not None, "Name is None for receiver {}".format(
+                receiver
+            )
+            assert (
+                self.denon.support_sound_mode is not None
+            ), "support_sound_mode is None for receiver {}".format(receiver)
             await self.denon.async_update()
-            assert self.denon.power is not None, (
-                "Power status is None for receiver {}".format(receiver))
-            assert self.denon.state is not None, (
-                "State is None for receiver {}".format(receiver))
+            assert (
+                self.denon.power is not None
+            ), "Power status is None for receiver {}".format(receiver)
+            assert self.denon.state is not None, "State is None for receiver {}".format(
+                receiver
+            )
 
     @pytest.mark.asyncio
     async def test_sound_mode(self, httpx_mock: HTTPXMock):
@@ -219,8 +242,9 @@ class TestMainFunctions:
                 support_sound_mode = self.denon.zones[name].support_sound_mode
                 sound_mode = self.denon.zones[name].sound_mode
                 assert (
-                    sound_mode in [*SOUND_MODE_MAPPING, None] or
-                    support_sound_mode is not True)
+                    sound_mode in [*SOUND_MODE_MAPPING, None]
+                    or support_sound_mode is not True
+                )
 
     @pytest.mark.asyncio
     async def test_protocol_connected(self):
@@ -341,10 +365,7 @@ class TestMainFunctions:
     async def test_connect_connectionrefused_raises_networkerror(self):
         """Connect raises NetworkError when ConnectionRefused."""
         api = DenonAVRTelnetApi()
-        with mock.patch(
-            "asyncio.get_event_loop",
-            new_callable=mock.Mock
-        ) as debug_mock:
+        with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
             debug_mock.return_value.create_connection = AsyncMock(
                 side_effect=ConnectionRefusedError()
             )
@@ -355,13 +376,8 @@ class TestMainFunctions:
     async def test_connect_oserror_raises_networkerror(self):
         """Connect raises NetworkError when OSError."""
         api = DenonAVRTelnetApi()
-        with mock.patch(
-            "asyncio.get_event_loop",
-            new_callable=mock.Mock
-        ) as debug_mock:
-            debug_mock.return_value.create_connection = AsyncMock(
-                side_effect=OSError()
-            )
+        with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
+            debug_mock.return_value.create_connection = AsyncMock(side_effect=OSError())
             with pytest.raises(AvrNetworkError):
                 await api.async_connect()
 
@@ -369,13 +385,8 @@ class TestMainFunctions:
     async def test_connect_ioerror_raises_networkerror(self):
         """Connect raises NetworkError when IOError."""
         api = DenonAVRTelnetApi()
-        with mock.patch(
-            "asyncio.get_event_loop",
-            new_callable=mock.Mock
-        ) as debug_mock:
-            debug_mock.return_value.create_connection = AsyncMock(
-                side_effect=IOError()
-            )
+        with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
+            debug_mock.return_value.create_connection = AsyncMock(side_effect=IOError())
             with pytest.raises(AvrNetworkError):
                 await api.async_connect()
 
@@ -383,10 +394,7 @@ class TestMainFunctions:
     async def test_connect_timeouterror_raises_timeouterror(self):
         """Connect raises AvrTimeoutError when TimeoutError."""
         api = DenonAVRTelnetApi()
-        with mock.patch(
-            "asyncio.get_event_loop",
-            new_callable=mock.Mock
-        ) as debug_mock:
+        with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
             debug_mock.return_value.create_connection = AsyncMock(
                 side_effect=asyncio.TimeoutError()
             )
@@ -411,10 +419,7 @@ class TestMainFunctions:
 
         self.denon = denonavr.DenonAVR(FAKE_IP)
         await self.denon.async_setup()
-        with mock.patch(
-            "asyncio.get_event_loop",
-            new_callable=mock.Mock
-        ) as debug_mock:
+        with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
             debug_mock.return_value.create_connection = AsyncMock(
                 side_effect=create_conn
             )
@@ -442,10 +447,7 @@ class TestMainFunctions:
         httpx_mock.add_callback(self.custom_matcher)
         self.denon = denonavr.DenonAVR(FAKE_IP)
         await self.denon.async_setup()
-        with mock.patch(
-            "asyncio.get_event_loop",
-            new_callable=mock.Mock
-        ) as debug_mock:
+        with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
             debug_mock.return_value.create_connection = AsyncMock(
                 side_effect=create_conn
             )
@@ -472,10 +474,7 @@ class TestMainFunctions:
         httpx_mock.add_callback(self.custom_matcher)
         self.denon = denonavr.DenonAVR(FAKE_IP)
         await self.denon.async_setup()
-        with mock.patch(
-            "asyncio.get_event_loop",
-            new_callable=mock.Mock
-        ) as debug_mock:
+        with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
             debug_mock.return_value.create_connection = AsyncMock(
                 side_effect=create_conn
             )
@@ -502,10 +501,7 @@ class TestMainFunctions:
         httpx_mock.add_callback(self.custom_matcher)
         self.denon = denonavr.DenonAVR(FAKE_IP)
         await self.denon.async_setup()
-        with mock.patch(
-            "asyncio.get_event_loop",
-            new_callable=mock.Mock
-        ) as debug_mock:
+        with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
             debug_mock.return_value.create_connection = AsyncMock(
                 side_effect=create_conn
             )
@@ -532,10 +528,7 @@ class TestMainFunctions:
         httpx_mock.add_callback(self.custom_matcher)
         self.denon = denonavr.DenonAVR(FAKE_IP)
         await self.denon.async_setup()
-        with mock.patch(
-            "asyncio.get_event_loop",
-            new_callable=mock.Mock
-        ) as debug_mock:
+        with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
             debug_mock.return_value.create_connection = AsyncMock(
                 side_effect=create_conn
             )
@@ -562,10 +555,7 @@ class TestMainFunctions:
         httpx_mock.add_callback(self.custom_matcher)
         self.denon = denonavr.DenonAVR(FAKE_IP)
         await self.denon.async_setup()
-        with mock.patch(
-            "asyncio.get_event_loop",
-            new_callable=mock.Mock
-        ) as debug_mock:
+        with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
             debug_mock.return_value.create_connection = AsyncMock(
                 side_effect=create_conn
             )
@@ -592,10 +582,7 @@ class TestMainFunctions:
         httpx_mock.add_callback(self.custom_matcher)
         self.denon = denonavr.DenonAVR(FAKE_IP)
         await self.denon.async_setup()
-        with mock.patch(
-            "asyncio.get_event_loop",
-            new_callable=mock.Mock
-        ) as debug_mock:
+        with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
             debug_mock.return_value.create_connection = AsyncMock(
                 side_effect=create_conn
             )
@@ -622,10 +609,7 @@ class TestMainFunctions:
         httpx_mock.add_callback(self.custom_matcher)
         self.denon = denonavr.DenonAVR(FAKE_IP)
         await self.denon.async_setup()
-        with mock.patch(
-            "asyncio.get_event_loop",
-            new_callable=mock.Mock
-        ) as debug_mock:
+        with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
             debug_mock.return_value.create_connection = AsyncMock(
                 side_effect=create_conn
             )

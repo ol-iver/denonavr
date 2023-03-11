@@ -7,3 +7,5 @@ pytest-asyncio
 pytest-httpx
 flake8-docstrings
 flake8
+black
+isort

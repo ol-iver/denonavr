@@ -9,16 +9,14 @@ This module implements the handler for state of Denon AVR receivers.
 
 import logging
 import time
-
 from typing import Hashable, Optional
 
 import attr
 
 from .appcommand import AppCommandCmdParam, AppCommands
 from .const import DENON_ATTR_SETATTR
-from .exceptions import AvrProcessingError, AvrCommandError
+from .exceptions import AvrCommandError, AvrProcessingError
 from .foundation import DenonAVRFoundation, convert_string_int_bool
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,28 +26,27 @@ class DenonAVRToneControl(DenonAVRFoundation):
     """This class implements tone control functions of Denon AVR receiver."""
 
     _tone_control_status: Optional[bool] = attr.ib(
-        converter=attr.converters.optional(convert_string_int_bool),
-        default=None)
+        converter=attr.converters.optional(convert_string_int_bool), default=None
+    )
     _tone_control_adjust: Optional[bool] = attr.ib(
-        converter=attr.converters.optional(convert_string_int_bool),
-        default=None)
+        converter=attr.converters.optional(convert_string_int_bool), default=None
+    )
     _bass: Optional[int] = attr.ib(
-        converter=attr.converters.optional(int),
-        default=None)
+        converter=attr.converters.optional(int), default=None
+    )
     _bass_level: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str),
-        default=None)
+        converter=attr.converters.optional(str), default=None
+    )
     _treble: Optional[int] = attr.ib(
-        converter=attr.converters.optional(int),
-        default=None)
+        converter=attr.converters.optional(int), default=None
+    )
     _treble_level: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str),
-        default=None)
+        converter=attr.converters.optional(str), default=None
+    )
 
     # Update tags for attributes
     # AppCommand.xml interface
-    appcommand_attrs = {
-        AppCommands.GetToneControl: None}
+    appcommand_attrs = {AppCommands.GetToneControl: None}
 
     def setup(self) -> None:
         """Ensure that the instance is initialized."""
@@ -58,17 +55,14 @@ class DenonAVRToneControl(DenonAVRFoundation):
             self._device.api.add_appcommand_update_tag(tag)
 
         self._device.telnet_api.register_callback(
-            "PS",
-            self._async_sound_detail_callback
+            "PS", self._async_sound_detail_callback
         )
 
         self._is_setup = True
 
     async def _async_sound_detail_callback(
-            self,
-            zone: str,
-            event: str,
-            parameter: str) -> None:
+        self, zone: str, event: str, parameter: str
+    ) -> None:
         """Handle a sound detail change event."""
         if self._device.zone != zone:
             return
@@ -87,9 +81,8 @@ class DenonAVRToneControl(DenonAVRFoundation):
             self._tone_control_status = True
 
     async def async_update(
-            self,
-            global_update: bool = False,
-            cache_id: Optional[Hashable] = None) -> None:
+        self, global_update: bool = False, cache_id: Optional[Hashable] = None
+    ) -> None:
         """Update volume asynchronously."""
         # Ensure instance is setup before updating
         if self._is_setup is False:
@@ -97,32 +90,41 @@ class DenonAVRToneControl(DenonAVRFoundation):
 
         # Update state
         await self.async_update_tone_control(
-            global_update=global_update, cache_id=cache_id)
+            global_update=global_update, cache_id=cache_id
+        )
 
     async def async_update_tone_control(
-            self,
-            global_update: bool = False,
-            cache_id: Optional[Hashable] = None):
+        self, global_update: bool = False, cache_id: Optional[Hashable] = None
+    ):
         """Update tone control status of device."""
         if self._device.use_avr_2016_update is True:
             await self.async_update_attrs_appcommand(
-                self.appcommand_attrs, global_update=global_update,
-                cache_id=cache_id, ignore_missing_response=True)
+                self.appcommand_attrs,
+                global_update=global_update,
+                cache_id=cache_id,
+                ignore_missing_response=True,
+            )
         elif self._device.use_avr_2016_update is False:
             # Not available
             pass
         else:
             raise AvrProcessingError(
-                "Device is not setup correctly, update method not set")
+                "Device is not setup correctly, update method not set"
+            )
 
     async def async_set_tone_control_command(
-            self, parameter_type: str, value: int) -> None:
+        self, parameter_type: str, value: int
+    ) -> None:
         """Post request for tone control commands."""
-        cmd = (attr.evolve(
-            AppCommands.SetToneControl,
-            set_command=AppCommandCmdParam(name=parameter_type, text=value)),)
+        cmd = (
+            attr.evolve(
+                AppCommands.SetToneControl,
+                set_command=AppCommandCmdParam(name=parameter_type, text=value),
+            ),
+        )
         await self._device.api.async_post_appcommand(
-            self._device.urls.appcommand, cmd, cache_id=time.time())
+            self._device.urls.appcommand, cmd, cache_id=time.time()
+        )
 
     ##############
     # Properties #
@@ -154,7 +156,8 @@ class DenonAVRToneControl(DenonAVRFoundation):
         """Enable tone control to change settings like bass or treble."""
         if self._tone_control_status is False:
             raise AvrCommandError(
-                "Cannot enable tone control, Dynamic EQ must be deactivated")
+                "Cannot enable tone control, Dynamic EQ must be deactivated"
+            )
 
         await self.async_set_tone_control_command("adjust", 1)
 
@@ -162,7 +165,8 @@ class DenonAVRToneControl(DenonAVRFoundation):
         """Disable tone control to change settings like bass or treble."""
         if self._tone_control_status is False:
             raise AvrCommandError(
-                "Cannot disable tone control, Dynamic EQ must be deactivated")
+                "Cannot disable tone control, Dynamic EQ must be deactivated"
+            )
 
         await self.async_set_tone_control_command("adjust", 0)
 
@@ -230,9 +234,7 @@ class DenonAVRToneControl(DenonAVRFoundation):
         if self.treble == 12:
             return
         await self.async_enable_tone_control()
-        await self.async_set_tone_control_command(
-            "treblevalue", self.treble + 1
-            )
+        await self.async_set_tone_control_command("treblevalue", self.treble + 1)
         await self.async_update()
 
     async def async_treble_down(self) -> None:
@@ -245,9 +247,7 @@ class DenonAVRToneControl(DenonAVRFoundation):
         if self.treble == 0:
             return
         await self.async_enable_tone_control()
-        await self.async_set_tone_control_command(
-            "treblevalue", self.treble - 1
-            )
+        await self.async_set_tone_control_command("treblevalue", self.treble - 1)
         await self.async_update()
 
 
