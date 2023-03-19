@@ -243,5 +243,5 @@ MIT
 @bdraco: https://github.com/bdraco  
 
 ## Users
-Home Assistant: https://github.com/home-assistant/home-assistant/
+Home Assistant: https://github.com/home-assistant/home-assistant/  
 denonavr-cli: https://pypi.org/project/denonavr-cli/
