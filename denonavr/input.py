@@ -11,7 +11,7 @@ import asyncio
 import html
 import logging
 from copy import deepcopy
-from typing import Dict, Hashable, List, Optional, Tuple
+from typing import Dict, Hashable, List, Optional, Set, Tuple
 
 import attr
 import httpx
@@ -75,8 +75,11 @@ def set_input_func(
     # AirPlay and Internet Radio are not always listed in available sources
     if value in ["AirPlay", "Internet Radio"]:
         if value not in instance._input_func_map:
+            instance._additional_input_funcs.add(value)
             instance._input_func_map[value] = value
             instance._input_func_map_rev[value] = value
+            instance._netaudio_func_list.append(value)
+            instance._playing_func_list.append(value)
     try:
         input_func = instance._input_func_map_rev[value]
     except KeyError:
@@ -120,6 +123,12 @@ class DenonAVRInput(DenonAVRFoundation):
             attr.validators.instance_of(str), attr.validators.instance_of(list)
         ),
         default=attr.Factory(list),
+    )
+    _additional_input_funcs: Set[str] = attr.ib(
+        validator=attr.validators.deep_iterable(
+            attr.validators.instance_of(str), attr.validators.instance_of(set)
+        ),
+        default=attr.Factory(set),
     )
     _media_update_handle: asyncio.TimerHandle = attr.ib(default=None)
     _input_func_update_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
@@ -608,6 +617,10 @@ class DenonAVRInput(DenonAVRFoundation):
                 "Receiver sources list empty. Please check if device is powered on."
             )
 
+        # Add additional input functions discovered at run-time
+        for function in self._additional_input_funcs:
+            receiver_sources[function] = function
+
         # Get renamed and deleted sources
         # From Appcommand.xml if supported
         if self._device.use_avr_2016_update is True:
@@ -688,6 +701,10 @@ class DenonAVRInput(DenonAVRFoundation):
             receiver_sources,
             deleted_sources,
         ) = await self.async_get_changed_sources_status_xml(cache_id=cache_id)
+
+        # Add additional input functions discovered at run-time
+        for function in self._additional_input_funcs:
+            receiver_sources[function] = function
 
         # Remove all deleted sources
         if self._show_all_inputs is False:
