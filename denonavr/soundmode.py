@@ -43,7 +43,7 @@ def sound_mode_map_factory() -> Dict[str, List]:
     return sound_mode_map
 
 
-def sound_mode_rev_map_factory(instance: DenonAVRFoundation) -> Dict[str, str]:
+def sound_mode_rev_map_factory(instance: "DenonAVRSoundMode") -> Dict[str, str]:
     """
     Construct the sound_mode_rev_map.
 

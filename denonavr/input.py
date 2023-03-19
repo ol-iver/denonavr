@@ -64,7 +64,7 @@ def unescape_string(value: Optional[str]) -> Optional[str]:
 
 
 def set_input_func(
-    instance: DenonAVRFoundation, attribute: attr.Attribute, value: str
+    instance: "DenonAVRInput", attribute: attr.Attribute, value: str
 ) -> str:
     """Set input_func after mapping from input_func_map."""
     # pylint: disable=protected-access
