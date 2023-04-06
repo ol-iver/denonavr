@@ -188,6 +188,7 @@ SOUND_MODE_MAPPING = {
     "DOLBY DIGITAL": [
         "DOLBY DIGITAL",
         "DOLBY D + DOLBY SURROUND",
+        "DOLBY D+DS",
         "DOLBY DIGITAL +",
         "STANDARD(DOLBY)",
         "DOLBY SURROUND",
