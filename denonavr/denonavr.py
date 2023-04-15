@@ -167,7 +167,7 @@ class DenonAVR(DenonAVRFoundation):
         Method executes the update method for the current receiver type.
         """
         # Ensure that the device is setup
-        if self._is_setup is False:
+        if not self._is_setup:
             await self.async_setup()
 
         # Create a cache id for this global update

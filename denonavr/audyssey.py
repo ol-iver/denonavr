@@ -96,7 +96,7 @@ class DenonAVRAudyssey(DenonAVRFoundation):
     ) -> None:
         """Update Audyssey asynchronously."""
         # Ensure instance is setup before updating
-        if self._is_setup is False:
+        if not self._is_setup:
             self.setup()
 
         # Update state
@@ -106,20 +106,19 @@ class DenonAVRAudyssey(DenonAVRFoundation):
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
     ):
         """Update Audyssey status of device."""
-        if self._device.use_avr_2016_update is True:
+        if self._device.use_avr_2016_update is None:
+            raise AvrProcessingError(
+                "Device is not setup correctly, update method not set"
+            )
+
+        # Audyssey is only available for avr 2016 update
+        if self._device.use_avr_2016_update:
             await self.async_update_attrs_appcommand(
                 self.appcommand0300_attrs,
                 appcommand0300=True,
                 global_update=global_update,
                 cache_id=cache_id,
                 ignore_missing_response=True,
-            )
-        elif self._device.use_avr_2016_update is False:
-            # Not available
-            pass
-        else:
-            raise AvrProcessingError(
-                "Device is not setup correctly, update method not set"
             )
 
     async def _async_set_audyssey(self, cmd: AppCommandCmd) -> None:
@@ -209,7 +208,7 @@ class DenonAVRAudyssey(DenonAVRFoundation):
     async def async_set_reflevoffset(self, value: str) -> None:
         """Set Reference Level Offset."""
         # Reference level offset can only be used with DynamicEQ
-        if self._dynamiceq is False:
+        if not self._dynamiceq:
             raise AvrCommandError(
                 "Reference level could only be set when DynamicEQ is active"
             )
@@ -237,7 +236,7 @@ class DenonAVRAudyssey(DenonAVRFoundation):
 
     async def async_toggle_dynamic_eq(self) -> None:
         """Toggle DynamicEQ."""
-        if self._dynamiceq is True:
+        if self._dynamiceq:
             await self.async_dynamiceq_off()
         else:
             await self.async_dynamiceq_on()
