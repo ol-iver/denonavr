@@ -95,7 +95,7 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(str), default=None
     )
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
-    _allow_recovery: bool = attr.ib(converter=bool, default=False, init=False)
+    _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
 
     def __attrs_post_init__(self) -> None:
@@ -155,7 +155,7 @@ class DenonAVRDeviceInfo:
     ) -> None:
         """Update status asynchronously."""
         # Ensure instance is setup before updating
-        if self._is_setup is False:
+        if not self._is_setup:
             await self.async_setup()
 
         # Update power status
@@ -270,7 +270,7 @@ class DenonAVRDeviceInfo:
                 _LOGGER.info("AVR-X device, using AppCommand.xml interface")
                 self._set_friendly_name(xml)
 
-        if self.use_avr_2016_update is False:
+        if not self.use_avr_2016_update:
             try:
                 xml = await self.api.async_get_xml(self.urls.mainzone)
             except (AvrTimoutError, AvrNetworkError) as err:
@@ -294,7 +294,7 @@ class DenonAVRDeviceInfo:
     ) -> None:
         """Verify if avr 2016 update method is working."""
         # Nothing to do if Appcommand.xml interface is not supported
-        if self.use_avr_2016_update is False:
+        if self._is_setup and not self.use_avr_2016_update:
             return
 
         try:
@@ -306,7 +306,7 @@ class DenonAVRDeviceInfo:
         except AvrForbiddenError:
             # Recovery in case receiver changes port from 80 to 8080 which
             # might happen at Denon AVR-X 2016 receivers
-            if self._allow_recovery is True:
+            if self._allow_recovery:
                 self._allow_recovery = False
                 _LOGGER.warning(
                     "AppCommand.xml returns HTTP status 403. Running setup"
@@ -328,7 +328,7 @@ class DenonAVRDeviceInfo:
                 )
                 self.use_avr_2016_update = False
         else:
-            if self._allow_recovery is False:
+            if not self._allow_recovery:
                 _LOGGER.info("AppCommand.xml recovered from HTTP status 403 error")
             self._allow_recovery = True
 
@@ -398,16 +398,17 @@ class DenonAVRDeviceInfo:
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
     ) -> None:
         """Update power status of device."""
-        if self.use_avr_2016_update is True:
-            await self.async_update_power_appcommand(
-                global_update=global_update, cache_id=cache_id
-            )
-        elif self.use_avr_2016_update is False:
-            await self.async_update_power_status_xml(cache_id=cache_id)
-        else:
+        if self.use_avr_2016_update is None:
             raise AvrProcessingError(
                 "Device is not setup correctly, update method not set"
             )
+
+        if self.use_avr_2016_update:
+            await self.async_update_power_appcommand(
+                global_update=global_update, cache_id=cache_id
+            )
+        else:
+            await self.async_update_power_status_xml(cache_id=cache_id)
 
     async def async_update_power_appcommand(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -592,13 +593,13 @@ class DenonAVRFoundation:
                 update_attrs.pop(app_command, None)
 
         # Check if each attribute was updated
-        if update_attrs and ignore_missing_response is False:
+        if update_attrs and not ignore_missing_response:
             raise AvrProcessingError(
                 "Some attributes of zone {} not found on update: {}".format(
                     self._device.zone, update_attrs
                 )
             )
-        if update_attrs and ignore_missing_response is True:
+        if update_attrs and ignore_missing_response:
             _LOGGER.debug(
                 "Some attributes of zone %s not found on update: %s",
                 self._device.zone,
@@ -660,7 +661,7 @@ class DenonAVRFoundation:
                 break
 
         # Check if each attribute was updated
-        if update_attrs and ignore_missing_response is False:
+        if update_attrs and not ignore_missing_response:
             raise AvrProcessingError(
                 "Some attributes of zone {} not found on update: {}".format(
                     self._device.zone, update_attrs

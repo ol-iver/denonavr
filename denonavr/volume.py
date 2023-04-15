@@ -89,7 +89,7 @@ class DenonAVRVolume(DenonAVRFoundation):
     ) -> None:
         """Update volume asynchronously."""
         # Ensure instance is setup before updating
-        if self._is_setup is False:
+        if not self._is_setup:
             self.setup()
 
         # Update state
@@ -99,20 +99,21 @@ class DenonAVRVolume(DenonAVRFoundation):
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
     ):
         """Update volume status of device."""
-        if self._device.use_avr_2016_update is True:
+        if self._device.use_avr_2016_update is None:
+            raise AvrProcessingError(
+                "Device is not setup correctly, update method not set"
+            )
+
+        if self._device.use_avr_2016_update:
             await self.async_update_attrs_appcommand(
                 self.appcommand_attrs, global_update=global_update, cache_id=cache_id
             )
-        elif self._device.use_avr_2016_update is False:
+        else:
             urls = [self._device.urls.status]
             if self._device.zone == MAIN_ZONE:
                 urls.append(self._device.urls.mainzone)
             await self.async_update_attrs_status_xml(
                 self.status_xml_attrs, urls, cache_id=cache_id
-            )
-        else:
-            raise AvrProcessingError(
-                "Device is not setup correctly, update method not set"
             )
 
     ##############

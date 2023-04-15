@@ -207,7 +207,7 @@ class DenonAVRInput(DenonAVRFoundation):
         if self._device.power != POWER_ON:
             return
 
-        if self._schedule_media_updates() is True:
+        if self._schedule_media_updates():
             self._state = STATE_PLAYING
         else:
             self._unset_media_state()
@@ -224,7 +224,7 @@ class DenonAVRInput(DenonAVRFoundation):
             self._stop_media_update()
             self._unset_media_state()
             self._state = STATE_OFF
-        elif self._schedule_media_updates() is True:
+        elif self._schedule_media_updates():
             self._state = STATE_PLAYING
         else:
             self._unset_media_state()
@@ -379,7 +379,7 @@ class DenonAVRInput(DenonAVRFoundation):
         self, zone: str, event: str, parameter: str
     ) -> None:
         """Handle input func update events."""
-        if self._input_func_update_lock.locked() is True:
+        if self._input_func_update_lock.locked():
             return
         async with self._input_func_update_lock:
             await self.async_update_inputfuncs()
@@ -389,7 +389,7 @@ class DenonAVRInput(DenonAVRFoundation):
     ) -> None:
         """Update input functions asynchronously."""
         # Ensure instance is setup before updating
-        if self._is_setup is False:
+        if not self._is_setup:
             self.setup()
 
         # Update input functions
@@ -623,7 +623,7 @@ class DenonAVRInput(DenonAVRFoundation):
 
         # Get renamed and deleted sources
         # From Appcommand.xml if supported
-        if self._device.use_avr_2016_update is True:
+        if self._device.use_avr_2016_update:
             (
                 renamed_sources,
                 deleted_sources,
@@ -643,7 +643,7 @@ class DenonAVRInput(DenonAVRFoundation):
                 receiver_sources[key] = value
 
         # Remove all deleted sources
-        if self._show_all_inputs is False:
+        if not self._show_all_inputs:
             for deleted_source in deleted_sources.items():
                 if deleted_source[1] == "DEL":
                     receiver_sources.pop(deleted_source[0], None)
@@ -707,7 +707,7 @@ class DenonAVRInput(DenonAVRFoundation):
             receiver_sources[function] = function
 
         # Remove all deleted sources
-        if self._show_all_inputs is False:
+        if not self._show_all_inputs:
             for deleted_source in deleted_sources.items():
                 if deleted_source[1] == "DEL":
                     receiver_sources.pop(deleted_source[0], None)
@@ -736,20 +736,21 @@ class DenonAVRInput(DenonAVRFoundation):
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
     ):
         """Update state of device."""
-        if self._device.use_avr_2016_update is True:
+        if self._device.use_avr_2016_update is None:
+            raise AvrProcessingError(
+                "Device is not setup correctly, update method not set"
+            )
+
+        if self._device.use_avr_2016_update:
             await self.async_update_attrs_appcommand(
                 self.appcommand_attrs, global_update=global_update, cache_id=cache_id
             )
-        elif self._device.use_avr_2016_update is False:
+        else:
             urls = [self._device.urls.status]
             if self._device.zone == MAIN_ZONE:
                 urls.append(self._device.urls.mainzone)
             await self.async_update_attrs_status_xml(
                 self.status_xml_attrs, urls, cache_id=cache_id
-            )
-        else:
-            raise AvrProcessingError(
-                "Device is not setup correctly, update method not set"
             )
 
     async def async_update_media_state(self, cache_id: Optional[Hashable] = None):
@@ -859,7 +860,7 @@ class DenonAVRInput(DenonAVRFoundation):
                 if self._device.api.is_default_async_client():
                     await client.aclose()
         # Already tested that image URL is not accessible
-        elif self._image_available is False:
+        elif not self._image_available:
             self._image_url = None
 
     def _unset_media_state(self) -> None:
@@ -976,7 +977,7 @@ class DenonAVRInput(DenonAVRFoundation):
                 direct_mapping = False
         # AVR-nonX receiver and if no mapping was found get parameter for
         # setting input_func directly
-        if direct_mapping is True:
+        if direct_mapping:
             try:
                 linp = self._input_func_map[input_func]
             except KeyError as err:

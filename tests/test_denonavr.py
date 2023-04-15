@@ -253,14 +253,14 @@ class TestMainFunctions:
         transport = AsyncMock()
         proto.connection_made(transport)
 
-        assert proto.connected is True
+        assert proto.connected
 
     @pytest.mark.asyncio
     async def test_protocol_not_connected(self):
         """Not connected when connection not made."""
         proto = DenonAVRTelnetProtocol(None, None)
 
-        assert proto.connected is False
+        assert not proto.connected
 
     @pytest.mark.asyncio
     async def test_protocol_writes_to_transport(self):
@@ -326,7 +326,7 @@ class TestMainFunctions:
         api._protocol = protocol
         protocol.connected = False
 
-        assert api.healthy is False
+        assert not api.healthy
 
     @pytest.mark.asyncio
     async def test_telnetapi_healthy_if_protocol_connected(self):
@@ -337,7 +337,7 @@ class TestMainFunctions:
         api._protocol = protocol
         protocol.connected = True
 
-        assert api.healthy is True
+        assert api.healthy
 
     @pytest.mark.asyncio
     async def test_register_callback_invalid_event_raises_valueerror(self):

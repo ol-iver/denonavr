@@ -135,7 +135,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     ) -> None:
         """Update sound mode asynchronously."""
         # Ensure instance is setup before updating
-        if self._is_setup is False:
+        if not self._is_setup:
             await self.async_setup()
 
         # Update state
@@ -147,13 +147,18 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
     ):
         """Update sound mode status of device."""
-        if self._device.use_avr_2016_update is True:
+        if self._device.use_avr_2016_update is None:
+            raise AvrProcessingError(
+                "Device is not setup correctly, update method not set"
+            )
+
+        if self._device.use_avr_2016_update:
             await self.async_update_attrs_appcommand(
                 self.appcommand_attrs, global_update=global_update, cache_id=cache_id
             )
-        elif self._device.use_avr_2016_update is False:
+        else:
             urls = [self._device.urls.status, self._device.urls.mainzone]
-            if self._support_sound_mode is False:
+            if self._is_setup and not self._support_sound_mode:
                 return
             # There are two different options of sound mode tags
             try:
@@ -170,10 +175,6 @@ class DenonAVRSoundMode(DenonAVRFoundation):
                     self._support_sound_mode = False
                     return
             self._support_sound_mode = True
-        else:
-            raise AvrProcessingError(
-                "Device is not setup correctly, update method not set"
-            )
 
     def match_sound_mode(self) -> Optional[str]:
         """Match the raw_sound_mode to its corresponding sound_mode."""

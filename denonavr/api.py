@@ -408,7 +408,7 @@ class DenonAVRTelnetApi:
         """Connect to the receiver asynchronously."""
         _LOGGER.debug("%s: telnet connecting", self.host)
         async with self._connect_lock:
-            if self.connected is True:
+            if self.connected:
                 return
             await self._async_establish_connection()
 
@@ -511,7 +511,7 @@ class DenonAVRTelnetApi:
         """Reconnect to the receiver asynchronously."""
         backoff = 0.5
 
-        while self._connection_enabled is True and not self.healthy:
+        while self._connection_enabled and not self.healthy:
             async with self._connect_lock:
                 try:
                     await self._async_establish_connection()

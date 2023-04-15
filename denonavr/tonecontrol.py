@@ -85,7 +85,7 @@ class DenonAVRToneControl(DenonAVRFoundation):
     ) -> None:
         """Update volume asynchronously."""
         # Ensure instance is setup before updating
-        if self._is_setup is False:
+        if not self._is_setup:
             self.setup()
 
         # Update state
@@ -97,19 +97,18 @@ class DenonAVRToneControl(DenonAVRFoundation):
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
     ):
         """Update tone control status of device."""
-        if self._device.use_avr_2016_update is True:
+        if self._device.use_avr_2016_update is None:
+            raise AvrProcessingError(
+                "Device is not setup correctly, update method not set"
+            )
+
+        # Tone control is only available for avr 2016 update
+        if self._device.use_avr_2016_update:
             await self.async_update_attrs_appcommand(
                 self.appcommand_attrs,
                 global_update=global_update,
                 cache_id=cache_id,
                 ignore_missing_response=True,
-            )
-        elif self._device.use_avr_2016_update is False:
-            # Not available
-            pass
-        else:
-            raise AvrProcessingError(
-                "Device is not setup correctly, update method not set"
             )
 
     async def async_set_tone_control_command(
@@ -154,7 +153,7 @@ class DenonAVRToneControl(DenonAVRFoundation):
     ##########
     async def async_enable_tone_control(self) -> None:
         """Enable tone control to change settings like bass or treble."""
-        if self._tone_control_status is False:
+        if not self._tone_control_status:
             raise AvrCommandError(
                 "Cannot enable tone control, Dynamic EQ must be deactivated"
             )
@@ -163,7 +162,7 @@ class DenonAVRToneControl(DenonAVRFoundation):
 
     async def async_disable_tone_control(self) -> None:
         """Disable tone control to change settings like bass or treble."""
-        if self._tone_control_status is False:
+        if not self._tone_control_status:
             raise AvrCommandError(
                 "Cannot disable tone control, Dynamic EQ must be deactivated"
             )
