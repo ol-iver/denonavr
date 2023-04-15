@@ -60,7 +60,7 @@ def unescape_string(value: Optional[str]) -> Optional[str]:
     """Perform HTML unescape on value."""
     if value is None:
         return value
-    return html.unescape(str(value))
+    return html.unescape(str(value)).strip("\x00").strip("\x01").strip()
 
 
 def set_input_func(
@@ -277,11 +277,11 @@ class DenonAVRInput(DenonAVRFoundation):
             return
 
         if parameter.startswith("E1"):
-            self._title = parameter[2:].strip()
+            self._title = parameter[2:]
         elif parameter.startswith("E2"):
-            self._artist = parameter[2:].strip()
+            self._artist = parameter[2:]
         elif parameter.startswith("E4"):
-            self._album = parameter[2:].strip()
+            self._album = parameter[2:]
         self._band = None
         self._frequency = None
         self._station = None
@@ -317,7 +317,7 @@ class DenonAVRInput(DenonAVRFoundation):
             return
 
         if parameter.startswith("ANNAME"):
-            self._station = parameter[6:].strip()
+            self._station = parameter[6:]
         elif len(parameter) == 8:
             self._frequency = "{}.{}".format(parameter[2:6], parameter[6:]).strip("0")
             if parameter[2:] > "050000":
@@ -358,13 +358,13 @@ class DenonAVRInput(DenonAVRFoundation):
             return
 
         if parameter.startswith("ARTIST"):
-            self._artist = parameter[6:].strip()
+            self._artist = parameter[6:]
         elif parameter.startswith("TITLE"):
-            self._title = parameter[5:].strip()
+            self._title = parameter[5:]
         elif parameter.startswith("ALBUM"):
-            self._album = parameter[5:].strip()
+            self._album = parameter[5:]
         elif parameter.startswith("ST NAME"):
-            self._station = parameter[7:].strip()
+            self._station = parameter[7:]
 
         self._band = None
         self._frequency = None
