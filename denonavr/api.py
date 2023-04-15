@@ -352,12 +352,17 @@ class DenonAVRTelnetProtocol(asyncio.Protocol):
     @property
     def connected(self) -> bool:
         """Return True if transport is connected."""
-        return self.transport is not None
+        if self.transport is None:
+            return False
+        return not self.transport.is_closing()
 
     def write(self, data: str) -> None:
         """Write data to the transport."""
-        if self.transport is not None:
-            self.transport.write(data.encode("utf-8"))
+        if self.transport is None:
+            return
+        if self.transport.is_closing():
+            return
+        self.transport.write(data.encode("utf-8"))
 
     def close(self) -> None:
         """Close the connection."""
@@ -468,7 +473,7 @@ class DenonAVRTelnetApi:
             _LOGGER.info(
                 "%s: Keep alive failed, disconnecting and reconnecting", self.host
             )
-            if self._protocol:
+            if self._protocol is not None:
                 self._protocol.close()
             self._handle_disconnected()
             return
@@ -623,10 +628,15 @@ class DenonAVRTelnetApi:
                         err,
                     )
 
-    def send_commands(self, *commands: str) -> None:
+    def send_commands(self, *commands: str) -> bool:
         """Send telnet commands to the receiver."""
+        if not self.connected:
+            return False
+        if not self.healthy:
+            return False
         for command in commands:
             self._protocol.write("{}\r".format(command))
+        return True
 
     ##############
     # Properties #
@@ -637,6 +647,6 @@ class DenonAVRTelnetApi:
         return self._connection_enabled
 
     @property
-    def healthy(self) -> Optional[bool]:
+    def healthy(self) -> bool:
         """Return True if telnet connection is healthy."""
         return self._protocol is not None and self._protocol.connected
