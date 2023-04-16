@@ -993,10 +993,13 @@ class DenonAVRInput(DenonAVRFoundation):
         # Create command URL and send command via HTTP GET
         if linp in self._favorite_func_list:
             command_url = self._device.urls.command_fav_src + linp
+            telnet_command = self._device.telnet_commands.command_fav_src + linp
         else:
             command_url = self._device.urls.command_sel_src + linp
-
-        await self._device.api.async_get_command(command_url)
+            telnet_command = self._device.telnet_commands.command_sel_src + linp
+        success = self._device.telnet_api.send_commands(telnet_command)
+        if not success:
+            await self._device.api.async_get_command(command_url)
 
     async def async_toggle_play_pause(self) -> None:
         """Toggle play pause media player."""
@@ -1017,15 +1020,24 @@ class DenonAVRInput(DenonAVRFoundation):
             if self._state == STATE_PLAYING:
                 _LOGGER.info("Already playing, play command not sent")
                 return
-
-            await self._device.api.async_get_command(self._device.urls.command_play)
+            success = self._device.telnet_api.send_commands(
+                self._device.telnet_commands.command_play
+            )
+            if not success:
+                await self._device.api.async_get_command(self._device.urls.command_play)
             self._state = STATE_PLAYING
 
     async def async_pause(self) -> None:
         """Send pause command to receiver command via HTTP post."""
         # Use pause command only for sources which support NETAUDIO
         if self._input_func in self._netaudio_func_list:
-            await self._device.api.async_get_command(self._device.urls.command_pause)
+            success = self._device.telnet_api.send_commands(
+                self._device.telnet_commands.command_play
+            )
+            if not success:
+                await self._device.api.async_get_command(
+                    self._device.urls.command_pause
+                )
             self._state = STATE_PAUSED
 
     async def async_previous_track(self) -> None:

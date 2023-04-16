@@ -25,6 +25,7 @@ from .const import (
     AVR_X,
     AVR_X_2016,
     DENON_ATTR_SETATTR,
+    DENONAVR_TELNET_COMMANDS,
     DENONAVR_URLS,
     DESCRIPTION_TYPES,
     DEVICEINFO_AVR_X_PATTERN,
@@ -33,11 +34,14 @@ from .const import (
     VALID_RECEIVER_TYPES,
     VALID_ZONES,
     ZONE2,
+    ZONE2_TELNET_COMMANDS,
     ZONE2_URLS,
     ZONE3,
+    ZONE3_TELNET_COMMANDS,
     ZONE3_URLS,
     ReceiverType,
     ReceiverURLs,
+    TelnetCommands,
 )
 from .exceptions import (
     AvrForbiddenError,
@@ -69,6 +73,9 @@ class DenonAVRDeviceInfo:
     receiver: Optional[ReceiverType] = attr.ib(
         validator=attr.validators.optional(attr.validators.in_(VALID_RECEIVER_TYPES)),
         default=None,
+    )
+    telnet_commands: TelnetCommands = attr.ib(
+        validator=attr.validators.instance_of(TelnetCommands), init=False
     )
     urls: ReceiverURLs = attr.ib(
         validator=attr.validators.instance_of(ReceiverURLs), init=False
@@ -102,10 +109,13 @@ class DenonAVRDeviceInfo:
         """Initialize special attributes and callbacks."""
         # URLs depending from value of self.zone attribute
         if self.zone == MAIN_ZONE:
+            self.telnet_commands = DENONAVR_TELNET_COMMANDS
             self.urls = DENONAVR_URLS
         elif self.zone == ZONE2:
+            self.telnet_commands = ZONE2_TELNET_COMMANDS
             self.urls = ZONE2_URLS
         elif self.zone == ZONE3:
+            self.telnet_commands = ZONE3_TELNET_COMMANDS
             self.urls = ZONE3_URLS
         else:
             raise ValueError("Invalid zone {}".format(self.zone))

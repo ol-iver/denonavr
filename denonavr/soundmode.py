@@ -230,12 +230,16 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         Calls command to activate/deactivate the mode
         """
         command_url = self._device.urls.command_set_all_zone_stereo
+        telnet_command = self._device.telnet_commands.command_set_all_zone_stereo
         if zst_on:
             command_url += "ZST ON"
+            telnet_command += "ZST ON"
         else:
             command_url += "ZST OFF"
-
-        await self._device.api.async_get_command(command_url)
+            telnet_command += "ZST OFF"
+        success = self._device.telnet_api.send_commands(telnet_command)
+        if not success:
+            await self._device.api.async_get_command(command_url)
 
     ##############
     # Properties #
@@ -292,8 +296,13 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         # Therefore source mapping is needed to get sound_mode
         # Create command URL and send command via HTTP GET
         command_url = self._device.urls.command_sel_sound_mode + sound_mode
+        telnet_command = (
+            self._device.telnet_commands.command_sel_sound_mode + sound_mode
+        )
         # sent command
-        await self._device.api.async_get_command(command_url)
+        success = self._device.telnet_api.send_commands(telnet_command)
+        if not success:
+            await self._device.api.async_get_command(command_url)
 
 
 def sound_mode_factory(instance: DenonAVRFoundation) -> DenonAVRSoundMode:
