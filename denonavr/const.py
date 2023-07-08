@@ -250,7 +250,8 @@ SOUND_MODE_MAPPING = {
         "DTS-HD + DSUR",
         "DTS:X MSTR",
     ],
-    "AURO3D": ["AURO-3D", "AURO-2D SURROUND"],
+    "AURO3D": ["AURO-3D"],
+    "AURO2DSURR": ["AURO-2D SURROUND"],
     "MCH STEREO": [
         "MULTI CH STEREO",
         "MULTI_CH_STEREO",
