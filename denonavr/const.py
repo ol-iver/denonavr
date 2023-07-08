@@ -45,6 +45,24 @@ ReceiverURLs = namedtuple(
         "command_play",
     ],
 )
+TelnetCommands = namedtuple(
+    "TelnetCommands",
+    [
+        "command_sel_src",
+        "command_fav_src",
+        "command_power_on",
+        "command_power_standby",
+        "command_volume_up",
+        "command_volume_down",
+        "command_set_volume",
+        "command_mute_on",
+        "command_mute_off",
+        "command_sel_sound_mode",
+        "command_set_all_zone_stereo",
+        "command_pause",
+        "command_play",
+    ],
+)
 
 # AVR-X search patterns
 DEVICEINFO_AVR_X_PATTERN = re.compile(
@@ -395,6 +413,54 @@ ZONE3_URLS = ReceiverURLs(
 
 # Telnet Commands
 TELNET_EVENTS = {"HD", "MS", "MU", "MV", "NS", "PS", "PW", "SI", "SS", "TF"}
+
+DENONAVR_TELNET_COMMANDS = TelnetCommands(
+    command_sel_src="SI",
+    command_fav_src="ZM",
+    command_power_on="PWON",
+    command_power_standby="PWSTANDBY",
+    command_volume_up="MVUP",
+    command_volume_down="MVDOWN",
+    command_set_volume="MV{volume:02d}",
+    command_mute_on="MUON",
+    command_mute_off="MUOFF",
+    command_sel_sound_mode="MS",
+    command_set_all_zone_stereo="MN",
+    command_pause="NS9B",
+    command_play="NS9A",
+)
+
+ZONE2_TELNET_COMMANDS = TelnetCommands(
+    command_sel_src="Z2",
+    command_fav_src="Z2",
+    command_power_on="Z2ON",
+    command_power_standby="Z2OFF",
+    command_volume_up="Z2UP",
+    command_volume_down="Z2DOWN",
+    command_set_volume="Z2{volume:02d}",
+    command_mute_on="Z2MUON",
+    command_mute_off="Z2MUOFF",
+    command_sel_sound_mode="MS",
+    command_set_all_zone_stereo="MN",
+    command_pause="NS9B",
+    command_play="NS9A",
+)
+
+ZONE3_TELNET_COMMANDS = TelnetCommands(
+    command_sel_src="Z3",
+    command_fav_src="Z3",
+    command_power_on="Z3ON",
+    command_power_standby="Z3OFF",
+    command_volume_up="Z3UP",
+    command_volume_down="Z3DOWN",
+    command_set_volume="Z3{volume:02d}",
+    command_mute_on="Z3MUON",
+    command_mute_off="Z3MUOFF",
+    command_sel_sound_mode="MS",
+    command_set_all_zone_stereo="MN",
+    command_pause="NS9B",
+    command_play="NS9A",
+)
 
 # States
 POWER_ON = "ON"

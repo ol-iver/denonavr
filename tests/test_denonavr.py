@@ -250,7 +250,7 @@ class TestMainFunctions:
     async def test_protocol_connected(self):
         """Connected after connection made."""
         proto = DenonAVRTelnetProtocol(None, None)
-        transport = AsyncMock()
+        transport = mock.Mock(is_closing=lambda: False)
         proto.connection_made(transport)
 
         assert proto.connected
@@ -263,10 +263,19 @@ class TestMainFunctions:
         assert not proto.connected
 
     @pytest.mark.asyncio
+    async def test_protocol_closing(self):
+        """Not connected when connection is closing."""
+        proto = DenonAVRTelnetProtocol(None, None)
+        transport = mock.Mock(is_closing=lambda: True)
+        proto.connection_made(transport)
+
+        assert not proto.connected
+
+    @pytest.mark.asyncio
     async def test_protocol_writes_to_transport(self):
         """Write writes to transport."""
         proto = DenonAVRTelnetProtocol(None, None)
-        transport = mock.Mock()
+        transport = mock.Mock(is_closing=lambda: False)
         proto.connection_made(transport)
 
         proto.write("abc")
@@ -289,7 +298,7 @@ class TestMainFunctions:
         """Read callback triggered for CR terminated message."""
         data_received_mock = mock.Mock()
         proto = DenonAVRTelnetProtocol(data_received_mock, None)
-        transport = mock.Mock()
+        transport = mock.Mock(is_closing=lambda: False)
         proto.connection_made(transport)
         proto.data_received(b"abc\r")
 
@@ -300,7 +309,7 @@ class TestMainFunctions:
         """Read callback not triggered for non CR terminated message."""
         data_received_mock = mock.Mock()
         proto = DenonAVRTelnetProtocol(data_received_mock, None)
-        transport = mock.Mock()
+        transport = mock.Mock(is_closing=lambda: False)
         proto.connection_made(transport)
         proto.data_received(b"abc")
 
@@ -311,7 +320,7 @@ class TestMainFunctions:
         """Connection lost triggers callback."""
         conn_lost_mock = mock.Mock()
         proto = DenonAVRTelnetProtocol(None, conn_lost_mock)
-        transport = mock.Mock()
+        transport = mock.Mock(is_closing=lambda: False)
         proto.connection_made(transport)
         proto.connection_lost(Exception())
 

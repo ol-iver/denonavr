@@ -226,9 +226,9 @@ class DenonAVR(DenonAVRFoundation):
     def send_get_command(self, request: str) -> str:
         """Send HTTP GET command to Denon AVR receiver...for compatibility."""
 
-    def send_telnet_commands(self, *commands: str) -> None:
+    def send_telnet_commands(self, *commands: str) -> bool:
         """Send telnet commands to the receiver."""
-        self._device.telnet_api.send_commands(*commands)
+        return self._device.telnet_api.send_commands(*commands)
 
     def register_callback(
         self, event: str, callback: Callable[[str, str, str], Awaitable[None]]
@@ -441,7 +441,7 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.telnet_api.connected
 
     @property
-    def telnet_healthy(self) -> Optional[bool]:
+    def telnet_healthy(self) -> bool:
         """Return True if telnet connection is healthy."""
         return self._device.telnet_api.healthy
 
