@@ -585,9 +585,7 @@ class DenonAVRTelnetApi:
             else:
                 zone = ZONE3
 
-            if parameter in ("ON", "OFF"):
-                event = "PW"
-            elif parameter in TELNET_SOURCES:
+            if parameter in TELNET_SOURCES:
                 event = "SI"
             elif parameter.isdigit():
                 event = "MV"

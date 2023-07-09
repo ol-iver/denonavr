@@ -31,6 +31,7 @@ from .const import (
     DEVICEINFO_AVR_X_PATTERN,
     DEVICEINFO_COMMAPI_PATTERN,
     MAIN_ZONE,
+    POWER_STATES,
     VALID_RECEIVER_TYPES,
     VALID_ZONES,
     ZONE2,
@@ -124,7 +125,7 @@ class DenonAVRDeviceInfo:
         self, zone: str, event: str, parameter: str
     ) -> None:
         """Handle a power change event."""
-        if self.zone == zone:
+        if self.zone == zone and parameter in POWER_STATES:
             self._power = parameter
 
     def get_own_zone(self) -> str:
@@ -156,7 +157,12 @@ class DenonAVRDeviceInfo:
             # Add tags for a potential AppCommand.xml update
             self.api.add_appcommand_update_tag(AppCommands.GetAllZonePowerStatus)
 
-            self.telnet_api.register_callback("PW", self._async_power_callback)
+            power_event = "ZM"
+            if self.zone == ZONE2:
+                power_event = "Z2"
+            elif self.zone == ZONE3:
+                power_event = "Z3"
+            self.telnet_api.register_callback(power_event, self._async_power_callback)
 
             self._is_setup = True
 
@@ -505,11 +511,17 @@ class DenonAVRDeviceInfo:
 
     async def async_power_on(self) -> None:
         """Turn on receiver via HTTP get command."""
-        await self.api.async_get_command(self.urls.command_power_on)
+        success = self.telnet_api.send_commands(self.telnet_commands.command_power_on)
+        if not success:
+            await self.api.async_get_command(self.urls.command_power_on)
 
     async def async_power_off(self) -> None:
         """Turn off receiver via HTTP get command."""
-        await self.api.async_get_command(self.urls.command_power_standby)
+        success = self.telnet_api.send_commands(
+            self.telnet_commands.command_power_standby
+        )
+        if not success:
+            await self.api.async_get_command(self.urls.command_power_standby)
 
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
