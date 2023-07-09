@@ -413,13 +413,27 @@ ZONE3_URLS = ReceiverURLs(
 )
 
 # Telnet Commands
-TELNET_EVENTS = {"HD", "MS", "MU", "MV", "NS", "PS", "PW", "SI", "SS", "TF"}
+TELNET_EVENTS = {
+    "HD",
+    "MS",
+    "MU",
+    "MV",
+    "NS",
+    "PS",
+    "PW",
+    "SI",
+    "SS",
+    "TF",
+    "ZM",
+    "Z2",
+    "Z3",
+}
 
 DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_sel_src="SI",
     command_fav_src="ZM",
-    command_power_on="PWON",
-    command_power_standby="PWSTANDBY",
+    command_power_on="ZMON",
+    command_power_standby="ZMOFF",
     command_volume_up="MVUP",
     command_volume_down="MVDOWN",
     command_set_volume="MV{volume:02d}",
@@ -467,6 +481,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
 POWER_ON = "ON"
 POWER_OFF = "OFF"
 POWER_STANDBY = "STANDBY"
+POWER_STATES = [POWER_ON, POWER_OFF, POWER_STANDBY]
 STATE_ON = "on"
 STATE_OFF = "off"
 STATE_PLAYING = "playing"

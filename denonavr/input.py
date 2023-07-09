@@ -184,8 +184,15 @@ class DenonAVRInput(DenonAVRFoundation):
         for tag in self.appcommand_attrs:
             self._device.api.add_appcommand_update_tag(tag)
 
+        power_event = "ZM"
+        if self._device.zone == ZONE2:
+            power_event = "Z2"
+        elif self._device.zone == ZONE3:
+            power_event = "Z3"
+        self._device.telnet_api.register_callback(
+            power_event, self._async_power_callback
+        )
         self._device.telnet_api.register_callback("SI", self._async_input_callback)
-        self._device.telnet_api.register_callback("PW", self._async_power_callback)
         self._device.telnet_api.register_callback("NS", self._async_netaudio_callback)
         self._device.telnet_api.register_callback("TF", self._async_tuner_callback)
         self._device.telnet_api.register_callback("HD", self._async_hdtuner_callback)

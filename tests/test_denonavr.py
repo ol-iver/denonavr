@@ -518,7 +518,7 @@ class TestMainFunctions:
             protocol.connection_made(transport)
             self.future = asyncio.Future()
             self.denon.register_callback("ALL", self._callback)
-            protocol.data_received(b"PWON\r")
+            protocol.data_received(b"ZMON\r")
             await self.future
             assert self.denon.power == "ON"
 
@@ -545,9 +545,9 @@ class TestMainFunctions:
             protocol.connection_made(transport)
             self.future = asyncio.Future()
             self.denon.register_callback("ALL", self._callback)
-            protocol.data_received(b"PWSTANDBY\r")
+            protocol.data_received(b"ZMOFF\r")
             await self.future
-            assert self.denon.power == "STANDBY"
+            assert self.denon.power == "OFF"
 
     @pytest.mark.asyncio
     async def test_volume_min(self, httpx_mock: HTTPXMock):
