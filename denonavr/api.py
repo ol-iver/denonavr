@@ -13,8 +13,19 @@ import logging
 import sys
 import time
 import xml.etree.ElementTree as ET
+from collections import defaultdict
 from io import BytesIO
-from typing import Awaitable, Callable, Dict, Hashable, Optional, Tuple, cast
+from typing import (
+    Awaitable,
+    Callable,
+    DefaultDict,
+    Dict,
+    Hashable,
+    List,
+    Optional,
+    Tuple,
+    cast,
+)
 
 import attr
 import httpx
@@ -59,6 +70,16 @@ _MONITOR_INTERVAL = 30
 def get_default_async_client() -> httpx.AsyncClient:
     """Get the default httpx.AsyncClient."""
     return httpx.AsyncClient()
+
+
+def telnet_event_map_factory() -> Dict[str, List]:
+    """Create telnet event map."""
+    event_map: DefaultDict[str, List] = defaultdict(list)
+    for event in TELNET_EVENTS:
+        event_map[event[0:2]].append(event)
+    for value in event_map.values():
+        value.sort(key=len, reverse=True)
+    return dict(event_map)
 
 
 @attr.s(auto_attribs=True, hash=False, on_setattr=DENON_ATTR_SETATTR)
@@ -403,6 +424,9 @@ class DenonAVRTelnetApi:
     _reconnect_task: asyncio.Task = attr.ib(default=None)
     _monitor_handle: asyncio.TimerHandle = attr.ib(default=None)
     _protocol: DenonAVRTelnetProtocol = attr.ib(default=None)
+    _telnet_event_map: Dict[str, List] = attr.ib(
+        default=attr.Factory(telnet_event_map_factory)
+    )
     _callbacks: Dict[str, Callable] = attr.ib(
         validator=attr.validators.instance_of(dict),
         default=attr.Factory(dict),
@@ -568,9 +592,9 @@ class DenonAVRTelnetApi:
         zone = MAIN_ZONE
 
         # Event is 2 characters
-        event = message[0:2]
+        event = self._get_event(message)
         # Parameter is the remaining characters
-        parameter = message[2:]
+        parameter = message[len(event) :]
 
         if event == "MV":
             # This seems undocumented by Denon and appears to basically be a
@@ -589,9 +613,9 @@ class DenonAVRTelnetApi:
                 event = "SI"
             elif parameter.isdigit():
                 event = "MV"
-            elif parameter[0:2] in TELNET_EVENTS:
-                event = parameter[0:2]
-                parameter = parameter[2:]
+            elif self._get_event(parameter):
+                event = self._get_event(parameter)
+                parameter = parameter[len(event) :]
 
         if event not in TELNET_EVENTS:
             return
@@ -625,6 +649,14 @@ class DenonAVRTelnetApi:
                         self.host,
                         err,
                     )
+
+    def _get_event(self, message: str) -> str:
+        """Get event of a telnet message."""
+        events = self._telnet_event_map.get(message[0:2], [""])
+        for event in events:
+            if message.startswith(event):
+                return event
+        return ""
 
     def send_commands(self, *commands: str) -> bool:
         """Send telnet commands to the receiver."""

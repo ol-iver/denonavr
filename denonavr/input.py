@@ -193,7 +193,7 @@ class DenonAVRInput(DenonAVRFoundation):
             power_event, self._async_power_callback
         )
         self._device.telnet_api.register_callback("SI", self._async_input_callback)
-        self._device.telnet_api.register_callback("NS", self._async_netaudio_callback)
+        self._device.telnet_api.register_callback("NSE", self._async_netaudio_callback)
         self._device.telnet_api.register_callback("TF", self._async_tuner_callback)
         self._device.telnet_api.register_callback("HD", self._async_hdtuner_callback)
         self._device.telnet_api.register_callback(
@@ -285,12 +285,12 @@ class DenonAVRInput(DenonAVRFoundation):
         if self._input_func not in self._netaudio_func_list:
             return
 
-        if parameter.startswith("E1"):
-            self._title = parameter[2:]
-        elif parameter.startswith("E2"):
-            self._artist = parameter[2:]
-        elif parameter.startswith("E4"):
-            self._album = parameter[2:]
+        if parameter.startswith("1"):
+            self._title = parameter[1:]
+        elif parameter.startswith("2"):
+            self._artist = parameter[1:]
+        elif parameter.startswith("4"):
+            self._album = parameter[1:]
         self._band = None
         self._frequency = None
         self._station = None
