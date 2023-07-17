@@ -34,6 +34,9 @@ from defusedxml.ElementTree import fromstring
 
 from .appcommand import AppCommandCmd
 from .const import (
+    ALL_TELNET_EVENTS,
+    ALL_ZONE_TELNET_EVENTS,
+    ALL_ZONES,
     APPCOMMAND0300_URL,
     APPCOMMAND_CMD_TEXT,
     APPCOMMAND_NAME,
@@ -568,7 +571,7 @@ class DenonAVRTelnetApi:
     ) -> None:
         """Register a callback handler for an event type."""
         # Validate the passed in type
-        if event != "ALL" and event not in TELNET_EVENTS:
+        if event != ALL_TELNET_EVENTS and event not in TELNET_EVENTS:
             raise ValueError("{} is not a valid callback type.".format(event))
 
         if event not in self._callbacks.keys():
@@ -589,7 +592,6 @@ class DenonAVRTelnetApi:
         self._last_message_time = time.monotonic()
         if len(message) < 3:
             return
-        zone = MAIN_ZONE
 
         # Event is 2 characters
         event = self._get_event(message)
@@ -603,7 +605,11 @@ class DenonAVRTelnetApi:
             if parameter[0:3] == "MAX":
                 return
 
-        if event in ("Z2", "Z3"):
+        # Determine zone
+        zone = MAIN_ZONE
+        if event in ALL_ZONE_TELNET_EVENTS:
+            zone = ALL_ZONES
+        elif event in {"Z2", "Z3"}:
             if event == "Z2":
                 zone = ZONE2
             else:
@@ -637,8 +643,8 @@ class DenonAVRTelnetApi:
                         err,
                     )
 
-        if "ALL" in self._callbacks.keys():
-            for callback in self._callbacks["ALL"]:
+        if ALL_TELNET_EVENTS in self._callbacks.keys():
+            for callback in self._callbacks[ALL_TELNET_EVENTS]:
                 try:
                     await callback(zone, event, parameter)
                 except Exception as err:  # pylint: disable=broad-except
