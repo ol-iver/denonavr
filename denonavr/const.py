@@ -113,7 +113,7 @@ CHANGE_INPUT_MAPPING = {
     "Spotify": "SPOTIFY",
 }
 
-TELNET_SOURCES = [
+TELNET_SOURCES = {
     "CD",
     "PHONO",
     "TUNER",
@@ -145,7 +145,7 @@ TELNET_SOURCES = [
     "USB/IPOD",
     "USB DIRECT",
     "IPOD DIRECT",
-]
+}
 
 TELNET_MAPPING = {
     "FAVORITES": "Favorites",
@@ -414,6 +414,7 @@ ZONE3_URLS = ReceiverURLs(
 )
 
 # Telnet Events
+ALL_TELNET_EVENTS = "ALL"
 TELNET_EVENTS = {
     "CV",
     "DC",
@@ -449,6 +450,22 @@ TELNET_EVENTS = {
     "ZM",
     "Z2",
     "Z3",
+}
+ALL_ZONE_TELNET_EVENTS = {
+    "DIM",
+    "HD",
+    "NS",
+    "NSA",
+    "NSE",
+    "MN",
+    "PW",
+    "RM",
+    "SY",
+    "TF",
+    "TM",
+    "TP",
+    "TR",
+    "UG",
 }
 
 DENONAVR_TELNET_COMMANDS = TelnetCommands(
@@ -503,17 +520,18 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
 POWER_ON = "ON"
 POWER_OFF = "OFF"
 POWER_STANDBY = "STANDBY"
-POWER_STATES = [POWER_ON, POWER_OFF, POWER_STANDBY]
+POWER_STATES = {POWER_ON, POWER_OFF, POWER_STANDBY}
 STATE_ON = "on"
 STATE_OFF = "off"
 STATE_PLAYING = "playing"
 STATE_PAUSED = "paused"
 
 # Zones
+ALL_ZONES = "All"
 MAIN_ZONE = "Main"
 ZONE2 = "Zone2"
 ZONE3 = "Zone3"
-VALID_ZONES = [MAIN_ZONE, ZONE2, ZONE3]
+VALID_ZONES = {MAIN_ZONE, ZONE2, ZONE3}
 
 # Setup additional zones
 NO_ZONES = None
