@@ -35,14 +35,14 @@ SSDP_ST_LIST = (SSDP_ST_1, SSDP_ST_2, SSDP_ST_3)
 SSDP_LOCATION_PATTERN = re.compile(r"(?<=LOCATION:\s).+?(?=\r)")
 
 SCPD_XMLNS = "{urn:schemas-upnp-org:device-1-0}"
-SCPD_DEVICE = "{xmlns}device".format(xmlns=SCPD_XMLNS)
-SCPD_DEVICELIST = "{xmlns}deviceList".format(xmlns=SCPD_XMLNS)
-SCPD_DEVICETYPE = "{xmlns}deviceType".format(xmlns=SCPD_XMLNS)
-SCPD_MANUFACTURER = "{xmlns}manufacturer".format(xmlns=SCPD_XMLNS)
-SCPD_MODELNAME = "{xmlns}modelName".format(xmlns=SCPD_XMLNS)
-SCPD_SERIALNUMBER = "{xmlns}serialNumber".format(xmlns=SCPD_XMLNS)
-SCPD_FRIENDLYNAME = "{xmlns}friendlyName".format(xmlns=SCPD_XMLNS)
-SCPD_PRESENTATIONURL = "{xmlns}presentationURL".format(xmlns=SCPD_XMLNS)
+SCPD_DEVICE = f"{SCPD_XMLNS}device"
+SCPD_DEVICELIST = f"{SCPD_XMLNS}deviceList"
+SCPD_DEVICETYPE = f"{SCPD_XMLNS}deviceType"
+SCPD_MANUFACTURER = f"{SCPD_XMLNS}manufacturer"
+SCPD_MODELNAME = f"{SCPD_XMLNS}modelName"
+SCPD_SERIALNUMBER = f"{SCPD_XMLNS}serialNumber"
+SCPD_FRIENDLYNAME = f"{SCPD_XMLNS}friendlyName"
+SCPD_PRESENTATIONURL = f"{SCPD_XMLNS}presentationURL"
 
 SUPPORTED_DEVICETYPES = [
     "urn:schemas-upnp-org:device:MediaRenderer:1",
@@ -57,10 +57,10 @@ def ssdp_request(ssdp_st: str, ssdp_mx: float = SSDP_MX) -> bytes:
     return "\r\n".join(
         [
             "M-SEARCH * HTTP/1.1",
-            "ST: {}".format(ssdp_st),
-            "MX: {:d}".format(ssdp_mx),
+            f"ST: {ssdp_st}",
+            f"MX: {ssdp_mx:d}",
             'MAN: "ssdp:discover"',
-            "HOST: {}:{}".format(*SSDP_TARGET),
+            f"HOST: {SSDP_ADDR}:{SSDP_PORT}",
             "",
             "",
         ]

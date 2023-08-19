@@ -330,7 +330,7 @@ class DenonAVRInput(DenonAVRFoundation):
         if parameter.startswith("ANNAME"):
             self._station = parameter[6:]
         elif len(parameter) == 8:
-            self._frequency = "{}.{}".format(parameter[2:6], parameter[6:]).strip("0")
+            self._frequency = f"{parameter[2:6]}.{parameter[6:]}".strip("0")
             if parameter[2:] > "050000":
                 self._band = "AM"
             else:
@@ -484,9 +484,8 @@ class DenonAVRInput(DenonAVRFoundation):
             raise
 
         for child in xml.findall(
-            "./cmd[@{attribute}='{cmd}']/functionrename/list".format(
-                attribute=APPCOMMAND_CMD_TEXT, cmd=AppCommands.GetRenameSource.cmd_text
-            )
+            f"./cmd[@{APPCOMMAND_CMD_TEXT}='{AppCommands.GetRenameSource.cmd_text}']"
+            "/functionrename/list"
         ):
             try:
                 renamed_sources[child.find("name").text.strip()] = child.find(
@@ -496,9 +495,8 @@ class DenonAVRInput(DenonAVRFoundation):
                 continue
 
         for child in xml.findall(
-            "./cmd[@{attribute}='{cmd}']/functiondelete/list".format(
-                attribute=APPCOMMAND_CMD_TEXT, cmd=AppCommands.GetDeletedSource.cmd_text
-            )
+            f"./cmd[@{APPCOMMAND_CMD_TEXT}='{AppCommands.GetDeletedSource.cmd_text}']"
+            "/functiondelete/list"
         ):
             try:
                 deleted_sources[child.find("FuncName").text.strip()] = (
@@ -541,9 +539,8 @@ class DenonAVRInput(DenonAVRFoundation):
                 )
             else:
                 raise AvrProcessingError(
-                    "Method does not work for receiver type {}".format(
-                        self._device.receiver.type
-                    )
+                    "Method does not work for receiver type"
+                    f" {self._device.receiver.type}"
                 )
         except AvrRequestError as err:
             _LOGGER.debug("Error when getting changed sources", exc_info=err)
@@ -995,7 +992,7 @@ class DenonAVRInput(DenonAVRFoundation):
                 linp = self._input_func_map[input_func]
             except KeyError as err:
                 raise AvrCommandError(
-                    "No mapping for input source {}".format(input_func)
+                    f"No mapping for input source {input_func}"
                 ) from err
         # Create command URL and send command via HTTP GET
         if linp in self._favorite_func_list:

@@ -131,9 +131,7 @@ class DenonAVRApi:
         # Use default port of the receiver if no different port is specified
         port = port if port is not None else self.port
 
-        endpoint = "http://{host}:{port}{request}".format(
-            host=self.host, port=port, request=request
-        )
+        endpoint = f"http://{self.host}:{port}{request}"
 
         client = self.async_client_getter()
         try:
@@ -158,9 +156,7 @@ class DenonAVRApi:
         # Use default port of the receiver if no different port is specified
         port = port if port is not None else self.port
 
-        endpoint = "http://{host}:{port}{request}".format(
-            host=self.host, port=port, request=request
-        )
+        endpoint = f"http://{self.host}:{port}{request}"
 
         client = self.async_client_getter()
         try:
@@ -225,7 +221,7 @@ class DenonAVRApi:
     def add_appcommand_update_tag(self, tag: AppCommandCmd) -> None:
         """Add appcommand tag for full update."""
         if tag.cmd_id != "1":
-            raise ValueError("cmd_id is {} but must be 1".format(tag.cmd_id))
+            raise ValueError(f"cmd_id is {tag.cmd_id} but must be 1")
 
         # Remove response pattern from tag because it is not relevant for query
         tag = attr.evolve(tag, response_pattern=tuple())
@@ -237,7 +233,7 @@ class DenonAVRApi:
     def add_appcommand0300_update_tag(self, tag: AppCommandCmd) -> None:
         """Add appcommand0300 tag for full update."""
         if tag.cmd_id != "3":
-            raise ValueError("cmd_id is {} but must be 3".format(tag.cmd_id))
+            raise ValueError(f"cmd_id is {tag.cmd_id} but must be 3")
 
         # Remove response pattern from tag because it is not relevant for query
         tag = attr.evolve(tag, response_pattern=tuple())
@@ -271,16 +267,20 @@ class DenonAVRApi:
         """
         if len(cmd_list) != len(xml_root):
             raise AvrIncompleteResponseError(
-                "Invalid length of response XML. Query has {} elements, "
-                "response {}".format(len(cmd_list), len(xml_root)),
+                (
+                    "Invalid length of response XML. Query has"
+                    f" {len(cmd_list)} elements, response {len(xml_root)}"
+                ),
                 request,
             )
 
         for i, child in enumerate(xml_root):
             if child.tag not in ["cmd", "error"]:
                 raise AvrInvalidResponseError(
-                    'Returned document contains a tag other than "cmd" and '
-                    '"error": {}'.format(child.tag),
+                    (
+                        'Returned document contains a tag other than "cmd" and'
+                        f' "error": {child.tag}'
+                    ),
                     request,
                 )
             # Find corresponding attributes from request XML if set and add
@@ -460,21 +460,19 @@ class DenonAVRTelnetApi:
                 )
         except asyncio.TimeoutError as err:
             _LOGGER.debug("%s: Timeout exception on telnet connect", self.host)
-            raise AvrTimoutError(
-                "TimeoutException: {}".format(err), "telnet connect"
-            ) from err
+            raise AvrTimoutError(f"TimeoutException: {err}", "telnet connect") from err
         except ConnectionRefusedError as err:
             _LOGGER.debug(
                 "%s: Connection refused on telnet connect", self.host, exc_info=True
             )
             raise AvrNetworkError(
-                "ConnectionRefusedError: {}".format(err), "telnet connect"
+                f"ConnectionRefusedError: {err}", "telnet connect"
             ) from err
         except (OSError, IOError) as err:
             _LOGGER.debug(
                 "%s: Connection failed on telnet reconnect", self.host, exc_info=True
             )
-            raise AvrNetworkError("OSError: {}".format(err), "telnet connect") from err
+            raise AvrNetworkError(f"OSError: {err}", "telnet connect") from err
         _LOGGER.debug("%s: telnet connection complete", self.host)
         self._protocol = cast(DenonAVRTelnetProtocol, transport_protocol[1])
         self._connection_enabled = True
@@ -572,7 +570,7 @@ class DenonAVRTelnetApi:
         """Register a callback handler for an event type."""
         # Validate the passed in type
         if event != ALL_TELNET_EVENTS and event not in TELNET_EVENTS:
-            raise ValueError("{} is not a valid callback type.".format(event))
+            raise ValueError(f"{event} is not a valid callback type.")
 
         if event not in self._callbacks.keys():
             self._callbacks[event] = []
@@ -671,7 +669,7 @@ class DenonAVRTelnetApi:
         if not self.healthy:
             return False
         for command in commands:
-            self._protocol.write("{}\r".format(command))
+            self._protocol.write(f"{command}\r")
         return True
 
     ##############

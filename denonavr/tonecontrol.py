@@ -69,10 +69,10 @@ class DenonAVRToneControl(DenonAVRFoundation):
 
         if parameter[0:3] == "BAS":
             self._bass = int(parameter[4:])
-            self._bass_level = "{}dB".format(self._bass - 50)
+            self._bass_level = f"{self._bass - 50}dB"
         elif parameter[0:3] == "TRE":
             self._treble = int(parameter[4:])
-            self._treble_level = "{}dB".format(self._treble - 50)
+            self._treble_level = f"{self._treble - 50}dB"
         elif parameter == "TONE CTRL OFF":
             self._tone_control_adjust = False
             self._tone_control_status = False
