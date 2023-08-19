@@ -119,7 +119,7 @@ class DenonAVRDeviceInfo:
             self.telnet_commands = ZONE3_TELNET_COMMANDS
             self.urls = ZONE3_URLS
         else:
-            raise ValueError("Invalid zone {}".format(self.zone))
+            raise ValueError(f"Invalid zone {self.zone}")
 
     async def _async_power_callback(
         self, zone: str, event: str, parameter: str
@@ -207,8 +207,10 @@ class DenonAVRDeviceInfo:
 
             except AvrRequestError as err:
                 _LOGGER.debug(
-                    "Request error on port %s when identifying receiver, "
-                    "device is not a %s receivers",
+                    (
+                        "Request error on port %s when identifying receiver, "
+                        "device is not a %s receivers"
+                    ),
                     r_type.port,
                     r_type.type,
                     exc_info=err,
@@ -369,9 +371,7 @@ class DenonAVRDeviceInfo:
         """Get device information."""
         port = DESCRIPTION_TYPES[self.receiver.type].port
         command = DESCRIPTION_TYPES[self.receiver.type].url
-        url = "http://{host}:{port}{command}".format(
-            host=self.api.host, port=port, command=command
-        )
+        url = f"http://{self.api.host}:{port}{command}"
 
         device_info = None
         try:
@@ -384,8 +384,10 @@ class DenonAVRDeviceInfo:
             raise
         except AvrRequestError as err:
             _LOGGER.error(
-                "During DenonAVR device identification, when trying to request"
-                " %s the following error occurred: %s",
+                (
+                    "During DenonAVR device identification, when trying to request"
+                    " %s the following error occurred: %s"
+                ),
                 url,
                 err,
             )
@@ -397,9 +399,11 @@ class DenonAVRDeviceInfo:
             self.model_name = "Unknown"
             self.serial_number = None
             _LOGGER.warning(
-                "Unable to get device information of host %s, Device might be "
-                "in a corrupted state. Continuing without device information. "
-                "Disconnect and reconnect power to the device and try again.",
+                (
+                    "Unable to get device information of host %s, Device might be "
+                    "in a corrupted state. Continuing without device information. "
+                    "Disconnect and reconnect power to the device and try again."
+                ),
                 self.api.host,
             )
             return
@@ -447,14 +451,12 @@ class DenonAVRDeviceInfo:
 
         # Search for power tag
         power_tag = xml.find(
-            "./cmd[@{attribute}='{cmd}']/{zone}".format(
-                attribute=APPCOMMAND_CMD_TEXT, cmd=power_appcommand.cmd_text, zone=zone
-            )
+            f"./cmd[@{APPCOMMAND_CMD_TEXT}='{power_appcommand.cmd_text}']/{zone}"
         )
 
         if power_tag is None:
             raise AvrProcessingError(
-                "Power attribute of zone {} not found on update".format(self.zone)
+                f"Power attribute of zone {self.zone} not found on update"
             )
 
         self._power = power_tag.text
@@ -468,7 +470,7 @@ class DenonAVRDeviceInfo:
         if self.zone == MAIN_ZONE:
             urls.append(self.urls.mainzone)
         else:
-            urls.append("{}?ZoneName={}".format(self.urls.mainzone, self.zone))
+            urls.append(f"{self.urls.mainzone}?ZoneName={self.zone}")
         # Tags in XML which might contain information about zones power status
         # ordered by their priority
         tags = ["./ZonePower/value", "./Power/value"]
@@ -490,7 +492,7 @@ class DenonAVRDeviceInfo:
                     return
 
         raise AvrProcessingError(
-            "Power attribute of zone {} not found on update".format(self.zone)
+            f"Power attribute of zone {self.zone} not found on update"
         )
 
     ##############
@@ -617,9 +619,8 @@ class DenonAVRFoundation:
         # Check if each attribute was updated
         if update_attrs and not ignore_missing_response:
             raise AvrProcessingError(
-                "Some attributes of zone {} not found on update: {}".format(
-                    self._device.zone, update_attrs
-                )
+                f"Some attributes of zone {self._device.zone} not found on update:"
+                f" {update_attrs}"
             )
         if update_attrs and ignore_missing_response:
             _LOGGER.debug(
@@ -685,9 +686,8 @@ class DenonAVRFoundation:
         # Check if each attribute was updated
         if update_attrs and not ignore_missing_response:
             raise AvrProcessingError(
-                "Some attributes of zone {} not found on update: {}".format(
-                    self._device.zone, update_attrs
-                )
+                f"Some attributes of zone {self._device.zone} not found on update:"
+                f" {update_attrs}"
             )
 
     @staticmethod
@@ -701,17 +701,15 @@ class DenonAVRFoundation:
             string = "./cmd"
             # Text of cmd tag in query was added as attribute to response
             if app_command_cmd.cmd_text:
-                string = string + "[@{}='{}']".format(
-                    APPCOMMAND_CMD_TEXT, app_command_cmd.cmd_text
+                string = (
+                    string + f"[@{APPCOMMAND_CMD_TEXT}='{app_command_cmd.cmd_text}']"
                 )
             # Text of name tag in query was added as attribute to response
             if app_command_cmd.name:
-                string = string + "[@{}='{}']".format(
-                    APPCOMMAND_NAME, app_command_cmd.name
-                )
+                string = string + f"[@{APPCOMMAND_NAME}='{app_command_cmd.name}']"
             # Some results include a zone tag
             if resp.add_zone:
-                string = string + "/{}".format(zone)
+                string = string + f"/{zone}"
             # Suffix like /status, /volume
             string = string + resp.suffix
 

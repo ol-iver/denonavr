@@ -48,24 +48,18 @@ def async_handle_receiver_exceptions(func: Callable[..., AnyT]) -> Callable[...,
             _LOGGER.debug("HTTP status error on request %s", err.request, exc_info=True)
             # Separate handling of 403 errors
             if err.response.status_code == 403:
-                raise AvrForbiddenError(
-                    "HTTPStatusError: {}".format(err), err.request
-                ) from err
-            raise AvrRequestError(
-                "HTTPStatusError: {}".format(err), err.request
-            ) from err
+                raise AvrForbiddenError(f"HTTPStatusError: {err}", err.request) from err
+            raise AvrRequestError(f"HTTPStatusError: {err}", err.request) from err
         except httpx.TimeoutException as err:
             _LOGGER.debug(
                 "HTTP timeout exception on request %s", err.request, exc_info=True
             )
-            raise AvrTimoutError(
-                "TimeoutException: {}".format(err), err.request
-            ) from err
+            raise AvrTimoutError(f"TimeoutException: {err}", err.request) from err
         except httpx.NetworkError as err:
             _LOGGER.debug(
                 "Network error exception on request %s", err.request, exc_info=True
             )
-            raise AvrNetworkError("NetworkError: {}".format(err), err.request) from err
+            raise AvrNetworkError(f"NetworkError: {err}", err.request) from err
         except httpx.RemoteProtocolError as err:
             _LOGGER.debug(
                 "Remote protocol error exception on request %s",
@@ -73,7 +67,7 @@ def async_handle_receiver_exceptions(func: Callable[..., AnyT]) -> Callable[...,
                 exc_info=True,
             )
             raise AvrInvalidResponseError(
-                "RemoteProtocolError: {}".format(err), err.request
+                f"RemoteProtocolError: {err}", err.request
             ) from err
         except (
             ET.ParseError,
@@ -85,7 +79,7 @@ def async_handle_receiver_exceptions(func: Callable[..., AnyT]) -> Callable[...,
                 "Defusedxml parse error on request %s", (args, kwargs), exc_info=True
             )
             raise AvrInvalidResponseError(
-                "XMLParseError: {}".format(err), (args, kwargs)
+                f"XMLParseError: {err}", (args, kwargs)
             ) from err
 
     return wrapper
@@ -141,13 +135,11 @@ def run_async_synchronously(async_func: Coroutine) -> Callable:
     def decorator(func: Callable):
         # Check if function is a coroutine
         if not inspect.iscoroutinefunction(async_func):
-            raise AttributeError(
-                "Function {} is not a coroutine function".format(async_func)
-            )
+            raise AttributeError(f"Function {async_func} is not a coroutine function")
         # Check if the signature of both functions is equal
         if inspect.signature(func) != inspect.signature(async_func):
             raise AttributeError(
-                "Functions {} and {} have different signatures".format(func, async_func)
+                f"Functions {func} and {async_func} have different signatures"
             )
 
         @wraps(func)

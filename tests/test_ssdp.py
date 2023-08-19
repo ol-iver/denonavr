@@ -9,9 +9,7 @@ from denonavr.ssdp import evaluate_scpd_xml
 
 def get_sample_content(filename):
     """Return sample content form file."""
-    with open(
-        "tests/xml/{filename}".format(filename=filename), encoding="utf-8"
-    ) as file:
+    with open(f"tests/xml/{filename}", encoding="utf-8") as file:
         return file.read()
 
 
@@ -33,6 +31,6 @@ def get_sample_content(filename):
 def test_evaluate(model, expected_device):
     """Test that the discovered device looks like expected."""
     url = "https://10.0.0.0/denon"
-    body = get_sample_content("{model}_upnp.xml".format(model=model))
+    body = get_sample_content(f"{model}_upnp.xml")
     device = evaluate_scpd_xml(url, body)
     assert device == expected_device

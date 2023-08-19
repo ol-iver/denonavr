@@ -124,7 +124,7 @@ class DenonAVR(DenonAVRFoundation):
             # Name either set explicitly or name of Main Zone with suffix
             zonename = None
             if zname is None and self._name is not None:
-                zonename = "{} {}".format(self._name, zone)
+                zonename = f"{self._name} {zone}"
             zone_device = attr.evolve(self._device, zone=zone)
             zone_inst = DenonAVR(
                 host=self._host,

@@ -70,9 +70,7 @@ DESCRIPTION_URL2 = "/upnp/desc/aios_device/aios_device.xml"
 
 def get_sample_content(filename):
     """Return sample content form file."""
-    with open(
-        "tests/xml/{filename}".format(filename=filename), encoding="utf-8"
-    ) as file:
+    with open(f"tests/xml/{filename}", encoding="utf-8") as file:
         return file.read()
 
 
@@ -93,50 +91,36 @@ class TestMainFunctions:
         try:
             if request.url.path == STATUS_URL:
                 content = get_sample_content(
-                    "{receiver}-formMainZone_MainZoneXmlStatus{port}"
-                    ".xml".format(receiver=self.testing_receiver, port=port_suffix)
+                    f"{self.testing_receiver}-formMainZone_MainZoneXmlStatus"
+                    f"{port_suffix}.xml"
                 )
             elif request.url.path == STATUS_Z2_URL:
                 content = get_sample_content(
-                    "{receiver}-formZone2_Zone2XmlStatus{port}.xml".format(
-                        receiver=self.testing_receiver, port=port_suffix
-                    )
+                    f"{self.testing_receiver}-formZone2_Zone2XmlStatus{port_suffix}.xml"
                 )
             elif request.url.path == STATUS_Z3_URL:
                 content = get_sample_content(
-                    "{receiver}-formZone3_Zone3XmlStatus{port}.xml".format(
-                        receiver=self.testing_receiver, port=port_suffix
-                    )
+                    f"{self.testing_receiver}-formZone3_Zone3XmlStatus{port_suffix}.xml"
                 )
             elif request.url.path == MAINZONE_URL:
                 content = get_sample_content(
-                    "{receiver}-formMainZone_MainZoneXml{port}.xml".format(
-                        receiver=self.testing_receiver, port=port_suffix
-                    )
+                    f"{self.testing_receiver}-formMainZone_MainZoneXml{port_suffix}.xml"
                 )
             elif request.url.path == DEVICEINFO_URL:
                 content = get_sample_content(
-                    "{receiver}-Deviceinfo{port}.xml".format(
-                        receiver=self.testing_receiver, port=port_suffix
-                    )
+                    f"{self.testing_receiver}-Deviceinfo{port_suffix}.xml"
                 )
             elif request.url.path == NETAUDIOSTATUS_URL:
                 content = get_sample_content(
-                    "{receiver}-formNetAudio_StatusXml{port}.xml".format(
-                        receiver=self.testing_receiver, port=port_suffix
-                    )
+                    f"{self.testing_receiver}-formNetAudio_StatusXml{port_suffix}.xml"
                 )
             elif request.url.path == TUNERSTATUS_URL:
                 content = get_sample_content(
-                    "{receiver}-formTuner_TunerXml{port}.xml".format(
-                        receiver=self.testing_receiver, port=port_suffix
-                    )
+                    f"{self.testing_receiver}-formTuner_TunerXml{port_suffix}.xml"
                 )
             elif request.url.path == HDTUNERSTATUS_URL:
                 content = get_sample_content(
-                    "{receiver}-formTuner_HdXml{port}.xml".format(
-                        receiver=self.testing_receiver, port=port_suffix
-                    )
+                    f"{self.testing_receiver}-formTuner_HdXml{port_suffix}.xml"
                 )
             elif request.url.path == APPCOMMAND_URL:
                 content_str = request.read().decode("utf-8")
@@ -145,9 +129,7 @@ class TestMainFunctions:
                 else:
                     ep_suffix = "-update"
                 content = get_sample_content(
-                    "{receiver}-AppCommand{ep}{port}.xml".format(
-                        receiver=self.testing_receiver, port=port_suffix, ep=ep_suffix
-                    )
+                    f"{self.testing_receiver}-AppCommand{ep_suffix}{port_suffix}.xml"
                 )
             elif request.url.path in [DESCRIPTION_URL1, DESCRIPTION_URL2]:
                 content = get_sample_content("AVR-X1600H_upnp.xml")
@@ -171,20 +153,18 @@ class TestMainFunctions:
         """Check that receiver type is determined correctly."""
         httpx_mock.add_callback(self.custom_matcher)
         for receiver, spec in TESTING_RECEIVERS.items():
-            print("Receiver: {}".format(receiver))
+            print(f"Receiver: {receiver}")
             # Switch receiver and update to load new sample files
             self.testing_receiver = receiver
             self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
             await self.denon.async_setup()
-            assert (
-                self.denon.receiver_type == spec[1].type
-            ), "Receiver type is {} not {} for receiver {}".format(
-                self.denon.receiver_type, spec[1].type, receiver
+            assert self.denon.receiver_type == spec[1].type, (
+                f"Receiver type is {self.denon.receiver_type} not {spec[1].type} for"
+                f" receiver {receiver}"
             )
-            assert (
-                self.denon.receiver_port == spec[1].port
-            ), "Receiver port is {} not {} for receiver {}".format(
-                self.denon.receiver_port, spec[1].port, receiver
+            assert self.denon.receiver_port == spec[1].port, (
+                f"Receiver port is {self.denon.receiver_port} not {spec[1].port} for"
+                f" receiver {receiver}"
             )
 
     @pytest.mark.asyncio
@@ -197,7 +177,7 @@ class TestMainFunctions:
             self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
             # Switch through all functions and check if successful
             for name, zone in self.denon.zones.items():
-                print("Receiver: {}, Zone: {}".format(receiver, name))
+                print(f"Receiver: {receiver}, Zone: {name}")
                 await self.denon.zones[name].async_update()
                 assert len(zone.input_func_list) > 0
                 for input_func in zone.input_func_list:
@@ -208,24 +188,22 @@ class TestMainFunctions:
         """Check that certain attributes are not None."""
         httpx_mock.add_callback(self.custom_matcher)
         for receiver, spec in TESTING_RECEIVERS.items():
-            print("Receiver: {}".format(receiver))
+            print(f"Receiver: {receiver}")
             # Switch receiver and update to load new sample files
             self.testing_receiver = receiver
             self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
             await self.denon.async_setup()
-            assert self.denon.name is not None, "Name is None for receiver {}".format(
-                receiver
-            )
+            assert self.denon.name is not None, f"Name is None for receiver {receiver}"
             assert (
                 self.denon.support_sound_mode is not None
-            ), "support_sound_mode is None for receiver {}".format(receiver)
+            ), f"support_sound_mode is None for receiver {receiver}"
             await self.denon.async_update()
             assert (
                 self.denon.power is not None
-            ), "Power status is None for receiver {}".format(receiver)
-            assert self.denon.state is not None, "State is None for receiver {}".format(
-                receiver
-            )
+            ), f"Power status is None for receiver {receiver}"
+            assert (
+                self.denon.state is not None
+            ), f"State is None for receiver {receiver}"
 
     @pytest.mark.asyncio
     async def test_sound_mode(self, httpx_mock: HTTPXMock):
@@ -237,7 +215,7 @@ class TestMainFunctions:
             self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
             # Switch through all functions and check if successful
             for name in self.denon.zones:
-                print("Receiver: {}, Zone: {}".format(receiver, name))
+                print(f"Receiver: {receiver}, Zone: {name}")
                 await self.denon.zones[name].async_update()
                 support_sound_mode = self.denon.zones[name].support_sound_mode
                 sound_mode = self.denon.zones[name].sound_mode

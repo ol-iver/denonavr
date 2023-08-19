@@ -129,13 +129,9 @@ class DenonAVRAudyssey(DenonAVRFoundation):
 
         try:
             if res.find("cmd").text != "OK":
-                raise AvrProcessingError(
-                    "SetAudyssey command {} failed".format(cmd.name)
-                )
+                raise AvrProcessingError(f"SetAudyssey command {cmd.name} failed")
         except AttributeError as err:
-            raise AvrProcessingError(
-                "SetAudyssey command {} failed".format(cmd.name)
-            ) from err
+            raise AvrProcessingError(f"SetAudyssey command {cmd.name} failed") from err
 
     ##############
     # Properties #
@@ -198,7 +194,7 @@ class DenonAVRAudyssey(DenonAVRFoundation):
         """Set MultiEQ mode."""
         setting = MULTI_EQ_MAP_LABELS.get(value)
         if setting is None:
-            raise AvrCommandError("Value {} not known for MultiEQ".format(value))
+            raise AvrCommandError(f"Value {value} not known for MultiEQ")
         cmd = attr.evolve(
             AppCommands.SetAudysseyMultiEQ,
             param_list=(AppCommandCmdParam(name="multeq", text=setting),),
@@ -214,9 +210,7 @@ class DenonAVRAudyssey(DenonAVRFoundation):
             )
         setting = REF_LVL_OFFSET_MAP_LABELS.get(value)
         if setting is None:
-            raise AvrCommandError(
-                "Value {} not known for Reference level offset".format(value)
-            )
+            raise AvrCommandError(f"Value {value} not known for Reference level offset")
         cmd = attr.evolve(
             AppCommands.SetAudysseyReflevoffset,
             param_list=(AppCommandCmdParam(name="reflevoffset", text=setting),),
@@ -227,7 +221,7 @@ class DenonAVRAudyssey(DenonAVRFoundation):
         """Set Dynamic Volume."""
         setting = DYNAMIC_VOLUME_MAP_LABELS.get(value)
         if setting is None:
-            raise AvrCommandError("Value {} not known for Dynamic Volume".format(value))
+            raise AvrCommandError(f"Value {value} not known for Dynamic Volume")
         cmd = attr.evolve(
             AppCommands.SetAudysseyDynamicvol,
             param_list=(AppCommandCmdParam(name="dynamicvol", text=setting),),
