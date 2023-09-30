@@ -19,7 +19,7 @@ from .ssdp import async_identify_denonavr_receivers
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 __title__ = "denonavr"
-__version__ = "0.11.4-dev"
+__version__ = "0.11.4"
 
 
 async def async_discover():
