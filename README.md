@@ -17,7 +17,7 @@ In addition to retrieving the current device status via HTTP calls, this version
 
 As of version 0.10.0 and newer, the `denonavr` library has switched to using`async` methods to interact with Denon receivers.
 
-Legacy synchronous methods are still availlable to avoid breaking existing implementations, but may be deprecated in the future.  Switching to `async` methods is recommended.  The existing sync methods are inefficient because they use the corresponding async methods by starting and stopping its own `asyncio` loop for each command.
+Legacy synchronous methods are still available to avoid breaking existing implementations, but may be deprecated in the future.  Switching to `async` methods is recommended.  The existing sync methods are inefficient because they use the corresponding async methods by starting and stopping its own `asyncio` loop for each command.
 
 ### Other changes:
 

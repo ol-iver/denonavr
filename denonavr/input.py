@@ -301,7 +301,7 @@ class DenonAVRInput(DenonAVRFoundation):
             port=self._device.api.port,
             hash=hash((self._title, self._artist, self._album)),
         )
-        await self._async_test_image_accessable()
+        await self._async_test_image_accessible()
 
     def _schedule_tuner_update(self) -> None:
         """Schedule a tuner update task."""
@@ -344,7 +344,7 @@ class DenonAVRInput(DenonAVRFoundation):
         self._image_url = STATIC_ALBUM_URL.format(
             host=self._device.api.host, port=self._device.api.port
         )
-        await self._async_test_image_accessable()
+        await self._async_test_image_accessible()
 
     def _schedule_hdtuner_update(self) -> None:
         """Schedule a HD tuner update task."""
@@ -386,7 +386,7 @@ class DenonAVRInput(DenonAVRFoundation):
         self._image_url = STATIC_ALBUM_URL.format(
             host=self._device.api.host, port=self._device.api.port
         )
-        await self._async_test_image_accessable()
+        await self._async_test_image_accessible()
 
     async def _async_input_func_update_callback(
         self, zone: str, event: str, parameter: str
@@ -665,7 +665,7 @@ class DenonAVRInput(DenonAVRFoundation):
         playing_func_list = []
 
         for item in receiver_sources.items():
-            # Mapping of item[0] because some func names are inconsistant
+            # Mapping of item[0] because some func names are inconsistent
             # at AVR-X receivers
 
             m_item_0 = SOURCE_MAPPING.get(item[0], item[0])
@@ -843,10 +843,10 @@ class DenonAVRInput(DenonAVRFoundation):
             # On track change assume device is PLAYING
             self._state = STATE_PLAYING
 
-        await self._async_test_image_accessable()
+        await self._async_test_image_accessible()
 
-    async def _async_test_image_accessable(self) -> None:
-        """Test if image URL is accessable."""
+    async def _async_test_image_accessible(self) -> None:
+        """Test if image URL is accessible."""
         if self._image_available is None and self._image_url is not None:
             client = self._device.api.async_client_getter()
             try:
