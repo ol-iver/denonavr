@@ -134,7 +134,7 @@ async def async_send_ssdp_broadcast() -> Set[str]:
 async def async_send_ssdp_broadcast_ip(ip_addr: str) -> Set[str]:
     """Send SSDP broadcast messages to a single IP."""
     # Ignore 169.254.0.0/16 addresses
-    if re.search("169.254.*.*", ip_addr):
+    if ip_addr.startswith("169.254."):
         return set()
 
     # Prepare socket
