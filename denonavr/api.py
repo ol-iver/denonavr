@@ -357,7 +357,7 @@ class DenonAVRApi:
         return body_bytes
 
     def is_default_async_client(self) -> bool:
-        """Check if default httpx.AsyncCLient getter is used."""
+        """Check if default httpx.AsyncClient getter is used."""
         return self.async_client_getter is get_default_async_client
 
 

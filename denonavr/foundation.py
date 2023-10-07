@@ -179,7 +179,7 @@ class DenonAVRDeviceInfo:
 
     async def async_identify_receiver(self) -> None:
         """Identify receiver asynchronously."""
-        # Test Deviceinfo.xml if receiver is a AVR-X with port 80 for pre 2016
+        # Test Deviceinfo.xml if receiver is an AVR-X with port 80 for pre 2016
         # devices and port 8080 devices 2016 and later
         # 2016 models has also some of the XML but not all, try first 2016
         r_types = [AVR_X, AVR_X_2016]
@@ -200,7 +200,7 @@ class DenonAVRDeviceInfo:
                     exc_info=err,
                 )
 
-                # Raise error only when occured at both types
+                # Raise error only when occurred at both types
                 timeout_errors += 1
                 if timeout_errors == len(r_types):
                     raise
@@ -222,13 +222,13 @@ class DenonAVRDeviceInfo:
                     # Receiver identified, return
                     return
 
-        # If check of Deviceinfo.xml was not successfull, receiver is type AVR
+        # If check of Deviceinfo.xml was not successful, receiver is type AVR
         self.receiver = AVR
         self.api.port = AVR.port
 
     @staticmethod
     def _is_avr_x(deviceinfo: ET.Element) -> bool:
-        """Evaluate Deviceinfo.xml if the device is a AVR-X device."""
+        """Evaluate Deviceinfo.xml if the device is an AVR-X device."""
         # First test by CommApiVers
         try:
             if bool(

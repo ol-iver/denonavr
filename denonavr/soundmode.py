@@ -109,7 +109,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
                 self._device.api.add_appcommand_update_tag(tag)
 
             # Soundmode is always available for AVR-X and AVR-X-2016 receivers
-            # For AVR receiver it will be tested druing the first update
+            # For AVR receiver it will be tested during the first update
             if self._device.receiver in [AVR_X, AVR_X_2016]:
                 self._support_sound_mode = True
             else:

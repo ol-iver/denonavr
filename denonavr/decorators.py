@@ -34,7 +34,7 @@ AnyT = TypeVar("AnyT")
 
 def async_handle_receiver_exceptions(func: Callable[..., AnyT]) -> Callable[..., AnyT]:
     """
-    Handle exceptions raised when calling an Denon AVR endpoint asynchronously.
+    Handle exceptions raised when calling a Denon AVR endpoint asynchronously.
 
     The decorated function must either have a string variable as second
     argument or as "request" keyword argument.
@@ -111,7 +111,7 @@ def set_cache_id(func: Callable[..., AnyT]) -> Callable[..., AnyT]:
     Decorate a function to add cache_id keyword argument if it is not present.
 
     The function must be called with a fix cache_id keyword argument to be able
-    to get cached data. This prevents accidential caching of a function result.
+    to get cached data. This prevents accidental caching of a function result.
     """
 
     @wraps(func)
