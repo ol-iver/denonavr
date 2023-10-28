@@ -88,8 +88,8 @@ The `asyncio` library should automatically be imported in the REPL.  Import the 
 ```
 ### Sound
 ```
->>> await d.async_mute_on(True)
->>> await d.async_mute_off(False)
+>>> await d.async_mute(True)
+>>> await d.async_mute(False)
 ```
 
 ### Other methods
