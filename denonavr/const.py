@@ -236,6 +236,7 @@ SOUND_MODE_MAPPING = {
         "DOLBY AUDIO - DOLBY DIGITAL",
         "DOLBY AUDIO-DSUR",
         "DOLBY AUDIO-DD+DSUR",
+        "DOLBY PRO LOGIC",
     ],
     "DTS SURROUND": [
         "DTS SURROUND",
