@@ -186,6 +186,7 @@ SOUND_MODE_MAPPING = {
         "DOLBY PL2 CINEMA",
         "DOLBY PL2 C",
         "DOLBY PL2 X MOVIE",
+        "DOLBY PL2 MOVIE",
     ],
     "GAME": [
         "PLII GAME",
@@ -193,6 +194,7 @@ SOUND_MODE_MAPPING = {
         "DOLBY PL2 GAME",
         "DOLBY PL2 G",
         "DOLBY PL2 X GAME",
+        "DOLBY PLII GAME",
     ],
     "AUTO": ["None"],
     "STANDARD": ["None2"],
