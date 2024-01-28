@@ -105,6 +105,7 @@ SOUND_MODE_MAPPING = {
                       "DOLBY AUDIO - DD + DSUR",
                       "DOLBY AUDIO - DD+   + NEURAL:X",
                       "DOLBY AUDIO - DD+   + DSUR",
+                      "DOLBY AUDIO-DD+ +DSUR",
                       "DOLBY AUDIO - DOLBY DIGITAL"],
     "DTS SURROUND": ["DTS SURROUND", "DTS NEURAL:X", "STANDARD(DTS)",
                      "DTS + NEURAL:X", "MULTI CH IN", "DTS-HD MSTR",
