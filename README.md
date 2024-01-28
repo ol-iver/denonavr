@@ -3,6 +3,7 @@
 [![Build Status](https://github.com/ol-iver/denonavr/actions/workflows/python-tests.yml/badge.svg)](https://github.com/ol-iver/denonavr/actions/workflows/python-tests.yml)
 [![PyPi](https://img.shields.io/pypi/v/denonavr.svg)](https://pypi.org/project/denonavr)
 [![License](https://img.shields.io/github/license/ol-iver/denonavr.svg)](LICENSE)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 Automation Library for Denon AVR receivers
 
@@ -16,7 +17,7 @@ In addition to retrieving the current device status via HTTP calls, this version
 
 As of version 0.10.0 and newer, the `denonavr` library has switched to using`async` methods to interact with Denon receivers.
 
-Legacy synchronous methods are still availlable to avoid breaking existing implementations, but may be deprecated in the future.  Switching to `async` methods is recommended.  The existing sync methods are inefficient because they use the corresponding async methods by starting and stopping its own `asyncio` loop for each command.
+Legacy synchronous methods are still available to avoid breaking existing implementations, but may be deprecated in the future.  Switching to `async` methods is recommended.  The existing sync methods are inefficient because they use the corresponding async methods by starting and stopping its own `asyncio` loop for each command.
 
 ### Other changes:
 
@@ -87,8 +88,8 @@ The `asyncio` library should automatically be imported in the REPL.  Import the 
 ```
 ### Sound
 ```
->>> await d.async_mute_on(True)
->>> await d.async_mute_off(False)
+>>> await d.async_mute(True)
+>>> await d.async_mute(False)
 ```
 
 ### Other methods
@@ -239,7 +240,8 @@ MIT
 @JPHutchins: https://github.com/JPHutchins  
 @MarBra: https://github.com/MarBra  
 @dcmeglio: https://github.com/dcmeglio  
+@bdraco: https://github.com/bdraco  
 
 ## Users
-Home Assistant: https://github.com/home-assistant/home-assistant/
+Home Assistant: https://github.com/home-assistant/home-assistant/  
 denonavr-cli: https://pypi.org/project/denonavr-cli/

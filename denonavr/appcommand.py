@@ -32,7 +32,8 @@ class AppCommandResponsePattern:
     add_zone: bool = attr.ib(converter=bool, default=True)
     suffix: str = attr.ib(converter=str, default="")
     get_xml_attribute: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None)
+        converter=attr.converters.optional(str), default=None
+    )
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -41,77 +42,117 @@ class AppCommandCmd:
 
     cmd_id: str = attr.ib(converter=str)
     cmd_text: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None)
-    name: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None)
+        converter=attr.converters.optional(str), default=None
+    )
+    name: Optional[str] = attr.ib(converter=attr.converters.optional(str), default=None)
     param_list: Optional[Tuple[AppCommandCmdParam]] = attr.ib(
         validator=attr.validators.optional(
             attr.validators.deep_iterable(
                 attr.validators.instance_of(AppCommandCmdParam),
-                attr.validators.instance_of(tuple))),
-        default=None)
+                attr.validators.instance_of(tuple),
+            )
+        ),
+        default=None,
+    )
     set_command: Optional[AppCommandCmdParam] = attr.ib(
         validator=attr.validators.optional(
-            attr.validators.instance_of(AppCommandCmdParam)),
-        default=None)
+            attr.validators.instance_of(AppCommandCmdParam)
+        ),
+        default=None,
+    )
     response_pattern: Tuple[AppCommandResponsePattern] = attr.ib(
         validator=attr.validators.deep_iterable(
-                attr.validators.instance_of(AppCommandResponsePattern),
-                attr.validators.instance_of(tuple)),
-        default=attr.Factory(tuple))
+            attr.validators.instance_of(AppCommandResponsePattern),
+            attr.validators.instance_of(tuple),
+        ),
+        default=attr.Factory(tuple),
+    )
 
 
 class AppCommands:
     """Collect known AppCommand.xml tags."""
 
     GetAllZoneMuteStatus = AppCommandCmd(
-        cmd_id=1, cmd_text="GetAllZoneMuteStatus",
-        response_pattern=(AppCommandResponsePattern(
-            update_attribute="_muted", add_zone=True, suffix=""),))
-    GetAllZonePowerStatus = AppCommandCmd(
-        cmd_id=1, cmd_text="GetAllZonePowerStatus",
-        response_pattern=(AppCommandResponsePattern(
-            update_attribute="_power", add_zone=True, suffix=""),))
-    GetAllZoneSource = AppCommandCmd(
-        cmd_id=1, cmd_text="GetAllZoneSource",
-        response_pattern=(AppCommandResponsePattern(
-            update_attribute="_input_func", add_zone=True, suffix="/source"),))
-    GetAllZoneVolume = AppCommandCmd(
-        cmd_id=1, cmd_text="GetAllZoneVolume",
-        response_pattern=(AppCommandResponsePattern(
-            update_attribute="_volume", add_zone=True, suffix="/volume"),))
-
-    GetSurroundModeStatus = AppCommandCmd(
-        cmd_id=1, cmd_text="GetSurroundModeStatus",
-        response_pattern=(AppCommandResponsePattern(
-            update_attribute="_sound_mode_raw", add_zone=False,
-            suffix="/surround"),))
-
-    GetToneControl = AppCommandCmd(
-        cmd_id=1, cmd_text="GetToneControl",
+        cmd_id=1,
+        cmd_text="GetAllZoneMuteStatus",
         response_pattern=(
             AppCommandResponsePattern(
-                update_attribute="_tone_control_status", add_zone=False,
-                suffix="/status"),
+                update_attribute="_muted", add_zone=True, suffix=""
+            ),
+        ),
+    )
+    GetAllZonePowerStatus = AppCommandCmd(
+        cmd_id=1,
+        cmd_text="GetAllZonePowerStatus",
+        response_pattern=(
             AppCommandResponsePattern(
-                update_attribute="_tone_control_adjust", add_zone=False,
-                suffix="/adjust"),
+                update_attribute="_power", add_zone=True, suffix=""
+            ),
+        ),
+    )
+    GetAllZoneSource = AppCommandCmd(
+        cmd_id=1,
+        cmd_text="GetAllZoneSource",
+        response_pattern=(
             AppCommandResponsePattern(
-                update_attribute="_bass_level", add_zone=False,
-                suffix="/basslevel"),
+                update_attribute="_input_func", add_zone=True, suffix="/source"
+            ),
+        ),
+    )
+    GetAllZoneVolume = AppCommandCmd(
+        cmd_id=1,
+        cmd_text="GetAllZoneVolume",
+        response_pattern=(
             AppCommandResponsePattern(
-                update_attribute="_bass", add_zone=False,
-                suffix="/bassvalue"),
+                update_attribute="_volume", add_zone=True, suffix="/volume"
+            ),
+        ),
+    )
+
+    GetSurroundModeStatus = AppCommandCmd(
+        cmd_id=1,
+        cmd_text="GetSurroundModeStatus",
+        response_pattern=(
             AppCommandResponsePattern(
-                update_attribute="_treble_level", add_zone=False,
-                suffix="/treblelevel"),
+                update_attribute="_sound_mode_raw", add_zone=False, suffix="/surround"
+            ),
+        ),
+    )
+
+    GetToneControl = AppCommandCmd(
+        cmd_id=1,
+        cmd_text="GetToneControl",
+        response_pattern=(
             AppCommandResponsePattern(
-                update_attribute="_treble", add_zone=False,
-                suffix="/treblevalue")))
+                update_attribute="_tone_control_status",
+                add_zone=False,
+                suffix="/status",
+            ),
+            AppCommandResponsePattern(
+                update_attribute="_tone_control_adjust",
+                add_zone=False,
+                suffix="/adjust",
+            ),
+            AppCommandResponsePattern(
+                update_attribute="_bass_level", add_zone=False, suffix="/basslevel"
+            ),
+            AppCommandResponsePattern(
+                update_attribute="_bass", add_zone=False, suffix="/bassvalue"
+            ),
+            AppCommandResponsePattern(
+                update_attribute="_treble_level", add_zone=False, suffix="/treblelevel"
+            ),
+            AppCommandResponsePattern(
+                update_attribute="_treble", add_zone=False, suffix="/treblevalue"
+            ),
+        ),
+    )
     # Replace set command with a real command using attr.evolve
     SetToneControl = AppCommandCmd(
-        cmd_id=1, cmd_text="SetToneControl",
-        set_command=AppCommandCmdParam(name="REPLACE", text="REPLACE"))
+        cmd_id=1,
+        cmd_text="SetToneControl",
+        set_command=AppCommandCmdParam(name="REPLACE", text="REPLACE"),
+    )
 
     GetRenameSource = AppCommandCmd(cmd_id=1, cmd_text="GetRenameSource")
     GetDeletedSource = AppCommandCmd(cmd_id=1, cmd_text="GetDeletedSource")
@@ -125,49 +166,72 @@ class AppCommands:
             AppCommandCmdParam(name="dynamiceq"),
             AppCommandCmdParam(name="reflevoffset"),
             AppCommandCmdParam(name="dynamicvol"),
-            AppCommandCmdParam(name="multeq")),
+            AppCommandCmdParam(name="multeq"),
+        ),
         response_pattern=(
             AppCommandResponsePattern(
-                update_attribute="_multeq", add_zone=False,
-                suffix="/list/param[@name='multeq']"),
-            AppCommandResponsePattern(
-                update_attribute="_multeq_control", add_zone=False,
+                update_attribute="_multeq",
+                add_zone=False,
                 suffix="/list/param[@name='multeq']",
-                get_xml_attribute="control"),
+            ),
             AppCommandResponsePattern(
-                update_attribute="_dynamiceq", add_zone=False,
-                suffix="/list/param[@name='dynamiceq']"),
+                update_attribute="_multeq_control",
+                add_zone=False,
+                suffix="/list/param[@name='multeq']",
+                get_xml_attribute="control",
+            ),
             AppCommandResponsePattern(
-                update_attribute="_dynamiceq_control", add_zone=False,
+                update_attribute="_dynamiceq",
+                add_zone=False,
                 suffix="/list/param[@name='dynamiceq']",
-                get_xml_attribute="control"),
+            ),
             AppCommandResponsePattern(
-                update_attribute="_reflevoffset", add_zone=False,
-                suffix="/list/param[@name='reflevoffset']"),
+                update_attribute="_dynamiceq_control",
+                add_zone=False,
+                suffix="/list/param[@name='dynamiceq']",
+                get_xml_attribute="control",
+            ),
             AppCommandResponsePattern(
-                update_attribute="_reflevoffset_control", add_zone=False,
+                update_attribute="_reflevoffset",
+                add_zone=False,
                 suffix="/list/param[@name='reflevoffset']",
-                get_xml_attribute="control"),
+            ),
             AppCommandResponsePattern(
-                update_attribute="_dynamicvol", add_zone=False,
-                suffix="/list/param[@name='dynamicvol']"),
+                update_attribute="_reflevoffset_control",
+                add_zone=False,
+                suffix="/list/param[@name='reflevoffset']",
+                get_xml_attribute="control",
+            ),
             AppCommandResponsePattern(
-                update_attribute="_dynamicvol_control", add_zone=False,
+                update_attribute="_dynamicvol",
+                add_zone=False,
                 suffix="/list/param[@name='dynamicvol']",
-                get_xml_attribute="control")))
+            ),
+            AppCommandResponsePattern(
+                update_attribute="_dynamicvol_control",
+                add_zone=False,
+                suffix="/list/param[@name='dynamicvol']",
+                get_xml_attribute="control",
+            ),
+        ),
+    )
     SetAudysseyDynamicEQ = AppCommandCmd(
         cmd_id=3,
         name="SetAudyssey",
-        param_list=(AppCommandCmdParam(name="dynamiceq", text="REPLACE"),))
+        param_list=(AppCommandCmdParam(name="dynamiceq", text="REPLACE"),),
+    )
     SetAudysseyMultiEQ = AppCommandCmd(
         cmd_id=3,
         name="SetAudyssey",
-        param_list=(AppCommandCmdParam(name="multieq", text="REPLACE"),))
+        param_list=(AppCommandCmdParam(name="multieq", text="REPLACE"),),
+    )
     SetAudysseyReflevoffset = AppCommandCmd(
         cmd_id=3,
         name="SetAudyssey",
-        param_list=(AppCommandCmdParam(name="reflevoffset", text="REPLACE"),))
+        param_list=(AppCommandCmdParam(name="reflevoffset", text="REPLACE"),),
+    )
     SetAudysseyDynamicvol = AppCommandCmd(
         cmd_id=3,
         name="SetAudyssey",
-        param_list=(AppCommandCmdParam(name="dynamicvol", text="REPLACE"),))
+        param_list=(AppCommandCmdParam(name="dynamicvol", text="REPLACE"),),
+    )

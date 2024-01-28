@@ -8,38 +8,81 @@ This module implements the REST and Telnet APIs to Denon AVR receivers.
 """
 
 import asyncio
+import contextlib
 import logging
+import sys
+import time
 import xml.etree.ElementTree as ET
-
+from collections import defaultdict
 from io import BytesIO
-from typing import Awaitable, Callable, Dict, Hashable, Optional, Tuple
+from typing import (
+    Awaitable,
+    Callable,
+    DefaultDict,
+    Dict,
+    Hashable,
+    List,
+    Optional,
+    Tuple,
+    cast,
+)
 
 import attr
 import httpx
-
 from asyncstdlib import lru_cache
 from defusedxml.ElementTree import fromstring
 
 from .appcommand import AppCommandCmd
+from .const import (
+    ALL_TELNET_EVENTS,
+    ALL_ZONE_TELNET_EVENTS,
+    ALL_ZONES,
+    APPCOMMAND0300_URL,
+    APPCOMMAND_CMD_TEXT,
+    APPCOMMAND_NAME,
+    APPCOMMAND_URL,
+    DENON_ATTR_SETATTR,
+    MAIN_ZONE,
+    TELNET_EVENTS,
+    TELNET_SOURCES,
+    ZONE2,
+    ZONE3,
+)
 from .decorators import (
     async_handle_receiver_exceptions,
     cache_clear_on_exception,
-    set_cache_id)
+    set_cache_id,
+)
 from .exceptions import (
-    AvrIncompleteResponseError, AvrInvalidResponseError, AvrNetworkError,
-    AvrTimoutError)
-from .const import (
-    APPCOMMAND_CMD_TEXT, APPCOMMAND_NAME, APPCOMMAND_URL, APPCOMMAND0300_URL,
-    DENON_ATTR_SETATTR, MAIN_ZONE, TELNET_EVENTS, ZONE2, ZONE3, TELNET_SOURCES)
+    AvrIncompleteResponseError,
+    AvrInvalidResponseError,
+    AvrNetworkError,
+    AvrTimoutError,
+)
+
+if sys.version_info[:2] < (3, 11):
+    from async_timeout import timeout as asyncio_timeout
+else:
+    from asyncio import timeout as asyncio_timeout
 
 _LOGGER = logging.getLogger(__name__)
 
-_SOCKET_READ_SIZE = 135
+_MONITOR_INTERVAL = 30
 
 
 def get_default_async_client() -> httpx.AsyncClient:
     """Get the default httpx.AsyncClient."""
     return httpx.AsyncClient()
+
+
+def telnet_event_map_factory() -> Dict[str, List]:
+    """Create telnet event map."""
+    event_map: DefaultDict[str, List] = defaultdict(list)
+    for event in TELNET_EVENTS:
+        event_map[event[0:2]].append(event)
+    for value in event_map.values():
+        value.sort(key=len, reverse=True)
+    return dict(event_map)
 
 
 @attr.s(auto_attribs=True, hash=False, on_setattr=DENON_ATTR_SETATTR)
@@ -50,20 +93,27 @@ class DenonAVRApi:
     port: int = attr.ib(converter=int, default=80)
     timeout: httpx.Timeout = attr.ib(
         validator=attr.validators.instance_of(httpx.Timeout),
-        default=httpx.Timeout(2.0, read=15.0))
+        default=httpx.Timeout(2.0, read=15.0),
+    )
     _appcommand_update_tags: Tuple[AppCommandCmd] = attr.ib(
         validator=attr.validators.deep_iterable(
             attr.validators.instance_of(AppCommandCmd),
-            attr.validators.instance_of(tuple)),
-        default=attr.Factory(tuple))
+            attr.validators.instance_of(tuple),
+        ),
+        default=attr.Factory(tuple),
+    )
     _appcommand0300_update_tags: Tuple[AppCommandCmd] = attr.ib(
         validator=attr.validators.deep_iterable(
             attr.validators.instance_of(AppCommandCmd),
-            attr.validators.instance_of(tuple)),
-        default=attr.Factory(tuple))
+            attr.validators.instance_of(tuple),
+        ),
+        default=attr.Factory(tuple),
+    )
     async_client_getter: Callable[[], httpx.AsyncClient] = attr.ib(
         validator=attr.validators.is_callable(),
-        default=get_default_async_client, init=False)
+        default=get_default_async_client,
+        init=False,
+    )
 
     def __hash__(self) -> int:
         """
@@ -75,15 +125,13 @@ class DenonAVRApi:
 
     @async_handle_receiver_exceptions
     async def async_get(
-            self,
-            request: str,
-            port: Optional[int] = None) -> httpx.Response:
+        self, request: str, port: Optional[int] = None
+    ) -> httpx.Response:
         """Call GET endpoint of Denon AVR receiver asynchronously."""
         # Use default port of the receiver if no different port is specified
         port = port if port is not None else self.port
 
-        endpoint = "http://{host}:{port}{request}".format(
-            host=self.host, port=port, request=request)
+        endpoint = f"http://{self.host}:{port}{request}"
 
         client = self.async_client_getter()
         try:
@@ -98,22 +146,23 @@ class DenonAVRApi:
 
     @async_handle_receiver_exceptions
     async def async_post(
-            self,
-            request: str,
-            content: Optional[bytes] = None,
-            data: Optional[Dict] = None,
-            port: Optional[int] = None) -> httpx.Response:
+        self,
+        request: str,
+        content: Optional[bytes] = None,
+        data: Optional[Dict] = None,
+        port: Optional[int] = None,
+    ) -> httpx.Response:
         """Call POST endpoint of Denon AVR receiver asynchronously."""
         # Use default port of the receiver if no different port is specified
         port = port if port is not None else self.port
 
-        endpoint = "http://{host}:{port}{request}".format(
-            host=self.host, port=port, request=request)
+        endpoint = f"http://{self.host}:{port}{request}"
 
         client = self.async_client_getter()
         try:
             res = await client.post(
-                endpoint, content=content, data=data, timeout=self.timeout)
+                endpoint, content=content, data=data, timeout=self.timeout
+            )
             res.raise_for_status()
         finally:
             # Close the default AsyncClient but keep custom clients open
@@ -135,10 +184,8 @@ class DenonAVRApi:
     @lru_cache(maxsize=32)
     @async_handle_receiver_exceptions
     async def async_get_xml(
-            self,
-            request: str,
-            cache_id: Hashable = None
-            ) -> ET.Element:
+        self, request: str, cache_id: Hashable = None
+    ) -> ET.Element:
         """Return XML data from HTTP GET endpoint asynchronously."""
         # HTTP GET to endpoint
         res = await self.async_get(request)
@@ -154,11 +201,8 @@ class DenonAVRApi:
     @lru_cache(maxsize=32)
     @async_handle_receiver_exceptions
     async def async_post_appcommand(
-            self,
-            request: str,
-            cmds: Tuple[AppCommandCmd],
-            cache_id: Hashable = None
-            ) -> ET.Element:
+        self, request: str, cmds: Tuple[AppCommandCmd], cache_id: Hashable = None
+    ) -> ET.Element:
         """Return XML from Appcommand(0300) endpoint asynchronously."""
         # Prepare XML body for POST call
         content = self.prepare_appcommand_body(cmds)
@@ -177,7 +221,7 @@ class DenonAVRApi:
     def add_appcommand_update_tag(self, tag: AppCommandCmd) -> None:
         """Add appcommand tag for full update."""
         if tag.cmd_id != "1":
-            raise ValueError("cmd_id is {} but must be 1".format(tag.cmd_id))
+            raise ValueError(f"cmd_id is {tag.cmd_id} but must be 1")
 
         # Remove response pattern from tag because it is not relevant for query
         tag = attr.evolve(tag, response_pattern=tuple())
@@ -189,20 +233,18 @@ class DenonAVRApi:
     def add_appcommand0300_update_tag(self, tag: AppCommandCmd) -> None:
         """Add appcommand0300 tag for full update."""
         if tag.cmd_id != "3":
-            raise ValueError("cmd_id is {} but must be 3".format(tag.cmd_id))
+            raise ValueError(f"cmd_id is {tag.cmd_id} but must be 3")
 
         # Remove response pattern from tag because it is not relevant for query
         tag = attr.evolve(tag, response_pattern=tuple())
 
         if tag not in self._appcommand0300_update_tags:
             _LOGGER.debug("Add tag %s to AppCommand0300 update tuple", tag)
-            self._appcommand0300_update_tags = (
-                *self._appcommand0300_update_tags, tag)
+            self._appcommand0300_update_tags = (*self._appcommand0300_update_tags, tag)
 
     async def async_get_global_appcommand(
-            self,
-            appcommand0300: bool = False,
-            cache_id: Optional[Hashable] = None) -> ET.Element:
+        self, appcommand0300: bool = False, cache_id: Optional[Hashable] = None
+    ) -> ET.Element:
         """Get XML structure for full AppCommand update."""
         if appcommand0300:
             tags = self._appcommand0300_update_tags
@@ -216,10 +258,8 @@ class DenonAVRApi:
 
     @staticmethod
     def add_query_tags_to_result(
-            request: str,
-            cmd_list: Tuple[AppCommandCmd],
-            xml_root: ET.Element
-            ) -> ET.Element:
+        request: str, cmd_list: Tuple[AppCommandCmd], xml_root: ET.Element
+    ) -> ET.Element:
         """
         Add query tags to corresponding elements of result XML.
 
@@ -227,14 +267,22 @@ class DenonAVRApi:
         """
         if len(cmd_list) != len(xml_root):
             raise AvrIncompleteResponseError(
-                "Invalid length of response XML. Query has {} elements, "
-                "response {}".format(len(cmd_list), len(xml_root)), request)
+                (
+                    "Invalid length of response XML. Query has"
+                    f" {len(cmd_list)} elements, response {len(xml_root)}"
+                ),
+                request,
+            )
 
         for i, child in enumerate(xml_root):
             if child.tag not in ["cmd", "error"]:
                 raise AvrInvalidResponseError(
-                    "Returned document contains a tag other than \"cmd\" and "
-                    "\"error\": {}".format(child.tag), request)
+                    (
+                        'Returned document contains a tag other than "cmd" and'
+                        f' "error": {child.tag}'
+                    ),
+                    request,
+                )
             # Find corresponding attributes from request XML if set and add
             # tag to cmd element
             if cmd_list[i].cmd_text is not None:
@@ -248,8 +296,7 @@ class DenonAVRApi:
     def check_xml_validity(request: str, xml_root: ET.Element) -> None:
         """Check if there is a valid Denon XML and not a HTML page."""
         if xml_root.tag == "html":
-            raise AvrInvalidResponseError(
-                "Returned document contains HTML", request)
+            raise AvrInvalidResponseError("Returned document contains HTML", request)
 
     @staticmethod
     def prepare_appcommand_body(cmd_list: Tuple[AppCommandCmd]) -> bytes:
@@ -260,8 +307,7 @@ class DenonAVRApi:
         # Denon AppCommand.xml acts weird. It returns an error when the tx
         # element consists of more than 5 cmd elements, but it accepts
         # multiple XML root elements
-        chunks = [cmd_list[i:i+5] for i in range(
-            0, len(cmd_list), 5)]
+        chunks = [cmd_list[i : i + 5] for i in range(0, len(cmd_list), 5)]
 
         for i, chunk in enumerate(chunks):
             # Prepare POST XML body for AppCommand.xml
@@ -301,8 +347,7 @@ class DenonAVRApi:
 
             xml_tree = ET.ElementTree(xml_root)
             # XML declaration only for the first chunk
-            xml_tree.write(
-                body, encoding="utf-8", xml_declaration=bool(i == 0))
+            xml_tree.write(body, encoding="utf-8", xml_declaration=bool(i == 0))
 
         body_bytes = body.getvalue()
 
@@ -312,8 +357,59 @@ class DenonAVRApi:
         return body_bytes
 
     def is_default_async_client(self) -> bool:
-        """Check if default httpx.AsyncCLient getter is used."""
+        """Check if default httpx.AsyncClient getter is used."""
         return self.async_client_getter is get_default_async_client
+
+
+class DenonAVRTelnetProtocol(asyncio.Protocol):
+    """Protocol for the Denon AVR Telnet interface."""
+
+    def __init__(
+        self, on_message: Callable[[str], None], on_connection_lost: Callable[[], None]
+    ) -> None:
+        """Initialize the protocol."""
+        self._buffer = b""
+        self.transport: Optional[asyncio.Transport] = None
+        self._on_message = on_message
+        self._on_connection_lost = on_connection_lost
+
+    @property
+    def connected(self) -> bool:
+        """Return True if transport is connected."""
+        if self.transport is None:
+            return False
+        return not self.transport.is_closing()
+
+    def write(self, data: str) -> None:
+        """Write data to the transport."""
+        if self.transport is None:
+            return
+        if self.transport.is_closing():
+            return
+        self.transport.write(data.encode("utf-8"))
+
+    def close(self) -> None:
+        """Close the connection."""
+        if self.transport is not None:
+            self.transport.close()
+
+    def data_received(self, data: bytes) -> None:
+        """Handle data received."""
+        self._buffer += data
+        while b"\r" in self._buffer:
+            line, _, self._buffer = self._buffer.partition(b"\r")
+            with contextlib.suppress(UnicodeDecodeError):
+                self._on_message(line.decode("utf-8"))
+
+    def connection_made(self, transport: asyncio.Transport) -> None:
+        """Handle connection made."""
+        self.transport = transport
+
+    def connection_lost(self, exc: Optional[Exception]) -> None:
+        """Handle connection lost."""
+        self.transport = None
+        self._on_connection_lost()
+        return super().connection_lost(exc)
 
 
 @attr.s(auto_attribs=True, hash=False, on_setattr=DENON_ATTR_SETATTR)
@@ -322,163 +418,183 @@ class DenonAVRTelnetApi:
 
     host: str = attr.ib(converter=str, default="localhost")
     timeout: float = attr.ib(converter=float, default=2.0)
+    _connection_enabled: bool = attr.ib(default=False)
     _healthy: Optional[bool] = attr.ib(
-        converter=attr.converters.optional(bool),
-        default=None)
+        converter=attr.converters.optional(bool), default=None
+    )
+    _last_message_time: float = attr.ib(default=-1.0)
     _connect_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
-    _monitor_task: asyncio.Task = attr.ib(default=None)
-    _reader: asyncio.StreamReader = attr.ib(default=None)
-    _writer: asyncio.StreamWriter = attr.ib(default=None)
+    _reconnect_task: asyncio.Task = attr.ib(default=None)
+    _monitor_handle: asyncio.TimerHandle = attr.ib(default=None)
+    _protocol: DenonAVRTelnetProtocol = attr.ib(default=None)
+    _telnet_event_map: Dict[str, List] = attr.ib(
+        default=attr.Factory(telnet_event_map_factory)
+    )
     _callbacks: Dict[str, Callable] = attr.ib(
         validator=attr.validators.instance_of(dict),
-        default=attr.Factory(dict), init=False)
+        default=attr.Factory(dict),
+        init=False,
+    )
 
     async def async_connect(self) -> None:
         """Connect to the receiver asynchronously."""
+        _LOGGER.debug("%s: telnet connecting", self.host)
         async with self._connect_lock:
-            if self.connected is True:
+            if self.connected:
                 return
-            try:
-                self._reader, self._writer = await asyncio.wait_for(
-                    asyncio.open_connection(self.host, 23),
-                    timeout=self.timeout)
-            except asyncio.TimeoutError as err:
-                _LOGGER.debug("Timeout exception on telnet connect")
-                raise AvrTimoutError(
-                    "TimeoutException: {}".format(err),
-                    "telnet connect") from err
-            except ConnectionRefusedError as err:
-                _LOGGER.debug(
-                    "Connection refused on telnet connect", exc_info=True)
-                raise AvrNetworkError(
-                    "ConnectionRefusedError: {}".format(err),
-                    "telnet connect") from err
-            except (OSError, IOError) as err:
-                _LOGGER.debug(
-                    "Connection failed on telnet reconnect", exc_info=True)
-                raise AvrNetworkError(
-                    "OSError: {}".format(err), "telnet connect") from err
-            self._healthy = True
-            self._monitor_task = asyncio.create_task(self._async_monitor())
+            await self._async_establish_connection()
+
+    async def _async_establish_connection(self) -> None:
+        """Establish a connection to the receiver."""
+        loop = asyncio.get_event_loop()
+        _LOGGER.debug("%s: establishing telnet connection", self.host)
+        try:
+            async with asyncio_timeout(self.timeout):
+                transport_protocol = await loop.create_connection(
+                    lambda: DenonAVRTelnetProtocol(
+                        on_connection_lost=self._handle_disconnected,
+                        on_message=self._process_event,
+                    ),
+                    self.host,
+                    23,
+                )
+        except asyncio.TimeoutError as err:
+            _LOGGER.debug("%s: Timeout exception on telnet connect", self.host)
+            raise AvrTimoutError(f"TimeoutException: {err}", "telnet connect") from err
+        except ConnectionRefusedError as err:
+            _LOGGER.debug(
+                "%s: Connection refused on telnet connect", self.host, exc_info=True
+            )
+            raise AvrNetworkError(
+                f"ConnectionRefusedError: {err}", "telnet connect"
+            ) from err
+        except (OSError, IOError) as err:
+            _LOGGER.debug(
+                "%s: Connection failed on telnet reconnect", self.host, exc_info=True
+            )
+            raise AvrNetworkError(f"OSError: {err}", "telnet connect") from err
+        _LOGGER.debug("%s: telnet connection complete", self.host)
+        self._protocol = cast(DenonAVRTelnetProtocol, transport_protocol[1])
+        self._connection_enabled = True
+        self._last_message_time = time.monotonic()
+        self._schedule_monitor()
+        self._protocol.write("PW?\r")
+
+    def _schedule_monitor(self) -> None:
+        """Start the monitor task."""
+        loop = asyncio.get_event_loop()
+        self._monitor_handle = loop.call_later(_MONITOR_INTERVAL, self._monitor)
+
+    def _stop_monitor(self) -> None:
+        """Stop the monitor task."""
+        if self._monitor_handle is not None:
+            self._monitor_handle.cancel()
+            self._monitor_handle = None
+
+    def _monitor(self) -> None:
+        """Monitor the connection."""
+        time_since_response = time.monotonic() - self._last_message_time
+        if time_since_response > _MONITOR_INTERVAL * 2:
+            _LOGGER.info(
+                "%s: Keep alive failed, disconnecting and reconnecting", self.host
+            )
+            if self._protocol is not None:
+                self._protocol.close()
+            self._handle_disconnected()
+            return
+
+        if time_since_response > _MONITOR_INTERVAL and self._protocol:
+            # Keep the connection alive
+            _LOGGER.debug("%s: Sending keep alive", self.host)
+            self._protocol.write("PW?\r")
+        self._schedule_monitor()
+
+    def _handle_disconnected(self) -> None:
+        """Handle disconnected."""
+        _LOGGER.debug("%s: disconnected", self.host)
+        self._protocol = None
+        self._stop_monitor()
+        if not self._connection_enabled:
+            return
+        self._reconnect_task = asyncio.create_task(self._async_reconnect())
 
     async def async_disconnect(self) -> None:
         """Close the connection to the receiver asynchronously."""
         async with self._connect_lock:
-            if self._monitor_task is not None:
-                self._monitor_task.cancel()
-                self._monitor_task = None
-            if self._writer is not None:
-                self._writer.close()
-                await self._writer.wait_closed()
+            self._connection_enabled = False
+            self._stop_monitor()
+            reconnect_task = self._reconnect_task
+            if self._reconnect_task is not None:
+                self._reconnect_task.cancel()
+                self._reconnect_task = None
+            if self._protocol is not None:
+                self._protocol.close()
+                self._protocol = None
 
-            self._reader = None
-            self._writer = None
-            self._healthy = None
+            if reconnect_task is not None:
+                try:
+                    await reconnect_task
+                except asyncio.CancelledError:
+                    pass
 
     async def _async_reconnect(self) -> None:
         """Reconnect to the receiver asynchronously."""
-        async with self._connect_lock:
-            if self.connected is False:
-                return
-            self._healthy = False
-            self._writer.close()
-            await self._writer.wait_closed()
-
         backoff = 0.5
-        while self.connected is True and self._healthy is False:
-            try:
-                self._reader, self._writer = await asyncio.wait_for(
-                    asyncio.open_connection(self.host, 23),
-                    timeout=self.timeout)
-            except asyncio.TimeoutError:
-                _LOGGER.debug("Timeout exception on telnet reconnect")
-            except ConnectionRefusedError:
-                _LOGGER.debug(
-                    "Connection refused on telnet reconnect", exc_info=True)
-            except (OSError, IOError):
-                _LOGGER.debug(
-                    "Connection failed on telnet reconnect", exc_info=True)
-            except Exception:    # pylint: disable=broad-except
-                _LOGGER.error(
-                    "Unexpected exception on telnet reconnect", exc_info=True)
-            else:
-                _LOGGER.info("Telnet reconnected")
-                self._healthy = True
-                self._monitor_task = asyncio.create_task(self._async_monitor())
-                return
+
+        while self._connection_enabled and not self.healthy:
+            async with self._connect_lock:
+                try:
+                    await self._async_establish_connection()
+                except AvrTimoutError:
+                    _LOGGER.debug(
+                        "%s: Timeout exception on telnet reconnect", self.host
+                    )
+                except AvrNetworkError as ex:
+                    _LOGGER.debug("%s: %s", self.host, ex, exc_info=True)
+                except Exception:  # pylint: disable=broad-except
+                    _LOGGER.error(
+                        "%s: Unexpected exception on telnet reconnect",
+                        self.host,
+                        exc_info=True,
+                    )
+                else:
+                    _LOGGER.info("%s: Telnet reconnected", self.host)
+                    return
 
             await asyncio.sleep(backoff)
-            backoff = min(30.0, backoff*2)
-
-    async def _async_monitor(self):
-        """Read the messages on the TCP socket."""
-        data = bytearray()
-        while not self._reader.at_eof():
-            try:
-                chunk = await asyncio.wait_for(
-                    self._reader.read(_SOCKET_READ_SIZE), 30.0)
-            except (asyncio.TimeoutError, IOError, OSError):
-                _LOGGER.info(
-                    "Lost telnet connection to receiver, reconnecting")
-                self._monitor_task = asyncio.create_task(
-                    self._async_reconnect())
-                return
-            except asyncio.CancelledError:
-                _LOGGER.debug("Stopped telnet monitoring")
-                return
-            except Exception:    # pylint: disable=broad-except
-                _LOGGER.error(
-                    "Unexpected exception while monitoring telnet",
-                    exc_info=True)
-                return
-            # pylint: disable=consider-using-enumerate
-            for i in range(0, len(chunk)):
-                # Messages are CR terminated
-                if chunk[i] != 13:
-                    data += chunk[i].to_bytes(1, byteorder='big')
-                else:
-                    await self._process_event(str(data, 'utf-8'))
-                    data = bytearray()
-
-        if self.connected is True:
-            _LOGGER.info(
-                "Telnet connection terminated by receiver, reconnecting")
-            self._monitor_task = asyncio.create_task(self._async_reconnect())
+            backoff = min(30.0, backoff * 2)
 
     def register_callback(
-        self,
-        event: str,
-        callback: Callable[[str, str, str], Awaitable[None]]
-    ):
+        self, event: str, callback: Callable[[str, str, str], Awaitable[None]]
+    ) -> None:
         """Register a callback handler for an event type."""
         # Validate the passed in type
-        if event != "ALL" and event not in TELNET_EVENTS:
-            raise ValueError("{} is not a valid callback type.".format(event))
+        if event != ALL_TELNET_EVENTS and event not in TELNET_EVENTS:
+            raise ValueError(f"{event} is not a valid callback type.")
 
         if event not in self._callbacks.keys():
             self._callbacks[event] = []
         self._callbacks[event].append(callback)
 
     def unregister_callback(
-        self,
-        event: str,
-        callback: Callable[[str, str, str], Awaitable[None]]
-    ):
+        self, event: str, callback: Callable[[str, str, str], Awaitable[None]]
+    ) -> None:
         """Unregister a callback handler for an event type."""
         if event not in self._callbacks.keys():
             return
         self._callbacks[event].remove(callback)
 
-    async def _process_event(self, message: str):
+    def _process_event(self, message: str) -> None:
         """Process a realtime event."""
+        _LOGGER.debug("Incoming Telnet message: %s", message)
+        self._last_message_time = time.monotonic()
         if len(message) < 3:
-            return None
-        zone = MAIN_ZONE
+            return
 
         # Event is 2 characters
-        event = message[0:2]
+        event = self._get_event(message)
         # Parameter is the remaining characters
-        parameter = message[2:]
+        parameter = message[len(event) :]
 
         if event == "MV":
             # This seems undocumented by Denon and appears to basically be a
@@ -487,28 +603,30 @@ class DenonAVRTelnetApi:
             if parameter[0:3] == "MAX":
                 return
 
-        if event in ("Z2", "Z3"):
+        # Determine zone
+        zone = MAIN_ZONE
+        if event in ALL_ZONE_TELNET_EVENTS:
+            zone = ALL_ZONES
+        elif event in {"Z2", "Z3"}:
             if event == "Z2":
                 zone = ZONE2
             else:
                 zone = ZONE3
 
-            if parameter in ("ON", "OFF"):
-                event = "PW"
-            elif parameter in TELNET_SOURCES:
+            if parameter in TELNET_SOURCES:
                 event = "SI"
             elif parameter.isdigit():
                 event = "MV"
-            elif parameter[0:2] in TELNET_EVENTS:
-                event = parameter[0:2]
-                parameter = parameter[2:]
+            elif self._get_event(parameter):
+                event = self._get_event(parameter)
+                parameter = parameter[len(event) :]
 
         if event not in TELNET_EVENTS:
             return
 
-        await self._run_callbacks(event, zone, parameter)
+        asyncio.create_task(self._async_run_callbacks(event, zone, parameter))
 
-    async def _run_callbacks(self, event: str, zone: str, parameter: str):
+    async def _async_run_callbacks(self, event: str, zone: str, parameter: str) -> None:
         """Handle triggering the registered callbacks for the event."""
         if event in self._callbacks.keys():
             for callback in self._callbacks[event]:
@@ -518,31 +636,51 @@ class DenonAVRTelnetApi:
                     # We don't want a single bad callback to trip up the
                     # whole system and prevent further execution
                     _LOGGER.error(
-                        "Event callback triggered an unhandled exception %s",
-                        err
+                        "%s: Event callback caused an unhandled exception %s",
+                        self.host,
+                        err,
                     )
 
-        if "ALL" in self._callbacks.keys():
-            for callback in self._callbacks["ALL"]:
+        if ALL_TELNET_EVENTS in self._callbacks.keys():
+            for callback in self._callbacks[ALL_TELNET_EVENTS]:
                 try:
                     await callback(zone, event, parameter)
                 except Exception as err:  # pylint: disable=broad-except
                     # We don't want a single bad callback to trip up the
                     # whole system and prevent further execution
                     _LOGGER.error(
-                        "Event callback triggered an unhandled exception %s",
-                        err
+                        "%s: Event callback caused an unhandled exception %s",
+                        self.host,
+                        err,
                     )
+
+    def _get_event(self, message: str) -> str:
+        """Get event of a telnet message."""
+        events = self._telnet_event_map.get(message[0:2], [""])
+        for event in events:
+            if message.startswith(event):
+                return event
+        return ""
+
+    def send_commands(self, *commands: str) -> bool:
+        """Send telnet commands to the receiver."""
+        if not self.connected:
+            return False
+        if not self.healthy:
+            return False
+        for command in commands:
+            self._protocol.write(f"{command}\r")
+        return True
 
     ##############
     # Properties #
     ##############
     @property
     def connected(self) -> bool:
-        """Return True if telnet is connected."""
-        return self._reader is not None and self._writer is not None
+        """Return True if telnet connection is enabled."""
+        return self._connection_enabled
 
     @property
-    def healthy(self) -> Optional[bool]:
+    def healthy(self) -> bool:
         """Return True if telnet connection is healthy."""
-        return self._healthy
+        return self._protocol is not None and self._protocol.connected

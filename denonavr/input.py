@@ -7,27 +7,46 @@ This module implements the handler for input functions of Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
-import logging
+import asyncio
 import html
-import time
-
+import logging
 from copy import deepcopy
-from typing import Dict, Hashable, List, Optional, Tuple
+from typing import Dict, Hashable, List, Optional, Set, Tuple
 
 import attr
 import httpx
 
 from .appcommand import AppCommands
 from .const import (
-    ALBUM_COVERS_URL, APPCOMMAND_CMD_TEXT, AVR, AVR_X_2016, AVR_X,
-    CHANGE_INPUT_MAPPING, DENON_ATTR_SETATTR, MAIN_ZONE, NETAUDIO_SOURCES,
-    PLAYING_SOURCES, POWER_ON, SOURCE_MAPPING, STATE_OFF, STATE_ON,
-    STATE_PLAYING, STATE_PAUSED, STATIC_ALBUM_URL, ZONE2, ZONE3)
+    ALBUM_COVERS_URL,
+    APPCOMMAND_CMD_TEXT,
+    AVR,
+    AVR_X,
+    AVR_X_2016,
+    CHANGE_INPUT_MAPPING,
+    DENON_ATTR_SETATTR,
+    HDTUNER_SOURCES,
+    MAIN_ZONE,
+    NETAUDIO_SOURCES,
+    PLAYING_SOURCES,
+    POWER_ON,
+    SOURCE_MAPPING,
+    STATE_OFF,
+    STATE_ON,
+    STATE_PAUSED,
+    STATE_PLAYING,
+    STATIC_ALBUM_URL,
+    TELNET_MAPPING,
+    TUNER_SOURCES,
+    ZONE2,
+    ZONE3,
+)
 from .exceptions import AvrCommandError, AvrProcessingError, AvrRequestError
 from .foundation import DenonAVRFoundation
 
-
 _LOGGER = logging.getLogger(__name__)
+
+_MEDIA_UPDATE_INTERVAL = 5
 
 
 def lower_string(value: Optional[str]) -> Optional[str]:
@@ -41,13 +60,12 @@ def unescape_string(value: Optional[str]) -> Optional[str]:
     """Perform HTML unescape on value."""
     if value is None:
         return value
-    return html.unescape(str(value))
+    return html.unescape(str(value)).strip("\x00").strip("\x01").strip()
 
 
 def set_input_func(
-        instance: DenonAVRFoundation,
-        attribute: attr.Attribute,
-        value: str) -> str:
+    instance: "DenonAVRInput", attribute: attr.Attribute, value: str
+) -> str:
     """Set input_func after mapping from input_func_map."""
     # pylint: disable=protected-access
     # No changes for None
@@ -57,8 +75,11 @@ def set_input_func(
     # AirPlay and Internet Radio are not always listed in available sources
     if value in ["AirPlay", "Internet Radio"]:
         if value not in instance._input_func_map:
+            instance._additional_input_funcs.add(value)
             instance._input_func_map[value] = value
             instance._input_func_map_rev[value] = value
+            instance._netaudio_func_list.append(value)
+            instance._playing_func_list.append(value)
     try:
         input_func = instance._input_func_map_rev[value]
     except KeyError:
@@ -75,120 +96,321 @@ class DenonAVRInput(DenonAVRFoundation):
     _show_all_inputs: bool = attr.ib(converter=bool, default=False)
     _input_func_map: Dict[str, str] = attr.ib(
         validator=attr.validators.deep_mapping(
-            attr.validators.instance_of(str),
-            attr.validators.instance_of(str)),
-        default=attr.Factory(dict))
+            attr.validators.instance_of(str), attr.validators.instance_of(str)
+        ),
+        default=attr.Factory(dict),
+    )
     _input_func_map_rev: Dict[str, str] = attr.ib(
         validator=attr.validators.deep_mapping(
-            attr.validators.instance_of(str),
-            attr.validators.instance_of(str)),
-        default=attr.Factory(dict))
+            attr.validators.instance_of(str), attr.validators.instance_of(str)
+        ),
+        default=attr.Factory(dict),
+    )
     _netaudio_func_list: List[str] = attr.ib(
         validator=attr.validators.deep_iterable(
-            attr.validators.instance_of(str),
-            attr.validators.instance_of(list)),
-        default=attr.Factory(list))
+            attr.validators.instance_of(str), attr.validators.instance_of(list)
+        ),
+        default=attr.Factory(list),
+    )
     _playing_func_list: List[str] = attr.ib(
         validator=attr.validators.deep_iterable(
-            attr.validators.instance_of(str),
-            attr.validators.instance_of(list)),
-        default=attr.Factory(list))
+            attr.validators.instance_of(str), attr.validators.instance_of(list)
+        ),
+        default=attr.Factory(list),
+    )
     _favorite_func_list: List[str] = attr.ib(
         validator=attr.validators.deep_iterable(
-            attr.validators.instance_of(str),
-            attr.validators.instance_of(list)),
-        default=attr.Factory(list))
+            attr.validators.instance_of(str), attr.validators.instance_of(list)
+        ),
+        default=attr.Factory(list),
+    )
+    _additional_input_funcs: Set[str] = attr.ib(
+        validator=attr.validators.deep_iterable(
+            attr.validators.instance_of(str), attr.validators.instance_of(set)
+        ),
+        default=attr.Factory(set),
+    )
+    _media_update_handle: asyncio.TimerHandle = attr.ib(default=None)
+    _input_func_update_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
 
     _state: Optional[str] = attr.ib(
-        converter=attr.converters.optional(lower_string),
-        default=None)
+        converter=attr.converters.optional(lower_string), default=None
+    )
     _input_func: Optional[str] = attr.ib(
         converter=attr.converters.optional(str),
         on_setattr=[*DENON_ATTR_SETATTR, set_input_func],
-        default=None)
+        default=None,
+    )
 
     _artist: Optional[str] = attr.ib(
-        converter=attr.converters.optional(unescape_string),
-        default=None)
+        converter=attr.converters.optional(unescape_string), default=None
+    )
     _album: Optional[str] = attr.ib(
-        converter=attr.converters.optional(unescape_string),
-        default=None)
+        converter=attr.converters.optional(unescape_string), default=None
+    )
     _band: Optional[str] = attr.ib(
-        converter=attr.converters.optional(unescape_string),
-        default=None)
+        converter=attr.converters.optional(unescape_string), default=None
+    )
     _title: Optional[str] = attr.ib(
-        converter=attr.converters.optional(unescape_string),
-        default=None)
+        converter=attr.converters.optional(unescape_string), default=None
+    )
     _frequency: Optional[str] = attr.ib(
-        converter=attr.converters.optional(unescape_string),
-        default=None)
+        converter=attr.converters.optional(unescape_string), default=None
+    )
     _station: Optional[str] = attr.ib(
-        converter=attr.converters.optional(unescape_string),
-        default=None)
+        converter=attr.converters.optional(unescape_string), default=None
+    )
     _image_url: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str),
-        default=None)
+        converter=attr.converters.optional(str), default=None
+    )
     _image_available: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str),
-        default=None)
+        converter=attr.converters.optional(str), default=None
+    )
 
     # Update tags for attributes
     # AppCommand.xml interface
-    appcommand_attrs = {
-        AppCommands.GetAllZoneSource: None}
+    appcommand_attrs = {AppCommands.GetAllZoneSource: None}
     # Status.xml interface
-    status_xml_attrs = {
-        "_input_func": "./InputFuncSelect/value"}
+    status_xml_attrs = {"_input_func": "./InputFuncSelect/value"}
 
     def setup(self) -> None:
         """Ensure that the instance is initialized."""
         # Add tags for a potential AppCommand.xml update
         # For update of input function list
-        self._device.api.add_appcommand_update_tag(
-            AppCommands.GetAllZoneSource)
-        self._device.api.add_appcommand_update_tag(
-            AppCommands.GetRenameSource)
-        self._device.api.add_appcommand_update_tag(
-            AppCommands.GetDeletedSource)
+        self._device.api.add_appcommand_update_tag(AppCommands.GetAllZoneSource)
+        self._device.api.add_appcommand_update_tag(AppCommands.GetRenameSource)
+        self._device.api.add_appcommand_update_tag(AppCommands.GetDeletedSource)
         # For update of state
         for tag in self.appcommand_attrs:
             self._device.api.add_appcommand_update_tag(tag)
 
-        self._device.telnet_api.register_callback("SI", self._input_callback)
-        self._device.telnet_api.register_callback("PW", self._power_callback)
+        power_event = "ZM"
+        if self._device.zone == ZONE2:
+            power_event = "Z2"
+        elif self._device.zone == ZONE3:
+            power_event = "Z3"
+        self._device.telnet_api.register_callback(
+            power_event, self._async_power_callback
+        )
+        self._device.telnet_api.register_callback("SI", self._async_input_callback)
+        self._device.telnet_api.register_callback("NSE", self._async_netaudio_callback)
+        self._device.telnet_api.register_callback("TF", self._async_tuner_callback)
+        self._device.telnet_api.register_callback("HD", self._async_hdtuner_callback)
+        self._device.telnet_api.register_callback(
+            "SS", self._async_input_func_update_callback
+        )
 
         self._is_setup = True
 
-    async def _input_callback(self, zone: str, event: str, parameter: str):
+    async def _async_input_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
         """Handle an input change event."""
         if self._device.zone != zone:
             return
 
-        self._input_func = parameter
-        await self.async_update_media_state()
+        self._input_func = TELNET_MAPPING.get(parameter, parameter)
 
-    async def _power_callback(self, zone: str, event: str, parameter: str):
+        if self._device.power != POWER_ON:
+            return
+
+        if self._schedule_media_updates():
+            self._state = STATE_PLAYING
+        else:
+            self._unset_media_state()
+            self._state = STATE_ON
+
+    async def _async_power_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
         """Handle a power change event."""
         if self._device.zone != zone:
             return
 
-        await self.async_update_media_state()
+        if parameter != POWER_ON:
+            self._stop_media_update()
+            self._unset_media_state()
+            self._state = STATE_OFF
+        elif self._schedule_media_updates():
+            self._state = STATE_PLAYING
+        else:
+            self._unset_media_state()
+            self._state = STATE_ON
+
+    def _schedule_media_updates(self) -> bool:
+        """Schedule media state updates in telnet callbacks."""
+        if self._input_func in self._netaudio_func_list:
+            self._stop_media_update()
+            self._schedule_netaudio_update()
+            return True
+        if self._input_func in TUNER_SOURCES:
+            self._stop_media_update()
+            self._schedule_tuner_update()
+            return True
+        if self._input_func in HDTUNER_SOURCES:
+            self._stop_media_update()
+            self._schedule_hdtuner_update()
+            return True
+
+        self._stop_media_update()
+        return False
+
+    def _stop_media_update(self) -> None:
+        """Stop the media update task."""
+        if self._media_update_handle is not None:
+            self._media_update_handle.cancel()
+            self._media_update_handle = None
+
+    def _schedule_netaudio_update(self) -> None:
+        """Schedule a netaudio update task."""
+        loop = asyncio.get_event_loop()
+        delay = _MEDIA_UPDATE_INTERVAL
+        if self._media_update_handle is None:
+            delay = 0
+        self._media_update_handle = loop.call_later(delay, self._update_netaudio)
+
+    def _update_netaudio(self) -> None:
+        """Update netaudio information."""
+        if self._device.telnet_api.send_commands("NSE"):
+            self._schedule_netaudio_update()
+        else:
+            self._stop_media_update()
+
+    async def _async_netaudio_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a netaudio update event."""
+        if self._device.power != POWER_ON:
+            return
+        if self._input_func not in self._netaudio_func_list:
+            return
+
+        if parameter.startswith("1"):
+            self._title = parameter[1:]
+        elif parameter.startswith("2"):
+            self._artist = parameter[1:]
+        elif parameter.startswith("4"):
+            self._album = parameter[1:]
+        self._band = None
+        self._frequency = None
+        self._station = None
+
+        # Refresh cover with a hash for media URL when track is changing
+        self._image_url = ALBUM_COVERS_URL.format(
+            host=self._device.api.host,
+            port=self._device.api.port,
+            hash=hash((self._title, self._artist, self._album)),
+        )
+        await self._async_test_image_accessible()
+
+    def _schedule_tuner_update(self) -> None:
+        """Schedule a tuner update task."""
+        loop = asyncio.get_event_loop()
+        delay = _MEDIA_UPDATE_INTERVAL
+        if self._media_update_handle is None:
+            delay = 0
+        self._media_update_handle = loop.call_later(delay, self._update_tuner)
+
+    def _update_tuner(self) -> None:
+        """Update tuner information."""
+        if self._device.telnet_api.send_commands("TFAN?", "TFANNAME?"):
+            self._schedule_tuner_update()
+        else:
+            self._stop_media_update()
+
+    async def _async_tuner_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a tuner update event."""
+        if self._device.power != POWER_ON:
+            return
+        if self._input_func not in ["Tuner", "TUNER"]:
+            return
+
+        if parameter.startswith("ANNAME"):
+            self._station = parameter[6:]
+        elif len(parameter) == 8:
+            self._frequency = f"{parameter[2:6]}.{parameter[6:]}".strip("0")
+            if parameter[2:] > "050000":
+                self._band = "AM"
+            else:
+                self._band = "FM"
+
+        self._title = None
+        self._artist = None
+        self._album = None
+
+        # No special cover, using a static one
+        self._image_url = STATIC_ALBUM_URL.format(
+            host=self._device.api.host, port=self._device.api.port
+        )
+        await self._async_test_image_accessible()
+
+    def _schedule_hdtuner_update(self) -> None:
+        """Schedule a HD tuner update task."""
+        loop = asyncio.get_event_loop()
+        delay = _MEDIA_UPDATE_INTERVAL
+        if self._media_update_handle is None:
+            delay = 0
+        self._media_update_handle = loop.call_later(delay, self._update_hdtuner)
+
+    def _update_hdtuner(self) -> None:
+        """Update HD tuner information."""
+        if self._device.telnet_api.send_commands("HD?"):
+            self._schedule_hdtuner_update()
+        else:
+            self._stop_media_update()
+
+    async def _async_hdtuner_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle an HD tuner update event."""
+        if self._device.power != POWER_ON:
+            return
+        if self._input_func not in ["HD Radio", "HDRADIO"]:
+            return
+
+        if parameter.startswith("ARTIST"):
+            self._artist = parameter[6:]
+        elif parameter.startswith("TITLE"):
+            self._title = parameter[5:]
+        elif parameter.startswith("ALBUM"):
+            self._album = parameter[5:]
+        elif parameter.startswith("ST NAME"):
+            self._station = parameter[7:]
+
+        self._band = None
+        self._frequency = None
+
+        # No special cover, using a static one
+        self._image_url = STATIC_ALBUM_URL.format(
+            host=self._device.api.host, port=self._device.api.port
+        )
+        await self._async_test_image_accessible()
+
+    async def _async_input_func_update_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle input func update events."""
+        if self._input_func_update_lock.locked():
+            return
+        async with self._input_func_update_lock:
+            await self.async_update_inputfuncs()
 
     async def async_update(
-            self,
-            global_update: bool = False,
-            cache_id: Optional[Hashable] = None) -> None:
+        self, global_update: bool = False, cache_id: Optional[Hashable] = None
+    ) -> None:
         """Update input functions asynchronously."""
         # Ensure instance is setup before updating
-        if self._is_setup is False:
+        if not self._is_setup:
             self.setup()
 
         # Update input functions
         await self.async_update_inputfuncs(
-            global_update=global_update, cache_id=cache_id)
+            global_update=global_update, cache_id=cache_id
+        )
         # Update state
-        await self.async_update_state(
-            global_update=global_update, cache_id=cache_id)
+        await self.async_update_state(global_update=global_update, cache_id=cache_id)
         # Update media state
         await self.async_update_media_state(cache_id=cache_id)
 
@@ -197,10 +419,10 @@ class DenonAVRInput(DenonAVRFoundation):
         try:
             # Deviceinfo.xml is static and can be cached for the whole time
             xml = await self._device.api.async_get_xml(
-                self._device.urls.deviceinfo, cache_id=id(self._device))
+                self._device.urls.deviceinfo, cache_id=id(self._device)
+            )
         except AvrRequestError as err:
-            _LOGGER.debug(
-                "Error when getting sources", exc_info=err)
+            _LOGGER.debug("Error when getting sources", exc_info=err)
             raise
 
         receiver_sources = {}
@@ -226,17 +448,14 @@ class DenonAVRInput(DenonAVRFoundation):
                 xml_list = xml_zonecapa.find("./InputSource/List")
                 for xml_source in xml_list.findall("Source"):
                     receiver_sources[
-                        xml_source.find(
-                            "FuncName").text] = xml_source.find(
-                                "DefaultName").text
+                        xml_source.find("FuncName").text
+                    ] = xml_source.find("DefaultName").text
 
         return receiver_sources
 
     async def async_get_changed_sources_appcommand(
-            self,
-            global_update: bool = False,
-            cache_id: Optional[Hashable] = None
-            ) -> Tuple[Dict[str, str], Dict[str, str]]:
+        self, global_update: bool = False, cache_id: Optional[Hashable] = None
+    ) -> Tuple[Dict[str, str], Dict[str, str]]:
         """
         Get renamed and deleted sources lists from receiver .
 
@@ -254,42 +473,43 @@ class DenonAVRInput(DenonAVRFoundation):
         try:
             if global_update:
                 xml = await self._device.api.async_get_global_appcommand(
-                    cache_id=cache_id)
+                    cache_id=cache_id
+                )
             else:
                 xml = await self._device.api.async_post_appcommand(
-                    self._device.urls.appcommand, tags, cache_id=cache_id)
+                    self._device.urls.appcommand, tags, cache_id=cache_id
+                )
         except AvrRequestError as err:
-            _LOGGER.debug(
-                "Error when getting changed sources", exc_info=err)
+            _LOGGER.debug("Error when getting changed sources", exc_info=err)
             raise
 
         for child in xml.findall(
-                "./cmd[@{attribute}='{cmd}']/functionrename/list".format(
-                    attribute=APPCOMMAND_CMD_TEXT,
-                    cmd=AppCommands.GetRenameSource.cmd_text)):
+            f"./cmd[@{APPCOMMAND_CMD_TEXT}='{AppCommands.GetRenameSource.cmd_text}']"
+            "/functionrename/list"
+        ):
             try:
-                renamed_sources[child.find("name").text.strip()] = (
-                    child.find("rename").text.strip())
+                renamed_sources[child.find("name").text.strip()] = child.find(
+                    "rename"
+                ).text.strip()
             except AttributeError:
                 continue
 
         for child in xml.findall(
-                "./cmd[@{attribute}='{cmd}']/functiondelete/list".format(
-                    attribute=APPCOMMAND_CMD_TEXT,
-                    cmd=AppCommands.GetDeletedSource.cmd_text)):
+            f"./cmd[@{APPCOMMAND_CMD_TEXT}='{AppCommands.GetDeletedSource.cmd_text}']"
+            "/functiondelete/list"
+        ):
             try:
-                deleted_sources[child.find("FuncName").text.strip(
-                )] = "DEL" if (
-                    child.find("use").text.strip() == "0") else None
+                deleted_sources[child.find("FuncName").text.strip()] = (
+                    "DEL" if (child.find("use").text.strip() == "0") else None
+                )
             except AttributeError:
                 continue
 
         return (renamed_sources, deleted_sources)
 
     async def async_get_changed_sources_status_xml(
-            self,
-            cache_id: Optional[Hashable] = None
-            ) -> Tuple[Dict[str, str], Dict[str, str]]:
+        self, cache_id: Optional[Hashable] = None
+    ) -> Tuple[Dict[str, str], Dict[str, str]]:
         """
         Get renamed and deleted sources lists from receiver .
 
@@ -310,18 +530,20 @@ class DenonAVRInput(DenonAVRFoundation):
             # deleted sources
             if self._device.receiver == AVR_X:
                 xml = await self._device.api.async_get_xml(
-                    self._device.urls.status, cache_id=cache_id)
+                    self._device.urls.status, cache_id=cache_id
+                )
             # These are the input functions of Main Zone.
             elif self._device.receiver == AVR:
                 xml = await self._device.api.async_get_xml(
-                   self._device.urls.mainzone, cache_id=cache_id)
+                    self._device.urls.mainzone, cache_id=cache_id
+                )
             else:
                 raise AvrProcessingError(
-                    "Method does not work for receiver type {}".format(
-                        self._device.receiver.type))
+                    "Method does not work for receiver type"
+                    f" {self._device.receiver.type}"
+                )
         except AvrRequestError as err:
-            _LOGGER.debug(
-                "Error when getting changed sources", exc_info=err)
+            _LOGGER.debug("Error when getting changed sources", exc_info=err)
             raise
 
         # Get the relevant tags from XML structure
@@ -353,7 +575,7 @@ class DenonAVRInput(DenonAVRFoundation):
 
         # If the deleted source list is empty then use all sources.
         if not xml_deletesource:
-            xml_deletesource = ['USE'] * len(xml_inputfunclist)
+            xml_deletesource = ["USE"] * len(xml_inputfunclist)
 
         # Renamed and deleted sources are in the same row as the default ones
         # Only values which are not None are considered. Otherwise translation
@@ -365,34 +587,32 @@ class DenonAVRInput(DenonAVRFoundation):
                 else:
                     renamed_sources[item] = item
             except IndexError:
-                _LOGGER.error(
-                    "List of renamed sources incomplete, continuing anyway")
+                _LOGGER.error("List of renamed sources incomplete, continuing anyway")
             try:
                 deleted_sources[item] = xml_deletesource[i]
             except IndexError:
-                _LOGGER.error(
-                    "List of deleted sources incomplete, continuing anyway")
+                _LOGGER.error("List of deleted sources incomplete, continuing anyway")
 
         return (renamed_sources, deleted_sources)
 
     async def async_update_inputfuncs(
-            self,
-            global_update: bool = False,
-            cache_id: Optional[Hashable] = None) -> None:
+        self, global_update: bool = False, cache_id: Optional[Hashable] = None
+    ) -> None:
         """Update sources list from receiver."""
         if self._device.receiver in [AVR_X, AVR_X_2016]:
             await self._async_update_inputfuncs_avr_x(
-                global_update=global_update, cache_id=cache_id)
+                global_update=global_update, cache_id=cache_id
+            )
         elif self._device.receiver in [AVR]:
             await self._async_update_inputfuncs_avr(cache_id=cache_id)
         else:
             raise AvrProcessingError(
-                "Device is not setup correctly, receiver type not set")
+                "Device is not setup correctly, receiver type not set"
+            )
 
     async def _async_update_inputfuncs_avr_x(
-            self,
-            global_update: bool = False,
-            cache_id: Optional[Hashable] = None) -> None:
+        self, global_update: bool = False, cache_id: Optional[Hashable] = None
+    ) -> None:
         """
         Update sources list from receiver for AVR-X and AVR-X-2016 devices.
 
@@ -404,19 +624,28 @@ class DenonAVRInput(DenonAVRFoundation):
 
         if not receiver_sources:
             _LOGGER.debug(
-                "Receiver sources list empty. Please check if device is "
-                "powered on.")
+                "Receiver sources list empty. Please check if device is powered on."
+            )
+
+        # Add additional input functions discovered at run-time
+        for function in self._additional_input_funcs:
+            receiver_sources[function] = function
 
         # Get renamed and deleted sources
         # From Appcommand.xml if supported
-        if self._device.use_avr_2016_update is True:
-            renamed_sources, deleted_sources = await (
-                self.async_get_changed_sources_appcommand(
-                    global_update=global_update, cache_id=cache_id))
+        if self._device.use_avr_2016_update:
+            (
+                renamed_sources,
+                deleted_sources,
+            ) = await self.async_get_changed_sources_appcommand(
+                global_update=global_update, cache_id=cache_id
+            )
         else:
             # Else from status xml
-            renamed_sources, deleted_sources = await (
-                self.async_get_changed_sources_status_xml(cache_id=cache_id))
+            (
+                renamed_sources,
+                deleted_sources,
+            ) = await self.async_get_changed_sources_status_xml(cache_id=cache_id)
 
         # Add new renamed_sources to receiver_sources
         for key, value in renamed_sources.items():
@@ -424,7 +653,7 @@ class DenonAVRInput(DenonAVRFoundation):
                 receiver_sources[key] = value
 
         # Remove all deleted sources
-        if self._show_all_inputs is False:
+        if not self._show_all_inputs:
             for deleted_source in deleted_sources.items():
                 if deleted_source[1] == "DEL":
                     receiver_sources.pop(deleted_source[0], None)
@@ -436,7 +665,7 @@ class DenonAVRInput(DenonAVRFoundation):
         playing_func_list = []
 
         for item in receiver_sources.items():
-            # Mapping of item[0] because some func names are inconsistant
+            # Mapping of item[0] because some func names are inconsistent
             # at AVR-X receivers
 
             m_item_0 = SOURCE_MAPPING.get(item[0], item[0])
@@ -445,16 +674,13 @@ class DenonAVRInput(DenonAVRFoundation):
             # for a later mapping
             if item[0] in renamed_sources:
                 input_func_map[renamed_sources[item[0]]] = m_item_0
-                input_func_map_rev[
-                    m_item_0] = renamed_sources[item[0]]
+                input_func_map_rev[m_item_0] = renamed_sources[item[0]]
                 # If the source is a netaudio source, save its renamed name
                 if item[0] in NETAUDIO_SOURCES:
-                    netaudio_func_list.append(
-                        renamed_sources[item[0]])
+                    netaudio_func_list.append(renamed_sources[item[0]])
                 # If the source is a playing source, save its renamed name
                 if item[0] in PLAYING_SOURCES:
-                    playing_func_list.append(
-                        renamed_sources[item[0]])
+                    playing_func_list.append(renamed_sources[item[0]])
             # Otherwise the default names are used
             else:
                 input_func_map[item[1]] = m_item_0
@@ -472,8 +698,8 @@ class DenonAVRInput(DenonAVRFoundation):
         self._playing_func_list = playing_func_list
 
     async def _async_update_inputfuncs_avr(
-            self,
-            cache_id: Optional[Hashable] = None) -> None:
+        self, cache_id: Optional[Hashable] = None
+    ) -> None:
         """
         Update sources list from receiver for AVR devices.
 
@@ -481,11 +707,17 @@ class DenonAVRInput(DenonAVRFoundation):
         sources and potential renaming information from receiver.
         """
         # Get source from status xml
-        receiver_sources, deleted_sources = await (
-            self.async_get_changed_sources_status_xml(cache_id=cache_id))
+        (
+            receiver_sources,
+            deleted_sources,
+        ) = await self.async_get_changed_sources_status_xml(cache_id=cache_id)
+
+        # Add additional input functions discovered at run-time
+        for function in self._additional_input_funcs:
+            receiver_sources[function] = function
 
         # Remove all deleted sources
-        if self._show_all_inputs is False:
+        if not self._show_all_inputs:
             for deleted_source in deleted_sources.items():
                 if deleted_source[1] == "DEL":
                     receiver_sources.pop(deleted_source[0], None)
@@ -511,83 +743,76 @@ class DenonAVRInput(DenonAVRFoundation):
         self._playing_func_list = playing_func_list
 
     async def async_update_state(
-            self,
-            global_update: bool = False,
-            cache_id: Optional[Hashable] = None):
+        self, global_update: bool = False, cache_id: Optional[Hashable] = None
+    ):
         """Update state of device."""
-        if self._device.use_avr_2016_update is True:
+        if self._device.use_avr_2016_update is None:
+            raise AvrProcessingError(
+                "Device is not setup correctly, update method not set"
+            )
+
+        if self._device.use_avr_2016_update:
             await self.async_update_attrs_appcommand(
-                self.appcommand_attrs, global_update=global_update,
-                cache_id=cache_id)
-        elif self._device.use_avr_2016_update is False:
+                self.appcommand_attrs, global_update=global_update, cache_id=cache_id
+            )
+        else:
             urls = [self._device.urls.status]
             if self._device.zone == MAIN_ZONE:
                 urls.append(self._device.urls.mainzone)
             await self.async_update_attrs_status_xml(
-                self.status_xml_attrs, urls, cache_id=cache_id)
-        else:
-            raise AvrProcessingError(
-                "Device is not setup correctly, update method not set")
+                self.status_xml_attrs, urls, cache_id=cache_id
+            )
 
-    async def async_update_media_state(
-            self,
-            cache_id: Optional[Hashable] = None):
+    async def async_update_media_state(self, cache_id: Optional[Hashable] = None):
         """Update media state of device."""
         # Now playing information is not implemented for 2016+ models, as
         # a HEOS API query needed. So only sync the power state for now.
         if self._device.receiver == AVR_X_2016:
-            self._state = (
-                STATE_ON if self._device.power == POWER_ON else STATE_OFF)
-        elif (self._device.power == POWER_ON and
-                self._input_func in self._playing_func_list):
+            self._state = STATE_ON if self._device.power == POWER_ON else STATE_OFF
+        elif (
+            self._device.power == POWER_ON
+            and self._input_func in self._playing_func_list
+        ):
             await self._async_update_media_data(cache_id)
         else:
-            self._state = (
-                STATE_ON if self._device.power == POWER_ON else STATE_OFF)
-            self._title = None
-            self._artist = None
-            self._album = None
-            self._band = None
-            self._frequency = None
-            self._station = None
-            self._image_url = None
+            self._state = STATE_ON if self._device.power == POWER_ON else STATE_OFF
+            self._unset_media_state()
 
     async def _async_update_media_data(
-            self,
-            cache_id: Optional[Hashable] = None):
+        self, cache_id: Optional[Hashable] = None
+    ) -> None:
         """Update media data of device."""
         urls = []
         status_xml_attrs = {}
-
-        # Hash attributes to check for changed track afterwards
-        img_change_hash = hash((self._title, self._artist, self._album))
 
         if self._input_func in self._netaudio_func_list:
             urls = [self._device.urls.netaudiostatus]
             status_xml_attrs = {
                 "_title": "./szLine/value[2]",
                 "_artist": "./szLine/value[3]",
-                "_album": "./szLine/value[5]"}
+                "_album": "./szLine/value[5]",
+            }
             self._band = None
             self._frequency = None
             self._station = None
             # Image URL and state are detected after update
-        elif self._input_func in ["Tuner", "TUNER"]:
+        elif self._input_func in TUNER_SOURCES:
             urls = [self._device.urls.tunerstatus]
             status_xml_attrs = {
                 "_band": "./Band/value",
-                "_frequency": "./Frequency/value"}
+                "_frequency": "./Frequency/value",
+            }
             self._title = None
             self._artist = None
             self._album = None
             self._station = None
             # No special cover, using a static one
-            self._image_url = (
-                STATIC_ALBUM_URL.format(
-                    host=self._device.api.host, port=self._device.api.port))
+            self._image_url = STATIC_ALBUM_URL.format(
+                host=self._device.api.host, port=self._device.api.port
+            )
             # Assume Tuner is always PLAYING
             self._state = STATE_PLAYING
-        elif self._input_func in ["HD Radio", "HDRADIO"]:
+        elif self._input_func in HDTUNER_SOURCES:
             urls = [self._device.urls.hdtunerstatus]
             status_xml_attrs = {
                 "_artist": "./Artist/value",
@@ -595,40 +820,45 @@ class DenonAVRInput(DenonAVRFoundation):
                 "_title": "./Title/value",
                 "_band": "./Band/value",
                 "_frequency": "./Frequency/value",
-                "_station": "./StationNameSh /value"}
+                "_station": "./StationNameSh /value",
+            }
             # No special cover, using a static one
-            self._image_url = (
-                STATIC_ALBUM_URL.format(
-                    host=self._device.api.host, port=self._device.api.port))
+            self._image_url = STATIC_ALBUM_URL.format(
+                host=self._device.api.host, port=self._device.api.port
+            )
             # Assume Tuner is always PLAYING
             self._state = STATE_PLAYING
 
         await self.async_update_attrs_status_xml(
-            status_xml_attrs, urls, cache_id=cache_id)
+            status_xml_attrs, urls, cache_id=cache_id
+        )
 
         if self._input_func in self._netaudio_func_list:
-            if img_change_hash != hash(
-                    (self._title, self._artist, self._album)):
-                # Refresh cover with a new time stamp for media URL
-                # when track is changing
-                self._image_url = (ALBUM_COVERS_URL.format(
-                    host=self._device.api.host, port=self._device.api.port,
-                    time=int(time.time())))
-                # On track change assume device is PLAYING
-                self._state = STATE_PLAYING
+            # Refresh cover with a hash for media URL when track is changing
+            self._image_url = ALBUM_COVERS_URL.format(
+                host=self._device.api.host,
+                port=self._device.api.port,
+                hash=hash((self._title, self._artist, self._album)),
+            )
+            # On track change assume device is PLAYING
+            self._state = STATE_PLAYING
 
-        # Test if image URL is accessable
+        await self._async_test_image_accessible()
+
+    async def _async_test_image_accessible(self) -> None:
+        """Test if image URL is accessible."""
         if self._image_available is None and self._image_url is not None:
             client = self._device.api.async_client_getter()
             try:
                 res = await client.get(
-                    self._image_url, timeout=self._device.api.timeout)
+                    self._image_url, timeout=self._device.api.timeout
+                )
                 res.raise_for_status()
             except httpx.TimeoutException:
                 # No result set image URL to None
                 self._image_url = None
             except httpx.HTTPStatusError:
-                _LOGGER.info('No album art available for your receiver')
+                _LOGGER.info("No album art available for your receiver")
                 # No image available. Save this status.
                 self._image_available = False
                 #  Set image URL to None.
@@ -640,8 +870,18 @@ class DenonAVRInput(DenonAVRFoundation):
                 if self._device.api.is_default_async_client():
                     await client.aclose()
         # Already tested that image URL is not accessible
-        elif self._image_available is False:
+        elif not self._image_available:
             self._image_url = None
+
+    def _unset_media_state(self) -> None:
+        """Unsets media state attributes."""
+        self._title = None
+        self._artist = None
+        self._album = None
+        self._band = None
+        self._frequency = None
+        self._station = None
+        self._image_url = None
 
     ##############
     # Properties #
@@ -747,26 +987,31 @@ class DenonAVRInput(DenonAVRFoundation):
                 direct_mapping = False
         # AVR-nonX receiver and if no mapping was found get parameter for
         # setting input_func directly
-        if direct_mapping is True:
+        if direct_mapping:
             try:
                 linp = self._input_func_map[input_func]
             except KeyError as err:
                 raise AvrCommandError(
-                    "No mapping for input source {}".format(
-                        input_func)) from err
+                    f"No mapping for input source {input_func}"
+                ) from err
         # Create command URL and send command via HTTP GET
         if linp in self._favorite_func_list:
             command_url = self._device.urls.command_fav_src + linp
+            telnet_command = self._device.telnet_commands.command_fav_src + linp
         else:
             command_url = self._device.urls.command_sel_src + linp
-
-        await self._device.api.async_get_command(command_url)
+            telnet_command = self._device.telnet_commands.command_sel_src + linp
+        success = self._device.telnet_api.send_commands(telnet_command)
+        if not success:
+            await self._device.api.async_get_command(command_url)
 
     async def async_toggle_play_pause(self) -> None:
         """Toggle play pause media player."""
         # Use Play/Pause button only for sources which support NETAUDIO
-        if (self._state == STATE_PLAYING and
-                self._input_func in self._netaudio_func_list):
+        if (
+            self._state == STATE_PLAYING
+            and self._input_func in self._netaudio_func_list
+        ):
             await self.async_pause()
         elif self._input_func in self._netaudio_func_list:
             await self.async_play()
@@ -779,44 +1024,57 @@ class DenonAVRInput(DenonAVRFoundation):
             if self._state == STATE_PLAYING:
                 _LOGGER.info("Already playing, play command not sent")
                 return
-
-            await self._device.api.async_get_command(
-                self._device.urls.command_play)
+            success = self._device.telnet_api.send_commands(
+                self._device.telnet_commands.command_play
+            )
+            if not success:
+                await self._device.api.async_get_command(self._device.urls.command_play)
             self._state = STATE_PLAYING
 
     async def async_pause(self) -> None:
         """Send pause command to receiver command via HTTP post."""
         # Use pause command only for sources which support NETAUDIO
         if self._input_func in self._netaudio_func_list:
-            await self._device.api.async_get_command(
-                self._device.urls.command_pause)
+            success = self._device.telnet_api.send_commands(
+                self._device.telnet_commands.command_play
+            )
+            if not success:
+                await self._device.api.async_get_command(
+                    self._device.urls.command_pause
+                )
             self._state = STATE_PAUSED
 
     async def async_previous_track(self) -> None:
         """Send previous track command to receiver command via HTTP post."""
         # Use previous track button only for sources which support NETAUDIO
         if self._input_func in self._netaudio_func_list:
-            body = {"cmd0": "PutNetAudioCommand/CurUp",
-                    "cmd1": "aspMainZone_WebUpdateStatus/",
-                    "ZoneName": "MAIN ZONE"}
+            body = {
+                "cmd0": "PutNetAudioCommand/CurUp",
+                "cmd1": "aspMainZone_WebUpdateStatus/",
+                "ZoneName": "MAIN ZONE",
+            }
             await self._device.api.async_post(
-                self._device.urls.command_netaudio_post, data=body)
+                self._device.urls.command_netaudio_post, data=body
+            )
 
     async def async_next_track(self) -> None:
         """Send next track command to receiver command via HTTP post."""
         # Use next track button only for sources which support NETAUDIO
         if self._input_func in self._netaudio_func_list:
-            body = {"cmd0": "PutNetAudioCommand/CurDown",
-                    "cmd1": "aspMainZone_WebUpdateStatus/",
-                    "ZoneName": "MAIN ZONE"}
+            body = {
+                "cmd0": "PutNetAudioCommand/CurDown",
+                "cmd1": "aspMainZone_WebUpdateStatus/",
+                "ZoneName": "MAIN ZONE",
+            }
             await self._device.api.async_post(
-                self._device.urls.command_netaudio_post, data=body)
+                self._device.urls.command_netaudio_post, data=body
+            )
 
 
 def input_factory(instance: DenonAVRFoundation) -> DenonAVRInput:
     """Create DenonAVRInput at receiver instances."""
     # pylint: disable=protected-access
     new = DenonAVRInput(
-        device=instance._device,
-        show_all_inputs=instance._show_all_inputs)
+        device=instance._device, show_all_inputs=instance._show_all_inputs
+    )
     return new

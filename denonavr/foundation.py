@@ -10,26 +10,49 @@ This module implements the foundation classes for Denon AVR receivers.
 import asyncio
 import logging
 import xml.etree.ElementTree as ET
-
 from copy import deepcopy
 from typing import Dict, Hashable, List, Optional
 
 import attr
 import httpx
 
-from .appcommand import AppCommandCmd, AppCommands
 from .api import DenonAVRApi, DenonAVRTelnetApi
-from .exceptions import (
-    AvrForbiddenError, AvrIncompleteResponseError, AvrNetworkError,
-    AvrProcessingError, AvrRequestError, AvrTimoutError)
+from .appcommand import AppCommandCmd, AppCommands
 from .const import (
-    APPCOMMAND_CMD_TEXT, APPCOMMAND_NAME, AVR, AVR_X, AVR_X_2016,
-    DENON_ATTR_SETATTR, DENONAVR_URLS, DESCRIPTION_TYPES,
-    DEVICEINFO_AVR_X_PATTERN, DEVICEINFO_COMMAPI_PATTERN, MAIN_ZONE,
-    VALID_RECEIVER_TYPES, VALID_ZONES, ReceiverType, ReceiverURLs, ZONE2,
-    ZONE2_URLS, ZONE3, ZONE3_URLS)
+    APPCOMMAND_CMD_TEXT,
+    APPCOMMAND_NAME,
+    AVR,
+    AVR_X,
+    AVR_X_2016,
+    DENON_ATTR_SETATTR,
+    DENONAVR_TELNET_COMMANDS,
+    DENONAVR_URLS,
+    DESCRIPTION_TYPES,
+    DEVICEINFO_AVR_X_PATTERN,
+    DEVICEINFO_COMMAPI_PATTERN,
+    MAIN_ZONE,
+    POWER_STATES,
+    VALID_RECEIVER_TYPES,
+    VALID_ZONES,
+    ZONE2,
+    ZONE2_TELNET_COMMANDS,
+    ZONE2_URLS,
+    ZONE3,
+    ZONE3_TELNET_COMMANDS,
+    ZONE3_URLS,
+    ReceiverType,
+    ReceiverURLs,
+    TelnetCommands,
+)
+from .exceptions import (
+    AvrForbiddenError,
+    AvrIncompleteResponseError,
+    AvrNetworkError,
+    AvrProcessingError,
+    AvrRequestError,
+    AvrTimoutError,
+)
 from .ssdp import evaluate_scpd_xml
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,62 +64,71 @@ class DenonAVRDeviceInfo:
     api: DenonAVRApi = attr.ib(
         validator=attr.validators.instance_of(DenonAVRApi),
         default=attr.Factory(DenonAVRApi),
-        kw_only=True)
+        kw_only=True,
+    )
     telnet_api: DenonAVRTelnetApi = attr.ib(
         validator=attr.validators.instance_of(DenonAVRTelnetApi),
         default=attr.Factory(DenonAVRTelnetApi),
-        kw_only=True
+        kw_only=True,
     )
     receiver: Optional[ReceiverType] = attr.ib(
-        validator=attr.validators.optional(
-            attr.validators.in_(VALID_RECEIVER_TYPES)),
-        default=None)
+        validator=attr.validators.optional(attr.validators.in_(VALID_RECEIVER_TYPES)),
+        default=None,
+    )
+    telnet_commands: TelnetCommands = attr.ib(
+        validator=attr.validators.instance_of(TelnetCommands), init=False
+    )
     urls: ReceiverURLs = attr.ib(
-        validator=attr.validators.instance_of(ReceiverURLs), init=False)
+        validator=attr.validators.instance_of(ReceiverURLs), init=False
+    )
     zone: str = attr.ib(
-        validator=attr.validators.in_(VALID_ZONES),
-        default=MAIN_ZONE,
-        kw_only=True)
+        validator=attr.validators.in_(VALID_ZONES), default=MAIN_ZONE, kw_only=True
+    )
     friendly_name: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None)
+        converter=attr.converters.optional(str), default=None
+    )
     manufacturer: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None)
+        converter=attr.converters.optional(str), default=None
+    )
     model_name: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None)
+        converter=attr.converters.optional(str), default=None
+    )
     serial_number: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None)
+        converter=attr.converters.optional(str), default=None
+    )
     use_avr_2016_update: Optional[bool] = attr.ib(
-        converter=attr.converters.optional(bool), default=None)
+        converter=attr.converters.optional(bool), default=None
+    )
     _power: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str),
-        default=None)
+        converter=attr.converters.optional(str), default=None
+    )
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
-    _allow_recovery: bool = attr.ib(
-        converter=bool, default=False, init=False)
+    _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
 
     def __attrs_post_init__(self) -> None:
         """Initialize special attributes and callbacks."""
         # URLs depending from value of self.zone attribute
         if self.zone == MAIN_ZONE:
+            self.telnet_commands = DENONAVR_TELNET_COMMANDS
             self.urls = DENONAVR_URLS
         elif self.zone == ZONE2:
+            self.telnet_commands = ZONE2_TELNET_COMMANDS
             self.urls = ZONE2_URLS
         elif self.zone == ZONE3:
+            self.telnet_commands = ZONE3_TELNET_COMMANDS
             self.urls = ZONE3_URLS
         else:
-            raise ValueError("Invalid zone {}".format(self.zone))
+            raise ValueError(f"Invalid zone {self.zone}")
 
-    async def _power_callback(
-            self,
-            zone: str,
-            event: str,
-            parameter: str) -> None:
+    async def _async_power_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
         """Handle a power change event."""
-        if self.zone == zone:
+        if self.zone == zone and parameter in POWER_STATES:
             self._power = parameter
 
-    def get_own_zone(self):
+    def get_own_zone(self) -> str:
         """
         Get zone from actual instance.
 
@@ -123,29 +155,31 @@ class DenonAVRDeviceInfo:
             await self.async_identify_update_method()
 
             # Add tags for a potential AppCommand.xml update
-            self.api.add_appcommand_update_tag(
-                AppCommands.GetAllZonePowerStatus)
+            self.api.add_appcommand_update_tag(AppCommands.GetAllZonePowerStatus)
 
-            self.telnet_api.register_callback("PW", self._power_callback)
+            power_event = "ZM"
+            if self.zone == ZONE2:
+                power_event = "Z2"
+            elif self.zone == ZONE3:
+                power_event = "Z3"
+            self.telnet_api.register_callback(power_event, self._async_power_callback)
 
             self._is_setup = True
 
     async def async_update(
-            self,
-            global_update: bool = False,
-            cache_id: Optional[Hashable] = None) -> None:
+        self, global_update: bool = False, cache_id: Optional[Hashable] = None
+    ) -> None:
         """Update status asynchronously."""
         # Ensure instance is setup before updating
-        if self._is_setup is False:
+        if not self._is_setup:
             await self.async_setup()
 
         # Update power status
-        await self.async_update_power(
-            global_update=global_update, cache_id=cache_id)
+        await self.async_update_power(global_update=global_update, cache_id=cache_id)
 
     async def async_identify_receiver(self) -> None:
         """Identify receiver asynchronously."""
-        # Test Deviceinfo.xml if receiver is a AVR-X with port 80 for pre 2016
+        # Test Deviceinfo.xml if receiver is an AVR-X with port 80 for pre 2016
         # devices and port 8080 devices 2016 and later
         # 2016 models has also some of the XML but not all, try first 2016
         r_types = [AVR_X, AVR_X_2016]
@@ -157,22 +191,30 @@ class DenonAVRDeviceInfo:
             try:
                 # Deviceinfo.xml is static and can be cached for the whole time
                 xml = await self.api.async_get_xml(
-                    self.urls.deviceinfo, cache_id=id(self))
+                    self.urls.deviceinfo, cache_id=id(self)
+                )
             except (AvrTimoutError, AvrNetworkError) as err:
                 _LOGGER.debug(
                     "Connection error on port %s when identifying receiver",
-                    r_type.port, exc_info=err)
+                    r_type.port,
+                    exc_info=err,
+                )
 
-                # Raise error only when occured at both types
+                # Raise error only when occurred at both types
                 timeout_errors += 1
                 if timeout_errors == len(r_types):
                     raise
 
             except AvrRequestError as err:
                 _LOGGER.debug(
-                    "Request error on port %s when identifying receiver, "
-                    "device is not a %s receivers", r_type.port,
-                    r_type.type, exc_info=err)
+                    (
+                        "Request error on port %s when identifying receiver, "
+                        "device is not a %s receivers"
+                    ),
+                    r_type.port,
+                    r_type.type,
+                    exc_info=err,
+                )
             else:
                 is_avr_x = self._is_avr_x(xml)
                 if is_avr_x:
@@ -180,17 +222,19 @@ class DenonAVRDeviceInfo:
                     # Receiver identified, return
                     return
 
-        # If check of Deviceinfo.xml was not successfull, receiver is type AVR
+        # If check of Deviceinfo.xml was not successful, receiver is type AVR
         self.receiver = AVR
         self.api.port = AVR.port
 
     @staticmethod
     def _is_avr_x(deviceinfo: ET.Element) -> bool:
-        """Evaluate Deviceinfo.xml if the device is a AVR-X device."""
+        """Evaluate Deviceinfo.xml if the device is an AVR-X device."""
         # First test by CommApiVers
         try:
-            if bool(DEVICEINFO_COMMAPI_PATTERN.search(
-                    deviceinfo.find("CommApiVers").text) is not None):
+            if bool(
+                DEVICEINFO_COMMAPI_PATTERN.search(deviceinfo.find("CommApiVers").text)
+                is not None
+            ):
                 # receiver found , return True
                 return True
         except AttributeError:
@@ -200,8 +244,10 @@ class DenonAVRDeviceInfo:
 
         # if first test did not find AVR-X device, check by model name
         try:
-            if bool(DEVICEINFO_AVR_X_PATTERN.search(
-                    deviceinfo.find("ModelName").text) is not None):
+            if bool(
+                DEVICEINFO_AVR_X_PATTERN.search(deviceinfo.find("ModelName").text)
+                is not None
+            ):
                 # receiver found , return True
                 return True
         except AttributeError:
@@ -224,87 +270,84 @@ class DenonAVRDeviceInfo:
         else:
             try:
                 xml = await self.api.async_post_appcommand(
-                    self.urls.appcommand,
-                    (AppCommands.GetFriendlyName,))
+                    self.urls.appcommand, (AppCommands.GetFriendlyName,)
+                )
             except (AvrTimoutError, AvrNetworkError) as err:
                 _LOGGER.debug(
-                    "Connection error when identifying update method",
-                    exc_info=err)
+                    "Connection error when identifying update method", exc_info=err
+                )
                 raise
             except AvrRequestError as err:
                 _LOGGER.debug(
-                    "Request error when identifying update method",
-                    exc_info=err)
+                    "Request error when identifying update method", exc_info=err
+                )
                 self.use_avr_2016_update = False
-                _LOGGER.info(
-                    "AVR-X device, AppCommand.xml interface not supported")
+                _LOGGER.info("AVR-X device, AppCommand.xml interface not supported")
             else:
                 self.use_avr_2016_update = True
                 _LOGGER.info("AVR-X device, using AppCommand.xml interface")
                 self._set_friendly_name(xml)
 
-        if self.use_avr_2016_update is False:
+        if not self.use_avr_2016_update:
             try:
                 xml = await self.api.async_get_xml(self.urls.mainzone)
             except (AvrTimoutError, AvrNetworkError) as err:
                 _LOGGER.debug(
-                    "Connection error when identifying update method",
-                    exc_info=err)
+                    "Connection error when identifying update method", exc_info=err
+                )
                 raise
             except AvrRequestError as err:
-                _LOGGER.debug(
-                    "Request error getting friendly name", exc_info=err)
+                _LOGGER.debug("Request error getting friendly name", exc_info=err)
                 _LOGGER.info(
                     "Receiver name could not be determined. Using standard"
-                    " name: Denon AVR")
+                    " name: Denon AVR"
+                )
                 if self.friendly_name is None:
                     self.friendly_name = "Denon AVR"
             else:
                 self._set_friendly_name(xml)
 
     async def async_verify_avr_2016_update_method(
-            self, cache_id: Hashable = None) -> None:
+        self, cache_id: Hashable = None
+    ) -> None:
         """Verify if avr 2016 update method is working."""
         # Nothing to do if Appcommand.xml interface is not supported
-        if self.use_avr_2016_update is False:
+        if self._is_setup and not self.use_avr_2016_update:
             return
 
         try:
             # Result is cached that it can be reused during update
             await self.api.async_get_global_appcommand(cache_id=cache_id)
         except (AvrTimoutError, AvrNetworkError) as err:
-            _LOGGER.debug(
-                "Connection error when verifying update method",
-                exc_info=err)
+            _LOGGER.debug("Connection error when verifying update method", exc_info=err)
             raise
         except AvrForbiddenError:
             # Recovery in case receiver changes port from 80 to 8080 which
             # might happen at Denon AVR-X 2016 receivers
-            if self._allow_recovery is True:
+            if self._allow_recovery:
                 self._allow_recovery = False
                 _LOGGER.warning(
                     "AppCommand.xml returns HTTP status 403. Running setup"
                     " again once to check if receiver interface switched "
-                    "ports")
+                    "ports"
+                )
                 self._is_setup = False
                 await self.async_setup()
-                await self.async_verify_avr_2016_update_method(
-                    cache_id=cache_id)
+                await self.async_verify_avr_2016_update_method(cache_id=cache_id)
             else:
                 raise
         except AvrIncompleteResponseError as err:
-            _LOGGER.debug(
-                "Request error when verifying update method", exc_info=err)
+            _LOGGER.debug("Request error when verifying update method", exc_info=err)
             # Only AVR_X devices support both interfaces
             if self.receiver == AVR_X:
                 _LOGGER.warning(
                     "Error verifying Appcommand.xml update method, it returns "
-                    "an incomplete result set. Deactivating the interface")
+                    "an incomplete result set. Deactivating the interface"
+                )
                 self.use_avr_2016_update = False
         else:
-            if self._allow_recovery is False:
-                _LOGGER.info(
-                    "AppCommand.xml recovered from HTTP status 403 error")
+            if not self._allow_recovery:
+                _LOGGER.info("AppCommand.xml recovered from HTTP status 403 error")
             self._allow_recovery = True
 
     def _set_friendly_name(self, xml: ET.Element) -> None:
@@ -321,16 +364,14 @@ class DenonAVRDeviceInfo:
                     self.friendly_name = name.strip()
                     break
         if self.friendly_name is None:
-            _LOGGER.warning(
-                "No FriendlyName found, using standard name: Denon AVR")
+            _LOGGER.warning("No FriendlyName found, using standard name: Denon AVR")
             self.friendly_name = "Denon AVR"
 
     async def async_get_device_info(self) -> None:
         """Get device information."""
         port = DESCRIPTION_TYPES[self.receiver.type].port
         command = DESCRIPTION_TYPES[self.receiver.type].url
-        url = "http://{host}:{port}{command}".format(
-            host=self.api.host, port=port, command=command)
+        url = f"http://{self.api.host}:{port}{command}"
 
         device_info = None
         try:
@@ -343,8 +384,13 @@ class DenonAVRDeviceInfo:
             raise
         except AvrRequestError as err:
             _LOGGER.error(
-                "During DenonAVR device identification, when trying to request"
-                " %s the following error occurred: %s", url, err)
+                (
+                    "During DenonAVR device identification, when trying to request"
+                    " %s the following error occurred: %s"
+                ),
+                url,
+                err,
+            )
         else:
             device_info = evaluate_scpd_xml(url, res.text)
 
@@ -353,10 +399,13 @@ class DenonAVRDeviceInfo:
             self.model_name = "Unknown"
             self.serial_number = None
             _LOGGER.warning(
-                "Unable to get device information of host %s, Device might be "
-                "in a corrupted state. Continuing without device information. "
-                "Disconnect and reconnect power to the device and try again.",
-                self.api.host)
+                (
+                    "Unable to get device information of host %s, Device might be "
+                    "in a corrupted state. Continuing without device information. "
+                    "Disconnect and reconnect power to the device and try again."
+                ),
+                self.api.host,
+            )
             return
 
         if self.friendly_name is None and "friendlyName" in device_info:
@@ -366,64 +415,62 @@ class DenonAVRDeviceInfo:
         self.serial_number = device_info["serialNumber"]
 
     async def async_update_power(
-            self,
-            global_update: bool = False,
-            cache_id: Optional[Hashable] = None):
+        self, global_update: bool = False, cache_id: Optional[Hashable] = None
+    ) -> None:
         """Update power status of device."""
-        if self.use_avr_2016_update is True:
-            await self.async_update_power_appcommand(
-                global_update=global_update, cache_id=cache_id)
-        elif self.use_avr_2016_update is False:
-            await self.async_update_power_status_xml(cache_id=cache_id)
-        else:
+        if self.use_avr_2016_update is None:
             raise AvrProcessingError(
-                "Device is not setup correctly, update method not set")
+                "Device is not setup correctly, update method not set"
+            )
+
+        if self.use_avr_2016_update:
+            await self.async_update_power_appcommand(
+                global_update=global_update, cache_id=cache_id
+            )
+        else:
+            await self.async_update_power_status_xml(cache_id=cache_id)
 
     async def async_update_power_appcommand(
-            self,
-            global_update: bool = False,
-            cache_id: Optional[Hashable] = None):
+        self, global_update: bool = False, cache_id: Optional[Hashable] = None
+    ) -> None:
         """Update power status from AppCommand.xml."""
         power_appcommand = AppCommands.GetAllZonePowerStatus
         try:
             if global_update:
-                xml = await self.api.async_get_global_appcommand(
-                    cache_id=cache_id)
+                xml = await self.api.async_get_global_appcommand(cache_id=cache_id)
             else:
                 xml = await self.api.async_post_appcommand(
-                    self.urls.appcommand, tuple(power_appcommand),
-                    cache_id=cache_id)
+                    self.urls.appcommand, tuple(power_appcommand), cache_id=cache_id
+                )
         except AvrRequestError as err:
-            _LOGGER.debug(
-                "Error when getting power status", exc_info=err)
+            _LOGGER.debug("Error when getting power status", exc_info=err)
             raise
 
         # Extract relevant information
         zone = self.get_own_zone()
 
         # Search for power tag
-        power_tag = xml.find("./cmd[@{attribute}='{cmd}']/{zone}".format(
-            attribute=APPCOMMAND_CMD_TEXT,
-            cmd=power_appcommand.cmd_text,
-            zone=zone))
+        power_tag = xml.find(
+            f"./cmd[@{APPCOMMAND_CMD_TEXT}='{power_appcommand.cmd_text}']/{zone}"
+        )
 
         if power_tag is None:
             raise AvrProcessingError(
-                "Power attribute of zone {} not found on update".format(
-                    self.zone))
+                f"Power attribute of zone {self.zone} not found on update"
+            )
 
         self._power = power_tag.text
 
     async def async_update_power_status_xml(
-            self,
-            cache_id: Optional[Hashable] = None):
+        self, cache_id: Optional[Hashable] = None
+    ) -> None:
         """Update power status from status xml."""
         # URLs to be scanned
         urls = [self.urls.status]
         if self.zone == MAIN_ZONE:
             urls.append(self.urls.mainzone)
         else:
-            urls.append("{}?ZoneName={}".format(self.urls.mainzone, self.zone))
+            urls.append(f"{self.urls.mainzone}?ZoneName={self.zone}")
         # Tags in XML which might contain information about zones power status
         # ordered by their priority
         tags = ["./ZonePower/value", "./Power/value"]
@@ -431,12 +478,11 @@ class DenonAVRDeviceInfo:
         for tag in tags:
             for url in urls:
                 try:
-                    xml = await self.api.async_get_xml(
-                        url, cache_id=cache_id)
+                    xml = await self.api.async_get_xml(url, cache_id=cache_id)
                 except AvrRequestError as err:
                     _LOGGER.debug(
-                        "Error when getting power status from url %s", url,
-                        exc_info=err)
+                        "Error when getting power status from url %s", url, exc_info=err
+                    )
                     continue
 
                 # Search for power tag
@@ -446,7 +492,8 @@ class DenonAVRDeviceInfo:
                     return
 
         raise AvrProcessingError(
-            "Power attribute of zone {} not found on update".format(self.zone))
+            f"Power attribute of zone {self.zone} not found on update"
+        )
 
     ##############
     # Properties #
@@ -466,11 +513,17 @@ class DenonAVRDeviceInfo:
 
     async def async_power_on(self) -> None:
         """Turn on receiver via HTTP get command."""
-        await self.api.async_get_command(self.urls.command_power_on)
+        success = self.telnet_api.send_commands(self.telnet_commands.command_power_on)
+        if not success:
+            await self.api.async_get_command(self.urls.command_power_on)
 
     async def async_power_off(self) -> None:
         """Turn off receiver via HTTP get command."""
-        await self.api.async_get_command(self.urls.command_power_standby)
+        success = self.telnet_api.send_commands(
+            self.telnet_commands.command_power_standby
+        )
+        if not success:
+            await self.api.async_get_command(self.urls.command_power_standby)
 
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
@@ -485,16 +538,18 @@ class DenonAVRFoundation:
     _device: DenonAVRDeviceInfo = attr.ib(
         validator=attr.validators.instance_of(DenonAVRDeviceInfo),
         default=attr.Factory(DenonAVRDeviceInfo),
-        kw_only=True)
+        kw_only=True,
+    )
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
 
     async def async_update_attrs_appcommand(
-            self,
-            update_attrs: Dict[AppCommandCmd, None],
-            appcommand0300: bool = False,
-            global_update: bool = False,
-            cache_id: Optional[Hashable] = None,
-            ignore_missing_response: bool = False):
+        self,
+        update_attrs: Dict[AppCommandCmd, None],
+        appcommand0300: bool = False,
+        global_update: bool = False,
+        cache_id: Optional[Hashable] = None,
+        ignore_missing_response: bool = False,
+    ):
         """Update attributes from AppCommand.xml."""
         # Copy that we do not accidently change the wrong dict
         update_attrs = deepcopy(update_attrs)
@@ -504,7 +559,8 @@ class DenonAVRFoundation:
         try:
             if global_update:
                 xml = await self._device.api.async_get_global_appcommand(
-                    appcommand0300=appcommand0300, cache_id=cache_id)
+                    appcommand0300=appcommand0300, cache_id=cache_id
+                )
             else:
                 # Determine endpoint
                 if appcommand0300:
@@ -512,10 +568,10 @@ class DenonAVRFoundation:
                 else:
                     url = self._device.urls.appcommand
                 xml = await self._device.api.async_post_appcommand(
-                    url, tags, cache_id=cache_id)
+                    url, tags, cache_id=cache_id
+                )
         except AvrRequestError as err:
-            _LOGGER.debug(
-                "Error when getting status update", exc_info=err)
+            _LOGGER.debug("Error when getting status update", exc_info=err)
             raise
 
         # Extract relevant information
@@ -523,8 +579,7 @@ class DenonAVRFoundation:
 
         attrs = deepcopy(update_attrs)
         for app_command in attrs.keys():
-            search_strings = self.create_appcommand_search_strings(
-                app_command, zone)
+            search_strings = self.create_appcommand_search_strings(app_command, zone)
             start = 0
             success = 0
             for i, pattern in enumerate(app_command.response_pattern):
@@ -534,47 +589,53 @@ class DenonAVRFoundation:
                     getattr(self, pattern.update_attribute)
                     # Set new value either from XML attribute or text
                     if pattern.get_xml_attribute is not None:
-                        set_value = xml.find(
-                            search_strings[i]).get(pattern.get_xml_attribute)
+                        set_value = xml.find(search_strings[i]).get(
+                            pattern.get_xml_attribute
+                        )
                     else:
                         set_value = xml.find(search_strings[i]).text
 
-                    setattr(
-                        self,
-                        pattern.update_attribute,
-                        set_value)
+                    setattr(self, pattern.update_attribute, set_value)
                     success += 1
 
                     _LOGGER.debug(
                         "Changing variable %s to value %s",
-                        pattern.update_attribute, set_value)
+                        pattern.update_attribute,
+                        set_value,
+                    )
 
                 except (AttributeError, IndexError) as err:
                     _LOGGER.debug(
                         "Failed updating attribute %s for zone %s",
-                        pattern.update_attribute, self._device.zone,
-                        exc_info=err)
+                        pattern.update_attribute,
+                        self._device.zone,
+                        exc_info=err,
+                    )
 
             if start == success:
                 # Done
                 update_attrs.pop(app_command, None)
 
         # Check if each attribute was updated
-        if update_attrs and ignore_missing_response is False:
+        if update_attrs and not ignore_missing_response:
             raise AvrProcessingError(
-                "Some attributes of zone {} not found on update: {}".format(
-                    self._device.zone, update_attrs))
-        if update_attrs and ignore_missing_response is True:
+                f"Some attributes of zone {self._device.zone} not found on update:"
+                f" {update_attrs}"
+            )
+        if update_attrs and ignore_missing_response:
             _LOGGER.debug(
                 "Some attributes of zone %s not found on update: %s",
-                self._device.zone, update_attrs)
+                self._device.zone,
+                update_attrs,
+            )
 
     async def async_update_attrs_status_xml(
-            self,
-            update_attrs: Dict[str, str],
-            urls: List[str],
-            cache_id: Optional[Hashable] = None,
-            ignore_missing_response: bool = False):
+        self,
+        update_attrs: Dict[str, str],
+        urls: List[str],
+        cache_id: Optional[Hashable] = None,
+        ignore_missing_response: bool = False,
+    ):
         """
         Update attributes from status xml.
 
@@ -590,12 +651,11 @@ class DenonAVRFoundation:
 
         for url in urls:
             try:
-                xml = await self._device.api.async_get_xml(
-                    url, cache_id=cache_id)
+                xml = await self._device.api.async_get_xml(url, cache_id=cache_id)
             except AvrRequestError as err:
                 _LOGGER.debug(
-                    "Error when getting status update from url %s", url,
-                    exc_info=err)
+                    "Error when getting status update from url %s", url, exc_info=err
+                )
                 continue
             attrs = deepcopy(update_attrs)
             for name, tag in attrs.items():
@@ -608,27 +668,32 @@ class DenonAVRFoundation:
                     update_attrs.pop(name, None)
 
                     _LOGGER.debug(
-                        "Changing variable %s to value %s", name,
-                        xml.find(tag).text)
+                        "Changing variable %s to value %s", name, xml.find(tag).text
+                    )
 
                 except (AttributeError, IndexError) as err:
                     _LOGGER.debug(
-                        "Failed updating attribute %s for zone %s", name,
-                        self._device.zone, exc_info=err)
+                        "Failed updating attribute %s for zone %s",
+                        name,
+                        self._device.zone,
+                        exc_info=err,
+                    )
 
             # All done, no need for continuing
             if not update_attrs:
                 break
 
         # Check if each attribute was updated
-        if update_attrs and ignore_missing_response is False:
+        if update_attrs and not ignore_missing_response:
             raise AvrProcessingError(
-                "Some attributes of zone {} not found on update: {}".format(
-                    self._device.zone, update_attrs))
+                f"Some attributes of zone {self._device.zone} not found on update:"
+                f" {update_attrs}"
+            )
 
     @staticmethod
     def create_appcommand_search_strings(
-            app_command_cmd: AppCommandCmd, zone: str) -> List[str]:
+        app_command_cmd: AppCommandCmd, zone: str
+    ) -> List[str]:
         """Create search pattern for AppCommand(0300).xml response."""
         result = []
 
@@ -636,15 +701,15 @@ class DenonAVRFoundation:
             string = "./cmd"
             # Text of cmd tag in query was added as attribute to response
             if app_command_cmd.cmd_text:
-                string = string + "[@{}='{}']".format(
-                    APPCOMMAND_CMD_TEXT, app_command_cmd.cmd_text)
+                string = (
+                    string + f"[@{APPCOMMAND_CMD_TEXT}='{app_command_cmd.cmd_text}']"
+                )
             # Text of name tag in query was added as attribute to response
             if app_command_cmd.name:
-                string = string + "[@{}='{}']".format(
-                    APPCOMMAND_NAME, app_command_cmd.name)
+                string = string + f"[@{APPCOMMAND_NAME}='{app_command_cmd.name}']"
             # Some results include a zone tag
             if resp.add_zone:
-                string = string + "/{}".format(zone)
+                string = string + f"/{zone}"
             # Suffix like /status, /volume
             string = string + resp.suffix
 
@@ -656,9 +721,8 @@ class DenonAVRFoundation:
 
 
 def set_api_host(
-        instance: DenonAVRFoundation,
-        attribute: attr.Attribute,
-        value: str) -> str:
+    instance: DenonAVRFoundation, attribute: attr.Attribute, value: str
+) -> str:
     """Change API host on host changes too."""
     # First change _device.api.host then return value
     # pylint: disable=protected-access
@@ -668,9 +732,8 @@ def set_api_host(
 
 
 def set_api_timeout(
-        instance: DenonAVRFoundation,
-        attribute: attr.Attribute,
-        value: float) -> float:
+    instance: DenonAVRFoundation, attribute: attr.Attribute, value: float
+) -> float:
     """Change API timeout on timeout changes too."""
     # First change _device.api.host then return value
     timeout = httpx.Timeout(value, read=max(value, 15.0))

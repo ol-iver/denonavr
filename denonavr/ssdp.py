@@ -7,20 +7,18 @@ This module implements a discovery function for Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
-import logging
 import asyncio
-import socket
+import logging
 import re
+import socket
 import xml.etree.ElementTree as ET
-
-from typing import Dict, List, Optional, Tuple, Set
+from typing import Dict, List, Optional, Set, Tuple
 from urllib.parse import urlparse
 
 import httpx
 import netifaces
-
 from defusedxml import DefusedXmlException
-from defusedxml.ElementTree import fromstring, ParseError
+from defusedxml.ElementTree import ParseError, fromstring
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,35 +32,39 @@ SSDP_ST_3 = "urn:schemas-upnp-org:device:MediaRenderer:1"
 
 SSDP_ST_LIST = (SSDP_ST_1, SSDP_ST_2, SSDP_ST_3)
 
-SSDP_LOCATION_PATTERN = re.compile(r'(?<=LOCATION:\s).+?(?=\r)')
+SSDP_LOCATION_PATTERN = re.compile(r"(?<=LOCATION:\s).+?(?=\r)")
 
 SCPD_XMLNS = "{urn:schemas-upnp-org:device-1-0}"
-SCPD_DEVICE = "{xmlns}device".format(xmlns=SCPD_XMLNS)
-SCPD_DEVICELIST = "{xmlns}deviceList".format(xmlns=SCPD_XMLNS)
-SCPD_DEVICETYPE = "{xmlns}deviceType".format(xmlns=SCPD_XMLNS)
-SCPD_MANUFACTURER = "{xmlns}manufacturer".format(xmlns=SCPD_XMLNS)
-SCPD_MODELNAME = "{xmlns}modelName".format(xmlns=SCPD_XMLNS)
-SCPD_SERIALNUMBER = "{xmlns}serialNumber".format(xmlns=SCPD_XMLNS)
-SCPD_FRIENDLYNAME = "{xmlns}friendlyName".format(xmlns=SCPD_XMLNS)
-SCPD_PRESENTATIONURL = "{xmlns}presentationURL".format(xmlns=SCPD_XMLNS)
+SCPD_DEVICE = f"{SCPD_XMLNS}device"
+SCPD_DEVICELIST = f"{SCPD_XMLNS}deviceList"
+SCPD_DEVICETYPE = f"{SCPD_XMLNS}deviceType"
+SCPD_MANUFACTURER = f"{SCPD_XMLNS}manufacturer"
+SCPD_MODELNAME = f"{SCPD_XMLNS}modelName"
+SCPD_SERIALNUMBER = f"{SCPD_XMLNS}serialNumber"
+SCPD_FRIENDLYNAME = f"{SCPD_XMLNS}friendlyName"
+SCPD_PRESENTATIONURL = f"{SCPD_XMLNS}presentationURL"
 
 SUPPORTED_DEVICETYPES = [
     "urn:schemas-upnp-org:device:MediaRenderer:1",
     "urn:schemas-upnp-org:device:MediaServer:1",
-    ]
+]
 
 SUPPORTED_MANUFACTURERS = ["Denon", "DENON", "DENON PROFESSIONAL", "Marantz"]
 
 
 def ssdp_request(ssdp_st: str, ssdp_mx: float = SSDP_MX) -> bytes:
     """Return request bytes for given st and mx."""
-    return "\r\n".join([
-        'M-SEARCH * HTTP/1.1',
-        'ST: {}'.format(ssdp_st),
-        'MX: {:d}'.format(ssdp_mx),
-        'MAN: "ssdp:discover"',
-        'HOST: {}:{}'.format(*SSDP_TARGET),
-        '', '']).encode('utf-8')
+    return "\r\n".join(
+        [
+            "M-SEARCH * HTTP/1.1",
+            f"ST: {ssdp_st}",
+            f"MX: {ssdp_mx:d}",
+            'MAN: "ssdp:discover"',
+            f"HOST: {SSDP_ADDR}:{SSDP_PORT}",
+            "",
+            "",
+        ]
+    ).encode("utf-8")
 
 
 def get_local_ips() -> List[str]:
@@ -131,19 +133,17 @@ async def async_send_ssdp_broadcast() -> Set[str]:
 
 async def async_send_ssdp_broadcast_ip(ip_addr: str) -> Set[str]:
     """Send SSDP broadcast messages to a single IP."""
-    # Ignore 169.254.0.0/16 adresses
-    if re.search("169.254.*.*", ip_addr):
+    # Ignore 169.254.0.0/16 addresses
+    if ip_addr.startswith("169.254."):
         return set()
 
     # Prepare socket
-    sock = socket.socket(
-        socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
     sock.bind((ip_addr, 0))
 
     # Get asyncio loop
     loop = asyncio.get_event_loop()
-    transport, protocol = await loop.create_datagram_endpoint(
-        DenonAVRSSDP, sock=sock)
+    transport, protocol = await loop.create_datagram_endpoint(DenonAVRSSDP, sock=sock)
 
     # Wait for the timeout period
     await asyncio.sleep(SSDP_MX)
@@ -152,8 +152,8 @@ async def async_send_ssdp_broadcast_ip(ip_addr: str) -> Set[str]:
     transport.close()
 
     _LOGGER.debug(
-        "Got %s results after SSDP queries using ip %s",
-        len(protocol.urls), ip_addr)
+        "Got %s results after SSDP queries using ip %s", len(protocol.urls), ip_addr
+    )
 
     return protocol.urls
 
@@ -171,22 +171,21 @@ def evaluate_scpd_xml(url: str, body: str) -> Optional[Dict]:
         # Using "try" in case tags are not available in XML
         device = {}
         device_xml = None
-        device["manufacturer"] = (
-            root.find(SCPD_DEVICE).find(SCPD_MANUFACTURER).text)
+        device["manufacturer"] = root.find(SCPD_DEVICE).find(SCPD_MANUFACTURER).text
 
-        _LOGGER.debug(
-            "Device %s has manufacturer %s", url, device["manufacturer"])
+        _LOGGER.debug("Device %s has manufacturer %s", url, device["manufacturer"])
 
         if not device["manufacturer"] in SUPPORTED_MANUFACTURERS:
             return None
 
-        if (root.find(SCPD_DEVICE).find(SCPD_DEVICETYPE).text
-                in SUPPORTED_DEVICETYPES):
+        if root.find(SCPD_DEVICE).find(SCPD_DEVICETYPE).text in SUPPORTED_DEVICETYPES:
             device_xml = root.find(SCPD_DEVICE)
         elif root.find(SCPD_DEVICE).find(SCPD_DEVICELIST) is not None:
             for dev in root.find(SCPD_DEVICE).find(SCPD_DEVICELIST):
-                if (dev.find(SCPD_DEVICETYPE).text in SUPPORTED_DEVICETYPES
-                        and dev.find(SCPD_SERIALNUMBER) is not None):
+                if (
+                    dev.find(SCPD_DEVICETYPE).text in SUPPORTED_DEVICETYPES
+                    and dev.find(SCPD_SERIALNUMBER) is not None
+                ):
                     device_xml = dev
                     break
 
@@ -195,25 +194,27 @@ def evaluate_scpd_xml(url: str, body: str) -> Optional[Dict]:
 
         if device_xml.find(SCPD_PRESENTATIONURL) is not None:
             device["host"] = urlparse(
-                device_xml.find(
-                    SCPD_PRESENTATIONURL).text).hostname
-            device["presentationURL"] = (
-                device_xml.find(SCPD_PRESENTATIONURL).text)
+                device_xml.find(SCPD_PRESENTATIONURL).text
+            ).hostname
+            device["presentationURL"] = device_xml.find(SCPD_PRESENTATIONURL).text
         else:
             device["host"] = urlparse(url).hostname
 
-        device["modelName"] = (
-            device_xml.find(SCPD_MODELNAME).text)
-        device["serialNumber"] = (
-            device_xml.find(SCPD_SERIALNUMBER).text)
-        device["friendlyName"] = (
-            device_xml.find(SCPD_FRIENDLYNAME).text)
+        device["modelName"] = device_xml.find(SCPD_MODELNAME).text
+        device["serialNumber"] = device_xml.find(SCPD_SERIALNUMBER).text
+        device["friendlyName"] = device_xml.find(SCPD_FRIENDLYNAME).text
         return device
-    except (AttributeError, ValueError, ET.ParseError, DefusedXmlException,
-            ParseError, UnicodeDecodeError) as err:
+    except (
+        AttributeError,
+        ValueError,
+        ET.ParseError,
+        DefusedXmlException,
+        ParseError,
+        UnicodeDecodeError,
+    ) as err:
         _LOGGER.error(
-            "Error occurred during evaluation of SCPD XML from URI %s: %s",
-            url, err)
+            "Error occurred during evaluation of SCPD XML from URI %s: %s", url, err
+        )
         return None
 
 
@@ -224,8 +225,7 @@ class DenonAVRSSDP(asyncio.DatagramProtocol):
         """Create instance."""
         self.urls = set()
 
-    def connection_made(
-            self, transport: asyncio.DatagramTransport) -> None:
+    def connection_made(self, transport: asyncio.DatagramTransport) -> None:
         """Send SSDP request when connection was made."""
         # Prepare SSDP and send broadcast message
         for ssdp_st in SSDP_ST_LIST:

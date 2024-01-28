@@ -3,3 +3,4 @@ attrs>=21.2.0
 defusedxml>=0.7.1
 httpx>=0.21.0
 netifaces>=0.11.0
+async-timeout>=4.0.2; python_version < "3.11"

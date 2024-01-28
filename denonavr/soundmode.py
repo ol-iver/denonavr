@@ -8,19 +8,22 @@ This module implements the handler for sound mode of Denon AVR receivers.
 """
 
 import asyncio
-from copy import deepcopy
 import logging
-
+from copy import deepcopy
 from typing import Dict, Hashable, List, Optional
 
 import attr
 
 from .appcommand import AppCommands
 from .const import (
-    AVR_X, AVR_X_2016, ALL_ZONE_STEREO, DENON_ATTR_SETATTR, SOUND_MODE_MAPPING)
+    ALL_ZONE_STEREO,
+    AVR_X,
+    AVR_X_2016,
+    DENON_ATTR_SETATTR,
+    SOUND_MODE_MAPPING,
+)
 from .exceptions import AvrProcessingError
 from .foundation import DenonAVRFoundation
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,7 +43,7 @@ def sound_mode_map_factory() -> Dict[str, List]:
     return sound_mode_map
 
 
-def sound_mode_rev_map_factory(instance: DenonAVRFoundation) -> Dict[str, str]:
+def sound_mode_rev_map_factory(instance: "DenonAVRSoundMode") -> Dict[str, str]:
     """
     Construct the sound_mode_rev_map.
 
@@ -50,7 +53,8 @@ def sound_mode_rev_map_factory(instance: DenonAVRFoundation) -> Dict[str, str]:
     because that has a nicer syntax.
     """
     mode_map = list(
-        instance._sound_mode_map.items())  # pylint: disable=protected-access
+        instance._sound_mode_map.items()  # pylint: disable=protected-access
+    )
     mode_map_rev = {}
     for matched_mode, sublist in mode_map:
         for raw_mode in sublist:
@@ -63,37 +67,39 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     """This class implements sound mode functions of Denon AVR receiver."""
 
     _support_sound_mode: Optional[bool] = attr.ib(
-        converter=attr.converters.optional(bool),
-        default=None)
+        converter=attr.converters.optional(bool), default=None
+    )
     _sound_mode_raw: Optional[str] = attr.ib(
-        converter=attr.converters.optional(convert_sound_mode),
-        default=None)
+        converter=attr.converters.optional(convert_sound_mode), default=None
+    )
     _sound_mode_map: Dict[str, list] = attr.ib(
         validator=attr.validators.deep_mapping(
             attr.validators.instance_of(str),
             attr.validators.deep_iterable(
-                attr.validators.instance_of(str),
-                attr.validators.instance_of(list)),
-            attr.validators.instance_of(dict)),
-        default=attr.Factory(sound_mode_map_factory), init=False)
+                attr.validators.instance_of(str), attr.validators.instance_of(list)
+            ),
+            attr.validators.instance_of(dict),
+        ),
+        default=attr.Factory(sound_mode_map_factory),
+        init=False,
+    )
     _sound_mode_map_rev: Dict[str, str] = attr.ib(
         validator=attr.validators.deep_mapping(
             attr.validators.instance_of(str),
             attr.validators.instance_of(str),
-            attr.validators.instance_of(dict)),
+            attr.validators.instance_of(dict),
+        ),
         default=attr.Factory(sound_mode_rev_map_factory, takes_self=True),
-        init=False)
+        init=False,
+    )
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
 
     # Update tags for attributes
     # AppCommand.xml interface
-    appcommand_attrs = {
-        AppCommands.GetSurroundModeStatus: None}
+    appcommand_attrs = {AppCommands.GetSurroundModeStatus: None}
     # Status.xml interface
-    status_xml_attrs_01 = {
-        "_sound_mode_raw": "./selectSurround/value"}
-    status_xml_attrs_02 = {
-        "_sound_mode_raw": "./SurrMode/value"}
+    status_xml_attrs_01 = {"_sound_mode_raw": "./selectSurround/value"}
+    status_xml_attrs_02 = {"_sound_mode_raw": "./SurrMode/value"}
 
     async def async_setup(self) -> None:
         """Ensure that the instance is initialized."""
@@ -103,24 +109,21 @@ class DenonAVRSoundMode(DenonAVRFoundation):
                 self._device.api.add_appcommand_update_tag(tag)
 
             # Soundmode is always available for AVR-X and AVR-X-2016 receivers
-            # For AVR receiver it will be tested druing the first update
+            # For AVR receiver it will be tested during the first update
             if self._device.receiver in [AVR_X, AVR_X_2016]:
                 self._support_sound_mode = True
             else:
                 await self.async_update_sound_mode()
 
             self._device.telnet_api.register_callback(
-                "MS",
-                self._soundmode_callback
+                "MS", self._async_soundmode_callback
             )
 
             self._is_setup = True
 
-    async def _soundmode_callback(
-            self,
-            zone: str,
-            event: str,
-            parameter: str) -> None:
+    async def _async_soundmode_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
         """Handle a sound mode change event."""
         if self._device.zone != zone:
             return
@@ -128,47 +131,50 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         self._sound_mode_raw = parameter
 
     async def async_update(
-            self,
-            global_update: bool = False,
-            cache_id: Optional[Hashable] = None) -> None:
+        self, global_update: bool = False, cache_id: Optional[Hashable] = None
+    ) -> None:
         """Update sound mode asynchronously."""
         # Ensure instance is setup before updating
-        if self._is_setup is False:
+        if not self._is_setup:
             await self.async_setup()
 
         # Update state
         await self.async_update_sound_mode(
-            global_update=global_update, cache_id=cache_id)
+            global_update=global_update, cache_id=cache_id
+        )
 
     async def async_update_sound_mode(
-            self,
-            global_update: bool = False,
-            cache_id: Optional[Hashable] = None):
+        self, global_update: bool = False, cache_id: Optional[Hashable] = None
+    ):
         """Update sound mode status of device."""
-        if self._device.use_avr_2016_update is True:
+        if self._device.use_avr_2016_update is None:
+            raise AvrProcessingError(
+                "Device is not setup correctly, update method not set"
+            )
+
+        if self._device.use_avr_2016_update:
             await self.async_update_attrs_appcommand(
-                self.appcommand_attrs, global_update=global_update,
-                cache_id=cache_id)
-        elif self._device.use_avr_2016_update is False:
+                self.appcommand_attrs, global_update=global_update, cache_id=cache_id
+            )
+        else:
             urls = [self._device.urls.status, self._device.urls.mainzone]
-            if self._support_sound_mode is False:
+            if self._is_setup and not self._support_sound_mode:
                 return
             # There are two different options of sound mode tags
             try:
                 await self.async_update_attrs_status_xml(
-                    self.status_xml_attrs_01, urls, cache_id=cache_id)
+                    self.status_xml_attrs_01, urls, cache_id=cache_id
+                )
             except AvrProcessingError:
                 try:
                     await self.async_update_attrs_status_xml(
-                        self.status_xml_attrs_02, urls, cache_id=cache_id)
+                        self.status_xml_attrs_02, urls, cache_id=cache_id
+                    )
                 except AvrProcessingError:
                     _LOGGER.info("Sound mode not supported")
                     self._support_sound_mode = False
                     return
             self._support_sound_mode = True
-        else:
-            raise AvrProcessingError(
-                "Device is not setup correctly, update method not set")
 
     def match_sound_mode(self) -> Optional[str]:
         """Match the raw_sound_mode to its corresponding sound_mode."""
@@ -181,28 +187,37 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             # Estimate sound mode for unclassified input
             if smr_up.find("DTS") != -1:
                 self._sound_mode_map["DTS SURROUND"].append(smr_up)
-                _LOGGER.warning("Not able to match sound mode: '%s', "
-                                "assuming 'DTS SURROUND'.", smr_up)
+                _LOGGER.warning(
+                    "Not able to match sound mode: '%s', assuming 'DTS SURROUND'.",
+                    smr_up,
+                )
             elif smr_up.find("DOLBY") != -1:
                 self._sound_mode_map["DOLBY DIGITAL"].append(smr_up)
-                _LOGGER.warning("Not able to match sound mode: '%s', "
-                                "assuming 'DOLBY DIGITAL'.", smr_up)
+                _LOGGER.warning(
+                    "Not able to match sound mode: '%s', assuming 'DOLBY DIGITAL'.",
+                    smr_up,
+                )
             elif smr_up.find("MUSIC") != -1:
                 self._sound_mode_map["MUSIC"].append(smr_up)
-                _LOGGER.warning("Not able to match sound mode: '%s', "
-                                "assuming 'MUSIC'.", smr_up)
+                _LOGGER.warning(
+                    "Not able to match sound mode: '%s', assuming 'MUSIC'.", smr_up
+                )
             elif smr_up.find("AURO") != -1:
                 self._sound_mode_map["AURO3D"].append(smr_up)
-                _LOGGER.warning("Not able to match sound mode: '%s', "
-                                "assuming 'AURO3D'.", smr_up)
-            elif (smr_up.find("MOVIE") != -1 or smr_up.find("CINEMA") != -1):
+                _LOGGER.warning(
+                    "Not able to match sound mode: '%s', assuming 'AURO3D'.", smr_up
+                )
+            elif smr_up.find("MOVIE") != -1 or smr_up.find("CINEMA") != -1:
                 self._sound_mode_map["MOVIE"].append(smr_up)
-                _LOGGER.warning("Not able to match sound mode: '%s', "
-                                "assuming 'MOVIE'.", smr_up)
+                _LOGGER.warning(
+                    "Not able to match sound mode: '%s', assuming 'MOVIE'.", smr_up
+                )
             else:
                 self._sound_mode_map[smr_up] = [smr_up]
-                _LOGGER.warning("Not able to match sound mode: '%s', "
-                                "returning raw sound mode.", smr_up)
+                _LOGGER.warning(
+                    "Not able to match sound mode: '%s', returning raw sound mode.",
+                    smr_up,
+                )
             self._sound_mode_map_rev = sound_mode_rev_map_factory(self)
             sound_mode = self._sound_mode_map_rev[smr_up]
 
@@ -215,12 +230,16 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         Calls command to activate/deactivate the mode
         """
         command_url = self._device.urls.command_set_all_zone_stereo
+        telnet_command = self._device.telnet_commands.command_set_all_zone_stereo
         if zst_on:
             command_url += "ZST ON"
+            telnet_command += "ZST ON"
         else:
             command_url += "ZST OFF"
-
-        await self._device.api.async_get_command(command_url)
+            telnet_command += "ZST OFF"
+        success = self._device.telnet_api.send_commands(telnet_command)
+        if not success:
+            await self._device.api.async_get_command(command_url)
 
     ##############
     # Properties #
@@ -277,8 +296,13 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         # Therefore source mapping is needed to get sound_mode
         # Create command URL and send command via HTTP GET
         command_url = self._device.urls.command_sel_sound_mode + sound_mode
+        telnet_command = (
+            self._device.telnet_commands.command_sel_sound_mode + sound_mode
+        )
         # sent command
-        await self._device.api.async_get_command(command_url)
+        success = self._device.telnet_api.send_commands(telnet_command)
+        if not success:
+            await self._device.api.async_get_command(command_url)
 
 
 def sound_mode_factory(instance: DenonAVRFoundation) -> DenonAVRSoundMode:
