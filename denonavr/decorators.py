@@ -16,6 +16,7 @@ from functools import wraps
 from typing import Callable, Coroutine, TypeVar
 
 import httpx
+from asyncstdlib import lru_cache
 from defusedxml import DefusedXmlException
 from defusedxml.ElementTree import ParseError
 
@@ -85,40 +86,33 @@ def async_handle_receiver_exceptions(func: Callable[..., AnyT]) -> Callable[...,
     return wrapper
 
 
-def cache_clear_on_exception(func: Callable[..., AnyT]) -> Callable[..., AnyT]:
+def cache_result(func: Callable[..., AnyT]) -> Callable[..., AnyT]:
     """
-    Decorate a function to clear lru_cache if an exception occurs.
+    Decorate a function to cache its results with an lru_cache of maxsize 16.
 
-    The decorator must be placed right before the @lru_cache decorator.
-    It prevents memory leaks in home-assistant when receiver instances are
-    created and deleted right away in case the device is offline on setup.
+    This decorator also sets an "cache_id" keyword argument if it is not set yet.
+    When an exception occurs it clears lru_cache to prevent memory leaks in
+    home-assistant when receiver instances are created and deleted right
+    away in case the device is offline on setup.
     """
+    if inspect.signature(func).parameters.get("cache_id") is None:
+        raise AttributeError(
+            f"Function {func} does not have a 'cache_id' keyword parameter"
+        )
+
+    lru_decorator = lru_cache(maxsize=16)
+    cached_func = lru_decorator(func)
 
     @wraps(func)
     async def wrapper(*args, **kwargs):
-        try:
-            return await func(*args, **kwargs)
-        except Exception as err:
-            _LOGGER.debug("Exception %s raised, clearing cache", err)
-            func.cache_clear()
-            raise
-
-    return wrapper
-
-
-def set_cache_id(func: Callable[..., AnyT]) -> Callable[..., AnyT]:
-    """
-    Decorate a function to add cache_id keyword argument if it is not present.
-
-    The function must be called with a fix cache_id keyword argument to be able
-    to get cached data. This prevents accidental caching of a function result.
-    """
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
         if kwargs.get("cache_id") is None:
             kwargs["cache_id"] = time.time()
-        return func(*args, **kwargs)
+        try:
+            return await cached_func(*args, **kwargs)
+        except Exception as err:
+            _LOGGER.debug("Exception %s raised, clearing cache", err)
+            cached_func.cache_clear()
+            raise
 
     return wrapper
 
