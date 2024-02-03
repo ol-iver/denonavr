@@ -236,6 +236,7 @@ SOUND_MODE_MAPPING = {
         "DOLBY AUDIO - DD + DSUR",
         "DOLBY AUDIO - DD+   + NEURAL:X",
         "DOLBY AUDIO - DD+   + DSUR",
+        "DOLBY AUDIO-DD+ +DSUR",
         "DOLBY AUDIO - DOLBY DIGITAL",
         "DOLBY AUDIO-DSUR",
         "DOLBY AUDIO-DD+DSUR",
