@@ -30,7 +30,6 @@ from typing import (
 
 import attr
 import httpx
-from asyncstdlib import lru_cache
 from defusedxml.ElementTree import fromstring
 
 from .appcommand import AppCommandCmd
@@ -49,11 +48,7 @@ from .const import (
     ZONE2,
     ZONE3,
 )
-from .decorators import (
-    async_handle_receiver_exceptions,
-    cache_clear_on_exception,
-    set_cache_id,
-)
+from .decorators import async_handle_receiver_exceptions, cache_result
 from .exceptions import (
     AvrIncompleteResponseError,
     AvrInvalidResponseError,
@@ -180,9 +175,7 @@ class DenonAVRApi:
         # Return text
         return res.text
 
-    @set_cache_id
-    @cache_clear_on_exception
-    @lru_cache(maxsize=32)
+    @cache_result
     @async_handle_receiver_exceptions
     async def async_get_xml(
         self, request: str, cache_id: Hashable = None
@@ -197,9 +190,7 @@ class DenonAVRApi:
         # Return ElementTree element
         return xml_root
 
-    @set_cache_id
-    @cache_clear_on_exception
-    @lru_cache(maxsize=32)
+    @cache_result
     @async_handle_receiver_exceptions
     async def async_post_appcommand(
         self, request: str, cmds: Tuple[AppCommandCmd], cache_id: Hashable = None
