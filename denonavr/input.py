@@ -447,9 +447,9 @@ class DenonAVRInput(DenonAVRFoundation):
                 # Get list of all input sources of receiver
                 xml_list = xml_zonecapa.find("./InputSource/List")
                 for xml_source in xml_list.findall("Source"):
-                    receiver_sources[
-                        xml_source.find("FuncName").text
-                    ] = xml_source.find("DefaultName").text
+                    receiver_sources[xml_source.find("FuncName").text] = (
+                        xml_source.find("DefaultName").text
+                    )
 
         return receiver_sources
 
