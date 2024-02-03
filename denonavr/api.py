@@ -23,6 +23,7 @@ from typing import (
     Hashable,
     List,
     Optional,
+    Set,
     Tuple,
     cast,
 )
@@ -435,6 +436,7 @@ class DenonAVRTelnetApi:
         default=attr.Factory(dict),
         init=False,
     )
+    _callback_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
 
     async def async_connect(self) -> None:
         """Connect to the receiver asynchronously."""
@@ -624,7 +626,9 @@ class DenonAVRTelnetApi:
         if event not in TELNET_EVENTS:
             return
 
-        asyncio.create_task(self._async_run_callbacks(event, zone, parameter))
+        task = asyncio.create_task(self._async_run_callbacks(event, zone, parameter))
+        self._callback_tasks.add(task)
+        task.add_done_callback(self._callback_tasks.discard)
 
     async def _async_run_callbacks(self, event: str, zone: str, parameter: str) -> None:
         """Handle triggering the registered callbacks for the event."""
