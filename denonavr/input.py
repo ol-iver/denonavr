@@ -8,13 +8,13 @@ This module implements the handler for input functions of Denon AVR receivers.
 """
 
 import asyncio
-import html
 import logging
 from copy import deepcopy
 from typing import Dict, Hashable, List, Optional, Set, Tuple
 
 import attr
 import httpx
+from ftfy import fix_text
 
 from .appcommand import AppCommands
 from .const import (
@@ -56,11 +56,11 @@ def lower_string(value: Optional[str]) -> Optional[str]:
     return str(value).lower()
 
 
-def unescape_string(value: Optional[str]) -> Optional[str]:
-    """Perform HTML unescape on value."""
+def fix_string(value: Optional[str]) -> Optional[str]:
+    """Fix errors in string like unescaped HTML and wrong utf-8 encoding."""
     if value is None:
         return value
-    return html.unescape(str(value)).strip("\x00").strip("\x01").strip()
+    return fix_text(str(value)).strip()
 
 
 def set_input_func(
@@ -143,22 +143,22 @@ class DenonAVRInput(DenonAVRFoundation):
     )
 
     _artist: Optional[str] = attr.ib(
-        converter=attr.converters.optional(unescape_string), default=None
+        converter=attr.converters.optional(fix_string), default=None
     )
     _album: Optional[str] = attr.ib(
-        converter=attr.converters.optional(unescape_string), default=None
+        converter=attr.converters.optional(fix_string), default=None
     )
     _band: Optional[str] = attr.ib(
-        converter=attr.converters.optional(unescape_string), default=None
+        converter=attr.converters.optional(fix_string), default=None
     )
     _title: Optional[str] = attr.ib(
-        converter=attr.converters.optional(unescape_string), default=None
+        converter=attr.converters.optional(fix_string), default=None
     )
     _frequency: Optional[str] = attr.ib(
-        converter=attr.converters.optional(unescape_string), default=None
+        converter=attr.converters.optional(fix_string), default=None
     )
     _station: Optional[str] = attr.ib(
-        converter=attr.converters.optional(unescape_string), default=None
+        converter=attr.converters.optional(fix_string), default=None
     )
     _image_url: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
