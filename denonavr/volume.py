@@ -143,7 +143,7 @@ class DenonAVRVolume(DenonAVRFoundation):
     ##########
     async def async_volume_up(self) -> None:
         """Volume up receiver via HTTP get command."""
-        success = self._device.telnet_api.send_commands(
+        success = await self._device.telnet_api.async_send_commands(
             self._device.telnet_commands.command_volume_up
         )
         if not success:
@@ -153,7 +153,7 @@ class DenonAVRVolume(DenonAVRFoundation):
 
     async def async_volume_down(self) -> None:
         """Volume down receiver via HTTP get command."""
-        success = self._device.telnet_api.send_commands(
+        success = await self._device.telnet_api.async_send_commands(
             self._device.telnet_commands.command_volume_down
         )
         if not success:
@@ -173,7 +173,7 @@ class DenonAVRVolume(DenonAVRFoundation):
 
         # Round volume because only values which are a multi of 0.5 are working
         volume = round(volume * 2) / 2.0
-        success = self._device.telnet_api.send_commands(
+        success = await self._device.telnet_api.async_send_commands(
             self._device.telnet_commands.command_set_volume.format(
                 volume=int(volume + 80)
             )
@@ -186,7 +186,7 @@ class DenonAVRVolume(DenonAVRFoundation):
     async def async_mute(self, mute: bool) -> None:
         """Mute receiver via HTTP get command."""
         if mute:
-            success = self._device.telnet_api.send_commands(
+            success = await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_mute_on
             )
             if not success:
@@ -194,7 +194,7 @@ class DenonAVRVolume(DenonAVRFoundation):
                     self._device.urls.command_mute_on
                 )
         else:
-            success = self._device.telnet_api.send_commands(
+            success = await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_mute_off
             )
             if not success:
