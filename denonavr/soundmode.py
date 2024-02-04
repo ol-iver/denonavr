@@ -22,7 +22,7 @@ from .const import (
     DENON_ATTR_SETATTR,
     SOUND_MODE_MAPPING,
 )
-from .exceptions import AvrProcessingError
+from .exceptions import AvrCommandError, AvrProcessingError
 from .foundation import DenonAVRFoundation
 
 _LOGGER = logging.getLogger(__name__)
@@ -256,7 +256,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         return sound_mode_matched
 
     @property
-    def sound_mode_list(self) -> None:
+    def sound_mode_list(self) -> List[str]:
         """Return a list of available sound modes as string."""
         return list(self._sound_mode_map.keys())
 
@@ -285,6 +285,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         Valid values depend on the device and should be taken from
         "sound_mode_list".
         """
+        if sound_mode not in self.sound_mode_list:
+            raise AvrCommandError(f"{sound_mode} is not a valid sound mode")
+
         if sound_mode == ALL_ZONE_STEREO:
             await self._async_set_all_zone_stereo(True)
             return
