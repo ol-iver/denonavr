@@ -226,6 +226,10 @@ class DenonAVR(DenonAVRFoundation):
     def send_get_command(self, request: str) -> str:
         """Send HTTP GET command to Denon AVR receiver...for compatibility."""
 
+    async def async_send_telnet_commands(self, *commands: str) -> bool:
+        """Send telnet commands to the receiver."""
+        return await self._device.telnet_api.async_send_commands(*commands)
+
     def send_telnet_commands(self, *commands: str) -> bool:
         """Send telnet commands to the receiver."""
         return self._device.telnet_api.send_commands(*commands)

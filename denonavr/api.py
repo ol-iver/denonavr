@@ -18,6 +18,7 @@ from io import BytesIO
 from typing import (
     Awaitable,
     Callable,
+    Coroutine,
     DefaultDict,
     Dict,
     Hashable,
@@ -422,12 +423,19 @@ class DenonAVRTelnetApi:
     _telnet_event_map: Dict[str, List] = attr.ib(
         default=attr.Factory(telnet_event_map_factory)
     )
-    _callbacks: Dict[str, Callable] = attr.ib(
+    _callback_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
+    _send_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
+    _send_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
+    _callbacks: Dict[str, List[Coroutine]] = attr.ib(
         validator=attr.validators.instance_of(dict),
         default=attr.Factory(dict),
         init=False,
     )
-    _callback_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
+    _raw_callbacks: List[Coroutine] = attr.ib(
+        validator=attr.validators.instance_of(list),
+        default=attr.Factory(list),
+        init=False,
+    )
 
     async def async_connect(self) -> None:
         """Connect to the receiver asynchronously."""
@@ -471,7 +479,9 @@ class DenonAVRTelnetApi:
         self._connection_enabled = True
         self._last_message_time = time.monotonic()
         self._schedule_monitor()
-        self._protocol.write("PW?\r")
+        self._protocol.write("ZM?\r")
+        self._protocol.write("Z2?\r")
+        self._protocol.write("Z3?\r")
 
     def _schedule_monitor(self) -> None:
         """Start the monitor task."""
@@ -577,6 +587,18 @@ class DenonAVRTelnetApi:
             return
         self._callbacks[event].remove(callback)
 
+    def _register_raw_callback(
+        self, callback: Callable[[str], Awaitable[None]]
+    ) -> None:
+        """Register a callback handler for raw telnet messages."""
+        self._raw_callbacks.append(callback)
+
+    def _unregister_raw_callback(
+        self, callback: Callable[[str], Awaitable[None]]
+    ) -> None:
+        """Unregister a callback handler for raw telnet messages."""
+        self._raw_callbacks.remove(callback)
+
     def _process_event(self, message: str) -> None:
         """Process a realtime event."""
         _LOGGER.debug("Incoming Telnet message: %s", message)
@@ -617,12 +639,28 @@ class DenonAVRTelnetApi:
         if event not in TELNET_EVENTS:
             return
 
-        task = asyncio.create_task(self._async_run_callbacks(event, zone, parameter))
+        task = asyncio.create_task(
+            self._async_run_callbacks(message, event, zone, parameter)
+        )
         self._callback_tasks.add(task)
         task.add_done_callback(self._callback_tasks.discard)
 
-    async def _async_run_callbacks(self, event: str, zone: str, parameter: str) -> None:
-        """Handle triggering the registered callbacks for the event."""
+    async def _async_run_callbacks(
+        self, message: str, event: str, zone: str, parameter: str
+    ) -> None:
+        """Handle triggering the registered callbacks."""
+        for callback in self._raw_callbacks:
+            try:
+                await callback(message)
+            except Exception as err:  # pylint: disable=broad-except
+                # We don't want a single bad callback to trip up the
+                # whole system and prevent further execution
+                _LOGGER.error(
+                    "%s: Raw callback caused an unhandled exception %s",
+                    self.host,
+                    err,
+                )
+
         if event in self._callbacks.keys():
             for callback in self._callbacks[event]:
                 try:
@@ -657,14 +695,53 @@ class DenonAVRTelnetApi:
                 return event
         return ""
 
-    def send_commands(self, *commands: str) -> bool:
+    async def _async_send_command(self, command: str) -> None:
+        """Send one telnet command to the receiver."""
+        wait_msg = self._get_event(command)
+        wait_event = asyncio.Event()
+
+        async def send_callback(message: str) -> None:
+            nonlocal command, wait_msg, wait_event
+            if len(message) < 3:
+                return
+            if wait_msg == self._get_event(message):
+                wait_msg = ""
+                wait_event.set()
+                _LOGGER.debug("Command %s confirmed", command)
+
+        async with self._send_lock:
+            self._register_raw_callback(send_callback)
+
+            try:
+                self._protocol.write(f"{command}\r")
+                await asyncio.wait_for(wait_event.wait(), 2.0)
+            except asyncio.TimeoutError:
+                _LOGGER.warning(
+                    "Timeout waiting for confirmation of command: %s", command
+                )
+            finally:
+                self._unregister_raw_callback(send_callback)
+
+    async def async_send_commands(self, *commands: str) -> bool:
         """Send telnet commands to the receiver."""
         if not self.connected:
             return False
         if not self.healthy:
             return False
         for command in commands:
-            self._protocol.write(f"{command}\r")
+            await self._async_send_command(command)
+
+        return True
+
+    def send_commands(self, *commands: str) -> bool:
+        """Send telnet commands to the receiver."""
+        if not self.connected:
+            return False
+        if not self.healthy:
+            return False
+        task = asyncio.create_task(self.async_send_commands(*commands))
+        self._send_tasks.add(task)
+        task.add_done_callback(self._send_tasks.discard)
         return True
 
     ##############

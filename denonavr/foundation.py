@@ -513,13 +513,15 @@ class DenonAVRDeviceInfo:
 
     async def async_power_on(self) -> None:
         """Turn on receiver via HTTP get command."""
-        success = self.telnet_api.send_commands(self.telnet_commands.command_power_on)
+        success = await self.telnet_api.async_send_commands(
+            self.telnet_commands.command_power_on
+        )
         if not success:
             await self.api.async_get_command(self.urls.command_power_on)
 
     async def async_power_off(self) -> None:
         """Turn off receiver via HTTP get command."""
-        success = self.telnet_api.send_commands(
+        success = await self.telnet_api.async_send_commands(
             self.telnet_commands.command_power_standby
         )
         if not success:

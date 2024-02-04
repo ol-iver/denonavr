@@ -1001,7 +1001,7 @@ class DenonAVRInput(DenonAVRFoundation):
         else:
             command_url = self._device.urls.command_sel_src + linp
             telnet_command = self._device.telnet_commands.command_sel_src + linp
-        success = self._device.telnet_api.send_commands(telnet_command)
+        success = await self._device.telnet_api.async_send_commands(telnet_command)
         if not success:
             await self._device.api.async_get_command(command_url)
 
@@ -1024,7 +1024,7 @@ class DenonAVRInput(DenonAVRFoundation):
             if self._state == STATE_PLAYING:
                 _LOGGER.info("Already playing, play command not sent")
                 return
-            success = self._device.telnet_api.send_commands(
+            success = await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_play
             )
             if not success:
@@ -1035,7 +1035,7 @@ class DenonAVRInput(DenonAVRFoundation):
         """Send pause command to receiver command via HTTP post."""
         # Use pause command only for sources which support NETAUDIO
         if self._input_func in self._netaudio_func_list:
-            success = self._device.telnet_api.send_commands(
+            success = await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_play
             )
             if not success:
