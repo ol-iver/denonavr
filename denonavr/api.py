@@ -425,6 +425,10 @@ class DenonAVRTelnetApi:
     )
     _callback_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
     _send_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
+    _send_confirmation_event: asyncio.Event = attr.ib(
+        default=attr.Factory(asyncio.Event)
+    )
+    _send_confirmation_command: str = attr.ib(converter=str, default="")
     _send_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
     _callbacks: Dict[str, List[Coroutine]] = attr.ib(
         validator=attr.validators.instance_of(dict),
@@ -436,6 +440,10 @@ class DenonAVRTelnetApi:
         default=attr.Factory(list),
         init=False,
     )
+
+    def __attrs_post_init__(self) -> None:
+        """Initialize special attributes."""
+        self._register_raw_callback(self._async_send_confirmation_callback)
 
     async def async_connect(self) -> None:
         """Connect to the receiver asynchronously."""
@@ -479,9 +487,25 @@ class DenonAVRTelnetApi:
         self._connection_enabled = True
         self._last_message_time = time.monotonic()
         self._schedule_monitor()
-        self._protocol.write("ZM?\r")
-        self._protocol.write("Z2?\r")
-        self._protocol.write("Z3?\r")
+        # Trigger update of all attributes
+        await self.async_send_commands(
+            "ZM?",
+            "SI?",
+            "MV?",
+            "MU?",
+            "Z2?",
+            "Z2MU?",
+            "Z3?",
+            "Z3MU?",
+            "PSTONE CTRL ?",
+            "PSBAS ?",
+            "PSTRE ?",
+            "PSDYNEQ ?",
+            "PSMULTEQ: ?",
+            "PSREFLEV ?",
+            "PSDYNVOL ?",
+            "MS?",
+        )
 
     def _schedule_monitor(self) -> None:
         """Start the monitor task."""
@@ -695,32 +719,30 @@ class DenonAVRTelnetApi:
                 return event
         return ""
 
+    async def _async_send_confirmation_callback(self, message: str) -> None:
+        """Confirm that the telnet command has been executed."""
+        if len(message) < 3:
+            return
+        command = self._send_confirmation_command
+        if self._get_event(message) == self._get_event(self._send_confirmation_command):
+            self._send_confirmation_command = ""
+            self._send_confirmation_event.set()
+            _LOGGER.debug("Command %s confirmed", command)
+
     async def _async_send_command(self, command: str) -> None:
         """Send one telnet command to the receiver."""
-        wait_msg = self._get_event(command)
-        wait_event = asyncio.Event()
-
-        async def send_callback(message: str) -> None:
-            nonlocal command, wait_msg, wait_event
-            if len(message) < 3:
-                return
-            if wait_msg == self._get_event(message):
-                wait_msg = ""
-                wait_event.set()
-                _LOGGER.debug("Command %s confirmed", command)
-
         async with self._send_lock:
-            self._register_raw_callback(send_callback)
-
+            self._send_confirmation_command = command
+            self._send_confirmation_event.clear()
+            self._protocol.write(f"{command}\r")
             try:
-                self._protocol.write(f"{command}\r")
-                await asyncio.wait_for(wait_event.wait(), 2.0)
+                await asyncio.wait_for(self._send_confirmation_event.wait(), 2.0)
             except asyncio.TimeoutError:
                 _LOGGER.warning(
                     "Timeout waiting for confirmation of command: %s", command
                 )
             finally:
-                self._unregister_raw_callback(send_callback)
+                self._send_confirmation_command = ""
 
     async def async_send_commands(self, *commands: str) -> bool:
         """Send telnet commands to the receiver."""
