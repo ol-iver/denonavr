@@ -54,6 +54,7 @@ from .exceptions import (
     AvrIncompleteResponseError,
     AvrInvalidResponseError,
     AvrNetworkError,
+    AvrProcessingError,
     AvrTimoutError,
 )
 
@@ -425,6 +426,7 @@ class DenonAVRTelnetApi:
     )
     _callback_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
     _send_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
+    _send_confirmation_timeout: float = attr.ib(converter=float, default=2.0)
     _send_confirmation_event: asyncio.Event = attr.ib(
         default=attr.Factory(asyncio.Event)
     )
@@ -734,9 +736,17 @@ class DenonAVRTelnetApi:
         async with self._send_lock:
             self._send_confirmation_command = command
             self._send_confirmation_event.clear()
+            if not self.connected or not self.healthy:
+                raise AvrProcessingError(
+                    f"Error sending command {command}. Telnet connected: "
+                    f"{self.connected}, Connection healthy: {self.healthy}"
+                )
             self._protocol.write(f"{command}\r")
             try:
-                await asyncio.wait_for(self._send_confirmation_event.wait(), 2.0)
+                await asyncio.wait_for(
+                    self._send_confirmation_event.wait(),
+                    self._send_confirmation_timeout,
+                )
             except asyncio.TimeoutError:
                 _LOGGER.warning(
                     "Timeout waiting for confirmation of command: %s", command
@@ -744,27 +754,16 @@ class DenonAVRTelnetApi:
             finally:
                 self._send_confirmation_command = ""
 
-    async def async_send_commands(self, *commands: str) -> bool:
+    async def async_send_commands(self, *commands: str) -> None:
         """Send telnet commands to the receiver."""
-        if not self.connected:
-            return False
-        if not self.healthy:
-            return False
         for command in commands:
             await self._async_send_command(command)
 
-        return True
-
-    def send_commands(self, *commands: str) -> bool:
+    def send_commands(self, *commands: str) -> None:
         """Send telnet commands to the receiver."""
-        if not self.connected:
-            return False
-        if not self.healthy:
-            return False
         task = asyncio.create_task(self.async_send_commands(*commands))
         self._send_tasks.add(task)
         task.add_done_callback(self._send_tasks.discard)
-        return True
 
     ##############
     # Properties #

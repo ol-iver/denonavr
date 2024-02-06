@@ -143,20 +143,22 @@ class DenonAVRVolume(DenonAVRFoundation):
     ##########
     async def async_volume_up(self) -> None:
         """Volume up receiver via HTTP get command."""
-        success = await self._device.telnet_api.async_send_commands(
-            self._device.telnet_commands.command_volume_up
-        )
-        if not success:
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_volume_up
+            )
+        else:
             await self._device.api.async_get_command(
                 self._device.urls.command_volume_up
             )
 
     async def async_volume_down(self) -> None:
         """Volume down receiver via HTTP get command."""
-        success = await self._device.telnet_api.async_send_commands(
-            self._device.telnet_commands.command_volume_down
-        )
-        if not success:
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_volume_down
+            )
+        else:
             await self._device.api.async_get_command(
                 self._device.urls.command_volume_down
             )
@@ -173,12 +175,13 @@ class DenonAVRVolume(DenonAVRFoundation):
 
         # Round volume because only values which are a multi of 0.5 are working
         volume = round(volume * 2) / 2.0
-        success = await self._device.telnet_api.async_send_commands(
-            self._device.telnet_commands.command_set_volume.format(
-                volume=int(volume + 80)
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_set_volume.format(
+                    volume=int(volume + 80)
+                )
             )
-        )
-        if not success:
+        else:
             await self._device.api.async_get_command(
                 self._device.urls.command_set_volume.format(volume=volume)
             )
@@ -186,18 +189,20 @@ class DenonAVRVolume(DenonAVRFoundation):
     async def async_mute(self, mute: bool) -> None:
         """Mute receiver via HTTP get command."""
         if mute:
-            success = await self._device.telnet_api.async_send_commands(
-                self._device.telnet_commands.command_mute_on
-            )
-            if not success:
+            if self._device.telnet_available:
+                await self._device.telnet_api.async_send_commands(
+                    self._device.telnet_commands.command_mute_on
+                )
+            else:
                 await self._device.api.async_get_command(
                     self._device.urls.command_mute_on
                 )
         else:
-            success = await self._device.telnet_api.async_send_commands(
-                self._device.telnet_commands.command_mute_off
-            )
-            if not success:
+            if self._device.telnet_available:
+                await self._device.telnet_api.async_send_commands(
+                    self._device.telnet_commands.command_mute_off
+                )
+            else:
                 await self._device.api.async_get_command(
                     self._device.urls.command_mute_off
                 )
