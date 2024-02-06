@@ -1001,8 +1001,9 @@ class DenonAVRInput(DenonAVRFoundation):
         else:
             command_url = self._device.urls.command_sel_src + linp
             telnet_command = self._device.telnet_commands.command_sel_src + linp
-        success = await self._device.telnet_api.async_send_commands(telnet_command)
-        if not success:
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(telnet_command)
+        else:
             await self._device.api.async_get_command(command_url)
 
     async def async_toggle_play_pause(self) -> None:
@@ -1024,10 +1025,11 @@ class DenonAVRInput(DenonAVRFoundation):
             if self._state == STATE_PLAYING:
                 _LOGGER.info("Already playing, play command not sent")
                 return
-            success = await self._device.telnet_api.async_send_commands(
-                self._device.telnet_commands.command_play
-            )
-            if not success:
+            if self._device.telnet_available:
+                await self._device.telnet_api.async_send_commands(
+                    self._device.telnet_commands.command_play
+                )
+            else:
                 await self._device.api.async_get_command(self._device.urls.command_play)
             self._state = STATE_PLAYING
 
@@ -1035,10 +1037,11 @@ class DenonAVRInput(DenonAVRFoundation):
         """Send pause command to receiver command via HTTP post."""
         # Use pause command only for sources which support NETAUDIO
         if self._input_func in self._netaudio_func_list:
-            success = await self._device.telnet_api.async_send_commands(
-                self._device.telnet_commands.command_play
-            )
-            if not success:
+            if self._device.telnet_available:
+                await self._device.telnet_api.async_send_commands(
+                    self._device.telnet_commands.command_play
+                )
+            else:
                 await self._device.api.async_get_command(
                     self._device.urls.command_pause
                 )

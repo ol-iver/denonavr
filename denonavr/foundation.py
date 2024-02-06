@@ -507,24 +507,31 @@ class DenonAVRDeviceInfo:
         """
         return self._power
 
+    @property
+    def telnet_available(self) -> bool:
+        """Return true if telnet is connected and healthy."""
+        return self.telnet_api.connected and self.telnet_api.healthy
+
     ##########
     # Setter #
     ##########
 
     async def async_power_on(self) -> None:
         """Turn on receiver via HTTP get command."""
-        success = await self.telnet_api.async_send_commands(
-            self.telnet_commands.command_power_on
-        )
-        if not success:
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_power_on
+            )
+        else:
             await self.api.async_get_command(self.urls.command_power_on)
 
     async def async_power_off(self) -> None:
         """Turn off receiver via HTTP get command."""
-        success = await self.telnet_api.async_send_commands(
-            self.telnet_commands.command_power_standby
-        )
-        if not success:
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_power_standby
+            )
+        else:
             await self.api.async_get_command(self.urls.command_power_standby)
 
 

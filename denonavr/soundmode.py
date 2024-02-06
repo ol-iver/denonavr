@@ -237,8 +237,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         else:
             command_url += "ZST OFF"
             telnet_command += "ZST OFF"
-        success = await self._device.telnet_api.async_send_commands(telnet_command)
-        if not success:
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(telnet_command)
+        else:
             await self._device.api.async_get_command(command_url)
 
     ##############
@@ -303,8 +304,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             self._device.telnet_commands.command_sel_sound_mode + sound_mode
         )
         # sent command
-        success = await self._device.telnet_api.async_send_commands(telnet_command)
-        if not success:
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(telnet_command)
+        else:
             await self._device.api.async_get_command(command_url)
 
 
