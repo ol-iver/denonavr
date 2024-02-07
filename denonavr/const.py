@@ -61,6 +61,10 @@ TelnetCommands = namedtuple(
         "command_set_all_zone_stereo",
         "command_pause",
         "command_play",
+        "command_multieq",
+        "command_dynamiceq",
+        "command_reflevoffset",
+        "command_dynamicvol",
     ],
 )
 
@@ -489,6 +493,10 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_set_all_zone_stereo="MN",
     command_pause="NS9B",
     command_play="NS9A",
+    command_multieq="PSMULTEQ:",
+    command_dynamiceq="PSDYNEQ ",
+    command_reflevoffset="PSREFLEV ",
+    command_dynamicvol="PSDYNVOL ",
 )
 
 ZONE2_TELNET_COMMANDS = TelnetCommands(
@@ -505,6 +513,10 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_set_all_zone_stereo="MN",
     command_pause="NS9B",
     command_play="NS9A",
+    command_multieq="PSMULTEQ:",
+    command_dynamiceq="PSDYNEQ ",
+    command_reflevoffset="PSREFLEV ",
+    command_dynamicvol="PSDYNVOL ",
 )
 
 ZONE3_TELNET_COMMANDS = TelnetCommands(
@@ -521,6 +533,10 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_set_all_zone_stereo="MN",
     command_pause="NS9B",
     command_play="NS9A",
+    command_multieq="PSMULTEQ:",
+    command_dynamiceq="PSDYNEQ ",
+    command_reflevoffset="PSREFLEV ",
+    command_dynamicvol="PSDYNVOL ",
 )
 
 # States
@@ -560,13 +576,19 @@ MULTI_EQ_MAP_TELNET = {
     "MANUAL": "Manual",
 }
 MULTI_EQ_MAP = {**MULTI_EQ_MAP_APPCOMMAND, **MULTI_EQ_MAP_TELNET}
-MULTI_EQ_MAP_LABELS = {value: key for key, value in MULTI_EQ_MAP_APPCOMMAND.items()}
+MULTI_EQ_MAP_LABELS_APPCOMMAND = {
+    value: key for key, value in MULTI_EQ_MAP_APPCOMMAND.items()
+}
+MULTI_EQ_MAP_LABELS_TELNET = {value: key for key, value in MULTI_EQ_MAP_TELNET.items()}
 
 REF_LVL_OFFSET_MAP_APPCOMMAND = {"0": "0dB", "1": "+5dB", "2": "+10dB", "3": "+15dB"}
 REF_LVL_OFFSET_MAP_TELNET = {"0": "0dB", "5": "+5dB", "10": "+10dB", "15": "+15dB"}
 REF_LVL_OFFSET_MAP = {**REF_LVL_OFFSET_MAP_APPCOMMAND, **REF_LVL_OFFSET_MAP_TELNET}
-REF_LVL_OFFSET_MAP_LABELS = {
+REF_LVL_OFFSET_MAP_LABELS_APPCOMMAND = {
     value: key for key, value in REF_LVL_OFFSET_MAP_APPCOMMAND.items()
+}
+REF_LVL_OFFSET_MAP_LABELS_TELNET = {
+    value: key for key, value in REF_LVL_OFFSET_MAP_TELNET.items()
 }
 
 DYNAMIC_VOLUME_MAP_APPCOMMAND = {"0": "Off", "1": "Light", "2": "Medium", "3": "Heavy"}
@@ -577,6 +599,9 @@ DYNAMIC_VOLUME_MAP_TELNET = {
     "HEV": "Heavy",
 }
 DYNAMIC_VOLUME_MAP = {**DYNAMIC_VOLUME_MAP_APPCOMMAND, **DYNAMIC_VOLUME_MAP_TELNET}
-DYNAMIC_VOLUME_MAP_LABELS = {
+DYNAMIC_VOLUME_MAP_LABELS_APPCOMMAND = {
     value: key for key, value in DYNAMIC_VOLUME_MAP_APPCOMMAND.items()
+}
+DYNAMIC_VOLUME_MAP_LABELS_TELNET = {
+    value: key for key, value in DYNAMIC_VOLUME_MAP_TELNET.items()
 }

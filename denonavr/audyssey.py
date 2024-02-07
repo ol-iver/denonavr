@@ -16,11 +16,14 @@ from .appcommand import AppCommandCmd, AppCommandCmdParam, AppCommands
 from .const import (
     DENON_ATTR_SETATTR,
     DYNAMIC_VOLUME_MAP,
-    DYNAMIC_VOLUME_MAP_LABELS,
+    DYNAMIC_VOLUME_MAP_LABELS_APPCOMMAND,
+    DYNAMIC_VOLUME_MAP_LABELS_TELNET,
     MULTI_EQ_MAP,
-    MULTI_EQ_MAP_LABELS,
+    MULTI_EQ_MAP_LABELS_APPCOMMAND,
+    MULTI_EQ_MAP_LABELS_TELNET,
     REF_LVL_OFFSET_MAP,
-    REF_LVL_OFFSET_MAP_LABELS,
+    REF_LVL_OFFSET_MAP_LABELS_APPCOMMAND,
+    REF_LVL_OFFSET_MAP_LABELS_TELNET,
 )
 from .exceptions import AvrCommandError, AvrProcessingError
 from .foundation import DenonAVRFoundation, convert_string_int_bool
@@ -149,7 +152,9 @@ class DenonAVRAudyssey(DenonAVRFoundation):
     @property
     def reference_level_offset_setting_list(self) -> List[str]:
         """Return a list of available reference level offset settings."""
-        return list(REF_LVL_OFFSET_MAP_LABELS.keys())
+        if self._device.telnet_available:
+            return list(REF_LVL_OFFSET_MAP_LABELS_TELNET.keys())
+        return list(REF_LVL_OFFSET_MAP_LABELS_APPCOMMAND.keys())
 
     @property
     def dynamic_volume(self) -> Optional[str]:
@@ -159,7 +164,9 @@ class DenonAVRAudyssey(DenonAVRFoundation):
     @property
     def dynamic_volume_setting_list(self) -> List[str]:
         """Return a list of available Dynamic Volume settings."""
-        return list(DYNAMIC_VOLUME_MAP_LABELS.keys())
+        if self._device.telnet_available:
+            return list(DYNAMIC_VOLUME_MAP_LABELS_TELNET.keys())
+        return list(DYNAMIC_VOLUME_MAP_LABELS_APPCOMMAND.keys())
 
     @property
     def multi_eq(self) -> Optional[str]:
@@ -169,13 +176,19 @@ class DenonAVRAudyssey(DenonAVRFoundation):
     @property
     def multi_eq_setting_list(self) -> List[str]:
         """Return a list of available MultiEQ settings."""
-        return list(MULTI_EQ_MAP_LABELS.keys())
+        if self._device.telnet_available:
+            return list(MULTI_EQ_MAP_LABELS_TELNET.keys())
+        return list(MULTI_EQ_MAP_LABELS_APPCOMMAND.keys())
 
     ##########
     # Setter #
     ##########
     async def async_dynamiceq_off(self) -> None:
         """Turn DynamicEQ off."""
+        if self._device.telnet_available:
+            telnet_command = self._device.telnet_commands.command_dynamiceq + "OFF"
+            await self._device.telnet_api.async_send_commands(telnet_command)
+            return
         cmd = attr.evolve(
             AppCommands.SetAudysseyDynamicEQ,
             param_list=(AppCommandCmdParam(name="dynamiceq", text=0),),
@@ -184,6 +197,10 @@ class DenonAVRAudyssey(DenonAVRFoundation):
 
     async def async_dynamiceq_on(self) -> None:
         """Turn DynamicEQ on."""
+        if self._device.telnet_available:
+            telnet_command = self._device.telnet_commands.command_dynamiceq + "ON"
+            await self._device.telnet_api.async_send_commands(telnet_command)
+            return
         cmd = attr.evolve(
             AppCommands.SetAudysseyDynamicEQ,
             param_list=(AppCommandCmdParam(name="dynamiceq", text=1),),
@@ -192,7 +209,15 @@ class DenonAVRAudyssey(DenonAVRFoundation):
 
     async def async_set_multieq(self, value: str) -> None:
         """Set MultiEQ mode."""
-        setting = MULTI_EQ_MAP_LABELS.get(value)
+        if self._device.telnet_available:
+            setting = MULTI_EQ_MAP_LABELS_TELNET.get(value)
+            if setting is None:
+                raise AvrCommandError(f"Value {value} not known for MultiEQ")
+            telnet_command = self._device.telnet_commands.command_multieq + setting
+            await self._device.telnet_api.async_send_commands(telnet_command)
+            return
+
+        setting = MULTI_EQ_MAP_LABELS_APPCOMMAND.get(value)
         if setting is None:
             raise AvrCommandError(f"Value {value} not known for MultiEQ")
         cmd = attr.evolve(
@@ -208,7 +233,17 @@ class DenonAVRAudyssey(DenonAVRFoundation):
             raise AvrCommandError(
                 "Reference level could only be set when DynamicEQ is active"
             )
-        setting = REF_LVL_OFFSET_MAP_LABELS.get(value)
+        if self._device.telnet_available:
+            setting = REF_LVL_OFFSET_MAP_LABELS_TELNET.get(value)
+            if setting is None:
+                raise AvrCommandError(
+                    f"Value {value} not known for Reference level offset"
+                )
+            telnet_command = self._device.telnet_commands.command_reflevoffset + setting
+            await self._device.telnet_api.async_send_commands(telnet_command)
+            return
+
+        setting = REF_LVL_OFFSET_MAP_LABELS_APPCOMMAND.get(value)
         if setting is None:
             raise AvrCommandError(f"Value {value} not known for Reference level offset")
         cmd = attr.evolve(
@@ -219,7 +254,15 @@ class DenonAVRAudyssey(DenonAVRFoundation):
 
     async def async_set_dynamicvol(self, value: str) -> None:
         """Set Dynamic Volume."""
-        setting = DYNAMIC_VOLUME_MAP_LABELS.get(value)
+        if self._device.telnet_available:
+            setting = DYNAMIC_VOLUME_MAP_LABELS_TELNET.get(value)
+            if setting is None:
+                raise AvrCommandError(f"Value {value} not known for Dynamic Volume")
+            telnet_command = self._device.telnet_commands.command_dynamicvol + setting
+            await self._device.telnet_api.async_send_commands(telnet_command)
+            return
+
+        setting = DYNAMIC_VOLUME_MAP_LABELS_APPCOMMAND.get(value)
         if setting is None:
             raise AvrCommandError(f"Value {value} not known for Dynamic Volume")
         cmd = attr.evolve(
