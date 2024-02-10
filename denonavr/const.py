@@ -65,6 +65,9 @@ TelnetCommands = namedtuple(
         "command_dynamiceq",
         "command_reflevoffset",
         "command_dynamicvol",
+        "command_tonecontrol",
+        "command_bass",
+        "command_treble",
     ],
 )
 
@@ -497,6 +500,9 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_dynamiceq="PSDYNEQ ",
     command_reflevoffset="PSREFLEV ",
     command_dynamicvol="PSDYNVOL ",
+    command_tonecontrol="PSTONE CTRL ",
+    command_bass="PSBAS ",
+    command_treble="PSTRE ",
 )
 
 ZONE2_TELNET_COMMANDS = TelnetCommands(
@@ -517,6 +523,9 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_dynamiceq="PSDYNEQ ",
     command_reflevoffset="PSREFLEV ",
     command_dynamicvol="PSDYNVOL ",
+    command_tonecontrol="PSTONE CTRL ",
+    command_bass="PSBAS ",
+    command_treble="PSTRE ",
 )
 
 ZONE3_TELNET_COMMANDS = TelnetCommands(
@@ -537,6 +546,9 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_dynamiceq="PSDYNEQ ",
     command_reflevoffset="PSREFLEV ",
     command_dynamicvol="PSDYNVOL ",
+    command_tonecontrol="PSTONE CTRL ",
+    command_bass="PSBAS ",
+    command_treble="PSTRE ",
 )
 
 # States
