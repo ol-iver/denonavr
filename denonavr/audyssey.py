@@ -8,7 +8,8 @@ This module implements the Audyssey settings of Denon AVR receivers.
 """
 
 import logging
-from typing import Hashable, List, Optional
+from collections.abc import Hashable
+from typing import List, Optional
 
 import attr
 
