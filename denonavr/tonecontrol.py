@@ -68,11 +68,11 @@ class DenonAVRToneControl(DenonAVRFoundation):
             return
 
         if parameter[0:3] == "BAS":
-            self._bass = int(parameter[4:])
-            self._bass_level = f"{self._bass - 50}dB"
+            self._bass = int(parameter[4:]) - 44
+            self._bass_level = f"{int(parameter[4:]) - 50}dB"
         elif parameter[0:3] == "TRE":
-            self._treble = int(parameter[4:])
-            self._treble_level = f"{self._treble - 50}dB"
+            self._treble = int(parameter[4:]) - 44
+            self._treble_level = f"{int(parameter[4:]) - 50}dB"
         elif parameter == "TONE CTRL OFF":
             self._tone_control_adjust = False
             self._tone_control_status = False
@@ -128,6 +128,16 @@ class DenonAVRToneControl(DenonAVRFoundation):
     ##############
     # Properties #
     ##############
+    @property
+    def tone_control_status(self) -> Optional[bool]:
+        """Return value of tone control status."""
+        return self._tone_control_status
+
+    @property
+    def tone_control_adjust(self) -> Optional[bool]:
+        """Return value of tone control adjust."""
+        return self._tone_control_adjust
+
     @property
     def bass(self) -> Optional[int]:
         """Return value of bass."""
