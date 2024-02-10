@@ -9,8 +9,9 @@ This module implements the handler for sound mode of Denon AVR receivers.
 
 import asyncio
 import logging
+from collections.abc import Hashable
 from copy import deepcopy
-from typing import Dict, Hashable, List, Optional
+from typing import Dict, List, Optional
 
 import attr
 

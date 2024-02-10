@@ -14,6 +14,7 @@ import sys
 import time
 import xml.etree.ElementTree as ET
 from collections import defaultdict
+from collections.abc import Hashable
 from io import BytesIO
 from typing import (
     Awaitable,
@@ -21,7 +22,6 @@ from typing import (
     Coroutine,
     DefaultDict,
     Dict,
-    Hashable,
     List,
     Optional,
     Set,

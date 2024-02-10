@@ -10,8 +10,9 @@ This module implements the foundation classes for Denon AVR receivers.
 import asyncio
 import logging
 import xml.etree.ElementTree as ET
+from collections.abc import Hashable
 from copy import deepcopy
-from typing import Dict, Hashable, List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import attr
 import httpx

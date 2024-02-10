@@ -8,7 +8,8 @@ This module implements the handler for volume of Denon AVR receivers.
 """
 
 import logging
-from typing import Hashable, Optional, Union
+from collections.abc import Hashable
+from typing import Optional, Union
 
 import attr
 
