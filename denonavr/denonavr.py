@@ -524,10 +524,6 @@ class DenonAVR(DenonAVRFoundation):
         """Return a list of available MultiEQ settings."""
         return self.audyssey.multi_eq_setting_list
 
-    async def async_dynamic_eq_off(self) -> None:
-        """Turn DynamicEQ off."""
-        await self.audyssey.async_dynamiceq_off()
-
     ##########
     # Setter #
     ##########
@@ -543,6 +539,10 @@ class DenonAVR(DenonAVRFoundation):
         if not callable(async_client_getter):
             raise AvrCommandError("Provided object is not callable")
         self._device.api.async_client_getter = async_client_getter
+
+    async def async_dynamic_eq_off(self) -> None:
+        """Turn DynamicEQ off."""
+        await self.audyssey.async_dynamiceq_off()
 
     @run_async_synchronously(async_func=async_dynamic_eq_off)
     def dynamic_eq_off(self) -> None:
@@ -563,6 +563,30 @@ class DenonAVR(DenonAVRFoundation):
     @run_async_synchronously(async_func=async_toggle_dynamic_eq)
     def toggle_dynamic_eq(self) -> None:
         """Toggle DynamicEQ."""
+
+    async def async_set_multieq(self, value: str) -> None:
+        """Set MultiEQ mode."""
+        await self.audyssey.async_set_multieq(value)
+
+    @run_async_synchronously(async_func=async_set_multieq)
+    def set_multieq(self, value: str) -> None:
+        """Set MultiEQ mode."""
+
+    async def async_set_reflevoffset(self, value: str) -> None:
+        """Set Reference Level Offset."""
+        await self.audyssey.async_set_reflevoffset(value)
+
+    @run_async_synchronously(async_func=async_set_reflevoffset)
+    def set_reflevoffset(self, value: str) -> None:
+        """Set Reference Level Offset."""
+
+    async def async_set_dynamicvol(self, value: str) -> None:
+        """Set Dynamic Volume."""
+        await self.audyssey.async_set_dynamicvol(value)
+
+    @run_async_synchronously(async_func=async_set_dynamicvol)
+    def set_dynamicvol(self, value: str) -> None:
+        """Set Dynamic Volume."""
 
     async def async_set_input_func(self, input_func: str) -> None:
         """
