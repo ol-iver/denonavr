@@ -11,7 +11,7 @@ import asyncio
 import logging
 import xml.etree.ElementTree as ET
 from copy import deepcopy
-from typing import Dict, Hashable, List, Optional
+from typing import Dict, Hashable, List, Optional, Union
 
 import attr
 import httpx
@@ -752,8 +752,10 @@ def set_api_timeout(
     return value
 
 
-def convert_string_int_bool(value: str) -> bool:
+def convert_string_int_bool(value: Union[str, bool]) -> bool:
     """Convert an integer from string format to bool."""
     if value is None:
         return None
+    if isinstance(value, bool):
+        return value
     return bool(int(value))

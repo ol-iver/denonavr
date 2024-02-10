@@ -68,14 +68,14 @@ class DenonAVRToneControl(DenonAVRFoundation):
             return
 
         if parameter[0:3] == "BAS":
-            self._bass = int(parameter[4:])
-            self._bass_level = f"{self._bass - 50}dB"
+            self._bass = int(parameter[4:]) - 44
+            self._bass_level = f"{int(parameter[4:]) - 50}dB"
         elif parameter[0:3] == "TRE":
-            self._treble = int(parameter[4:])
-            self._treble_level = f"{self._treble - 50}dB"
+            self._treble = int(parameter[4:]) - 44
+            self._treble_level = f"{int(parameter[4:]) - 50}dB"
         elif parameter == "TONE CTRL OFF":
             self._tone_control_adjust = False
-            self._tone_control_status = False
+            self._tone_control_status = True
         elif parameter == "TONE CTRL ON":
             self._tone_control_adjust = True
             self._tone_control_status = True
@@ -129,6 +129,16 @@ class DenonAVRToneControl(DenonAVRFoundation):
     # Properties #
     ##############
     @property
+    def tone_control_status(self) -> Optional[bool]:
+        """Return value of tone control status."""
+        return self._tone_control_status
+
+    @property
+    def tone_control_adjust(self) -> Optional[bool]:
+        """Return value of tone control adjust."""
+        return self._tone_control_adjust
+
+    @property
     def bass(self) -> Optional[int]:
         """Return value of bass."""
         return self._bass
@@ -153,21 +163,28 @@ class DenonAVRToneControl(DenonAVRFoundation):
     ##########
     async def async_enable_tone_control(self) -> None:
         """Enable tone control to change settings like bass or treble."""
-        if not self._tone_control_status:
+        if self._tone_control_status is None:
             raise AvrCommandError(
                 "Cannot enable tone control, Dynamic EQ must be deactivated"
             )
 
-        await self.async_set_tone_control_command("adjust", 1)
+        if self._device.telnet_available:
+            telnet_command = self._device.telnet_commands.command_tonecontrol + "ON"
+            await self._device.telnet_api.async_send_commands(telnet_command)
+        else:
+            await self.async_set_tone_control_command("adjust", 1)
 
     async def async_disable_tone_control(self) -> None:
         """Disable tone control to change settings like bass or treble."""
-        if not self._tone_control_status:
+        if self._tone_control_status is None:
             raise AvrCommandError(
                 "Cannot disable tone control, Dynamic EQ must be deactivated"
             )
-
-        await self.async_set_tone_control_command("adjust", 0)
+        if self._device.telnet_available:
+            telnet_command = self._device.telnet_commands.command_tonecontrol + "OFF"
+            await self._device.telnet_api.async_send_commands(telnet_command)
+        else:
+            await self.async_set_tone_control_command("adjust", 0)
 
     async def async_set_bass(self, value: int) -> None:
         """
@@ -180,8 +197,14 @@ class DenonAVRToneControl(DenonAVRFoundation):
         """
         if value < 0 or value > 12:
             raise AvrCommandError("Invalid value for bass")
-        await self.async_enable_tone_control()
-        await self.async_set_tone_control_command("bassvalue", value)
+        if self._device.telnet_available:
+            if not self.tone_control_adjust:
+                await self.async_enable_tone_control()
+            telnet_command = self._device.telnet_commands.command_bass + str(value + 44)
+            await self._device.telnet_api.async_send_commands(telnet_command)
+        else:
+            await self.async_enable_tone_control()
+            await self.async_set_tone_control_command("bassvalue", value)
 
     async def async_bass_up(self) -> None:
         """
@@ -192,9 +215,15 @@ class DenonAVRToneControl(DenonAVRFoundation):
         """
         if self.bass == 12:
             return
-        await self.async_enable_tone_control()
-        await self.async_set_tone_control_command("bassvalue", self.bass + 1)
-        await self.async_update()
+        if self._device.telnet_available:
+            if not self.tone_control_adjust:
+                await self.async_enable_tone_control()
+            telnet_command = self._device.telnet_commands.command_bass + "UP"
+            await self._device.telnet_api.async_send_commands(telnet_command)
+        else:
+            await self.async_enable_tone_control()
+            await self.async_set_tone_control_command("bassvalue", self.bass + 1)
+            await self.async_update()
 
     async def async_bass_down(self) -> None:
         """
@@ -205,9 +234,15 @@ class DenonAVRToneControl(DenonAVRFoundation):
         """
         if self.bass == 0:
             return
-        await self.async_enable_tone_control()
-        await self.async_set_tone_control_command("bassvalue", self.bass - 1)
-        await self.async_update()
+        if self._device.telnet_available:
+            if not self.tone_control_adjust:
+                await self.async_enable_tone_control()
+            telnet_command = self._device.telnet_commands.command_bass + "DOWN"
+            await self._device.telnet_api.async_send_commands(telnet_command)
+        else:
+            await self.async_enable_tone_control()
+            await self.async_set_tone_control_command("bassvalue", self.bass - 1)
+            await self.async_update()
 
     async def async_set_treble(self, value: int) -> None:
         """
@@ -220,8 +255,16 @@ class DenonAVRToneControl(DenonAVRFoundation):
         """
         if value < 0 or value > 12:
             raise AvrCommandError("Invalid value for treble")
-        await self.async_enable_tone_control()
-        await self.async_set_tone_control_command("treblevalue", value)
+        if self._device.telnet_available:
+            if not self.tone_control_adjust:
+                await self.async_enable_tone_control()
+            telnet_command = self._device.telnet_commands.command_treble + str(
+                value + 44
+            )
+            await self._device.telnet_api.async_send_commands(telnet_command)
+        else:
+            await self.async_enable_tone_control()
+            await self.async_set_tone_control_command("treblevalue", value)
 
     async def async_treble_up(self) -> None:
         """
@@ -232,9 +275,15 @@ class DenonAVRToneControl(DenonAVRFoundation):
         """
         if self.treble == 12:
             return
-        await self.async_enable_tone_control()
-        await self.async_set_tone_control_command("treblevalue", self.treble + 1)
-        await self.async_update()
+        if self._device.telnet_available:
+            if not self.tone_control_adjust:
+                await self.async_enable_tone_control()
+            telnet_command = self._device.telnet_commands.command_treble + "UP"
+            await self._device.telnet_api.async_send_commands(telnet_command)
+        else:
+            await self.async_enable_tone_control()
+            await self.async_set_tone_control_command("treblevalue", self.treble + 1)
+            await self.async_update()
 
     async def async_treble_down(self) -> None:
         """
@@ -245,9 +294,15 @@ class DenonAVRToneControl(DenonAVRFoundation):
         """
         if self.treble == 0:
             return
-        await self.async_enable_tone_control()
-        await self.async_set_tone_control_command("treblevalue", self.treble - 1)
-        await self.async_update()
+        if self._device.telnet_available:
+            if not self.tone_control_adjust:
+                await self.async_enable_tone_control()
+            telnet_command = self._device.telnet_commands.command_treble + "DOWN"
+            await self._device.telnet_api.async_send_commands(telnet_command)
+        else:
+            await self.async_enable_tone_control()
+            await self.async_set_tone_control_command("treblevalue", self.treble - 1)
+            await self.async_update()
 
 
 def tone_control_factory(instance: DenonAVRFoundation) -> DenonAVRToneControl:
