@@ -748,9 +748,7 @@ class DenonAVRTelnetApi:
                     self._send_confirmation_timeout,
                 )
             except asyncio.TimeoutError:
-                _LOGGER.warning(
-                    "Timeout waiting for confirmation of command: %s", command
-                )
+                _LOGGER.info("Timeout waiting for confirmation of command: %s", command)
             finally:
                 self._send_confirmation_command = ""
 
