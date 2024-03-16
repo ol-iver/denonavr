@@ -537,15 +537,24 @@ class DenonAVRDeviceInfo:
 
     async def async_cursor_up(self) -> None:
         """Cursor Up on receiver via HTTP get command."""
-        await self.api.async_get_command(self.urls.command_cusor_up)
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(self.telnet_commands.command_cusor_up)
+        else:
+            await self.api.async_get_command(self.urls.command_cusor_up)
 
     async def async_cursor_down(self) -> None:
         """Cursor Down on receiver via HTTP get command."""
-        await self.api.async_get_command(self.urls.command_cusor_down)
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(self.telnet_commands.command_cusor_down)
+        else:
+            await self.api.async_get_command(self.urls.command_cusor_down)
 
     async def async_cursor_left(self) -> None:
         """Cursor Left on receiver via HTTP get command."""
-        await self.api.async_get_command(self.urls.command_cusor_left)
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(self.telnet_commands.command_cusor_left)
+        else:
+            await self.api.async_get_command(self.urls.command_cusor_left)
 
     async def async_cursor_right(self) -> None:
         """Cursor Right on receiver via HTTP get command."""
@@ -553,15 +562,24 @@ class DenonAVRDeviceInfo:
 
     async def async_cursor_enter(self) -> None:
         """Cursor Enter on receiver via HTTP get command."""
-        await self.api.async_get_command(self.urls.command_cusor_enter)
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(self.telnet_commands.command_cusor_enter)
+        else:
+            await self.api.async_get_command(self.urls.command_cusor_enter)
 
     async def async_back(self) -> None:
         """Back command on receiver via HTTP get command."""
-        await self.api.async_get_command(self.urls.command_back)
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(self.telnet_commands.command_back)
+        else:
+            await self.api.async_get_command(self.urls.command_back)
 
     async def async_info(self) -> None:
         """Info OSD on receiver via HTTP get command."""
-        await self.api.async_get_command(self.urls.command_info)
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(self.telnet_commands.command_info)
+        else:
+            await self.api.async_get_command(self.urls.command_info)
 
     async def async_options(self) -> None:
         """Options menu on receiver via HTTP get command."""
@@ -569,11 +587,18 @@ class DenonAVRDeviceInfo:
 
     async def async_settings_menu(self) -> None:
         """Options menu on receiver via HTTP get command."""
-        res = await self.api.async_get_command(self.urls.command_setup_query)
-        if res is not None and res == "MNMEN ON":
-            await self.api.async_get_command(self.urls.command_setup_close)
+        if self.telnet_available:
+            res = await self.telnet_api.async_send_commands(self.telnet_commands.command_setup_query)
+            if res is not None and res == "MNMEN ON":
+                await self.telnet_api.async_send_commands(self.telnet_commands.command_setup_close)
+            else:
+                await self.telnet_api.async_send_commands(self.telnet_commands.command_setup_open)
         else:
-            await self.api.async_get_command(self.urls.command_setup_open)
+            res = await self.api.async_get_command(self.urls.command_setup_query)
+            if res is not None and res == "MNMEN ON":
+                await self.api.async_get_command(self.urls.command_setup_close)
+            else:
+                await self.api.async_get_command(self.urls.command_setup_open)
 
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)

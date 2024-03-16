@@ -79,7 +79,18 @@ TelnetCommands = namedtuple(
         "command_tonecontrol",
         "command_bass",
         "command_treble",
-    ],
+        "command_cusor_up",
+        "command_cusor_down",
+        "command_cusor_left",
+        "command_cusor_right",
+        "command_cusor_enter",
+        "command_back",
+        "command_info",
+        "command_options",
+        "command_setup_open",
+        "command_setup_close",
+        "command_setup_query"
+    ]
 )
 
 # AVR-X search patterns
@@ -536,6 +547,17 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_tonecontrol="PSTONE CTRL ",
     command_bass="PSBAS ",
     command_treble="PSTRE ",
+    command_cusor_up="MNCUP",
+    command_cusor_down="MNCDN",
+    command_cusor_left="MNCLT",
+    command_cusor_right="MNCRT",
+    command_cusor_enter="MNENT",
+    command_back="MNRTN",
+    command_info="MNINF",
+    command_options="MNOPT",
+    command_setup_open="MNMEN ON",
+    command_setup_close="MNMEN OFF",
+    command_setup_query="MNMEN?"
 )
 
 ZONE2_TELNET_COMMANDS = TelnetCommands(
