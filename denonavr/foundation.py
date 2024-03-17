@@ -558,7 +558,10 @@ class DenonAVRDeviceInfo:
 
     async def async_cursor_right(self) -> None:
         """Cursor Right on receiver via HTTP get command."""
-        await self.api.async_get_command(self.urls.command_cusor_right)
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(self.telnet_commands.command_cusor_right)
+        else:
+            await self.api.async_get_command(self.urls.command_cusor_right)
 
     async def async_cursor_enter(self) -> None:
         """Cursor Enter on receiver via HTTP get command."""
