@@ -7,13 +7,12 @@ This module implements the REST API to Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
-import asyncio
 import inspect
 import logging
 import time
 import xml.etree.ElementTree as ET
 from functools import wraps
-from typing import Callable, Coroutine, TypeVar
+from typing import Callable, TypeVar
 
 import httpx
 from asyncstdlib import lru_cache
@@ -115,37 +114,3 @@ def cache_result(func: Callable[..., AnyT]) -> Callable[..., AnyT]:
             raise
 
     return wrapper
-
-
-def run_async_synchronously(async_func: Coroutine) -> Callable:
-    """
-    Decorate to run the configured asynchronous function synchronously instead.
-
-    If available the corresponding function with async_ prefix is called in an
-    own event loop. This is not efficient but it ensures backwards
-    compatibility of this library.
-    """
-
-    def decorator(func: Callable):
-        # Check if function is a coroutine
-        if not inspect.iscoroutinefunction(async_func):
-            raise AttributeError(f"Function {async_func} is not a coroutine function")
-        # Check if the signature of both functions is equal
-        if inspect.signature(func) != inspect.signature(async_func):
-            raise AttributeError(
-                f"Functions {func} and {async_func} have different signatures"
-            )
-
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            # Run async function in own event loop
-            loop = asyncio.new_event_loop()
-
-            try:
-                return loop.run_until_complete(async_func(*args, **kwargs))
-            finally:
-                loop.close()
-
-        return wrapper
-
-    return decorator
