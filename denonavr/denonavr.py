@@ -17,7 +17,6 @@ import httpx
 
 from .audyssey import DenonAVRAudyssey, audyssey_factory
 from .const import DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES
-from .decorators import run_async_synchronously
 from .exceptions import AvrCommandError
 from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
 from .input import DenonAVRInput, input_factory
@@ -156,10 +155,6 @@ class DenonAVR(DenonAVRFoundation):
 
             self._is_setup = True
 
-    @run_async_synchronously(async_func=async_setup)
-    def setup(self) -> None:
-        """Ensure that configuration is loaded from receiver."""
-
     async def async_update(self):
         """
         Get the latest status information from device asynchronously.
@@ -190,41 +185,17 @@ class DenonAVR(DenonAVRFoundation):
         # await self.audyssey.async_update(
         #     global_update=True, cache_id=cache_id)
 
-    @run_async_synchronously(async_func=async_update)
-    def update(self):
-        """
-        Get the latest status information from device.
-
-        Method executes the update method for the current receiver type.
-        """
-
     async def async_update_tonecontrol(self):
         """Get Tonecontrol settings."""
         await self.tonecontrol.async_update()
-
-    @run_async_synchronously(async_func=async_update_tonecontrol)
-    def update_tonecontrol(self):
-        """Get Tonecontrol settings."""
 
     async def async_update_audyssey(self):
         """Get Audyssey settings."""
         await self.audyssey.async_update()
 
-    @run_async_synchronously(async_func=async_update_audyssey)
-    def update_audyssey(self):
-        """Get Audyssey settings."""
-
     async def async_get_command(self, request: str) -> str:
         """Send HTTP GET command to Denon AVR receiver asynchronously."""
         return await self._device.api.async_get_command(request)
-
-    @run_async_synchronously(async_func=async_get_command)
-    def get_command(self, request: str) -> str:
-        """Send HTTP GET command to Denon AVR receiver."""
-
-    @run_async_synchronously(async_func=async_get_command)
-    def send_get_command(self, request: str) -> str:
-        """Send HTTP GET command to Denon AVR receiver...for compatibility."""
 
     async def async_send_telnet_commands(self, *commands: str) -> None:
         """Send telnet commands to the receiver."""
@@ -544,49 +515,25 @@ class DenonAVR(DenonAVRFoundation):
         """Turn DynamicEQ off."""
         await self.audyssey.async_dynamiceq_off()
 
-    @run_async_synchronously(async_func=async_dynamic_eq_off)
-    def dynamic_eq_off(self) -> None:
-        """Turn DynamicEQ off."""
-
     async def async_dynamic_eq_on(self) -> None:
         """Turn DynamicEQ on."""
         await self.audyssey.async_dynamiceq_on()
-
-    @run_async_synchronously(async_func=async_dynamic_eq_on)
-    def dynamic_eq_on(self) -> None:
-        """Turn DynamicEQ on."""
 
     async def async_toggle_dynamic_eq(self) -> None:
         """Toggle DynamicEQ."""
         await self.audyssey.async_toggle_dynamic_eq()
 
-    @run_async_synchronously(async_func=async_toggle_dynamic_eq)
-    def toggle_dynamic_eq(self) -> None:
-        """Toggle DynamicEQ."""
-
     async def async_set_multieq(self, value: str) -> None:
         """Set MultiEQ mode."""
         await self.audyssey.async_set_multieq(value)
-
-    @run_async_synchronously(async_func=async_set_multieq)
-    def set_multieq(self, value: str) -> None:
-        """Set MultiEQ mode."""
 
     async def async_set_reflevoffset(self, value: str) -> None:
         """Set Reference Level Offset."""
         await self.audyssey.async_set_reflevoffset(value)
 
-    @run_async_synchronously(async_func=async_set_reflevoffset)
-    def set_reflevoffset(self, value: str) -> None:
-        """Set Reference Level Offset."""
-
     async def async_set_dynamicvol(self, value: str) -> None:
         """Set Dynamic Volume."""
         await self.audyssey.async_set_dynamicvol(value)
-
-    @run_async_synchronously(async_func=async_set_dynamicvol)
-    def set_dynamicvol(self, value: str) -> None:
-        """Set Dynamic Volume."""
 
     async def async_set_input_func(self, input_func: str) -> None:
         """
@@ -597,15 +544,6 @@ class DenonAVR(DenonAVRFoundation):
         """
         await self.input.async_set_input_func(input_func)
 
-    @run_async_synchronously(async_func=async_set_input_func)
-    def set_input_func(self, input_func: str) -> None:
-        """
-        Set input_func of device.
-
-        Valid values depend on the device and should be taken from
-        "input_func_list".
-        """
-
     async def async_set_sound_mode(self, sound_mode: str) -> None:
         """
         Set sound_mode of device.
@@ -615,86 +553,41 @@ class DenonAVR(DenonAVRFoundation):
         """
         await self.soundmode.async_set_sound_mode(sound_mode)
 
-    @run_async_synchronously(async_func=async_set_sound_mode)
-    def set_sound_mode(self, sound_mode: str) -> None:
-        """
-        Set sound_mode of device.
-
-        Valid values depend on the device and should be taken from
-        "sound_mode_list".
-        """
-
     async def async_toggle_play_pause(self) -> None:
         """Toggle play pause media player."""
         await self.input.async_toggle_play_pause()
-
-    @run_async_synchronously(async_func=async_toggle_play_pause)
-    def toggle_play_pause(self) -> None:
-        """Toggle play pause media player."""
 
     async def async_play(self) -> None:
         """Send play command to receiver command via HTTP post."""
         await self.input.async_play()
 
-    @run_async_synchronously(async_func=async_play)
-    def play(self) -> None:
-        """Send play command to receiver command via HTTP post."""
-
     async def async_pause(self) -> None:
         """Send pause command to receiver command via HTTP post."""
         await self.input.async_pause()
-
-    @run_async_synchronously(async_func=async_pause)
-    def pause(self) -> None:
-        """Send pause command to receiver command via HTTP post."""
 
     async def async_previous_track(self) -> None:
         """Send previous track command to receiver command via HTTP post."""
         await self.input.async_previous_track()
 
-    @run_async_synchronously(async_func=async_previous_track)
-    def previous_track(self) -> None:
-        """Send previous track command to receiver command via HTTP post."""
-
     async def async_next_track(self) -> None:
         """Send next track command to receiver command via HTTP post."""
         await self.input.async_next_track()
-
-    @run_async_synchronously(async_func=async_next_track)
-    def next_track(self) -> None:
-        """Send next track command to receiver command via HTTP post."""
 
     async def async_power_on(self) -> None:
         """Turn on receiver via HTTP get command."""
         await self._device.async_power_on()
 
-    @run_async_synchronously(async_func=async_power_on)
-    def power_on(self) -> None:
-        """Turn on receiver via HTTP get command."""
-
     async def async_power_off(self) -> None:
         """Turn off receiver via HTTP get command."""
         await self._device.async_power_off()
-
-    @run_async_synchronously(async_func=async_power_off)
-    def power_off(self) -> None:
-        """Turn off receiver via HTTP get command."""
 
     async def async_volume_up(self) -> None:
         """Volume up receiver via HTTP get command."""
         await self.vol.async_volume_up()
 
-    @run_async_synchronously(async_func=async_volume_up)
-    def volume_up(self) -> None:
-        """Volume up receiver via HTTP get command."""
-
     async def async_volume_down(self) -> None:
         """Volume down receiver via HTTP get command."""
         await self.vol.async_volume_down()
-
-    @run_async_synchronously(async_func=async_volume_down)
-    def volume_down(self) -> None:
-        """Volume down receiver via HTTP get command."""
 
     async def async_set_volume(self, volume: float) -> None:
         """
@@ -705,38 +598,17 @@ class DenonAVR(DenonAVRFoundation):
         """
         await self.vol.async_set_volume(volume)
 
-    @run_async_synchronously(async_func=async_set_volume)
-    def set_volume(self, volume: float) -> None:
-        """
-        Set receiver volume via HTTP get command.
-
-        Volume is send in a format like -50.0.
-        Minimum is -80.0, maximum at 18.0
-        """
-
     async def async_mute(self, mute: bool) -> None:
         """Mute receiver via HTTP get command."""
         await self.vol.async_mute(mute)
-
-    @run_async_synchronously(async_func=async_mute)
-    def mute(self, mute: bool) -> None:
-        """Mute receiver via HTTP get command."""
 
     async def async_enable_tone_control(self) -> None:
         """Enable tone control to change settings like bass or treble."""
         await self.tonecontrol.async_enable_tone_control()
 
-    @run_async_synchronously(async_func=async_enable_tone_control)
-    def enable_tone_control(self) -> None:
-        """Enable tone control to change settings like bass or treble."""
-
     async def async_disable_tone_control(self) -> None:
         """Disable tone control to change settings like bass or treble."""
         await self.tonecontrol.async_disable_tone_control()
-
-    @run_async_synchronously(async_func=async_disable_tone_control)
-    def disable_tone_control(self) -> None:
-        """Disable tone control to change settings like bass or treble."""
 
     async def async_set_bass(self, value: int) -> None:
         """
@@ -749,17 +621,6 @@ class DenonAVR(DenonAVRFoundation):
         """
         await self.tonecontrol.async_set_bass(value)
 
-    @run_async_synchronously(async_func=async_set_bass)
-    def set_bass(self, value: int) -> None:
-        """
-        Set receiver bass.
-
-        Minimum is 0, maximum at 12
-
-        Note:
-        Doesn't work, if Dynamic Equalizer is active.
-        """
-
     async def async_bass_up(self) -> None:
         """
         Increase level of Bass.
@@ -769,15 +630,6 @@ class DenonAVR(DenonAVRFoundation):
         """
         await self.tonecontrol.async_bass_up()
 
-    @run_async_synchronously(async_func=async_bass_up)
-    def bass_up(self) -> None:
-        """
-        Increase level of Bass.
-
-        Note:
-        Doesn't work, if Dynamic Equalizer is active
-        """
-
     async def async_bass_down(self) -> None:
         """
         Decrease level of Bass.
@@ -786,15 +638,6 @@ class DenonAVR(DenonAVRFoundation):
         Doesn't work, if Dynamic Equalizer is active
         """
         await self.tonecontrol.async_bass_down()
-
-    @run_async_synchronously(async_func=async_bass_down)
-    def bass_down(self) -> None:
-        """
-        Decrease level of Bass.
-
-        Note:
-        Doesn't work, if Dynamic Equalizer is active
-        """
 
     async def async_set_treble(self, value: int) -> None:
         """
@@ -807,17 +650,6 @@ class DenonAVR(DenonAVRFoundation):
         """
         await self.tonecontrol.async_set_treble(value)
 
-    @run_async_synchronously(async_func=async_set_treble)
-    def set_treble(self, value: int) -> None:
-        """
-        Set receiver treble.
-
-        Minimum is 0, maximum at 12
-
-        Note:
-        Doesn't work, if Dynamic Equalizer is active.
-        """
-
     async def async_treble_up(self) -> None:
         """
         Increase level of Treble.
@@ -827,15 +659,6 @@ class DenonAVR(DenonAVRFoundation):
         """
         await self.tonecontrol.async_treble_up()
 
-    @run_async_synchronously(async_func=async_treble_up)
-    def treble_up(self) -> None:
-        """
-        Increase level of Treble.
-
-        Note:
-        Doesn't work, if Dynamic Equalizer is active
-        """
-
     async def async_treble_down(self) -> None:
         """
         Decrease level of Treble.
@@ -844,7 +667,7 @@ class DenonAVR(DenonAVRFoundation):
         Doesn't work, if Dynamic Equalizer is active
         """
         await self.tonecontrol.async_treble_down()
-
+        
     @run_async_synchronously(async_func=async_treble_down)
     def treble_down(self) -> None:
         """
@@ -925,3 +748,4 @@ class DenonAVR(DenonAVRFoundation):
     @run_async_synchronously(async_func=async_settings_menu)
     def settings_menu(self) -> None:
         """Raise settings menu to receiver via HTTP get command."""
+
