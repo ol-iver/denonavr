@@ -853,3 +853,75 @@ class DenonAVR(DenonAVRFoundation):
         Note:
         Doesn't work, if Dynamic Equalizer is active
         """
+
+    async def async_cursor_up(self) -> None:
+        """Sends cursor up to receiver via HTTP get command."""
+        await self._device.async_cursor_up()
+
+    @run_async_synchronously(async_func=async_cursor_up)
+    def cursor_up(self) -> None:
+        """Sends cursor up to receiver via HTTP get command."""
+        
+    async def async_cursor_down(self) -> None:
+        """Sends cursor down to receiver via HTTP get command."""
+        await self._device.async_cursor_down()
+
+    @run_async_synchronously(async_func=async_cursor_down)
+    def cursor_down(self) -> None:
+        """Sends cursor down to receiver via HTTP get command."""
+        
+    async def async_cursor_left(self) -> None:
+        """Sends cursor left to receiver via HTTP get command."""
+        await self._device.async_cursor_left()
+
+    @run_async_synchronously(async_func=async_cursor_left)
+    def cursor_left(self) -> None:
+        """Sends cursor left to receiver via HTTP get command."""
+        
+    async def async_cursor_right(self) -> None:
+        """Sends cursor right to receiver via HTTP get command."""
+        await self._device.async_cursor_right()
+
+    @run_async_synchronously(async_func=async_cursor_right)
+    def cursor_right(self) -> None:
+        """Sends cursor right to receiver via HTTP get command."""
+        
+    async def async_cursor_enter(self) -> None:
+        """Sends cursor enter to receiver via HTTP get command."""
+        await self._device.async_cursor_enter()
+
+    @run_async_synchronously(async_func=async_cursor_enter)
+    def cursor_enter(self) -> None:
+        """Sends cursor enter to receiver via HTTP get command."""
+        
+    async def async_back(self) -> None:
+        """Sends back to receiver via HTTP get command."""
+        await self._device.async_back()
+
+    @run_async_synchronously(async_func=async_back)
+    def back(self) -> None:
+        """Sends back to receiver via HTTP get command."""
+
+    async def async_info(self) -> None:
+        """Sends info to receiver via HTTP get command."""
+        await self._device.async_info()
+
+    @run_async_synchronously(async_func=async_info)
+    def info(self) -> None:
+        """Sends info to receiver via HTTP get command."""
+        
+    async def async_options(self) -> None:
+        """Raise options menu to receiver via HTTP get command."""
+        await self._device.async_options()
+
+    @run_async_synchronously(async_func=async_options)
+    def options(self) -> None:
+        """Raise options menu to receiver via HTTP get command."""
+        
+    async def async_settings_menu(self) -> None:
+        """Raise settings menu to receiver via HTTP get command."""
+        await self._device.async_settings_menu()
+
+    @run_async_synchronously(async_func=async_settings_menu)
+    def settings_menu(self) -> None:
+        """Raise settings menu to receiver via HTTP get command."""
