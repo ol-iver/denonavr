@@ -10,8 +10,6 @@ Automation Library for Denon AVR receivers.
 # Set default logging handler to avoid "No handler found" warnings.
 import logging
 
-from .decorators import run_async_synchronously
-
 # Import denonavr module
 from .denonavr import DenonAVR
 from .ssdp import async_identify_denonavr_receivers
@@ -19,7 +17,7 @@ from .ssdp import async_identify_denonavr_receivers
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 __title__ = "denonavr"
-__version__ = "0.11.6"
+__version__ = "1.0.0-dev"
 
 
 async def async_discover():
@@ -31,17 +29,6 @@ async def async_discover():
     By default SSDP broadcasts are sent once with a 2 seconds timeout.
     """
     return await async_identify_denonavr_receivers()
-
-
-@run_async_synchronously(async_func=async_discover)
-def discover():
-    """
-    Discover all Denon AVR devices in LAN zone.
-
-    Returns a list of dictionaries which includes all discovered Denon AVR
-    devices with keys "host", "modelName", "friendlyName", "presentationURL".
-    By default SSDP broadcasts are sent once with a 2 seconds timeout.
-    """
 
 
 async def async_init_all_receivers():
@@ -58,13 +45,3 @@ async def async_init_all_receivers():
         init_receiver = DenonAVR(receiver["host"])
         init_receivers.append(init_receiver)
     return init_receivers
-
-
-@run_async_synchronously(async_func=async_init_all_receivers)
-def init_all_receivers():
-    """
-    Initialize all discovered Denon AVR receivers in LAN zone.
-
-    Returns a list of created Denon AVR instances.
-    By default SSDP broadcasts are sent up to 3 times with a 2 seconds timeout.
-    """
