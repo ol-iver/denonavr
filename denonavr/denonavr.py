@@ -669,31 +669,31 @@ class DenonAVR(DenonAVRFoundation):
         await self.tonecontrol.async_treble_down()
 
     async def async_cursor_up(self) -> None:
-        """Sends cursor up to receiver via HTTP get command."""
+        """Send cursor up to receiver via HTTP get command."""
         await self._device.async_cursor_up()
 
     async def async_cursor_down(self) -> None:
-        """Sends cursor down to receiver via HTTP get command."""
+        """Send cursor down to receiver via HTTP get command."""
         await self._device.async_cursor_down()
 
     async def async_cursor_left(self) -> None:
-        """Sends cursor left to receiver via HTTP get command."""
+        """Send cursor left to receiver via HTTP get command."""
         await self._device.async_cursor_left()
 
     async def async_cursor_right(self) -> None:
-        """Sends cursor right to receiver via HTTP get command."""
+        """Send cursor right to receiver via HTTP get command."""
         await self._device.async_cursor_right()
 
     async def async_cursor_enter(self) -> None:
-        """Sends cursor enter to receiver via HTTP get command."""
+        """Send cursor enter to receiver via HTTP get command."""
         await self._device.async_cursor_enter()
 
     async def async_back(self) -> None:
-        """Sends back to receiver via HTTP get command."""
+        """Send back to receiver via HTTP get command."""
         await self._device.async_back()
 
     async def async_info(self) -> None:
-        """Sends info to receiver via HTTP get command."""
+        """Send info to receiver via HTTP get command."""
         await self._device.async_info()
 
     async def async_options(self) -> None:
