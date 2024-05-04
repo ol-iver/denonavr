@@ -43,6 +43,17 @@ ReceiverURLs = namedtuple(
         "command_set_all_zone_stereo",
         "command_pause",
         "command_play",
+        "command_cusor_up",
+        "command_cusor_down",
+        "command_cusor_left",
+        "command_cusor_right",
+        "command_cusor_enter",
+        "command_back",
+        "command_info",
+        "command_options",
+        "command_setup_open",
+        "command_setup_close",
+        "command_setup_query",
     ],
 )
 TelnetCommands = namedtuple(
@@ -68,6 +79,17 @@ TelnetCommands = namedtuple(
         "command_tonecontrol",
         "command_bass",
         "command_treble",
+        "command_cusor_up",
+        "command_cusor_down",
+        "command_cusor_left",
+        "command_cusor_right",
+        "command_cusor_enter",
+        "command_back",
+        "command_info",
+        "command_options",
+        "command_setup_open",
+        "command_setup_close",
+        "command_setup_query",
     ],
 )
 
@@ -328,6 +350,17 @@ COMMAND_MUTE_ON_URL = "/goform/formiPhoneAppMute.xml?1+MuteOn"
 COMMAND_MUTE_OFF_URL = "/goform/formiPhoneAppMute.xml?1+MuteOff"
 COMMAND_SEL_SM_URL = "/goform/formiPhoneAppDirect.xml?MS"
 COMMAND_SET_ZST_URL = "/goform/formiPhoneAppDirect.xml?MN"
+COMMAND_CURSOR_UP = "/goform/formiPhoneAppDirect.xml?MNCUP"
+COMMAND_CURSOR_DOWN = "/goform/formiPhoneAppDirect.xml?MNCDN"
+COMMAND_CURSOR_LEFT = "/goform/formiPhoneAppDirect.xml?MNCLT"
+COMMAND_CURSOR_RIGHT = "/goform/formiPhoneAppDirect.xml?MNCRT"
+COMMAND_CURSOR_ENTER = "/goform/formiPhoneAppDirect.xml?MNENT"
+COMMAND_BACK = "/goform/formiPhoneAppDirect.xml?MNRTN"
+COMMAND_INFO = "/goform/formiPhoneAppDirect.xml?MNINF"
+COMMAND_OPTIONS = "/goform/formiPhoneAppDirect.xml?MNOPT"
+COMMAND_SETUP_OPEN = "/goform/formiPhoneAppDirect.xml?MNMEN%20ON"
+COMMAND_SETUP_CLOSE = "/goform/formiPhoneAppDirect.xml?MNMEN%20OFF"
+COMMAND_SETUP_QUERY = "/goform/formiPhoneAppDirect.xml?MNMEN?"
 
 # Zone 2 URLs
 STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
@@ -376,6 +409,17 @@ DENONAVR_URLS = ReceiverURLs(
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
     command_play=COMMAND_PLAY,
+    command_cusor_up=COMMAND_CURSOR_UP,
+    command_cusor_down=COMMAND_CURSOR_DOWN,
+    command_cusor_left=COMMAND_CURSOR_LEFT,
+    command_cusor_right=COMMAND_CURSOR_RIGHT,
+    command_cusor_enter=COMMAND_CURSOR_ENTER,
+    command_back=COMMAND_BACK,
+    command_info=COMMAND_INFO,
+    command_options=COMMAND_OPTIONS,
+    command_setup_open=COMMAND_SETUP_OPEN,
+    command_setup_close=COMMAND_SETUP_CLOSE,
+    command_setup_query=COMMAND_SETUP_QUERY,
 )
 
 ZONE2_URLS = ReceiverURLs(
@@ -401,6 +445,17 @@ ZONE2_URLS = ReceiverURLs(
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
     command_play=COMMAND_PLAY,
+    command_cusor_up=COMMAND_CURSOR_UP,
+    command_cusor_down=COMMAND_CURSOR_DOWN,
+    command_cusor_left=COMMAND_CURSOR_LEFT,
+    command_cusor_right=COMMAND_CURSOR_RIGHT,
+    command_cusor_enter=COMMAND_CURSOR_ENTER,
+    command_back=COMMAND_BACK,
+    command_info=COMMAND_INFO,
+    command_options=COMMAND_OPTIONS,
+    command_setup_open=COMMAND_SETUP_OPEN,
+    command_setup_close=COMMAND_SETUP_CLOSE,
+    command_setup_query=COMMAND_SETUP_QUERY,
 )
 
 ZONE3_URLS = ReceiverURLs(
@@ -426,6 +481,17 @@ ZONE3_URLS = ReceiverURLs(
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
     command_play=COMMAND_PLAY,
+    command_cusor_up=COMMAND_CURSOR_UP,
+    command_cusor_down=COMMAND_CURSOR_DOWN,
+    command_cusor_left=COMMAND_CURSOR_LEFT,
+    command_cusor_right=COMMAND_CURSOR_RIGHT,
+    command_cusor_enter=COMMAND_CURSOR_ENTER,
+    command_back=COMMAND_BACK,
+    command_info=COMMAND_INFO,
+    command_options=COMMAND_OPTIONS,
+    command_setup_open=COMMAND_SETUP_OPEN,
+    command_setup_close=COMMAND_SETUP_CLOSE,
+    command_setup_query=COMMAND_SETUP_QUERY,
 )
 
 # Telnet Events
@@ -504,6 +570,17 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_tonecontrol="PSTONE CTRL ",
     command_bass="PSBAS ",
     command_treble="PSTRE ",
+    command_cusor_up="MNCUP",
+    command_cusor_down="MNCDN",
+    command_cusor_left="MNCLT",
+    command_cusor_right="MNCRT",
+    command_cusor_enter="MNENT",
+    command_back="MNRTN",
+    command_info="MNINF",
+    command_options="MNOPT",
+    command_setup_open="MNMEN ON",
+    command_setup_close="MNMEN OFF",
+    command_setup_query="MNMEN?",
 )
 
 ZONE2_TELNET_COMMANDS = TelnetCommands(
@@ -527,6 +604,17 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_tonecontrol="PSTONE CTRL ",
     command_bass="PSBAS ",
     command_treble="PSTRE ",
+    command_cusor_up="MNCUP",
+    command_cusor_down="MNCDN",
+    command_cusor_left="MNCLT",
+    command_cusor_right="MNCRT",
+    command_cusor_enter="MNENT",
+    command_back="MNRTN",
+    command_info="MNINF",
+    command_options="MNOPT",
+    command_setup_open="MNMEN ON",
+    command_setup_close="MNMEN OFF",
+    command_setup_query="MNMEN?",
 )
 
 ZONE3_TELNET_COMMANDS = TelnetCommands(
@@ -550,6 +638,17 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_tonecontrol="PSTONE CTRL ",
     command_bass="PSBAS ",
     command_treble="PSTRE ",
+    command_cusor_up="MNCUP",
+    command_cusor_down="MNCDN",
+    command_cusor_left="MNCLT",
+    command_cusor_right="MNCRT",
+    command_cusor_enter="MNENT",
+    command_back="MNRTN",
+    command_info="MNINF",
+    command_options="MNOPT",
+    command_setup_open="MNMEN ON",
+    command_setup_close="MNMEN OFF",
+    command_setup_query="MNMEN?",
 )
 
 # States

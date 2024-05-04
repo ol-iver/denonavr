@@ -667,3 +667,39 @@ class DenonAVR(DenonAVRFoundation):
         Doesn't work, if Dynamic Equalizer is active
         """
         await self.tonecontrol.async_treble_down()
+
+    async def async_cursor_up(self) -> None:
+        """Send cursor up to receiver via HTTP get command."""
+        await self._device.async_cursor_up()
+
+    async def async_cursor_down(self) -> None:
+        """Send cursor down to receiver via HTTP get command."""
+        await self._device.async_cursor_down()
+
+    async def async_cursor_left(self) -> None:
+        """Send cursor left to receiver via HTTP get command."""
+        await self._device.async_cursor_left()
+
+    async def async_cursor_right(self) -> None:
+        """Send cursor right to receiver via HTTP get command."""
+        await self._device.async_cursor_right()
+
+    async def async_cursor_enter(self) -> None:
+        """Send cursor enter to receiver via HTTP get command."""
+        await self._device.async_cursor_enter()
+
+    async def async_back(self) -> None:
+        """Send back to receiver via HTTP get command."""
+        await self._device.async_back()
+
+    async def async_info(self) -> None:
+        """Send info to receiver via HTTP get command."""
+        await self._device.async_info()
+
+    async def async_options(self) -> None:
+        """Raise options menu to receiver via HTTP get command."""
+        await self._device.async_options()
+
+    async def async_settings_menu(self) -> None:
+        """Raise settings menu to receiver via HTTP get command."""
+        await self._device.async_settings_menu()
