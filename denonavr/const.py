@@ -89,8 +89,8 @@ TelnetCommands = namedtuple(
         "command_options",
         "command_setup_open",
         "command_setup_close",
-        "command_setup_query"
-    ]
+        "command_setup_query",
+    ],
 )
 
 # AVR-X search patterns
@@ -419,7 +419,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_options=COMMAND_OPTIONS,
     command_setup_open=COMMAND_SETUP_OPEN,
     command_setup_close=COMMAND_SETUP_CLOSE,
-    command_setup_query=COMMAND_SETUP_QUERY
+    command_setup_query=COMMAND_SETUP_QUERY,
 )
 
 ZONE2_URLS = ReceiverURLs(
