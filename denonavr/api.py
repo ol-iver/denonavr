@@ -413,9 +413,6 @@ class DenonAVRTelnetApi:
     host: str = attr.ib(converter=str, default="localhost")
     timeout: float = attr.ib(converter=float, default=2.0)
     _connection_enabled: bool = attr.ib(default=False)
-    _healthy: Optional[bool] = attr.ib(
-        converter=attr.converters.optional(bool), default=None
-    )
     _last_message_time: float = attr.ib(default=-1.0)
     _connect_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
     _reconnect_task: asyncio.Task = attr.ib(default=None)
@@ -484,7 +481,7 @@ class DenonAVRTelnetApi:
                 "%s: Connection failed on telnet reconnect", self.host, exc_info=True
             )
             raise AvrNetworkError(f"OSError: {err}", "telnet connect") from err
-        _LOGGER.debug("%s: telnet connection complete", self.host)
+        _LOGGER.debug("%s: telnet connection established", self.host)
         self._protocol = cast(DenonAVRTelnetProtocol, transport_protocol[1])
         self._connection_enabled = True
         self._last_message_time = time.monotonic()
@@ -527,8 +524,6 @@ class DenonAVRTelnetApi:
             _LOGGER.info(
                 "%s: Keep alive failed, disconnecting and reconnecting", self.host
             )
-            if self._protocol is not None:
-                self._protocol.close()
             self._handle_disconnected()
             return
 
@@ -540,8 +535,10 @@ class DenonAVRTelnetApi:
 
     def _handle_disconnected(self) -> None:
         """Handle disconnected."""
-        _LOGGER.debug("%s: disconnected", self.host)
-        self._protocol = None
+        _LOGGER.debug("%s: handle disconnected", self.host)
+        if self._protocol is not None:
+            self._protocol.close()
+            self._protocol = None
         self._stop_monitor()
         if not self._connection_enabled:
             return
@@ -550,6 +547,7 @@ class DenonAVRTelnetApi:
     async def async_disconnect(self) -> None:
         """Close the connection to the receiver asynchronously."""
         async with self._connect_lock:
+            _LOGGER.debug("%s: telnet disconnecting", self.host)
             self._connection_enabled = False
             self._stop_monitor()
             reconnect_task = self._reconnect_task
@@ -565,6 +563,7 @@ class DenonAVRTelnetApi:
                     await reconnect_task
                 except asyncio.CancelledError:
                     pass
+            _LOGGER.debug("%s: telnet disconnected", self.host)
 
     async def _async_reconnect(self) -> None:
         """Reconnect to the receiver asynchronously."""
@@ -572,6 +571,7 @@ class DenonAVRTelnetApi:
 
         while self._connection_enabled and not self.healthy:
             async with self._connect_lock:
+                _LOGGER.debug("%s: Telnet reconnecting", self.host)
                 try:
                     await self._async_establish_connection()
                 except AvrTimoutError:
