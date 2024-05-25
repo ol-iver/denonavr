@@ -7,26 +7,6 @@
 
 Automation Library for Denon AVR receivers
 
-### TCP monitoring
-
-In addition to retrieving the current device status via HTTP calls, this version also adds the ability to setup a task that will connect to the receiver on TCP port 23 and listen for real-time events to notify of status changes. This provides instant updates via a callback when the device status changes.
-
-## Important changes for version 0.10.0 and above
-
-### async
-
-As of version 0.10.0 and newer, the `denonavr` library has switched to using`async` methods to interact with Denon receivers.
-
-Legacy synchronous methods are still available to avoid breaking existing implementations, but may be deprecated in the future.  Switching to `async` methods is recommended.  The existing sync methods are inefficient because they use the corresponding async methods by starting and stopping its own `asyncio` loop for each command.
-
-### Other changes:
-
-When creating a new instance of `DenonAVR` there are no longer any API calls to avoid blocking the event loop. To initialize setup of your receiver you would use`(async_)setup()` and `(async_)update()` methods to populate the attributes. Calling `(async_)update()` invokes a call of `async_setup()` if the instance was not setup yet.
-
-Methods do not return `True` or `False` anymore. If successful,  `None` is returned. Otherwise an exception is raised from a class in [denonavr/exceptions.py](https://github.com/ol-iver/denonavr/blob/master/denonavr/exceptions.py). 
-
-It is no longer assumed that a command was successful even when the receiver returns an `HTTP 200 OK`. This is because the receiver can return an `HTTP 200 OK`  from some endpoints even when the API call has failed. As an example, you now have to call `(async_)update()` after you call `(async_)power_off()` to see the `power` attribute change.
-
 ## Installation
 
 Use pip:
@@ -55,7 +35,10 @@ The `asyncio` library should automatically be imported in the REPL.  Import the 
 -36.5
 ```
 
-### Monitoring with TCP
+### Monitoring with telnet
+In addition to retrieving the current device status via HTTP calls, `denonavr` library also has the ability to setup a task that will connect to the receiver via telnet on TCP port 23 and listen for real-time events to notify of status changes.
+This provides instant updates via a callback when the device status changes. Receivers support only one active telnet connection.
+
 ```
 >>> import asyncio
 >>> import denonavr
