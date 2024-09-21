@@ -639,7 +639,6 @@ class DenonAVRFoundation:
         appcommand0300: bool = False,
         global_update: bool = False,
         cache_id: Optional[Hashable] = None,
-        ignore_missing_response: bool = False,
     ):
         """Update attributes from AppCommand.xml."""
         # Copy that we do not accidently change the wrong dict
@@ -708,16 +707,10 @@ class DenonAVRFoundation:
                 update_attrs.pop(app_command, None)
 
         # Check if each attribute was updated
-        if update_attrs and not ignore_missing_response:
+        if update_attrs:
             raise AvrProcessingError(
                 f"Some attributes of zone {self._device.zone} not found on update:"
                 f" {update_attrs}"
-            )
-        if update_attrs and ignore_missing_response:
-            _LOGGER.debug(
-                "Some attributes of zone %s not found on update: %s",
-                self._device.zone,
-                update_attrs,
             )
 
     async def async_update_attrs_status_xml(
@@ -725,7 +718,6 @@ class DenonAVRFoundation:
         update_attrs: Dict[str, str],
         urls: List[str],
         cache_id: Optional[Hashable] = None,
-        ignore_missing_response: bool = False,
     ):
         """
         Update attributes from status xml.
@@ -775,7 +767,7 @@ class DenonAVRFoundation:
                 break
 
         # Check if each attribute was updated
-        if update_attrs and not ignore_missing_response:
+        if update_attrs:
             raise AvrProcessingError(
                 f"Some attributes of zone {self._device.zone} not found on update:"
                 f" {update_attrs}"

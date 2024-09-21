@@ -105,12 +105,15 @@ class DenonAVRToneControl(DenonAVRFoundation):
 
         # Tone control is only available for avr 2016 update
         if self._device.use_avr_2016_update:
-            await self.async_update_attrs_appcommand(
-                self.appcommand_attrs,
-                global_update=global_update,
-                cache_id=cache_id,
-                ignore_missing_response=True,
-            )
+            try:
+                await self.async_update_attrs_appcommand(
+                    self.appcommand_attrs,
+                    global_update=global_update,
+                    cache_id=cache_id,
+                )
+            except AvrProcessingError:
+                # Don't raise an error here, because not all devices support it
+                _LOGGER.debug("Updating tone control failed", exc_info=True)
 
     async def async_set_tone_control_command(
         self, parameter_type: str, value: int
