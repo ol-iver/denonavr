@@ -105,6 +105,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_setup(self) -> None:
         """Ensure that the instance is initialized."""
         async with self._setup_lock:
+            _LOGGER.debug("Starting sound mode setup")
             # Add tags for a potential AppCommand.xml update
             for tag in self.appcommand_attrs:
                 self._device.api.add_appcommand_update_tag(tag)
@@ -121,6 +122,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             )
 
             self._is_setup = True
+            _LOGGER.debug("Finished sound mode setup")
 
     async def _async_soundmode_callback(
         self, zone: str, event: str, parameter: str
@@ -135,6 +137,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
     ) -> None:
         """Update sound mode asynchronously."""
+        _LOGGER.debug("Starting sound mode update")
         # Ensure instance is setup before updating
         if not self._is_setup:
             await self.async_setup()
@@ -143,6 +146,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         await self.async_update_sound_mode(
             global_update=global_update, cache_id=cache_id
         )
+        _LOGGER.debug("Finished sound mode update")
 
     async def async_update_sound_mode(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None

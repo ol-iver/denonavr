@@ -405,18 +405,23 @@ class DenonAVRInput(DenonAVRFoundation):
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
     ) -> None:
         """Update input functions asynchronously."""
+        _LOGGER.debug("Starting input update")
         # Ensure instance is setup before updating
         if not self._is_setup:
             self.setup()
 
         # Update input functions
+        _LOGGER.debug("Updating input functions")
         await self.async_update_inputfuncs(
             global_update=global_update, cache_id=cache_id
         )
         # Update state
+        _LOGGER.debug("Updating input state")
         await self.async_update_state(global_update=global_update, cache_id=cache_id)
         # Update media state
+        _LOGGER.debug("Updating media state")
         await self.async_update_media_state(cache_id=cache_id)
+        _LOGGER.debug("Finished input update")
 
     async def async_get_sources_deviceinfo(self) -> Dict[str, str]:
         """Get sources from Deviceinfo.xml."""
