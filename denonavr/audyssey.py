@@ -117,13 +117,16 @@ class DenonAVRAudyssey(DenonAVRFoundation):
 
         # Audyssey is only available for avr 2016 update
         if self._device.use_avr_2016_update:
-            await self.async_update_attrs_appcommand(
-                self.appcommand0300_attrs,
-                appcommand0300=True,
-                global_update=global_update,
-                cache_id=cache_id,
-                ignore_missing_response=True,
-            )
+            try:
+                await self.async_update_attrs_appcommand(
+                    self.appcommand0300_attrs,
+                    appcommand0300=True,
+                    global_update=global_update,
+                    cache_id=cache_id,
+                )
+            except AvrProcessingError:
+                # Don't raise an error here, because not all devices support it
+                _LOGGER.debug("Updating Audyssey failed", exc_info=True)
 
     async def _async_set_audyssey(self, cmd: AppCommandCmd) -> None:
         """Set Audyssey parameter."""
