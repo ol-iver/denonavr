@@ -124,9 +124,9 @@ class DenonAVRAudyssey(DenonAVRFoundation):
                     global_update=global_update,
                     cache_id=cache_id,
                 )
-            except AvrProcessingError:
+            except AvrProcessingError as err:
                 # Don't raise an error here, because not all devices support it
-                _LOGGER.debug("Updating Audyssey failed", exc_info=True)
+                _LOGGER.debug("Updating Audyssey failed: %s", err)
 
     async def _async_set_audyssey(self, cmd: AppCommandCmd) -> None:
         """Set Audyssey parameter."""

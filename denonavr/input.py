@@ -426,7 +426,7 @@ class DenonAVRInput(DenonAVRFoundation):
                 self._device.urls.deviceinfo, cache_id=id(self._device)
             )
         except AvrRequestError as err:
-            _LOGGER.debug("Error when getting sources", exc_info=err)
+            _LOGGER.debug("Error when getting sources: %s", err)
             raise
 
         receiver_sources = {}
@@ -484,7 +484,7 @@ class DenonAVRInput(DenonAVRFoundation):
                     self._device.urls.appcommand, tags, cache_id=cache_id
                 )
         except AvrRequestError as err:
-            _LOGGER.debug("Error when getting changed sources", exc_info=err)
+            _LOGGER.debug("Error when getting changed sources: %s", err)
             raise
 
         for child in xml.findall(
@@ -547,7 +547,7 @@ class DenonAVRInput(DenonAVRFoundation):
                     f" {self._device.receiver.type}"
                 )
         except AvrRequestError as err:
-            _LOGGER.debug("Error when getting changed sources", exc_info=err)
+            _LOGGER.debug("Error when getting changed sources: %s", err)
             raise
 
         # Get the relevant tags from XML structure

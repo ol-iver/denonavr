@@ -471,14 +471,14 @@ class DenonAVRTelnetApi:
             raise AvrTimoutError(f"TimeoutException: {err}", "telnet connect") from err
         except ConnectionRefusedError as err:
             _LOGGER.debug(
-                "%s: Connection refused on telnet connect", self.host, exc_info=True
+                "%s: Connection refused on telnet connect: %s", self.host, err
             )
             raise AvrNetworkError(
                 f"ConnectionRefusedError: {err}", "telnet connect"
             ) from err
         except (OSError, IOError) as err:
             _LOGGER.debug(
-                "%s: Connection failed on telnet reconnect", self.host, exc_info=True
+                "%s: Connection failed on telnet reconnect: %s", self.host, err
             )
             raise AvrNetworkError(f"OSError: {err}", "telnet connect") from err
         _LOGGER.debug("%s: telnet connection established", self.host)
@@ -578,13 +578,13 @@ class DenonAVRTelnetApi:
                     _LOGGER.debug(
                         "%s: Timeout exception on telnet reconnect", self.host
                     )
-                except AvrNetworkError as ex:
-                    _LOGGER.debug("%s: %s", self.host, ex, exc_info=True)
-                except Exception:  # pylint: disable=broad-except
+                except AvrNetworkError as err:
+                    _LOGGER.debug("%s: %s", self.host, err)
+                except Exception as err:  # pylint: disable=broad-except
                     _LOGGER.error(
                         "%s: Unexpected exception on telnet reconnect",
                         self.host,
-                        exc_info=True,
+                        exc_info=err,
                     )
                 else:
                     _LOGGER.info("%s: Telnet reconnected", self.host)
@@ -682,7 +682,7 @@ class DenonAVRTelnetApi:
                 # We don't want a single bad callback to trip up the
                 # whole system and prevent further execution
                 _LOGGER.error(
-                    "%s: Raw callback caused an unhandled exception %s",
+                    "%s: Raw callback caused an unhandled exception: %s",
                     self.host,
                     err,
                 )
@@ -695,7 +695,7 @@ class DenonAVRTelnetApi:
                     # We don't want a single bad callback to trip up the
                     # whole system and prevent further execution
                     _LOGGER.error(
-                        "%s: Event callback caused an unhandled exception %s",
+                        "%s: Event callback caused an unhandled exception: %s",
                         self.host,
                         err,
                     )
@@ -708,7 +708,7 @@ class DenonAVRTelnetApi:
                     # We don't want a single bad callback to trip up the
                     # whole system and prevent further execution
                     _LOGGER.error(
-                        "%s: Event callback caused an unhandled exception %s",
+                        "%s: Event callback caused an unhandled exception: %s",
                         self.host,
                         err,
                     )

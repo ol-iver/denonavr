@@ -111,9 +111,9 @@ class DenonAVRToneControl(DenonAVRFoundation):
                     global_update=global_update,
                     cache_id=cache_id,
                 )
-            except AvrProcessingError:
+            except AvrProcessingError as err:
                 # Don't raise an error here, because not all devices support it
-                _LOGGER.debug("Updating tone control failed", exc_info=True)
+                _LOGGER.debug("Updating tone control failed: %s", err)
 
     async def async_set_tone_control_command(
         self, parameter_type: str, value: int
