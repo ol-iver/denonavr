@@ -401,9 +401,9 @@ class DenonAVRTelnetProtocol(asyncio.Protocol):
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
         """Handle connection lost."""
-        self.transport = None
         self._on_connection_lost()
-        return super().connection_lost(exc)
+        super().connection_lost(exc)
+        self.transport = None
 
 
 @attr.s(auto_attribs=True, hash=False, on_setattr=DENON_ATTR_SETATTR)
