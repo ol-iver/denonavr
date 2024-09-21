@@ -282,6 +282,7 @@ SOUND_MODE_MAPPING = {
         "STANDARD(DTS)",
         "DTS + NEURAL:X",
         "MULTI CH IN",
+        "M CH IN+DSUR",
         "DTS-HD MSTR",
         "DTS VIRTUAL:X",
         "DTS-HD + NEURAL:X",
