@@ -143,16 +143,19 @@ class DenonAVRDeviceInfo:
     async def async_setup(self) -> None:
         """Ensure that configuration is loaded from receiver asynchronously."""
         async with self._setup_lock:
-            # Own setup
+            _LOGGER.debug("Starting device setup")
             # Reduce read timeout during receiver identification
             # deviceinfo endpoint takes very long to return 404
             timeout = self.api.timeout
             self.api.timeout = httpx.Timeout(self.api.timeout.connect)
             try:
+                _LOGGER.debug("Identifying receiver")
                 await self.async_identify_receiver()
+                _LOGGER.debug("Getting device info")
                 await self.async_get_device_info()
             finally:
                 self.api.timeout = timeout
+            _LOGGER.debug("Identifying update method")
             await self.async_identify_update_method()
 
             # Add tags for a potential AppCommand.xml update
@@ -166,6 +169,7 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback(power_event, self._async_power_callback)
 
             self._is_setup = True
+            _LOGGER.debug("Finished device setup")
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -196,9 +200,9 @@ class DenonAVRDeviceInfo:
                 )
             except (AvrTimoutError, AvrNetworkError) as err:
                 _LOGGER.debug(
-                    "Connection error on port %s when identifying receiver",
+                    "Connection error on port %s when identifying receiver: %s",
                     r_type.port,
-                    exc_info=err,
+                    err,
                 )
 
                 # Raise error only when occurred at both types
@@ -210,22 +214,32 @@ class DenonAVRDeviceInfo:
                 _LOGGER.debug(
                     (
                         "Request error on port %s when identifying receiver, "
-                        "device is not a %s receivers"
+                        "device is not a %s receiver: %s"
                     ),
                     r_type.port,
                     r_type.type,
-                    exc_info=err,
+                    err,
                 )
             else:
                 is_avr_x = self._is_avr_x(xml)
                 if is_avr_x:
                     self.receiver = r_type
+                    _LOGGER.info(
+                        "Identified %s receiver using port %s",
+                        r_type.type,
+                        r_type.port,
+                    )
                     # Receiver identified, return
                     return
 
         # If check of Deviceinfo.xml was not successful, receiver is type AVR
         self.receiver = AVR
         self.api.port = AVR.port
+        _LOGGER.info(
+            "Identified %s receiver using port %s",
+            AVR.type,
+            AVR.port,
+        )
 
     @staticmethod
     def _is_avr_x(deviceinfo: ET.Element) -> bool:
@@ -275,13 +289,11 @@ class DenonAVRDeviceInfo:
                 )
             except (AvrTimoutError, AvrNetworkError) as err:
                 _LOGGER.debug(
-                    "Connection error when identifying update method", exc_info=err
+                    "Connection error when identifying update method: %s", err
                 )
                 raise
             except AvrRequestError as err:
-                _LOGGER.debug(
-                    "Request error when identifying update method", exc_info=err
-                )
+                _LOGGER.debug("Request error when identifying update method: %s", err)
                 self.use_avr_2016_update = False
                 _LOGGER.info("AVR-X device, AppCommand.xml interface not supported")
             else:
@@ -294,11 +306,11 @@ class DenonAVRDeviceInfo:
                 xml = await self.api.async_get_xml(self.urls.mainzone)
             except (AvrTimoutError, AvrNetworkError) as err:
                 _LOGGER.debug(
-                    "Connection error when identifying update method", exc_info=err
+                    "Connection error when identifying update method: %s", err
                 )
                 raise
             except AvrRequestError as err:
-                _LOGGER.debug("Request error getting friendly name", exc_info=err)
+                _LOGGER.debug("Request error getting friendly name: %s", err)
                 _LOGGER.info(
                     "Receiver name could not be determined. Using standard"
                     " name: Denon AVR"
@@ -320,7 +332,7 @@ class DenonAVRDeviceInfo:
             # Result is cached that it can be reused during update
             await self.api.async_get_global_appcommand(cache_id=cache_id)
         except (AvrTimoutError, AvrNetworkError) as err:
-            _LOGGER.debug("Connection error when verifying update method", exc_info=err)
+            _LOGGER.debug("Connection error when verifying update method: %s", err)
             raise
         except AvrForbiddenError:
             # Recovery in case receiver changes port from 80 to 8080 which
@@ -338,7 +350,7 @@ class DenonAVRDeviceInfo:
             else:
                 raise
         except AvrIncompleteResponseError as err:
-            _LOGGER.debug("Request error when verifying update method", exc_info=err)
+            _LOGGER.debug("Request error when verifying update method: %s", err)
             # Only AVR_X devices support both interfaces
             if self.receiver == AVR_X:
                 _LOGGER.warning(
@@ -378,10 +390,10 @@ class DenonAVRDeviceInfo:
         try:
             res = await self.api.async_get(command, port=port)
         except AvrTimoutError as err:
-            _LOGGER.debug("Timeout when getting device info", exc_info=err)
+            _LOGGER.debug("Timeout when getting device info: %s", err)
             raise
         except AvrNetworkError as err:
-            _LOGGER.debug("Network error getting device info", exc_info=err)
+            _LOGGER.debug("Network error getting device info: %s", err)
             raise
         except AvrRequestError as err:
             _LOGGER.error(
@@ -444,7 +456,7 @@ class DenonAVRDeviceInfo:
                     self.urls.appcommand, tuple(power_appcommand), cache_id=cache_id
                 )
         except AvrRequestError as err:
-            _LOGGER.debug("Error when getting power status", exc_info=err)
+            _LOGGER.debug("Error when getting power status: %s", err)
             raise
 
         # Extract relevant information
@@ -482,7 +494,7 @@ class DenonAVRDeviceInfo:
                     xml = await self.api.async_get_xml(url, cache_id=cache_id)
                 except AvrRequestError as err:
                     _LOGGER.debug(
-                        "Error when getting power status from url %s", url, exc_info=err
+                        "Error when getting power status from url %s: %s", url, err
                     )
                     continue
 
@@ -661,7 +673,7 @@ class DenonAVRFoundation:
                     url, tags, cache_id=cache_id
                 )
         except AvrRequestError as err:
-            _LOGGER.debug("Error when getting status update", exc_info=err)
+            _LOGGER.debug("Error when getting status update: %s", err)
             raise
 
         # Extract relevant information
@@ -696,10 +708,10 @@ class DenonAVRFoundation:
 
                 except (AttributeError, IndexError) as err:
                     _LOGGER.debug(
-                        "Failed updating attribute %s for zone %s",
+                        "Failed updating attribute %s for zone %s: %s",
                         pattern.update_attribute,
                         self._device.zone,
-                        exc_info=err,
+                        err,
                     )
 
             if start == success:
@@ -737,7 +749,7 @@ class DenonAVRFoundation:
                 xml = await self._device.api.async_get_xml(url, cache_id=cache_id)
             except AvrRequestError as err:
                 _LOGGER.debug(
-                    "Error when getting status update from url %s", url, exc_info=err
+                    "Error when getting status update from url %s: %s", url, err
                 )
                 continue
             attrs = deepcopy(update_attrs)
@@ -756,10 +768,10 @@ class DenonAVRFoundation:
 
                 except (AttributeError, IndexError) as err:
                     _LOGGER.debug(
-                        "Failed updating attribute %s for zone %s",
+                        "Failed updating attribute %s for zone %s: %s",
                         name,
                         self._device.zone,
-                        exc_info=err,
+                        err,
                     )
 
             # All done, no need for continuing
