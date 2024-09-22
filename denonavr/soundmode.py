@@ -16,14 +16,8 @@ from typing import Dict, List, Optional
 import attr
 
 from .appcommand import AppCommands
-from .const import (
-    ALL_ZONE_STEREO,
-    AVR_X,
-    AVR_X_2016,
-    DENON_ATTR_SETATTR,
-    SOUND_MODE_MAPPING,
-)
-from .exceptions import AvrCommandError, AvrProcessingError
+from .const import ALL_ZONE_STEREO, DENON_ATTR_SETATTR, SOUND_MODE_MAPPING
+from .exceptions import AvrCommandError, AvrIncompleteResponseError, AvrProcessingError
 from .foundation import DenonAVRFoundation
 
 _LOGGER = logging.getLogger(__name__)
@@ -106,16 +100,14 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         """Ensure that the instance is initialized."""
         async with self._setup_lock:
             _LOGGER.debug("Starting sound mode setup")
-            # Add tags for a potential AppCommand.xml update
-            for tag in self.appcommand_attrs:
-                self._device.api.add_appcommand_update_tag(tag)
 
-            # Soundmode is always available for AVR-X and AVR-X-2016 receivers
-            # For AVR receiver it will be tested during the first update
-            if self._device.receiver in [AVR_X, AVR_X_2016]:
-                self._support_sound_mode = True
-            else:
-                await self.async_update_sound_mode()
+            # The first update determines if sound mode is supported
+            await self.async_update_sound_mode()
+
+            if self._support_sound_mode:
+                # Add tags for a potential AppCommand.xml update
+                for tag in self.appcommand_attrs:
+                    self._device.api.add_appcommand_update_tag(tag)
 
             self._device.telnet_api.register_callback(
                 "MS", self._async_soundmode_callback
@@ -157,14 +149,22 @@ class DenonAVRSoundMode(DenonAVRFoundation):
                 "Device is not setup correctly, update method not set"
             )
 
+        if self._is_setup and not self._support_sound_mode:
+            return
+
         if self._device.use_avr_2016_update:
-            await self.async_update_attrs_appcommand(
-                self.appcommand_attrs, global_update=global_update, cache_id=cache_id
-            )
+            try:
+                await self.async_update_attrs_appcommand(
+                    self.appcommand_attrs,
+                    global_update=global_update,
+                    cache_id=cache_id,
+                )
+            except (AvrProcessingError, AvrIncompleteResponseError):
+                self._support_sound_mode = False
+                _LOGGER.info("Sound mode not supported")
+                return
         else:
             urls = [self._device.urls.status, self._device.urls.mainzone]
-            if self._is_setup and not self._support_sound_mode:
-                return
             # There are two different options of sound mode tags
             try:
                 await self.async_update_attrs_status_xml(
@@ -176,10 +176,13 @@ class DenonAVRSoundMode(DenonAVRFoundation):
                         self.status_xml_attrs_02, urls, cache_id=cache_id
                     )
                 except AvrProcessingError:
-                    _LOGGER.info("Sound mode not supported")
                     self._support_sound_mode = False
+                    _LOGGER.info("Sound mode not supported")
                     return
-            self._support_sound_mode = True
+
+        self._support_sound_mode = True
+        if not self._is_setup:
+            _LOGGER.info("Sound mode supported")
 
     def match_sound_mode(self) -> Optional[str]:
         """Match the raw_sound_mode to its corresponding sound_mode."""
@@ -252,7 +255,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     ##############
     @property
     def support_sound_mode(self) -> Optional[bool]:
-        """Return True if sound mode supported."""
+        """Return True if sound mode is supported."""
         return self._support_sound_mode
 
     @property
