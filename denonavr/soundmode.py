@@ -88,6 +88,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         init=False,
     )
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
+    _appcommand_active: bool = attr.ib(converter=bool, default=True, init=False)
 
     # Update tags for attributes
     # AppCommand.xml interface
@@ -104,7 +105,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             # The first update determines if sound mode is supported
             await self.async_update_sound_mode()
 
-            if self._support_sound_mode:
+            if self._support_sound_mode and self._appcommand_active:
                 # Add tags for a potential AppCommand.xml update
                 for tag in self.appcommand_attrs:
                     self._device.api.add_appcommand_update_tag(tag)
@@ -152,7 +153,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if self._is_setup and not self._support_sound_mode:
             return
 
-        if self._device.use_avr_2016_update:
+        if self._device.use_avr_2016_update and self._appcommand_active:
             try:
                 await self.async_update_attrs_appcommand(
                     self.appcommand_attrs,
@@ -160,28 +161,35 @@ class DenonAVRSoundMode(DenonAVRFoundation):
                     cache_id=cache_id,
                 )
             except (AvrProcessingError, AvrIncompleteResponseError):
+                self._appcommand_active = False
+                _LOGGER.debug(
+                    "Appcommand.xml does not support Sound mode. "
+                    "Testing status.xml interface next"
+                )
+            else:
+                if not self._is_setup:
+                    self._support_sound_mode = True
+                    _LOGGER.info("Sound mode supported")
+                return
+
+        urls = [self._device.urls.status, self._device.urls.mainzone]
+        # There are two different options of sound mode tags
+        try:
+            await self.async_update_attrs_status_xml(
+                self.status_xml_attrs_01, urls, cache_id=cache_id
+            )
+        except AvrProcessingError:
+            try:
+                await self.async_update_attrs_status_xml(
+                    self.status_xml_attrs_02, urls, cache_id=cache_id
+                )
+            except AvrProcessingError:
                 self._support_sound_mode = False
                 _LOGGER.info("Sound mode not supported")
                 return
-        else:
-            urls = [self._device.urls.status, self._device.urls.mainzone]
-            # There are two different options of sound mode tags
-            try:
-                await self.async_update_attrs_status_xml(
-                    self.status_xml_attrs_01, urls, cache_id=cache_id
-                )
-            except AvrProcessingError:
-                try:
-                    await self.async_update_attrs_status_xml(
-                        self.status_xml_attrs_02, urls, cache_id=cache_id
-                    )
-                except AvrProcessingError:
-                    self._support_sound_mode = False
-                    _LOGGER.info("Sound mode not supported")
-                    return
 
-        self._support_sound_mode = True
         if not self._is_setup:
+            self._support_sound_mode = True
             _LOGGER.info("Sound mode supported")
 
     def match_sound_mode(self) -> Optional[str]:
