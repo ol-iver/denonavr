@@ -137,6 +137,7 @@ class DenonAVR(DenonAVRFoundation):
     async def async_setup(self) -> None:
         """Ensure that configuration is loaded from receiver asynchronously."""
         async with self._setup_lock:
+            _LOGGER.debug("Starting denonavr setup")
             # Device setup
             await self._device.async_setup()
             if self._name is None:
@@ -154,6 +155,7 @@ class DenonAVR(DenonAVRFoundation):
                     await zone_item.async_setup()
 
             self._is_setup = True
+            _LOGGER.debug("Finished denonavr setup")
 
     async def async_update(self):
         """
@@ -161,6 +163,7 @@ class DenonAVR(DenonAVRFoundation):
 
         Method executes the update method for the current receiver type.
         """
+        _LOGGER.debug("Starting denonavr update")
         # Ensure that the device is setup
         if not self._is_setup:
             await self.async_setup()
@@ -169,6 +172,7 @@ class DenonAVR(DenonAVRFoundation):
         cache_id = time.time()
 
         # Verify update method
+        _LOGGER.debug("Verifying update method")
         await self._device.async_verify_avr_2016_update_method(cache_id=cache_id)
 
         # Update device
@@ -184,6 +188,7 @@ class DenonAVR(DenonAVRFoundation):
         # into main update
         # await self.audyssey.async_update(
         #     global_update=True, cache_id=cache_id)
+        _LOGGER.debug("Finished denonavr update")
 
     async def async_update_tonecontrol(self):
         """Get Tonecontrol settings."""

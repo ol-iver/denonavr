@@ -89,12 +89,14 @@ class DenonAVRVolume(DenonAVRFoundation):
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
     ) -> None:
         """Update volume asynchronously."""
+        _LOGGER.debug("Starting volume update")
         # Ensure instance is setup before updating
         if not self._is_setup:
             self.setup()
 
         # Update state
         await self.async_update_volume(global_update=global_update, cache_id=cache_id)
+        _LOGGER.debug("Finished volume update")
 
     async def async_update_volume(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None

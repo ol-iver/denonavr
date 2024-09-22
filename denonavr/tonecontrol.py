@@ -85,6 +85,7 @@ class DenonAVRToneControl(DenonAVRFoundation):
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
     ) -> None:
         """Update volume asynchronously."""
+        _LOGGER.debug("Starting tone control update")
         # Ensure instance is setup before updating
         if not self._is_setup:
             self.setup()
@@ -93,6 +94,7 @@ class DenonAVRToneControl(DenonAVRFoundation):
         await self.async_update_tone_control(
             global_update=global_update, cache_id=cache_id
         )
+        _LOGGER.debug("Finished tone control update")
 
     async def async_update_tone_control(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None

@@ -175,12 +175,14 @@ class DenonAVRDeviceInfo:
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
     ) -> None:
         """Update status asynchronously."""
+        _LOGGER.debug("Starting device update")
         # Ensure instance is setup before updating
         if not self._is_setup:
             await self.async_setup()
 
         # Update power status
         await self.async_update_power(global_update=global_update, cache_id=cache_id)
+        _LOGGER.debug("Finished device update")
 
     async def async_identify_receiver(self) -> None:
         """Identify receiver asynchronously."""

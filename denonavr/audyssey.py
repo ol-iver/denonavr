@@ -99,12 +99,14 @@ class DenonAVRAudyssey(DenonAVRFoundation):
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
     ) -> None:
         """Update Audyssey asynchronously."""
+        _LOGGER.debug("Starting Audyssey update")
         # Ensure instance is setup before updating
         if not self._is_setup:
             self.setup()
 
         # Update state
         await self.async_update_audyssey(global_update=global_update, cache_id=cache_id)
+        _LOGGER.debug("Finished Audyssey update")
 
     async def async_update_audyssey(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
