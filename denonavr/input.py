@@ -273,7 +273,7 @@ class DenonAVRInput(DenonAVRFoundation):
     def _update_netaudio(self) -> None:
         """Update netaudio information."""
         if self._device.telnet_available:
-            self._device.telnet_api.send_commands("NSE")
+            self._device.telnet_api.send_commands("NSE", skip_confirmation=True)
             self._schedule_netaudio_update()
         else:
             self._stop_media_update()
@@ -316,7 +316,9 @@ class DenonAVRInput(DenonAVRFoundation):
     def _update_tuner(self) -> None:
         """Update tuner information."""
         if self._device.telnet_available:
-            self._device.telnet_api.send_commands("TFAN?", "TFANNAME?")
+            self._device.telnet_api.send_commands(
+                "TFAN?", "TFANNAME?", skip_confirmation=True
+            )
             self._schedule_tuner_update()
         else:
             self._stop_media_update()
@@ -360,7 +362,7 @@ class DenonAVRInput(DenonAVRFoundation):
     def _update_hdtuner(self) -> None:
         """Update HD tuner information."""
         if self._device.telnet_available:
-            self._device.telnet_api.send_commands("HD?")
+            self._device.telnet_api.send_commands("HD?", skip_confirmation=True)
             self._schedule_hdtuner_update()
         else:
             self._stop_media_update()

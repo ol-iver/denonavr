@@ -504,6 +504,7 @@ class DenonAVRTelnetApi:
             "PSREFLEV ?",
             "PSDYNVOL ?",
             "MS?",
+            skip_confirmation=True,
         )
 
     def _schedule_monitor(self) -> None:
@@ -731,35 +732,45 @@ class DenonAVRTelnetApi:
             self._send_confirmation_event.set()
             _LOGGER.debug("Command %s confirmed", command)
 
-    async def _async_send_command(self, command: str) -> None:
+    async def _async_send_command(
+        self, command: str, skip_confirmation: bool = False
+    ) -> None:
         """Send one telnet command to the receiver."""
         async with self._send_lock:
-            self._send_confirmation_command = command
-            self._send_confirmation_event.clear()
+            if not skip_confirmation:
+                self._send_confirmation_command = command
+                self._send_confirmation_event.clear()
             if not self.connected or not self.healthy:
                 raise AvrProcessingError(
                     f"Error sending command {command}. Telnet connected: "
                     f"{self.connected}, Connection healthy: {self.healthy}"
                 )
             self._protocol.write(f"{command}\r")
-            try:
-                await asyncio.wait_for(
-                    self._send_confirmation_event.wait(),
-                    self._send_confirmation_timeout,
-                )
-            except asyncio.TimeoutError:
-                _LOGGER.info("Timeout waiting for confirmation of command: %s", command)
-            finally:
-                self._send_confirmation_command = ""
+            if not skip_confirmation:
+                try:
+                    await asyncio.wait_for(
+                        self._send_confirmation_event.wait(),
+                        self._send_confirmation_timeout,
+                    )
+                except asyncio.TimeoutError:
+                    _LOGGER.info(
+                        "Timeout waiting for confirmation of command: %s", command
+                    )
+                finally:
+                    self._send_confirmation_command = ""
 
-    async def async_send_commands(self, *commands: str) -> None:
+    async def async_send_commands(
+        self, *commands: str, skip_confirmation: bool = False
+    ) -> None:
         """Send telnet commands to the receiver."""
         for command in commands:
-            await self._async_send_command(command)
+            await self._async_send_command(command, skip_confirmation=skip_confirmation)
 
-    def send_commands(self, *commands: str) -> None:
+    def send_commands(self, *commands: str, skip_confirmation: bool = False) -> None:
         """Send telnet commands to the receiver."""
-        task = asyncio.create_task(self.async_send_commands(*commands))
+        task = asyncio.create_task(
+            self.async_send_commands(*commands, skip_confirmation=skip_confirmation)
+        )
         self._send_tasks.add(task)
         task.add_done_callback(self._send_tasks.discard)
 

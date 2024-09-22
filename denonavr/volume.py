@@ -148,7 +148,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         """Volume up receiver via HTTP get command."""
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
-                self._device.telnet_commands.command_volume_up
+                self._device.telnet_commands.command_volume_up, skip_confirmation=True
             )
         else:
             await self._device.api.async_get_command(
@@ -159,7 +159,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         """Volume down receiver via HTTP get command."""
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
-                self._device.telnet_commands.command_volume_down
+                self._device.telnet_commands.command_volume_down, skip_confirmation=True
             )
         else:
             await self._device.api.async_get_command(
