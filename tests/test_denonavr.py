@@ -128,8 +128,10 @@ class TestMainFunctions:
                     ep_suffix = "-setup"
                 elif "GetAllZoneSource" in content_str:
                     ep_suffix = "-update"
-                else:
+                elif "GetSurroundModeStatus" in content_str:
                     ep_suffix = "-update-soundmode"
+                else:
+                    ep_suffix = "-update-tonecontrol"
                 content = get_sample_content(
                     f"{self.testing_receiver}-AppCommand{ep_suffix}{port_suffix}.xml"
                 )

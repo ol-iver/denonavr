@@ -7,6 +7,7 @@ This module implements the handler for state of Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
+import asyncio
 import logging
 import time
 from collections.abc import Hashable
@@ -16,7 +17,7 @@ import attr
 
 from .appcommand import AppCommandCmdParam, AppCommands
 from .const import DENON_ATTR_SETATTR
-from .exceptions import AvrCommandError, AvrProcessingError
+from .exceptions import AvrCommandError, AvrIncompleteResponseError, AvrProcessingError
 from .foundation import DenonAVRFoundation, convert_string_int_bool
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,6 +27,9 @@ _LOGGER = logging.getLogger(__name__)
 class DenonAVRToneControl(DenonAVRFoundation):
     """This class implements tone control functions of Denon AVR receiver."""
 
+    _support_tone_control: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(bool), default=None
+    )
     _tone_control_status: Optional[bool] = attr.ib(
         converter=attr.converters.optional(convert_string_int_bool), default=None
     )
@@ -44,22 +48,31 @@ class DenonAVRToneControl(DenonAVRFoundation):
     _treble_level: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
 
     # Update tags for attributes
     # AppCommand.xml interface
     appcommand_attrs = {AppCommands.GetToneControl: None}
 
-    def setup(self) -> None:
+    async def async_setup(self) -> None:
         """Ensure that the instance is initialized."""
-        # Add tags for a potential AppCommand.xml update
-        for tag in self.appcommand_attrs:
-            self._device.api.add_appcommand_update_tag(tag)
+        async with self._setup_lock:
+            _LOGGER.debug("Starting tone control setup")
 
-        self._device.telnet_api.register_callback(
-            "PS", self._async_sound_detail_callback
-        )
+            # The first update determines if sound mode is supported
+            await self.async_update_tone_control()
 
-        self._is_setup = True
+            # Add tags for a potential AppCommand.xml update
+            if self.support_tone_control:
+                for tag in self.appcommand_attrs:
+                    self._device.api.add_appcommand_update_tag(tag)
+
+            self._device.telnet_api.register_callback(
+                "PS", self._async_sound_detail_callback
+            )
+
+            self._is_setup = True
+            _LOGGER.debug("Finished tone control setup")
 
     async def _async_sound_detail_callback(
         self, zone: str, event: str, parameter: str
@@ -88,7 +101,7 @@ class DenonAVRToneControl(DenonAVRFoundation):
         _LOGGER.debug("Starting tone control update")
         # Ensure instance is setup before updating
         if not self._is_setup:
-            self.setup()
+            await self.async_setup()
 
         # Update state
         await self.async_update_tone_control(
@@ -105,17 +118,29 @@ class DenonAVRToneControl(DenonAVRFoundation):
                 "Device is not setup correctly, update method not set"
             )
 
+        if self._is_setup and not self._support_tone_control:
+            return
+
         # Tone control is only available for avr 2016 update
-        if self._device.use_avr_2016_update:
-            try:
-                await self.async_update_attrs_appcommand(
-                    self.appcommand_attrs,
-                    global_update=global_update,
-                    cache_id=cache_id,
-                )
-            except AvrProcessingError as err:
-                # Don't raise an error here, because not all devices support it
-                _LOGGER.debug("Updating tone control failed: %s", err)
+        if not self._device.use_avr_2016_update:
+            self._support_tone_control = False
+            _LOGGER.info("Tone control not supported")
+            return
+
+        try:
+            await self.async_update_attrs_appcommand(
+                self.appcommand_attrs,
+                global_update=global_update,
+                cache_id=cache_id,
+            )
+        except (AvrProcessingError, AvrIncompleteResponseError):
+            self._support_tone_control = False
+            _LOGGER.info("Tone control not supported")
+            return
+
+        if not self._is_setup:
+            self._support_tone_control = True
+            _LOGGER.info("Tone control supported")
 
     async def async_set_tone_control_command(
         self, parameter_type: str, value: int
@@ -134,6 +159,11 @@ class DenonAVRToneControl(DenonAVRFoundation):
     ##############
     # Properties #
     ##############
+    @property
+    def support_tone_control(self) -> Optional[bool]:
+        """Return True if tone control is supported."""
+        return self._support_tone_control
+
     @property
     def tone_control_status(self) -> Optional[bool]:
         """Return value of tone control status."""
