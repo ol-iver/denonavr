@@ -146,7 +146,7 @@ class DenonAVR(DenonAVRFoundation):
             # Setup other functions
             self.input.setup()
             await self.soundmode.async_setup()
-            self.tonecontrol.setup()
+            await self.tonecontrol.async_setup()
             self.vol.setup()
             self.audyssey.setup()
 
@@ -320,7 +320,7 @@ class DenonAVR(DenonAVRFoundation):
 
     @property
     def support_sound_mode(self) -> Optional[bool]:
-        """Return True if sound mode supported."""
+        """Return True if sound mode is supported."""
         return self.soundmode.support_sound_mode
 
     @property
@@ -434,6 +434,11 @@ class DenonAVR(DenonAVRFoundation):
     def show_all_inputs(self) -> Optional[bool]:
         """Indicate if all inputs are shown or just active one."""
         return self._show_all_inputs
+
+    @property
+    def support_tone_control(self) -> Optional[bool]:
+        """Return True if tone control is supported."""
+        return self.tonecontrol.support_tone_control
 
     @property
     def tone_control_status(self) -> Optional[bool]:

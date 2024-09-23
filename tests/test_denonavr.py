@@ -126,8 +126,12 @@ class TestMainFunctions:
                 content_str = request.read().decode("utf-8")
                 if "GetFriendlyName" in content_str:
                     ep_suffix = "-setup"
-                else:
+                elif "GetAllZoneSource" in content_str:
                     ep_suffix = "-update"
+                elif "GetSurroundModeStatus" in content_str:
+                    ep_suffix = "-update-soundmode"
+                else:
+                    ep_suffix = "-update-tonecontrol"
                 content = get_sample_content(
                     f"{self.testing_receiver}-AppCommand{ep_suffix}{port_suffix}.xml"
                 )
