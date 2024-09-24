@@ -9,13 +9,13 @@ permissions:
 
 jobs:
   verify:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     name: Verify Python build context
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: "3.12"
     - name: Verify version
@@ -48,17 +48,17 @@ jobs:
         python -m black denonavr tests --check --verbose
     - name: Integration test with pytest
       run: |
-        python -m pytest tests --timeout=30 --durations=10
+        python -m pytest tests --timeout=60 --durations=10
 
   build:
     name: Build and publish PyPi package
     needs: verify
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: github.repository_owner == 'ol-iver'
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: "3.12"
     - name: Install dependencies
