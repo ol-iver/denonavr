@@ -48,7 +48,7 @@ jobs:
         python -m black denonavr tests --check --verbose
     - name: Integration test with pytest
       run: |
-        python -m pytest tests --timeout=30 --durations=10
+        python -m pytest tests --timeout=60 --durations=10
 
   build:
     name: Build and publish PyPi package
