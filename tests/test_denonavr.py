@@ -153,6 +153,7 @@ class TestMainFunctions:
         self.future.set_result(True)
 
     @pytest.mark.asyncio
+    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
     async def test_receiver_type(self, httpx_mock: HTTPXMock):
         """Check that receiver type is determined correctly."""
         httpx_mock.add_callback(self.custom_matcher)
@@ -172,6 +173,7 @@ class TestMainFunctions:
             )
 
     @pytest.mark.asyncio
+    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
     async def test_input_func_switch(self, httpx_mock: HTTPXMock):
         """Switch through all input functions of all tested receivers."""
         httpx_mock.add_callback(self.custom_matcher)
@@ -188,6 +190,7 @@ class TestMainFunctions:
                     await self.denon.zones[name].async_set_input_func(input_func)
 
     @pytest.mark.asyncio
+    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
     async def test_attributes_not_none(self, httpx_mock: HTTPXMock):
         """Check that certain attributes are not None."""
         httpx_mock.add_callback(self.custom_matcher)
@@ -210,6 +213,7 @@ class TestMainFunctions:
             ), f"State is None for receiver {receiver}"
 
     @pytest.mark.asyncio
+    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
     async def test_sound_mode(self, httpx_mock: HTTPXMock):
         """Check if a valid sound mode is returned."""
         httpx_mock.add_callback(self.custom_matcher)
@@ -393,6 +397,7 @@ class TestMainFunctions:
                 await api.async_connect()
 
     @pytest.mark.asyncio
+    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
     async def test_receive_callback_called(self, httpx_mock: HTTPXMock):
         """Check that the callback is triggered whena message is received."""
         transport = mock.Mock(is_closing=lambda: False)
@@ -428,6 +433,7 @@ class TestMainFunctions:
             mock_obj.method.assert_called_once()
 
     @pytest.mark.asyncio
+    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
     async def test_mute_on(self, httpx_mock: HTTPXMock):
         """Check that mute on is processed."""
         transport = mock.Mock(is_closing=lambda: False)
@@ -458,6 +464,7 @@ class TestMainFunctions:
             assert self.denon.muted
 
     @pytest.mark.asyncio
+    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
     async def test_mute_off(self, httpx_mock: HTTPXMock):
         """Check that mute off is processed."""
         transport = mock.Mock(is_closing=lambda: False)
@@ -488,6 +495,7 @@ class TestMainFunctions:
             assert not self.denon.muted
 
     @pytest.mark.asyncio
+    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
     async def test_power_on(self, httpx_mock: HTTPXMock):
         """Check that power on is processed."""
         transport = mock.Mock(is_closing=lambda: False)
@@ -518,6 +526,7 @@ class TestMainFunctions:
             assert self.denon.power == "ON"
 
     @pytest.mark.asyncio
+    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
     async def test_power_off(self, httpx_mock: HTTPXMock):
         """Check that power off is processed."""
         transport = mock.Mock(is_closing=lambda: False)
@@ -548,6 +557,7 @@ class TestMainFunctions:
             assert self.denon.power == "OFF"
 
     @pytest.mark.asyncio
+    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
     async def test_volume_min(self, httpx_mock: HTTPXMock):
         """Check that minimum volume is processed."""
         transport = mock.Mock(is_closing=lambda: False)
@@ -578,6 +588,7 @@ class TestMainFunctions:
             assert self.denon.volume == -80.0
 
     @pytest.mark.asyncio
+    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
     async def test_volume_wholenumber(self, httpx_mock: HTTPXMock):
         """Check that whole number volume is processed."""
         transport = mock.Mock(is_closing=lambda: False)
@@ -608,6 +619,7 @@ class TestMainFunctions:
             assert self.denon.volume == -24.0
 
     @pytest.mark.asyncio
+    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
     async def test_volume_fraction(self, httpx_mock: HTTPXMock):
         """Check that fractional volume is processed."""
         transport = mock.Mock(is_closing=lambda: False)
