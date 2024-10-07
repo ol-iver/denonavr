@@ -604,6 +604,8 @@ class DenonAVRTelnetApi:
 
         if event not in self._callbacks.keys():
             self._callbacks[event] = []
+        elif callback in self._callbacks[event]:
+            return
         self._callbacks[event].append(callback)
 
     def unregister_callback(
@@ -618,6 +620,8 @@ class DenonAVRTelnetApi:
         self, callback: Callable[[str], Awaitable[None]]
     ) -> None:
         """Register a callback handler for raw telnet messages."""
+        if callback in self._raw_callbacks:
+            return
         self._raw_callbacks.append(callback)
 
     def _unregister_raw_callback(
