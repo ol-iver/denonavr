@@ -31,7 +31,8 @@ from typing import (
 
 import attr
 import httpx
-from defusedxml.ElementTree import fromstring
+from defusedxml import DefusedXmlException
+from defusedxml.ElementTree import ParseError, fromstring
 
 from .appcommand import AppCommandCmd
 from .const import (
@@ -83,16 +84,86 @@ def telnet_event_map_factory() -> Dict[str, List]:
     return dict(event_map)
 
 
-@attr.s(auto_attribs=True, hash=False, on_setattr=DENON_ATTR_SETATTR)
+@attr.s(auto_attribs=True, hash=False)
+class HTTPXAsyncClient:
+    """Perform cached HTTP calls with httpx.AsyncClient."""
+
+    client_getter: Callable[[], httpx.AsyncClient] = attr.ib(
+        validator=attr.validators.is_callable(),
+        default=get_default_async_client,
+        init=False,
+    )
+
+    def __hash__(self) -> int:
+        """Hash the class using its ID that caching works."""
+        return id(self)
+
+    @cache_result
+    @async_handle_receiver_exceptions
+    async def async_get(
+        self,
+        url: str,
+        timeout: float,
+        read_timeout: float,
+        *,
+        cache_id: Hashable = None,
+    ) -> httpx.Response:
+        """Call GET endpoint of Denon AVR receiver asynchronously."""
+        client = self.client_getter()
+        try:
+            res = await client.get(
+                url, timeout=httpx.Timeout(timeout, read=read_timeout)
+            )
+            res.raise_for_status()
+        finally:
+            # Close the default AsyncClient but keep custom clients open
+            if self.is_default_async_client():
+                await client.aclose()
+
+        return res
+
+    @cache_result
+    @async_handle_receiver_exceptions
+    async def async_post(
+        self,
+        url: str,
+        timeout: float,
+        read_timeout: float,
+        *,
+        content: Optional[bytes] = None,
+        data: Optional[Dict] = None,
+        cache_id: Hashable = None,
+    ) -> httpx.Response:
+        """Call GET endpoint of Denon AVR receiver asynchronously."""
+        client = self.client_getter()
+        try:
+            res = await client.post(
+                url,
+                content=content,
+                data=data,
+                timeout=httpx.Timeout(timeout, read=read_timeout),
+            )
+            res.raise_for_status()
+        finally:
+            # Close the default AsyncClient but keep custom clients open
+            if self.is_default_async_client():
+                await client.aclose()
+
+        return res
+
+    def is_default_async_client(self) -> bool:
+        """Check if default httpx.AsyncClient getter is used."""
+        return self.client_getter is get_default_async_client
+
+
+@attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
 class DenonAVRApi:
     """Perform API calls to Denon AVR REST interface."""
 
     host: str = attr.ib(converter=str, default="localhost")
     port: int = attr.ib(converter=int, default=80)
-    timeout: httpx.Timeout = attr.ib(
-        validator=attr.validators.instance_of(httpx.Timeout),
-        default=httpx.Timeout(2.0, read=15.0),
-    )
+    timeout: float = attr.ib(converter=float, default=2.0)
+    read_timeout: float = attr.ib(converter=float, default=15.0)
     _appcommand_update_tags: Tuple[AppCommandCmd] = attr.ib(
         validator=attr.validators.deep_iterable(
             attr.validators.instance_of(AppCommandCmd),
@@ -107,23 +178,18 @@ class DenonAVRApi:
         ),
         default=attr.Factory(tuple),
     )
-    async_client_getter: Callable[[], httpx.AsyncClient] = attr.ib(
-        validator=attr.validators.is_callable(),
-        default=get_default_async_client,
+    httpx_async_client: HTTPXAsyncClient = attr.ib(
+        validator=attr.validators.instance_of(HTTPXAsyncClient),
+        default=attr.Factory(HTTPXAsyncClient),
         init=False,
     )
 
-    def __hash__(self) -> int:
-        """
-        Hash the class in a custom way that caching works.
-
-        It should react on changes of host and port.
-        """
-        return hash((self.host, self.port))
-
-    @async_handle_receiver_exceptions
     async def async_get(
-        self, request: str, port: Optional[int] = None
+        self,
+        request: str,
+        *,
+        port: Optional[int] = None,
+        cache_id: Hashable = None,
     ) -> httpx.Response:
         """Call GET endpoint of Denon AVR receiver asynchronously."""
         # Use default port of the receiver if no different port is specified
@@ -131,24 +197,18 @@ class DenonAVRApi:
 
         endpoint = f"http://{self.host}:{port}{request}"
 
-        client = self.async_client_getter()
-        try:
-            res = await client.get(endpoint, timeout=self.timeout)
-            res.raise_for_status()
-        finally:
-            # Close the default AsyncClient but keep custom clients open
-            if self.is_default_async_client():
-                await client.aclose()
+        return await self.httpx_async_client.async_get(
+            endpoint, self.timeout, self.read_timeout, cache_id=cache_id
+        )
 
-        return res
-
-    @async_handle_receiver_exceptions
     async def async_post(
         self,
         request: str,
+        *,
         content: Optional[bytes] = None,
         data: Optional[Dict] = None,
         port: Optional[int] = None,
+        cache_id: Hashable = None,
     ) -> httpx.Response:
         """Call POST endpoint of Denon AVR receiver asynchronously."""
         # Use default port of the receiver if no different port is specified
@@ -156,20 +216,15 @@ class DenonAVRApi:
 
         endpoint = f"http://{self.host}:{port}{request}"
 
-        client = self.async_client_getter()
-        try:
-            res = await client.post(
-                endpoint, content=content, data=data, timeout=self.timeout
-            )
-            res.raise_for_status()
-        finally:
-            # Close the default AsyncClient but keep custom clients open
-            if self.is_default_async_client():
-                await client.aclose()
+        return await self.httpx_async_client.async_post(
+            endpoint,
+            self.timeout,
+            self.read_timeout,
+            content=content,
+            data=data,
+            cache_id=cache_id,
+        )
 
-        return res
-
-    @async_handle_receiver_exceptions
     async def async_get_command(self, request: str) -> str:
         """Send HTTP GET command to Denon AVR receiver asynchronously."""
         # HTTP GET to endpoint
@@ -177,34 +232,46 @@ class DenonAVRApi:
         # Return text
         return res.text
 
-    @cache_result
-    @async_handle_receiver_exceptions
     async def async_get_xml(
-        self, request: str, cache_id: Hashable = None
+        self, request: str, *, cache_id: Hashable = None
     ) -> ET.Element:
         """Return XML data from HTTP GET endpoint asynchronously."""
         # HTTP GET to endpoint
-        res = await self.async_get(request)
+        res = await self.async_get(request, cache_id=cache_id)
         # create ElementTree
-        xml_root = fromstring(res.text)
+        try:
+            xml_root = fromstring(res.text)
+        except (
+            ET.ParseError,
+            DefusedXmlException,
+            ParseError,
+            UnicodeDecodeError,
+        ) as err:
+            raise AvrInvalidResponseError(f"XMLParseError: {err}", request) from err
         # Check validity of XML
         self.check_xml_validity(request, xml_root)
         # Return ElementTree element
         return xml_root
 
-    @cache_result
-    @async_handle_receiver_exceptions
     async def async_post_appcommand(
-        self, request: str, cmds: Tuple[AppCommandCmd], cache_id: Hashable = None
+        self, request: str, cmds: Tuple[AppCommandCmd], *, cache_id: Hashable = None
     ) -> ET.Element:
         """Return XML from Appcommand(0300) endpoint asynchronously."""
         # Prepare XML body for POST call
         content = self.prepare_appcommand_body(cmds)
         _LOGGER.debug("Content for %s endpoint: %s", request, content)
         # HTTP POST to endpoint
-        res = await self.async_post(request, content=content)
+        res = await self.async_post(request, content=content, cache_id=cache_id)
         # create ElementTree
-        xml_root = fromstring(res.text)
+        try:
+            xml_root = fromstring(res.text)
+        except (
+            ET.ParseError,
+            DefusedXmlException,
+            ParseError,
+            UnicodeDecodeError,
+        ) as err:
+            raise AvrInvalidResponseError(f"XMLParseError: {err}", request) from err
         # Check validity of XML
         self.check_xml_validity(request, xml_root)
         # Add query tags to result
@@ -349,10 +416,6 @@ class DenonAVRApi:
         body.close()
 
         return body_bytes
-
-    def is_default_async_client(self) -> bool:
-        """Check if default httpx.AsyncClient getter is used."""
-        return self.async_client_getter is get_default_async_client
 
 
 class DenonAVRTelnetProtocol(asyncio.Protocol):

@@ -10,14 +10,11 @@ This module implements the REST API to Denon AVR receivers.
 import inspect
 import logging
 import time
-import xml.etree.ElementTree as ET
 from functools import wraps
 from typing import Callable, TypeVar
 
 import httpx
 from asyncstdlib import lru_cache
-from defusedxml import DefusedXmlException
-from defusedxml.ElementTree import ParseError
 
 from .exceptions import (
     AvrForbiddenError,
@@ -33,12 +30,7 @@ AnyT = TypeVar("AnyT")
 
 
 def async_handle_receiver_exceptions(func: Callable[..., AnyT]) -> Callable[..., AnyT]:
-    """
-    Handle exceptions raised when calling a Denon AVR endpoint asynchronously.
-
-    The decorated function must either have a string variable as second
-    argument or as "request" keyword argument.
-    """
+    """Handle exceptions raised when calling a Denon AVR endpoint asynchronously."""
 
     @wraps(func)
     async def wrapper(*args, **kwargs):
@@ -64,48 +56,29 @@ def async_handle_receiver_exceptions(func: Callable[..., AnyT]) -> Callable[...,
             raise AvrInvalidResponseError(
                 f"RemoteProtocolError: {err}", err.request
             ) from err
-        except (
-            ET.ParseError,
-            DefusedXmlException,
-            ParseError,
-            UnicodeDecodeError,
-        ) as err:
-            _LOGGER.debug(
-                "Defusedxml parse error on request %s: %s", (args, kwargs), err
-            )
-            raise AvrInvalidResponseError(
-                f"XMLParseError: {err}", (args, kwargs)
-            ) from err
 
     return wrapper
 
 
 def cache_result(func: Callable[..., AnyT]) -> Callable[..., AnyT]:
     """
-    Decorate a function to cache its results with an lru_cache of maxsize 16.
+    Decorate a function to cache its results with an lru_cache of maxsize 32.
 
     This decorator also sets an "cache_id" keyword argument if it is not set yet.
-    When an exception occurs it clears lru_cache to prevent memory leaks in
-    home-assistant when receiver instances are created and deleted right
-    away in case the device is offline on setup.
     """
     if inspect.signature(func).parameters.get("cache_id") is None:
         raise AttributeError(
             f"Function {func} does not have a 'cache_id' keyword parameter"
         )
 
-    lru_decorator = lru_cache(maxsize=16)
+    lru_decorator = lru_cache(maxsize=32)
     cached_func = lru_decorator(func)
 
     @wraps(func)
     async def wrapper(*args, **kwargs):
         if kwargs.get("cache_id") is None:
             kwargs["cache_id"] = time.time()
-        try:
-            return await cached_func(*args, **kwargs)
-        except Exception as err:
-            _LOGGER.debug("Exception raised, clearing cache: %s", err)
-            cached_func.cache_clear()
-            raise
+
+        return await cached_func(*args, **kwargs)
 
     return wrapper

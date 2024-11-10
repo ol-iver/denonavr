@@ -859,10 +859,13 @@ class DenonAVRInput(DenonAVRFoundation):
     async def _async_test_image_accessible(self) -> None:
         """Test if image URL is accessible."""
         if self._image_available is None and self._image_url is not None:
-            client = self._device.api.async_client_getter()
+            client = self._device.api.httpx_async_client.client_getter()
             try:
                 res = await client.get(
-                    self._image_url, timeout=self._device.api.timeout
+                    self._image_url,
+                    timeout=httpx.Timeout(
+                        self._device.api.timeout, read=self._device.api.read_timeout
+                    ),
                 )
                 res.raise_for_status()
             except httpx.TimeoutException:
@@ -878,7 +881,7 @@ class DenonAVRInput(DenonAVRFoundation):
                 self._image_available = True
             finally:
                 # Close the default AsyncClient but keep custom clients open
-                if self._device.api.is_default_async_client():
+                if self._device.api.httpx_async_client.is_default_async_client():
                     await client.aclose()
         # Already tested that image URL is not accessible
         elif not self._image_available:
