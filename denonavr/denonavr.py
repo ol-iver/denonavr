@@ -519,7 +519,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         if not callable(async_client_getter):
             raise AvrCommandError("Provided object is not callable")
-        self._device.api.async_client_getter = async_client_getter
+        self._device.api.httpx_async_client.client_getter = async_client_getter
 
     async def async_dynamic_eq_off(self) -> None:
         """Turn DynamicEQ off."""

@@ -15,7 +15,6 @@ from copy import deepcopy
 from typing import Dict, List, Optional, Union
 
 import attr
-import httpx
 
 from .api import DenonAVRApi, DenonAVRTelnetApi
 from .appcommand import AppCommandCmd, AppCommands
@@ -146,15 +145,15 @@ class DenonAVRDeviceInfo:
             _LOGGER.debug("Starting device setup")
             # Reduce read timeout during receiver identification
             # deviceinfo endpoint takes very long to return 404
-            timeout = self.api.timeout
-            self.api.timeout = httpx.Timeout(self.api.timeout.connect)
+            read_timeout = self.api.read_timeout
+            self.api.read_timeout = self.api.timeout
             try:
                 _LOGGER.debug("Identifying receiver")
                 await self.async_identify_receiver()
                 _LOGGER.debug("Getting device info")
                 await self.async_get_device_info()
             finally:
-                self.api.timeout = timeout
+                self.api.read_timeout = read_timeout
             _LOGGER.debug("Identifying update method")
             await self.async_identify_update_method()
 
@@ -323,7 +322,7 @@ class DenonAVRDeviceInfo:
                 self._set_friendly_name(xml)
 
     async def async_verify_avr_2016_update_method(
-        self, cache_id: Hashable = None
+        self, *, cache_id: Hashable = None
     ) -> None:
         """Verify if avr 2016 update method is working."""
         # Nothing to do if Appcommand.xml interface is not supported
@@ -833,9 +832,9 @@ def set_api_timeout(
 ) -> float:
     """Change API timeout on timeout changes too."""
     # First change _device.api.host then return value
-    timeout = httpx.Timeout(value, read=max(value, 15.0))
     # pylint: disable=protected-access
-    instance._device.api.timeout = timeout
+    instance._device.api.timeout = value
+    instance._device.api.read_timeout = max(value, 15.0)
     instance._device.telnet_api.timeout = value
     return value
 
