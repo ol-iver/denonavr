@@ -544,8 +544,8 @@ class DenonAVRTelnetApi:
                 "%s: Connection failed on telnet reconnect: %s", self.host, err
             )
             raise AvrNetworkError(f"OSError: {err}", "telnet connect") from err
-        _LOGGER.debug("%s: telnet connection established", self.host)
         self._protocol = cast(DenonAVRTelnetProtocol, transport_protocol[1])
+        _LOGGER.debug("%s: telnet connection established", self.host)
         self._connection_enabled = True
         self._last_message_time = time.monotonic()
         self._schedule_monitor()
@@ -606,7 +606,8 @@ class DenonAVRTelnetApi:
         self._stop_monitor()
         if not self._connection_enabled:
             return
-        self._reconnect_task = asyncio.create_task(self._async_reconnect())
+        if self._reconnect_task is None:
+            self._reconnect_task = asyncio.create_task(self._async_reconnect())
 
     async def async_disconnect(self) -> None:
         """Close the connection to the receiver asynchronously."""
@@ -644,6 +645,12 @@ class DenonAVRTelnetApi:
                     )
                 except AvrNetworkError as err:
                     _LOGGER.debug("%s: %s", self.host, err)
+                except AvrProcessingError as err:
+                    _LOGGER.debug(
+                        "%s: Failed updating state on telnet reconnect: %s",
+                        self.host,
+                        err,
+                    )
                 except Exception as err:  # pylint: disable=broad-except
                     _LOGGER.error(
                         "%s: Unexpected exception on telnet reconnect",
@@ -652,10 +659,12 @@ class DenonAVRTelnetApi:
                     )
                 else:
                     _LOGGER.info("%s: Telnet reconnected", self.host)
-                    return
+                    break
 
             await asyncio.sleep(backoff)
             backoff = min(30.0, backoff * 2)
+
+        self._reconnect_task = None
 
     def register_callback(
         self, event: str, callback: Callable[[str, str, str], Awaitable[None]]
