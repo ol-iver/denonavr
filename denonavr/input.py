@@ -168,6 +168,13 @@ class DenonAVRInput(DenonAVRFoundation):
         converter=attr.converters.optional(str), default=None
     )
 
+    _renamed_sources_warnings: Set[Tuple[str, str]] = attr.ib(
+        validator=attr.validators.deep_iterable(
+            attr.validators.instance_of(tuple), attr.validators.instance_of(set)
+        ),
+        default=attr.Factory(set),
+    )
+
     # Update tags for attributes
     # AppCommand.xml interface
     appcommand_attrs = {AppCommands.GetAllZoneSource: None}
@@ -516,6 +523,8 @@ class DenonAVRInput(DenonAVRFoundation):
             except AttributeError:
                 continue
 
+        self._replace_duplicate_sources(renamed_sources)
+
         return (renamed_sources, deleted_sources)
 
     async def async_get_changed_sources_status_xml(
@@ -603,6 +612,8 @@ class DenonAVRInput(DenonAVRFoundation):
                 deleted_sources[item] = xml_deletesource[i]
             except IndexError:
                 _LOGGER.error("List of deleted sources incomplete, continuing anyway")
+
+        self._replace_duplicate_sources(renamed_sources)
 
         return (renamed_sources, deleted_sources)
 
@@ -896,6 +907,33 @@ class DenonAVRInput(DenonAVRFoundation):
         self._frequency = None
         self._station = None
         self._image_url = None
+
+    def _replace_duplicate_sources(self, sources: Dict[str, str]) -> None:
+        """Replace duplicate renamed sources (values) with their original names."""
+        seen_values = set()
+        duplicate_values = set()
+
+        for value in sources.values():
+            if value in seen_values:
+                duplicate_values.add(value)
+            seen_values.add(value)
+
+        for duplicate in duplicate_values:
+            for key, value in sources.items():
+                if value == duplicate:
+                    sources[key] = key
+
+                    if (key, value) not in self._renamed_sources_warnings:
+                        _LOGGER.warning(
+                            (
+                                "Input source '%s' is renamed to non-unique name '%s'. "
+                                "Using original name. Please choose unique names in "
+                                "your receiver's web-interface"
+                            ),
+                            key,
+                            value,
+                        )
+                        self._renamed_sources_warnings.add((key, value))
 
     ##############
     # Properties #
