@@ -60,6 +60,9 @@ class DenonAVRAudyssey(DenonAVRFoundation):
     _multeq_control: Optional[bool] = attr.ib(
         converter=attr.converters.optional(convert_string_int_bool), default=None
     )
+    _lfc: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_string_int_bool), default=None
+    )
 
     # Update tags for attributes
     # AppCommand0300.xml interface
@@ -94,6 +97,10 @@ class DenonAVRAudyssey(DenonAVRFoundation):
             self._dynamiceq = "1"
         elif parameter == "DYNEQ OFF":
             self._dynamiceq = "0"
+        elif parameter == "PSLFC ON":
+            self._lfc = "1"
+        elif parameter == "PSLFC OFF":
+            self._lfc = "0"
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -283,6 +290,35 @@ class DenonAVRAudyssey(DenonAVRFoundation):
             await self.async_dynamiceq_off()
         else:
             await self.async_dynamiceq_on()
+
+    async def async_lfc_on(self):
+        """Turn LFC on."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(self._device.telnet_commands.command_lfc.format(
+                mode="ON"
+            ))
+            return
+        await self._device.api.async_get_command(self._device.urls.command_lfc.format(
+            mode="ON"
+        ))
+
+    async def async_lfc_off(self):
+        """Turn LFC off."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(self._device.telnet_commands.command_lfc.format(
+                mode="OFF"
+            ))
+            return
+        await self._device.api.async_get_command(self._device.urls.command_lfc.format(
+            mode="OFF"
+        ))
+
+    async def async_toggle_lfc(self):
+        """Toggle LFC."""
+        if self._lfc:
+            await self.async_lfc_off()
+        else:
+            await self.async_lfc_on()
 
 
 def audyssey_factory(instance: DenonAVRFoundation) -> DenonAVRAudyssey:

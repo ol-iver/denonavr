@@ -9,6 +9,7 @@ This module inherits constants for Denon AVR receivers.
 
 import re
 from collections import namedtuple
+from enum import Enum
 
 import attr
 
@@ -54,6 +55,17 @@ ReceiverURLs = namedtuple(
         "command_setup_open",
         "command_setup_close",
         "command_setup_query",
+        "command_dimmer_toggle",
+        "command_dimmer_set",
+        "command_channel_level_up",
+        "command_channel_level_down",
+        "command_delay_up",
+        "command_delay_down",
+        "command_dirac_filter",
+        "command_eco_mode",
+        "command_lfc",
+        "command_hdmi_output",
+        "command_status",
     ],
 )
 TelnetCommands = namedtuple(
@@ -90,6 +102,17 @@ TelnetCommands = namedtuple(
         "command_setup_open",
         "command_setup_close",
         "command_setup_query",
+        "command_dimmer_toggle",
+        "command_dimmer_set",
+        "command_channel_level_up",
+        "command_channel_level_down",
+        "command_delay_up",
+        "command_delay_down",
+        "command_dirac_filter",
+        "command_eco_mode",
+        "command_lfc",
+        "command_hdmi_output",
+        "command_status",
     ],
 )
 
@@ -343,6 +366,7 @@ HDTUNERSTATUS_URL = "/goform/formTuner_HdXml.xml"
 COMMAND_NETAUDIO_POST_URL = "/NetAudio/index.put.asp"
 COMMAND_PAUSE = "/goform/formiPhoneAppDirect.xml?NS9B"
 COMMAND_PLAY = "/goform/formiPhoneAppDirect.xml?NS9A"
+COMMAND_ECO_MODE = "/goform/formiPhoneAppDirect.xml?ECO{mode}"
 
 
 # Main Zone URLs
@@ -370,6 +394,16 @@ COMMAND_OPTIONS = "/goform/formiPhoneAppDirect.xml?MNOPT"
 COMMAND_SETUP_OPEN = "/goform/formiPhoneAppDirect.xml?MNMEN%20ON"
 COMMAND_SETUP_CLOSE = "/goform/formiPhoneAppDirect.xml?MNMEN%20OFF"
 COMMAND_SETUP_QUERY = "/goform/formiPhoneAppDirect.xml?MNMEN?"
+COMMAND_DIMMER_TOGGLE = "/goform/formiPhoneAppDirect.xml?DIM%20SEL"
+COMMAND_DIMMER_SET = "/goform/formiPhoneAppDirect.xml?DIM%20{mode}"
+COMMAND_CHANNEL_LEVEL_UP = "/goform/formiPhoneAppDirect.xml?CV{channel}%20UP"
+COMMAND_CHANNEL_LEVEL_DOWN = "/goform/formiPhoneAppDirect.xml?CV{channel}%20DOWN"
+COMMAND_DELAY_UP = "/goform/formiPhoneAppDirect.xml?PSDELAY%20UP"
+COMMAND_DELAY_DOWN = "/goform/formiPhoneAppDirect.xml?PSDELAY%20DOWN"
+COMMAND_DIRAC_FILTER = "/goform/formiPhoneAppDirect.xml?PSDIRAC%20{filter}"
+COMMAND_LFC = "/goform/formiPhoneAppDirect.xml?PSLFC%20{mode}"
+COMMAND_HDMI_OUTPUT = "/goform/formiPhoneAppDirect.xml?VSMONI{output}"
+COMMAND_STATUS = "/goform/formiPhoneAppDirect.xml?RCSHP0230030"
 
 # Zone 2 URLs
 STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
@@ -429,6 +463,17 @@ DENONAVR_URLS = ReceiverURLs(
     command_setup_open=COMMAND_SETUP_OPEN,
     command_setup_close=COMMAND_SETUP_CLOSE,
     command_setup_query=COMMAND_SETUP_QUERY,
+    command_dimmer_toggle=COMMAND_DIMMER_TOGGLE,
+    command_dimmer_set=COMMAND_DIMMER_SET,
+    command_channel_level_up=COMMAND_CHANNEL_LEVEL_UP,
+    command_channel_level_down=COMMAND_CHANNEL_LEVEL_DOWN,
+    command_delay_up=COMMAND_DELAY_UP,
+    command_delay_down=COMMAND_DELAY_DOWN,
+    command_dirac_filter=COMMAND_DIRAC_FILTER,
+    command_eco_mode=COMMAND_ECO_MODE,
+    command_lfc=COMMAND_LFC,
+    command_hdmi_output=COMMAND_HDMI_OUTPUT,
+    command_status=COMMAND_STATUS,
 )
 
 ZONE2_URLS = ReceiverURLs(
@@ -465,6 +510,17 @@ ZONE2_URLS = ReceiverURLs(
     command_setup_open=COMMAND_SETUP_OPEN,
     command_setup_close=COMMAND_SETUP_CLOSE,
     command_setup_query=COMMAND_SETUP_QUERY,
+    command_dimmer_toggle=COMMAND_DIMMER_TOGGLE,
+    command_dimmer_set=COMMAND_DIMMER_SET,
+    command_channel_level_up=COMMAND_CHANNEL_LEVEL_UP,
+    command_channel_level_down=COMMAND_CHANNEL_LEVEL_DOWN,
+    command_delay_up=COMMAND_DELAY_UP,
+    command_delay_down=COMMAND_DELAY_DOWN,
+    command_dirac_filter=COMMAND_DIRAC_FILTER,
+    command_eco_mode=COMMAND_ECO_MODE,
+    command_lfc=COMMAND_LFC,
+    command_hdmi_output=COMMAND_HDMI_OUTPUT,
+    command_status=COMMAND_STATUS,
 )
 
 ZONE3_URLS = ReceiverURLs(
@@ -501,6 +557,17 @@ ZONE3_URLS = ReceiverURLs(
     command_setup_open=COMMAND_SETUP_OPEN,
     command_setup_close=COMMAND_SETUP_CLOSE,
     command_setup_query=COMMAND_SETUP_QUERY,
+    command_dimmer_toggle=COMMAND_DIMMER_TOGGLE,
+    command_dimmer_set=COMMAND_DIMMER_SET,
+    command_channel_level_up=COMMAND_CHANNEL_LEVEL_UP,
+    command_channel_level_down=COMMAND_CHANNEL_LEVEL_DOWN,
+    command_delay_up=COMMAND_DELAY_UP,
+    command_delay_down=COMMAND_DELAY_DOWN,
+    command_dirac_filter=COMMAND_DIRAC_FILTER,
+    command_eco_mode=COMMAND_ECO_MODE,
+    command_lfc=COMMAND_LFC,
+    command_hdmi_output=COMMAND_HDMI_OUTPUT,
+    command_status=COMMAND_STATUS,
 )
 
 # Telnet Events
@@ -590,6 +657,17 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_setup_open="MNMEN ON",
     command_setup_close="MNMEN OFF",
     command_setup_query="MNMEN?",
+    command_dimmer_toggle="DIM SEL",
+    command_dimmer_set="DIM {mode}",
+    command_channel_level_up="CV{channel} UP",
+    command_channel_level_down="CV{channel} DOWN",
+    command_delay_up="PSDELAY UP",
+    command_delay_down="PSDELAY DOWN",
+    command_dirac_filter="PSDIRAC {filter}",
+    command_eco_mode="ECO{mode}",
+    command_lfc="PSLFC {mode}",
+    command_hdmi_output="VSMONI{output}",
+    command_status="RCSHP0230030",
 )
 
 ZONE2_TELNET_COMMANDS = TelnetCommands(
@@ -624,6 +702,17 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_setup_open="MNMEN ON",
     command_setup_close="MNMEN OFF",
     command_setup_query="MNMEN?",
+    command_dimmer_toggle="DIM SEL",
+    command_dimmer_set="DIM {mode}",
+    command_channel_level_up="CV{channel} UP",
+    command_channel_level_down="CV{channel} DOWN",
+    command_delay_up="PSDELAY UP",
+    command_delay_down="PSDELAY DOWN",
+    command_dirac_filter="PSDIRAC {filter}",
+    command_eco_mode="ECO{mode}",
+    command_lfc="PSLFC {mode}",
+    command_hdmi_output="VSMONI{output}",
+    command_status="RCSHP0230030",
 )
 
 ZONE3_TELNET_COMMANDS = TelnetCommands(
@@ -658,6 +747,17 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_setup_open="MNMEN ON",
     command_setup_close="MNMEN OFF",
     command_setup_query="MNMEN?",
+    command_dimmer_toggle="DIM SEL",
+    command_dimmer_set="DIM {mode}",
+    command_channel_level_up="CV{channel} UP",
+    command_channel_level_down="CV{channel} DOWN",
+    command_delay_up="PSDELAY UP",
+    command_delay_down="PSDELAY DOWN",
+    command_dirac_filter="PSDIRAC {filter}",
+    command_eco_mode="ECO{mode}",
+    command_lfc="PSLFC {mode}",
+    command_hdmi_output="VSMONI{output}",
+    command_status="RCSHP0230030",
 )
 
 # States
@@ -726,3 +826,48 @@ DYNAMIC_VOLUME_MAP_LABELS_APPCOMMAND = {
 DYNAMIC_VOLUME_MAP_LABELS_TELNET = {
     value: key for key, value in DYNAMIC_VOLUME_MAP_TELNET.items()
 }
+
+class DimmerMode(Enum):
+    """Dimmer mode."""
+
+    DIMMER_OFF = "OFF"
+    DIMMER_DARK = "DAR"
+    DIMMER_DIM = "DIM"
+    DIMMER_BRIGHT = "BRI"
+
+class Channel(Enum):
+    """Channel."""
+
+    FRONT_LEFT = "FL"
+    FRONT_RIGHT = "FR"
+    CENTER = "C"
+    SUBWOOFER = "SW"
+    SUBWOOFER_2 = "SW2"
+    SUBWOOFER_3 = "SW3"
+    SUBWOOFER_4 = "SW4"
+    SURROUND_LEFT = "SL"
+    SURROUND_RIGHT = "SR"
+    SURROUND_BACK_LEFT = "SBL"
+    SURROUND_BACK_RIGHT = "SBR"
+    FRONT_HEIGHT_LEFT = "FHL"
+    FRONT_HEIGHT_RIGHT = "FHR"
+    FRONT_WIDE_LEFT = "FWL"
+    FRONT_WIDE_RIGHT = "FWR"
+    TOP_FRONT_LEFT = "TFL"
+    TOP_FRONT_RIGHT = "TFR"
+    TOP_MIDDLE_LEFT = "TML"
+    TOP_MIDDLE_RIGHT = "TMR"
+    TOP_REAR_LEFT = "TRL"
+    TOP_REAR_RIGHT = "TRR"
+    REAR_HEIGHT_LEFT = "RHL"
+    REAR_HEIGHT_RIGHT = "RHR"
+    FRONT_DOLBY_LEFT = "FDL"
+    FRONT_DOLBY_RIGHT = "FDR"
+    SURROUND_DOLBY_LEFT = "SDL"
+    SURROUND_DOLBY_RIGHT = "SDR"
+    BACK_DOLBY_LEFT = "BDL"
+    BACK_DOLBY_RIGHT = "BDR"
+    SURROUND_HEIGHT_LEFT = "SHL"
+    SURROUND_HEIGHT_RIGHT = "SHR"
+    TOP_SURROUND = "TS"
+    CENTER_HEIGHT = "CH"
