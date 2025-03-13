@@ -552,7 +552,8 @@ class DenonAVRDeviceInfo:
         """Cursor Up on receiver via HTTP get command."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
-                self.telnet_commands.command_cusor_up
+                self.telnet_commands.command_cusor_up,
+                skip_confirmation=True
             )
         else:
             await self.api.async_get_command(self.urls.command_cusor_up)
@@ -561,7 +562,8 @@ class DenonAVRDeviceInfo:
         """Cursor Down on receiver via HTTP get command."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
-                self.telnet_commands.command_cusor_down
+                self.telnet_commands.command_cusor_down,
+                skip_confirmation=True
             )
         else:
             await self.api.async_get_command(self.urls.command_cusor_down)
@@ -570,7 +572,8 @@ class DenonAVRDeviceInfo:
         """Cursor Left on receiver via HTTP get command."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
-                self.telnet_commands.command_cusor_left
+                self.telnet_commands.command_cusor_left,
+                skip_confirmation=True
             )
         else:
             await self.api.async_get_command(self.urls.command_cusor_left)
@@ -579,7 +582,8 @@ class DenonAVRDeviceInfo:
         """Cursor Right on receiver via HTTP get command."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
-                self.telnet_commands.command_cusor_right
+                self.telnet_commands.command_cusor_right,
+                skip_confirmation=True
             )
         else:
             await self.api.async_get_command(self.urls.command_cusor_right)
@@ -588,7 +592,8 @@ class DenonAVRDeviceInfo:
         """Cursor Enter on receiver via HTTP get command."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
-                self.telnet_commands.command_cusor_enter
+                self.telnet_commands.command_cusor_enter,
+                skip_confirmation=True
             )
         else:
             await self.api.async_get_command(self.urls.command_cusor_enter)
@@ -603,13 +608,21 @@ class DenonAVRDeviceInfo:
     async def async_info(self) -> None:
         """Info OSD on receiver via HTTP get command."""
         if self.telnet_available:
-            await self.telnet_api.async_send_commands(self.telnet_commands.command_info)
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_info,
+                skip_confirmation=True)
         else:
             await self.api.async_get_command(self.urls.command_info)
 
     async def async_options(self) -> None:
         """Options menu on receiver via HTTP get command."""
-        await self.api.async_get_command(self.urls.command_options)
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_options,
+                skip_confirmation=True
+            )
+        else:
+            await self.api.async_get_command(self.urls.command_options)
 
     async def async_settings_menu(self) -> None:
         """Options menu on receiver via HTTP get command."""
