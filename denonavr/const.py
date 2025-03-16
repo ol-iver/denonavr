@@ -10,6 +10,7 @@ This module inherits constants for Denon AVR receivers.
 import re
 from collections import namedtuple
 from enum import Enum
+from typing import Literal
 
 import attr
 
@@ -846,6 +847,12 @@ DYNAMIC_VOLUME_MAP_LABELS_APPCOMMAND = {
 DYNAMIC_VOLUME_MAP_LABELS_TELNET = {
     value: key for key, value in DYNAMIC_VOLUME_MAP_TELNET.items()
 }
+
+DimmerModes = Literal["OFF", "DAR", "DIM", "BRI"]
+
+EcoModes = Literal["ON", "AUTO", "OFF"]
+
+HDMIOutputs = Literal["AUTO", "1", "2"]
 
 
 class DimmerMode(Enum):
