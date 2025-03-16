@@ -27,9 +27,7 @@ class DenonAVRDirac(DenonAVRFoundation):
     ##########
     # Setter #
     ##########
-    async def async_diract_filter(
-        self, dirac_filter: DiracFilter
-    ) -> None:
+    async def async_diract_filter(self, dirac_filter: DiracFilter) -> None:
         """Set Dirac filter."""
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
