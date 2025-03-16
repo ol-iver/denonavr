@@ -835,6 +835,7 @@ class DimmerMode(Enum):
     DIMMER_DIM = "DIM"
     DIMMER_BRIGHT = "BRI"
 
+
 class Channel(Enum):
     """Channel."""
 
@@ -871,3 +872,4 @@ class Channel(Enum):
     SURROUND_HEIGHT_RIGHT = "SHR"
     TOP_SURROUND = "TS"
     CENTER_HEIGHT = "CH"
+
