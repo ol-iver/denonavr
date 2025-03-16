@@ -872,4 +872,3 @@ class Channel(Enum):
     SURROUND_HEIGHT_RIGHT = "SHR"
     TOP_SURROUND = "TS"
     CENTER_HEIGHT = "CH"
-
