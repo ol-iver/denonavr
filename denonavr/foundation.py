@@ -647,15 +647,11 @@ class DenonAVRDeviceInfo:
         """Set dimmer mode on receiver via HTTP get command."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
-                self.telnet_commands.command_dimmer_set.format(
-                    mode=mode
-                )
+                self.telnet_commands.command_dimmer_set.format(mode=mode)
             )
         else:
             await self.api.async_get_command(
-                self.urls.command_dimmer_set.format(
-                    mode=mode
-                )
+                self.urls.command_dimmer_set.format(mode=mode)
             )
 
     async def async_channel_level_up(self, channel: Channel) -> None:
@@ -702,30 +698,22 @@ class DenonAVRDeviceInfo:
         """Set Eco mode."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
-                self.telnet_commands.command_eco_mode.format(
-                    mode=mode
-                )
+                self.telnet_commands.command_eco_mode.format(mode=mode)
             )
         else:
             await self.api.async_get_command(
-                self.urls.command_eco_mode.format(
-                    mode=mode
-                )
+                self.urls.command_eco_mode.format(mode=mode)
             )
 
     async def async_hdmi_output(self, output: HdmiOutput) -> None:
         """Set HDMI output."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
-                self.telnet_commands.command_hdmi_output.format(
-                    output=output
-                )
+                self.telnet_commands.command_hdmi_output.format(output=output)
             )
         else:
             await self.api.async_get_command(
-                self.urls.command_hdmi_output.format(
-                    output=output
-                )
+                self.urls.command_hdmi_output.format(output=output)
             )
 
     async def async_status(self):
