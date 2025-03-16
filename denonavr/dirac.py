@@ -28,19 +28,24 @@ class DenonAVRDirac(DenonAVRFoundation):
     ##########
     # Setter #
     ##########
-    async def async_diract_filter(self, dirac_filter: Literal["1", "2", "3", "OFF"]) -> None:
+    async def async_diract_filter(
+        self, dirac_filter: Literal["1", "2", "3", "OFF"]
+    ) -> None:
         """Set Dirac filter."""
         if dirac_filter not in ["1", "2", "3", "OFF"]:
             raise AvrCommandError("Invalid Dirac filter")
 
         if self._device.telnet_available:
-            await self._device.telnet_api.async_send_commands(self._device.telnet_commands.command_dirac_filter.format(
-                filter=dirac_filter
-            ))
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_dirac_filter.format(
+                    filter=dirac_filter
+                )
+            )
             return
-        await self._device.api.async_get_command(self._device.urls.command_dirac_filter.format(
-            filter=dirac_filter
-        ))
+        await self._device.api.async_get_command(
+            self._device.urls.command_dirac_filter.format(filter=dirac_filter)
+        )
+
 
 def dirac_factory(instance: DenonAVRFoundation) -> DenonAVRDirac:
     """Create DenonAVRDirac at receiver instances."""

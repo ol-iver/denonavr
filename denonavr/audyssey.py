@@ -294,24 +294,24 @@ class DenonAVRAudyssey(DenonAVRFoundation):
     async def async_lfc_on(self):
         """Turn LFC on."""
         if self._device.telnet_available:
-            await self._device.telnet_api.async_send_commands(self._device.telnet_commands.command_lfc.format(
-                mode="ON"
-            ))
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_lfc.format(mode="ON")
+            )
             return
-        await self._device.api.async_get_command(self._device.urls.command_lfc.format(
-            mode="ON"
-        ))
+        await self._device.api.async_get_command(
+            self._device.urls.command_lfc.format(mode="ON")
+        )
 
     async def async_lfc_off(self):
         """Turn LFC off."""
         if self._device.telnet_available:
-            await self._device.telnet_api.async_send_commands(self._device.telnet_commands.command_lfc.format(
-                mode="OFF"
-            ))
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_lfc.format(mode="OFF")
+            )
             return
-        await self._device.api.async_get_command(self._device.urls.command_lfc.format(
-            mode="OFF"
-        ))
+        await self._device.api.async_get_command(
+            self._device.urls.command_lfc.format(mode="OFF")
+        )
 
     async def async_toggle_lfc(self):
         """Toggle LFC."""

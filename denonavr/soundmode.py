@@ -328,16 +328,24 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_sound_mode_next(self):
         """Select next sound mode."""
         if self._device.telnet_available:
-            await self._device.telnet_api.async_send_commands(self._device.telnet_commands.command_sel_sound_mode + "RIGHT")
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_sel_sound_mode + "RIGHT"
+            )
         else:
-            await self._device.api.async_get_command(self._device.urls.command_sel_sound_mode + "RIGHT")
+            await self._device.api.async_get_command(
+                self._device.urls.command_sel_sound_mode + "RIGHT"
+            )
 
     async def async_sound_mode_previous(self):
         """Select previous sound mode."""
         if self._device.telnet_available:
-            await self._device.telnet_api.async_send_commands(self._device.telnet_commands.command_sel_sound_mode + "LEFT")
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_sel_sound_mode + "LEFT"
+            )
         else:
-            await self._device.api.async_get_command(self._device.urls.command_sel_sound_mode + "LEFT")
+            await self._device.api.async_get_command(
+                self._device.urls.command_sel_sound_mode + "LEFT"
+            )
 
 
 def sound_mode_factory(instance: DenonAVRFoundation) -> DenonAVRSoundMode:
