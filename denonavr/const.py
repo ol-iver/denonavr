@@ -884,7 +884,7 @@ class EcoMode(Enum):
 
 
 class HdmiOutput(Enum):
-    "HDMI outputs."
+    """HDMI outputs."""
 
     HDMI_AUTO = "AUTO"
     HDMI_1 = "1"
