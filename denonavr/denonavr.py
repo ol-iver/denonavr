@@ -10,7 +10,7 @@ This module implements the interface to Denon AVR receivers.
 import asyncio
 import logging
 import time
-from typing import Awaitable, Callable, Dict, List, Optional, Union
+from typing import Awaitable, Callable, Dict, List, Optional
 
 import attr
 import httpx
@@ -20,8 +20,8 @@ from .const import (
     DENON_ATTR_SETATTR,
     MAIN_ZONE,
     VALID_ZONES,
-    Channel,
-    DimmerMode,
+    Channels,
+    DimmerModes,
     EcoModes,
     HDMIOutputs,
 )
@@ -732,15 +732,15 @@ class DenonAVR(DenonAVRFoundation):
         """Toggle dimmer on receiver via HTTP get command."""
         await self._device.async_dimmer_toggle()
 
-    async def async_dimmer_set(self, mode: Union[DimmerMode, str]) -> None:
+    async def async_dimmer_set(self, mode: DimmerModes) -> None:
         """Set dimmer mode on receiver via HTTP get command."""
         await self._device.async_dimmer_set(mode)
 
-    async def async_channel_up(self, channel: Union[Channel, str]) -> None:
+    async def async_channel_level_up(self, channel: Channels) -> None:
         """Increase level of the specified channel."""
         await self._device.async_channel_level_up(channel)
 
-    async def async_channel_down(self, channel: Union[Channel, str]) -> None:
+    async def async_channel_level_down(self, channel: Channels) -> None:
         """Decrease level of the specified channel."""
         await self._device.async_channel_level_down(channel)
 

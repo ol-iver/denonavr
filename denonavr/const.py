@@ -9,7 +9,6 @@ This module inherits constants for Denon AVR receivers.
 
 import re
 from collections import namedtuple
-from enum import Enum
 from typing import Literal
 
 import attr
@@ -848,55 +847,98 @@ DYNAMIC_VOLUME_MAP_LABELS_TELNET = {
     value: key for key, value in DYNAMIC_VOLUME_MAP_TELNET.items()
 }
 
-DimmerModes = Literal["OFF", "DAR", "DIM", "BRI"]
+DIMMER_MODE_MAP = {"Off": "OFF", "Dark": "DAR", "Dim": "DIM", "Bright": "BRI"}
 
-EcoModes = Literal["ON", "AUTO", "OFF"]
+DimmerModes = Literal["Off", "Dark", "Dim", "Bright"]
+"""Dimmer modes."""
 
-HDMIOutputs = Literal["AUTO", "1", "2"]
+ECO_MODE_MAP = {
+    "On": "ON",
+    "Auto": "AUTO",
+    "Off": "OFF",
+}
 
+EcoModes = Literal["On", "Auto", "Off"]
+"""Eco modes."""
 
-class DimmerMode(Enum):
-    """Dimmer modes."""
+HDMI_OUTPUT_MAP = {
+    "Auto": "AUTO",
+    "HDMI1": "1",
+    "HDMI2": "2",
+}
 
-    DIMMER_OFF = "OFF"
-    DIMMER_DARK = "DAR"
-    DIMMER_DIM = "DIM"
-    DIMMER_BRIGHT = "BRI"
+HDMIOutputs = Literal["AUTO", "HDMI1", "HDMI2"]
+"""HDMI output modes."""
 
+CHANNEL_MAP = {
+    "Front Left": "FL",
+    "Front Right": "FR",
+    "Center": "C",
+    "Subwoofer": "SW",
+    "Subwoofer 2": "SW2",
+    "Subwoofer 3": "SW3",
+    "Subwoofer 4": "SW4",
+    "Surround Left": "SL",
+    "Surround Right": "SR",
+    "Surround Back Left": "SBL",
+    "Surround Back Right": "SBR",
+    "Front Height Left": "FHL",
+    "Front Height Right": "FHR",
+    "Front Wide Left": "FWL",
+    "Front Wide Right": "FWR",
+    "Top Front Left": "TFL",
+    "Top Front Right": "TFR",
+    "Top Middle Left": "TML",
+    "Top Middle Right": "TMR",
+    "Top Rear Left": "TRL",
+    "Top Rear Right": "TRR",
+    "Rear Height Left": "RHL",
+    "Rear Height Right": "RHR",
+    "Front Dolby Left": "FDL",
+    "Front Dolby Right": "FDR",
+    "Surround Dolby Left": "SDL",
+    "Surround Dolby Right": "SDR",
+    "Back Dolby Left": "BDL",
+    "Back Dolby Right": "BDR",
+    "Surround Height Left": "SHL",
+    "Surround Height Right": "SHR",
+    "Top Surround": "TS",
+    "Center Height": "CH",
+}
 
-class Channel(Enum):
-    """Receiver Channels."""
-
-    FRONT_LEFT = "FL"
-    FRONT_RIGHT = "FR"
-    CENTER = "C"
-    SUBWOOFER = "SW"
-    SUBWOOFER_2 = "SW2"
-    SUBWOOFER_3 = "SW3"
-    SUBWOOFER_4 = "SW4"
-    SURROUND_LEFT = "SL"
-    SURROUND_RIGHT = "SR"
-    SURROUND_BACK_LEFT = "SBL"
-    SURROUND_BACK_RIGHT = "SBR"
-    FRONT_HEIGHT_LEFT = "FHL"
-    FRONT_HEIGHT_RIGHT = "FHR"
-    FRONT_WIDE_LEFT = "FWL"
-    FRONT_WIDE_RIGHT = "FWR"
-    TOP_FRONT_LEFT = "TFL"
-    TOP_FRONT_RIGHT = "TFR"
-    TOP_MIDDLE_LEFT = "TML"
-    TOP_MIDDLE_RIGHT = "TMR"
-    TOP_REAR_LEFT = "TRL"
-    TOP_REAR_RIGHT = "TRR"
-    REAR_HEIGHT_LEFT = "RHL"
-    REAR_HEIGHT_RIGHT = "RHR"
-    FRONT_DOLBY_LEFT = "FDL"
-    FRONT_DOLBY_RIGHT = "FDR"
-    SURROUND_DOLBY_LEFT = "SDL"
-    SURROUND_DOLBY_RIGHT = "SDR"
-    BACK_DOLBY_LEFT = "BDL"
-    BACK_DOLBY_RIGHT = "BDR"
-    SURROUND_HEIGHT_LEFT = "SHL"
-    SURROUND_HEIGHT_RIGHT = "SHR"
-    TOP_SURROUND = "TS"
-    CENTER_HEIGHT = "CH"
+Channels = Literal[
+    "Front Left",
+    "Front Right",
+    "Center",
+    "Subwoofer",
+    "Subwoofer 2",
+    "Subwoofer 3",
+    "Subwoofer 4",
+    "Surround Left",
+    "Surround Right",
+    "Surround Back Left",
+    "Surround Back Right",
+    "Front Height Left",
+    "Front Height Right",
+    "Front Wide Left",
+    "Front Wide Right",
+    "Top Front Left",
+    "Top Front Right",
+    "Top Middle Left",
+    "Top Middle Right",
+    "Top Rear Left",
+    "Top Rear Right",
+    "Rear Height Left",
+    "Rear Height Right",
+    "Front Dolby Left",
+    "Front Dolby Right",
+    "Surround Dolby Left",
+    "Surround Dolby Right",
+    "Back Dolby Left",
+    "Back Dolby Right",
+    "Surround Height Left",
+    "Surround Height Right",
+    "Top Surround",
+    "Center Height",
+]
+"""Receiver Channels."""
