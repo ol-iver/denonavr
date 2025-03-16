@@ -361,7 +361,7 @@ class TestMainFunctions:
         """Connect raises NetworkError when ConnectionRefused."""
         api = DenonAVRTelnetApi()
         with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
-            debug_mock.return_value.create_connection = AsyncMock(
+            debug_mock.return_value.create_connection = mock.AsyncMock(
                 side_effect=ConnectionRefusedError()
             )
             with pytest.raises(AvrNetworkError):
@@ -372,7 +372,9 @@ class TestMainFunctions:
         """Connect raises NetworkError when OSError."""
         api = DenonAVRTelnetApi()
         with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
-            debug_mock.return_value.create_connection = AsyncMock(side_effect=OSError())
+            debug_mock.return_value.create_connection = mock.AsyncMock(
+                side_effect=OSError()
+            )
             with pytest.raises(AvrNetworkError):
                 await api.async_connect()
 
@@ -381,7 +383,9 @@ class TestMainFunctions:
         """Connect raises NetworkError when IOError."""
         api = DenonAVRTelnetApi()
         with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
-            debug_mock.return_value.create_connection = AsyncMock(side_effect=IOError())
+            debug_mock.return_value.create_connection = mock.AsyncMock(
+                side_effect=IOError()
+            )
             with pytest.raises(AvrNetworkError):
                 await api.async_connect()
 
@@ -390,7 +394,7 @@ class TestMainFunctions:
         """Connect raises AvrTimeoutError when TimeoutError."""
         api = DenonAVRTelnetApi()
         with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
-            debug_mock.return_value.create_connection = AsyncMock(
+            debug_mock.return_value.create_connection = mock.AsyncMock(
                 side_effect=asyncio.TimeoutError()
             )
             with pytest.raises(AvrTimoutError):
@@ -420,7 +424,7 @@ class TestMainFunctions:
         self.denon._device.telnet_api._send_confirmation_timeout = 0.1
         await self.denon.async_setup()
         with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
-            debug_mock.return_value.create_connection = AsyncMock(
+            debug_mock.return_value.create_connection = mock.AsyncMock(
                 side_effect=create_conn
             )
             await self.denon.async_telnet_connect()
@@ -453,7 +457,7 @@ class TestMainFunctions:
         self.denon._device.telnet_api._send_confirmation_timeout = 0.1
         await self.denon.async_setup()
         with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
-            debug_mock.return_value.create_connection = AsyncMock(
+            debug_mock.return_value.create_connection = mock.AsyncMock(
                 side_effect=create_conn
             )
             await self.denon.async_telnet_connect()
@@ -484,7 +488,7 @@ class TestMainFunctions:
         self.denon._device.telnet_api._send_confirmation_timeout = 0.1
         await self.denon.async_setup()
         with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
-            debug_mock.return_value.create_connection = AsyncMock(
+            debug_mock.return_value.create_connection = mock.AsyncMock(
                 side_effect=create_conn
             )
             await self.denon.async_telnet_connect()
@@ -515,7 +519,7 @@ class TestMainFunctions:
         self.denon._device.telnet_api._send_confirmation_timeout = 0.1
         await self.denon.async_setup()
         with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
-            debug_mock.return_value.create_connection = AsyncMock(
+            debug_mock.return_value.create_connection = mock.AsyncMock(
                 side_effect=create_conn
             )
             await self.denon.async_telnet_connect()
@@ -546,7 +550,7 @@ class TestMainFunctions:
         self.denon._device.telnet_api._send_confirmation_timeout = 0.1
         await self.denon.async_setup()
         with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
-            debug_mock.return_value.create_connection = AsyncMock(
+            debug_mock.return_value.create_connection = mock.AsyncMock(
                 side_effect=create_conn
             )
             await self.denon.async_telnet_connect()
@@ -577,7 +581,7 @@ class TestMainFunctions:
         self.denon._device.telnet_api._send_confirmation_timeout = 0.1
         await self.denon.async_setup()
         with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
-            debug_mock.return_value.create_connection = AsyncMock(
+            debug_mock.return_value.create_connection = mock.AsyncMock(
                 side_effect=create_conn
             )
             await self.denon.async_telnet_connect()
@@ -608,7 +612,7 @@ class TestMainFunctions:
         self.denon._device.telnet_api._send_confirmation_timeout = 0.1
         await self.denon.async_setup()
         with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
-            debug_mock.return_value.create_connection = AsyncMock(
+            debug_mock.return_value.create_connection = mock.AsyncMock(
                 side_effect=create_conn
             )
             await self.denon.async_telnet_connect()
@@ -639,7 +643,7 @@ class TestMainFunctions:
         self.denon._device.telnet_api._send_confirmation_timeout = 0.1
         await self.denon.async_setup()
         with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
-            debug_mock.return_value.create_connection = AsyncMock(
+            debug_mock.return_value.create_connection = mock.AsyncMock(
                 side_effect=create_conn
             )
             await self.denon.async_telnet_connect()
@@ -648,12 +652,3 @@ class TestMainFunctions:
             protocol.data_received(b"MV565\r")
             await self.future
             assert self.denon.volume == -23.5
-
-
-class AsyncMock(mock.MagicMock):
-    """Mocking async methods compatible to python 3.7."""
-
-    # pylint: disable=invalid-overridden-method,useless-super-delegation
-    async def __call__(self, *args, **kwargs):
-        """Call."""
-        return super().__call__(*args, **kwargs)
