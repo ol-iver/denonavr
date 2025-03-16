@@ -757,4 +757,5 @@ class DenonAVR(DenonAVRFoundation):
         Toggles the display of status on the device.
         Only supported on Denon models.
         """
+
         await self._device.async_status()
