@@ -10,13 +10,21 @@ This module implements the interface to Denon AVR receivers.
 import asyncio
 import logging
 import time
-from typing import Awaitable, Callable, Dict, List, Optional, Literal, Union
+from typing import Awaitable, Callable, Dict, List, Optional, Union
 
 import attr
 import httpx
 
 from .audyssey import DenonAVRAudyssey, audyssey_factory
-from .const import DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES, DimmerMode, Channel
+from .const import (
+    DENON_ATTR_SETATTR,
+    MAIN_ZONE,
+    VALID_ZONES,
+    Channel,
+    DimmerMode,
+    EcoMode,
+    HdmiOutput,
+)
 from .dirac import DenonAVRDirac, dirac_factory
 from .exceptions import AvrCommandError
 from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
@@ -744,11 +752,11 @@ class DenonAVR(DenonAVRFoundation):
         """Decrease delay of the audio."""
         await self._device.async_delay_down()
 
-    async def async_eco_mode(self, mode: Literal["ON", "AUTO", "OFF"]) -> None:
+    async def async_eco_mode(self, mode: EcoMode) -> None:
         """Set Eco mode."""
         await self._device.async_eco_mode(mode)
 
-    async def async_hdmi_output(self, output: Literal["AUTO", "1", "2"]) -> None:
+    async def async_hdmi_output(self, output: HdmiOutput) -> None:
         """Set HDMI output."""
         await self._device.async_hdmi_output(output)
 

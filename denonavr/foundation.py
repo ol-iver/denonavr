@@ -12,7 +12,7 @@ import logging
 import xml.etree.ElementTree as ET
 from collections.abc import Hashable
 from copy import deepcopy
-from typing import Dict, List, Optional, Union, Literal
+from typing import Dict, List, Optional, Union
 
 import attr
 
@@ -40,20 +40,22 @@ from .const import (
     ZONE3,
     ZONE3_TELNET_COMMANDS,
     ZONE3_URLS,
+    Channel,
+    DimmerMode,
+    EcoMode,
+    HdmiOutput,
     ReceiverType,
     ReceiverURLs,
     TelnetCommands,
-    DimmerMode,
-    Channel,
 )
 from .exceptions import (
+    AvrCommandError,
     AvrForbiddenError,
     AvrIncompleteResponseError,
     AvrNetworkError,
     AvrProcessingError,
     AvrRequestError,
     AvrTimoutError,
-    AvrCommandError,
 )
 from .ssdp import evaluate_scpd_xml
 
@@ -696,11 +698,8 @@ class DenonAVRDeviceInfo:
         else:
             await self.api.async_get_command(self.urls.command_delay_down)
 
-    async def async_eco_mode(self, mode: Literal["ON", "AUTO", "OFF"]) -> None:
+    async def async_eco_mode(self, mode: EcoMode) -> None:
         """Set Eco mode."""
-        if mode not in ["ON", "AUTO", "OFF"]:
-            raise AvrCommandError("Invalid Eco mode")
-
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_eco_mode.format(
@@ -714,11 +713,8 @@ class DenonAVRDeviceInfo:
                 )
             )
 
-    async def async_hdmi_output(self, output: Literal["AUTO", "1", "2"]) -> None:
+    async def async_hdmi_output(self, output: HdmiOutput) -> None:
         """Set HDMI output."""
-        if output not in ["AUTO", "1", "2"]:
-            raise AvrCommandError("Invalid HDMI output mode")
-
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_hdmi_output.format(
