@@ -827,6 +827,7 @@ DYNAMIC_VOLUME_MAP_LABELS_TELNET = {
     value: key for key, value in DYNAMIC_VOLUME_MAP_TELNET.items()
 }
 
+
 class DimmerMode(Enum):
     """Dimmer mode."""
 
