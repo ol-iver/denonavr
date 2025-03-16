@@ -278,7 +278,9 @@ SOUND_MODE_MAPPING = {
         "STANDARD(DOLBY)",
         "DOLBY AUDIO-DD+NEURAL:X",
         "DOLBY AUDIO-DD+",
+        # Added both variants as we don't know if type is intentional
         "DOLBY AUDIO-DD+ +NERUAL:X",
+        "DOLBY AUDIO-DD+ +NEURAL:X",
     ],
     "DTS SURROUND": [
         "DTS + DOLBY SURROUND",
