@@ -643,7 +643,6 @@ class DenonAVRDeviceInfo:
 
     async def async_dimmer_set(self, mode: DimmerMode) -> None:
         """Set dimmer mode on receiver via HTTP get command."""
-
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_dimmer_set.format(

@@ -753,6 +753,8 @@ class DenonAVR(DenonAVRFoundation):
         await self._device.async_hdmi_output(output)
 
     async def async_status(self):
-        """Toggles the display of status on the device.
-        Only supported on Denon models."""
+        """
+        Toggles the display of status on the device.
+        Only supported on Denon models.
+        """
         await self._device.async_status()
