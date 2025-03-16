@@ -867,7 +867,7 @@ HDMI_OUTPUT_MAP = {
     "HDMI2": "2",
 }
 
-HDMIOutputs = Literal["AUTO", "HDMI1", "HDMI2"]
+HDMIOutputs = Literal["Auto", "HDMI1", "HDMI2"]
 """HDMI output modes."""
 
 CHANNEL_MAP = {
