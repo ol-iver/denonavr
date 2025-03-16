@@ -858,7 +858,7 @@ class DimmerMode(Enum):
 
 
 class Channel(Enum):
-    """Channel."""
+    """Receiver Channels."""
 
     FRONT_LEFT = "FL"
     FRONT_RIGHT = "FR"
@@ -893,28 +893,3 @@ class Channel(Enum):
     SURROUND_HEIGHT_RIGHT = "SHR"
     TOP_SURROUND = "TS"
     CENTER_HEIGHT = "CH"
-
-
-class EcoMode(Enum):
-    """Eco modes."""
-
-    ECO_AUTO = "AUTO"
-    ECO_OFF = "OFF"
-    ECO_ON = "ON"
-
-
-class HdmiOutput(Enum):
-    """HDMI outputs."""
-
-    HDMI_AUTO = "AUTO"
-    HDMI_1 = "1"
-    HDMI_2 = "2"
-
-
-class DiracFilter(Enum):
-    """Dirac filters."""
-
-    DIRAC_1 = "1"
-    DIRAC_2 = "2"
-    DIRAC_3 = "3"
-    DIRAC_OFF = "OFF"
