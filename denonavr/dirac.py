@@ -13,7 +13,7 @@ from typing import Literal
 import attr
 
 from .const import (
-    DENON_ATTR_SETATTR,
+    DENON_ATTR_SETATTR, DiracFilters,
 )
 from .exceptions import AvrCommandError
 from .foundation import DenonAVRFoundation
@@ -29,10 +29,10 @@ class DenonAVRDirac(DenonAVRFoundation):
     # Setter #
     ##########
     async def async_diract_filter(
-        self, dirac_filter: Literal["1", "2", "3", "OFF"]
+        self, dirac_filter: DiracFilters
     ) -> None:
         """Set Dirac filter."""
-        if dirac_filter not in ["1", "2", "3", "OFF"]:
+        if dirac_filter not in DiracFilters:
             raise AvrCommandError("Invalid Dirac filter")
 
         if self._device.telnet_available:

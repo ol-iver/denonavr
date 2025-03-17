@@ -852,6 +852,9 @@ DIMMER_MODE_MAP = {"Off": "OFF", "Dark": "DAR", "Dim": "DIM", "Bright": "BRI"}
 DimmerModes = Literal["Off", "Dark", "Dim", "Bright"]
 """Dimmer modes."""
 
+DiracFilters = Literal["1", "2", "3", "OFF"]
+"""Dirac filters."""
+
 ECO_MODE_MAP = {
     "On": "ON",
     "Auto": "AUTO",
