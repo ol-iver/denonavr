@@ -852,6 +852,8 @@ DIMMER_MODE_MAP = {"Off": "OFF", "Dark": "DAR", "Dim": "DIM", "Bright": "BRI"}
 DimmerModes = Literal["Off", "Dark", "Dim", "Bright"]
 """Dimmer modes."""
 
+DIRAC_FILTER_MAP = {"Off": "OFF", "Filter 1": "1", "Filter 2": "2", "Filter 3": "3"}
+
 DiracFilters = Literal["1", "2", "3", "OFF"]
 """Dirac filters."""
 

@@ -22,6 +22,7 @@ from .const import (
     VALID_ZONES,
     Channels,
     DimmerModes,
+    DiracFilters,
     EcoModes,
     HDMIOutputs,
 )
@@ -558,6 +559,10 @@ class DenonAVR(DenonAVRFoundation):
     async def async_set_dynamicvol(self, value: str) -> None:
         """Set Dynamic Volume."""
         await self.audyssey.async_set_dynamicvol(value)
+
+    async def async_dirac_filter(self, dirac_filter: DiracFilters) -> None:
+        """Set Dirac filter."""
+        await self.dirac.async_dirac_filter(dirac_filter)
 
     async def async_set_input_func(self, input_func: str) -> None:
         """
