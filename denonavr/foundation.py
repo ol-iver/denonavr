@@ -657,6 +657,9 @@ class DenonAVRDeviceInfo:
 
     async def async_dimmer_set(self, mode: DimmerModes) -> None:
         """Set dimmer mode on receiver via HTTP get command."""
+        if mode not in DimmerModes:
+            raise AvrCommandError("Invalid dimmer mode")
+
         mapped_mode = DIMMER_MODE_MAP[mode]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
@@ -669,6 +672,8 @@ class DenonAVRDeviceInfo:
 
     async def async_channel_level_up(self, channel: Channels) -> None:
         """Channel level up on receiver via HTTP get command."""
+        self._is_valid_channel(channel)
+
         mapped_channel = CHANNEL_MAP[channel]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
@@ -683,6 +688,8 @@ class DenonAVRDeviceInfo:
 
     async def async_channel_level_down(self, channel: Channels) -> None:
         """Channel level down on receiver via HTTP get command."""
+        self._is_valid_channel(channel)
+
         mapped_channel = CHANNEL_MAP[channel]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
@@ -694,6 +701,11 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(
                 self.urls.command_channel_level_down.format(channel=mapped_channel)
             )
+
+    @staticmethod
+    def _is_valid_channel(channel: Channels):
+        if channel not in Channels:
+            raise AvrCommandError("Invalid channel")
 
     async def async_delay_up(self) -> None:
         """Delay up on receiver via HTTP get command."""
