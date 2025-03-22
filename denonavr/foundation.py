@@ -650,11 +650,6 @@ class DenonAVRDeviceInfo:
         """Options menu on receiver via HTTP get command."""
         # fast path if we already know the state
         if self.telnet_available:
-            if self._settings_menu is None:
-                self._settings_menu = await self.api.async_get_command(
-                    self.urls.command_setup_query
-                )
-
             if self._settings_menu == "ON":
                 await self.telnet_api.async_send_commands(
                     self.telnet_commands.command_setup_close
