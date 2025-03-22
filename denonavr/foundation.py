@@ -24,12 +24,15 @@ from .const import (
     AVR,
     AVR_X,
     AVR_X_2016,
+    CHANNEL_MAP,
     DENON_ATTR_SETATTR,
     DENONAVR_TELNET_COMMANDS,
     DENONAVR_URLS,
     DESCRIPTION_TYPES,
     DEVICEINFO_AVR_X_PATTERN,
     DEVICEINFO_COMMAPI_PATTERN,
+    DIMMER_MODE_MAP,
+    ECO_MODE_MAP,
     MAIN_ZONE,
     POWER_STATES,
     SETTINGS_MENU_STATES,
@@ -41,11 +44,16 @@ from .const import (
     ZONE3,
     ZONE3_TELNET_COMMANDS,
     ZONE3_URLS,
+    Channels,
+    DimmerModes,
+    EcoModes,
+    HDMIOutputs,
     ReceiverType,
     ReceiverURLs,
     TelnetCommands,
 )
 from .exceptions import (
+    AvrCommandError,
     AvrForbiddenError,
     AvrIncompleteResponseError,
     AvrNetworkError,
@@ -665,6 +673,121 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(self.urls.command_setup_close)
         else:
             await self.api.async_get_command(self.urls.command_setup_open)
+
+    async def async_dimmer_toggle(self) -> None:
+        """Toggle dimmer on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_dimmer_toggle
+            )
+        else:
+            await self.api.async_get_command(self.urls.command_dimmer_toggle)
+
+    async def async_dimmer_set(self, mode: DimmerModes) -> None:
+        """Set dimmer mode on receiver via HTTP get command."""
+        if mode not in DimmerModes:
+            raise AvrCommandError("Invalid dimmer mode")
+
+        mapped_mode = DIMMER_MODE_MAP[mode]
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_dimmer_set.format(mode=mapped_mode)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_dimmer_set.format(mode=mapped_mode)
+            )
+
+    async def async_channel_level_up(self, channel: Channels) -> None:
+        """Channel level up on receiver via HTTP get command."""
+        self._is_valid_channel(channel)
+
+        mapped_channel = CHANNEL_MAP[channel]
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_channel_level_up.format(
+                    channel=mapped_channel
+                )
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_channel_level_up.format(channel=mapped_channel)
+            )
+
+    async def async_channel_level_down(self, channel: Channels) -> None:
+        """Channel level down on receiver via HTTP get command."""
+        self._is_valid_channel(channel)
+
+        mapped_channel = CHANNEL_MAP[channel]
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_channel_level_down.format(
+                    channel=mapped_channel
+                )
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_channel_level_down.format(channel=mapped_channel)
+            )
+
+    @staticmethod
+    def _is_valid_channel(channel: Channels):
+        if channel not in Channels:
+            raise AvrCommandError("Invalid channel")
+
+    async def async_delay_up(self) -> None:
+        """Delay up on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_delay_up
+            )
+        else:
+            await self.api.async_get_command(self.urls.command_delay_up)
+
+    async def async_delay_down(self) -> None:
+        """Delay down on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_delay_down
+            )
+        else:
+            await self.api.async_get_command(self.urls.command_delay_down)
+
+    async def async_eco_mode(self, mode: EcoModes) -> None:
+        """Set Eco mode."""
+        if mode not in EcoModes:
+            raise AvrCommandError("Invalid Eco mode")
+
+        mapped_mode = ECO_MODE_MAP[mode]
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_eco_mode.format(mode=mapped_mode)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_eco_mode.format(mode=mapped_mode)
+            )
+
+    async def async_hdmi_output(self, output: HDMIOutputs) -> None:
+        """Set HDMI output."""
+        if output not in HDMIOutputs:
+            raise AvrCommandError("Invalid HDMI output mode")
+
+        mapped_output = HDMIOutputs[output]
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_hdmi_output.format(output=mapped_output)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_hdmi_output.format(output=mapped_output)
+            )
+
+    async def async_status(self):
+        """Get status of receiver via HTTP get command."""
+        if "denon" not in self.manufacturer.lower():
+            raise AvrCommandError("Status command is only supported for Denon devices")
+        return await self.api.async_get_command(self.urls.command_status)
 
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)

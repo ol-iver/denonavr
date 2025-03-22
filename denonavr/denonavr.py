@@ -16,7 +16,17 @@ import attr
 import httpx
 
 from .audyssey import DenonAVRAudyssey, audyssey_factory
-from .const import DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES
+from .const import (
+    DENON_ATTR_SETATTR,
+    MAIN_ZONE,
+    VALID_ZONES,
+    Channels,
+    DimmerModes,
+    DiracFilters,
+    EcoModes,
+    HDMIOutputs,
+)
+from .dirac import DenonAVRDirac, dirac_factory
 from .exceptions import AvrCommandError
 from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
 from .input import DenonAVRInput, input_factory
@@ -81,6 +91,11 @@ class DenonAVR(DenonAVRFoundation):
     audyssey: DenonAVRAudyssey = attr.ib(
         validator=attr.validators.instance_of(DenonAVRAudyssey),
         default=attr.Factory(audyssey_factory, takes_self=True),
+        init=False,
+    )
+    dirac: DenonAVRDirac = attr.ib(
+        validator=attr.validators.instance_of(DenonAVRDirac),
+        default=attr.Factory(dirac_factory, takes_self=True),
         init=False,
     )
     input: DenonAVRInput = attr.ib(
@@ -554,6 +569,10 @@ class DenonAVR(DenonAVRFoundation):
         """Set Dynamic Volume."""
         await self.audyssey.async_set_dynamicvol(value)
 
+    async def async_dirac_filter(self, dirac_filter: DiracFilters) -> None:
+        """Set Dirac filter."""
+        await self.dirac.async_dirac_filter(dirac_filter)
+
     async def async_set_input_func(self, input_func: str) -> None:
         """
         Set input_func of device.
@@ -722,3 +741,43 @@ class DenonAVR(DenonAVRFoundation):
     async def async_settings_menu(self) -> None:
         """Raise settings menu to receiver via HTTP get command."""
         await self._device.async_settings_menu()
+
+    async def async_dimmer_toggle(self) -> None:
+        """Toggle dimmer on receiver via HTTP get command."""
+        await self._device.async_dimmer_toggle()
+
+    async def async_dimmer_set(self, mode: DimmerModes) -> None:
+        """Set dimmer mode on receiver via HTTP get command."""
+        await self._device.async_dimmer_set(mode)
+
+    async def async_channel_level_up(self, channel: Channels) -> None:
+        """Increase level of the specified channel."""
+        await self._device.async_channel_level_up(channel)
+
+    async def async_channel_level_down(self, channel: Channels) -> None:
+        """Decrease level of the specified channel."""
+        await self._device.async_channel_level_down(channel)
+
+    async def async_delay_up(self) -> None:
+        """Increase delay of the audio."""
+        await self._device.async_delay_up()
+
+    async def async_delay_down(self) -> None:
+        """Decrease delay of the audio."""
+        await self._device.async_delay_down()
+
+    async def async_eco_mode(self, mode: EcoModes) -> None:
+        """Set Eco mode."""
+        await self._device.async_eco_mode(mode)
+
+    async def async_hdmi_output(self, output: HDMIOutputs) -> None:
+        """Set HDMI output."""
+        await self._device.async_hdmi_output(output)
+
+    async def async_status(self):
+        """
+        Toggles the display of status on the device.
+
+        Only supported on Denon models.
+        """
+        await self._device.async_status()
