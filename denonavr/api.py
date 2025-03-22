@@ -567,6 +567,7 @@ class DenonAVRTelnetApi:
             "PSREFLEV ?",
             "PSDYNVOL ?",
             "MS?",
+            "MNMEN?",
             skip_confirmation=True,
         )
 

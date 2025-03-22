@@ -35,6 +35,7 @@ from .const import (
     ECO_MODE_MAP,
     MAIN_ZONE,
     POWER_STATES,
+    SETTINGS_MENU_STATES,
     VALID_RECEIVER_TYPES,
     VALID_ZONES,
     ZONE2,
@@ -110,6 +111,9 @@ class DenonAVRDeviceInfo:
     _power: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _settings_menu: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
@@ -135,6 +139,17 @@ class DenonAVRDeviceInfo:
         """Handle a power change event."""
         if self.zone == zone and parameter in POWER_STATES:
             self._power = parameter
+
+    async def _async_settings_menu_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a settings menu event."""
+        if (
+            event == "MN"
+            and parameter[0:3] == "MEN"
+            and parameter[4:] in SETTINGS_MENU_STATES
+        ):
+            self._settings_menu = parameter[4:]
 
     def get_own_zone(self) -> str:
         """
@@ -174,6 +189,8 @@ class DenonAVRDeviceInfo:
             elif self.zone == ZONE3:
                 power_event = "Z3"
             self.telnet_api.register_callback(power_event, self._async_power_callback)
+
+            self.telnet_api.register_callback("MN", self._async_settings_menu_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished device setup")
@@ -530,6 +547,15 @@ class DenonAVRDeviceInfo:
         return self._power
 
     @property
+    def settings_menu(self) -> Optional[str]:
+        """
+        Return the settings menu state of the device. Only available if using Telnet.
+
+        Possible values are: "ON" and "OFF"
+        """
+        return self._settings_menu
+
+    @property
     def telnet_available(self) -> bool:
         """Return true if telnet is connected and healthy."""
         return self.telnet_api.connected and self.telnet_api.healthy
@@ -630,9 +656,9 @@ class DenonAVRDeviceInfo:
 
     async def async_settings_menu(self) -> None:
         """Options menu on receiver via HTTP get command."""
-        res = await self.api.async_get_command(self.urls.command_setup_query)
+        # fast path if we already know the state
         if self.telnet_available:
-            if res is not None and res == "MNMEN ON":
+            if self._settings_menu == "ON":
                 await self.telnet_api.async_send_commands(
                     self.telnet_commands.command_setup_close
                 )
@@ -640,11 +666,13 @@ class DenonAVRDeviceInfo:
                 await self.telnet_api.async_send_commands(
                     self.telnet_commands.command_setup_open
                 )
+            return
+        # slow path if we need to query the state
+        res = await self.api.async_get_command(self.urls.command_setup_query)
+        if res is not None and res == "MNMEN ON":
+            await self.api.async_get_command(self.urls.command_setup_close)
         else:
-            if res is not None and res == "MNMEN ON":
-                await self.api.async_get_command(self.urls.command_setup_close)
-            else:
-                await self.api.async_get_command(self.urls.command_setup_open)
+            await self.api.async_get_command(self.urls.command_setup_open)
 
     async def async_dimmer_toggle(self) -> None:
         """Toggle dimmer on receiver via HTTP get command."""
