@@ -97,9 +97,9 @@ class DenonAVRAudyssey(DenonAVRFoundation):
             self._dynamiceq = "1"
         elif parameter == "DYNEQ OFF":
             self._dynamiceq = "0"
-        elif parameter == "PSLFC ON":
+        elif parameter == "LFC ON":
             self._lfc = "1"
-        elif parameter == "PSLFC OFF":
+        elif parameter == "LFC OFF":
             self._lfc = "0"
 
     async def async_update(
@@ -192,6 +192,11 @@ class DenonAVRAudyssey(DenonAVRFoundation):
         if self._device.telnet_available:
             return list(MULTI_EQ_MAP_LABELS_TELNET.keys())
         return list(MULTI_EQ_MAP_LABELS_APPCOMMAND.keys())
+
+    @property
+    def lfc(self) -> Optional[str]:
+        """Return value of LFC."""
+        return self._lfc
 
     ##########
     # Setter #
