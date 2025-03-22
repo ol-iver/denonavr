@@ -541,7 +541,7 @@ class DenonAVRDeviceInfo:
     @property
     def settings_menu(self) -> Optional[str]:
         """
-        Return the settings menu state of the device.
+        Return the settings menu state of the device. Only available if using Telnet.
 
         Possible values are: "ON" and "OFF"
         """
@@ -649,7 +649,12 @@ class DenonAVRDeviceInfo:
     async def async_settings_menu(self) -> None:
         """Options menu on receiver via HTTP get command."""
         # fast path if we already know the state
-        if self.telnet_available and self._settings_menu is not None:
+        if self.telnet_available:
+            if self._settings_menu is None:
+                self._settings_menu = await self.api.async_get_command(
+                    self.urls.command_setup_query
+                )
+
             if self._settings_menu == "ON":
                 await self.telnet_api.async_send_commands(
                     self.telnet_commands.command_setup_close
@@ -661,20 +666,10 @@ class DenonAVRDeviceInfo:
             return
         # slow path if we need to query the state
         res = await self.api.async_get_command(self.urls.command_setup_query)
-        if self.telnet_available:
-            if res is not None and res == "MNMEN ON":
-                await self.telnet_api.async_send_commands(
-                    self.telnet_commands.command_setup_close
-                )
-            else:
-                await self.telnet_api.async_send_commands(
-                    self.telnet_commands.command_setup_open
-                )
+        if res is not None and res == "MNMEN ON":
+            await self.api.async_get_command(self.urls.command_setup_close)
         else:
-            if res is not None and res == "MNMEN ON":
-                await self.api.async_get_command(self.urls.command_setup_close)
-            else:
-                await self.api.async_get_command(self.urls.command_setup_open)
+            await self.api.async_get_command(self.urls.command_setup_open)
 
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)

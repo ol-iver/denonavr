@@ -281,7 +281,7 @@ class DenonAVR(DenonAVRFoundation):
     @property
     def settings_menu(self) -> Optional[str]:
         """
-        Return the settings menu state of the device.
+        Return the settings menu state of the device. Only available if using Telnet.
 
         Possible values are: "ON" and "OFF"
         """
