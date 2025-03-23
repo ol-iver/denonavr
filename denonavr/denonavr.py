@@ -577,7 +577,7 @@ class DenonAVR(DenonAVRFoundation):
     @property
     def channel_levels(self) -> Optional[Dict[Channels, float]]:
         """
-        Returns the channel levels of the device.
+        Returns the channel levels of the device in dB.
 
         Only available if using Telnet.
         """
@@ -588,7 +588,7 @@ class DenonAVR(DenonAVRFoundation):
     ##########
     def channel_level(self, channel: Channels) -> Optional[float]:
         """
-        Return the level of a channel.
+        Return the level of a channel in dB.
 
         Only available if using Telnet.
         """

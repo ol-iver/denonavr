@@ -24,6 +24,7 @@ from .const import (
     AVR,
     AVR_X,
     AVR_X_2016,
+    CHANNEL_LEVEL_MAP,
     CHANNEL_MAP,
     CHANNEL_MAP_LABELS,
     DENON_ATTR_SETATTR,
@@ -216,9 +217,7 @@ class DenonAVRDeviceInfo:
 
         channel = CHANNEL_MAP_LABELS[channel_level[0]]
         level = channel_level[1]
-        if len(level) == 3:
-            level = f"{level[0:2]}.{level[2:]}"
-        self._channel_levels[channel] = float(level)
+        self._channel_levels[channel] = CHANNEL_LEVEL_MAP[level]
 
     def get_own_zone(self) -> str:
         """
@@ -681,7 +680,7 @@ class DenonAVRDeviceInfo:
     @property
     def channel_levels(self) -> Optional[Dict[Channels, float]]:
         """
-        Return the channel levels of the device.
+        Return the channel levels of the device in dB.
 
         Only available if using Telnet.
         """
@@ -697,7 +696,7 @@ class DenonAVRDeviceInfo:
     ##########
     def channel_level(self, channel: Channels) -> Optional[float]:
         """
-        Return the level of a channel.
+        Return the level of a channel in dB.
 
         Only available if using Telnet.
         """
