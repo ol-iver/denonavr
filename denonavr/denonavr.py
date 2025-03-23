@@ -541,9 +541,7 @@ class DenonAVR(DenonAVRFoundation):
 
     @property
     def delay(self) -> Optional[int]:
-        """
-        Return the audio delay for the device in ms. Only available if using Telnet.
-        """
+        """Return the audio delay for the device in ms. Only available if using Telnet."""
         return self._device.delay
 
     @property
