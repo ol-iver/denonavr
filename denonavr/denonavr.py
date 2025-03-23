@@ -297,7 +297,9 @@ class DenonAVR(DenonAVRFoundation):
     @property
     def settings_menu(self) -> Optional[str]:
         """
-        Return the settings menu state of the device. Only available if using Telnet.
+        Return the settings menu state of the device.
+
+        Only available if using Telnet.
 
         Possible values are: "ON" and "OFF"
         """
@@ -533,7 +535,9 @@ class DenonAVR(DenonAVRFoundation):
     @property
     def dimmer(self) -> Optional[str]:
         """
-        Returns the dimmer state of the device. Only available if using Telnet.
+        Returns the dimmer state of the device.
+
+        Only available if using Telnet.
 
         Possible values are: "Off", "Dark", "Dim" and "Bright"
         """
@@ -541,13 +545,19 @@ class DenonAVR(DenonAVRFoundation):
 
     @property
     def delay(self) -> Optional[int]:
-        """Return the audio delay for the device in ms. Only available if using Telnet."""
+        """
+        Return the audio delay for the device in ms.
+
+        Only available if using Telnet.
+        """
         return self._device.delay
 
     @property
     def eco_mode(self) -> Optional[str]:
         """
-        Returns the eco-mode for the device. Only available if using Telnet.
+        Returns the eco-mode for the device.
+
+        Only available if using Telnet.
 
         Possible values are: "Off", "On", "Auto"
         """
@@ -556,7 +566,9 @@ class DenonAVR(DenonAVRFoundation):
     @property
     def hdmi_output(self) -> Optional[str]:
         """
-        Returns the HDMI-output for the device. Only available if using Telnet.
+        Returns the HDMI-output for the device.
+
+        Only available if using Telnet.
 
         Possible values are: "Auto", "HDMI1", "HDMI2"
         """
@@ -564,14 +576,22 @@ class DenonAVR(DenonAVRFoundation):
 
     @property
     def channel_levels(self) -> Optional[Dict[Channels, float]]:
-        """Returns the channel levels of the device. Only available if using Telnet."""
+        """
+        Returns the channel levels of the device.
+
+        Only available if using Telnet.
+        """
         return self._device.channel_levels
 
     ##########
     # Getter #
     ##########
     def channel_level(self, channel: Channels) -> Optional[float]:
-        """Return the level of a channel. Only available if using Telnet."""
+        """
+        Return the level of a channel.
+
+        Only available if using Telnet.
+        """
         return self._device.channel_level(channel)
 
     ##########

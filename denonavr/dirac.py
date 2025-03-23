@@ -53,7 +53,9 @@ class DenonAVRDirac(DenonAVRFoundation):
     @property
     def dirac_filter(self) -> Optional[str]:
         """
-        Returns the current Dirac filter. Only available if using Telnet.
+        Returns the current Dirac filter.
+
+        Only available if using Telnet.
 
         Possible values are: "Off", "Slot 1", "Slot 2", "Slot 3"
         """
