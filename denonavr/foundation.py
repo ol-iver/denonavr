@@ -12,7 +12,7 @@ import logging
 import xml.etree.ElementTree as ET
 from collections.abc import Hashable
 from copy import deepcopy
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, get_args
 
 import attr
 
@@ -25,6 +25,7 @@ from .const import (
     AVR_X,
     AVR_X_2016,
     CHANNEL_MAP,
+    CHANNEL_MAP_LABELS,
     DENON_ATTR_SETATTR,
     DENONAVR_TELNET_COMMANDS,
     DENONAVR_URLS,
@@ -32,7 +33,10 @@ from .const import (
     DEVICEINFO_AVR_X_PATTERN,
     DEVICEINFO_COMMAPI_PATTERN,
     DIMMER_MODE_MAP,
+    DIMMER_MODE_MAP_LABELS,
     ECO_MODE_MAP,
+    ECO_MODE_MAP_LABELS,
+    HDMI_OUTPUT_MAP_LABELS,
     MAIN_ZONE,
     POWER_STATES,
     SETTINGS_MENU_STATES,
@@ -114,6 +118,23 @@ class DenonAVRDeviceInfo:
     _settings_menu: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _dimmer: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _delay: Optional[int] = attr.ib(
+        converter=attr.converters.optional(int), default=None
+    )
+    _eco_mode: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _hdmi_output: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _channel_levels: Optional[Dict[Channels, float]] = attr.ib(
+        converter=attr.converters.optional(dict), default=None
+    )
+
+    _valid_channels = get_args(Channels)
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
@@ -150,6 +171,54 @@ class DenonAVRDeviceInfo:
             and parameter[4:] in SETTINGS_MENU_STATES
         ):
             self._settings_menu = parameter[4:]
+
+    async def _async_dimmer_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a dimmer change event."""
+        if event == "DIM" and parameter[1:] in DIMMER_MODE_MAP_LABELS:
+            self._dimmer = DIMMER_MODE_MAP_LABELS[parameter[1:]]
+
+    async def _async_delay_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a delay change event."""
+        if event == "PS" and parameter[0:3] == "DEL":
+            self._delay = int(parameter[4:])
+
+    async def _async_eco_mode_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle an Eco-mode change event."""
+        if event == "ECO" and parameter in ECO_MODE_MAP_LABELS:
+            self._eco_mode = ECO_MODE_MAP_LABELS[parameter]
+
+    async def _async_hdmi_output_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a HDMI output change event."""
+        if event == "VS" and parameter[0:4] == "MONI":
+            self._hdmi_output = HDMI_OUTPUT_MAP_LABELS[parameter]
+
+    async def _async_channel_level_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a channel level change event."""
+        if event != "CV":
+            return
+
+        channel_level = parameter.split()
+        if len(channel_level) != 2 or channel_level[0] not in CHANNEL_MAP_LABELS:
+            return
+
+        if self._channel_levels is None:
+            self._channel_levels = {}
+
+        channel = CHANNEL_MAP_LABELS[channel_level[0]]
+        level = channel_level[1]
+        if len(level) == 3:
+            level = f"{level[0:2]}.{level[2:]}"
+        self._channel_levels[channel] = float(level)
 
     def get_own_zone(self) -> str:
         """
@@ -191,6 +260,11 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback(power_event, self._async_power_callback)
 
             self.telnet_api.register_callback("MN", self._async_settings_menu_callback)
+            self.telnet_api.register_callback("DIM", self._async_dimmer_callback)
+            self.telnet_api.register_callback("PS", self._async_delay_callback)
+            self.telnet_api.register_callback("ECO", self._async_eco_mode_callback)
+            self.telnet_api.register_callback("VS", self._async_hdmi_output_callback)
+            self.telnet_api.register_callback("CV", self._async_channel_level_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished device setup")
@@ -297,6 +371,11 @@ class DenonAVRDeviceInfo:
             pass
 
         return False
+
+    @staticmethod
+    def _is_valid_channel(channel: Channels):
+        if channel not in DenonAVRDeviceInfo._valid_channels:
+            raise AvrCommandError("Invalid channel")
 
     async def async_identify_update_method(self) -> None:
         """
@@ -549,16 +628,65 @@ class DenonAVRDeviceInfo:
     @property
     def settings_menu(self) -> Optional[str]:
         """
-        Return the settings menu state of the device. Only available if using Telnet.
+        Returns the settings menu state of the device. Only available if using Telnet.
 
         Possible values are: "ON" and "OFF"
         """
         return self._settings_menu
 
     @property
+    def dimmer(self) -> Optional[str]:
+        """
+        Returns the dimmer state of the device. Only available if using Telnet.
+
+        Possible values are: "Off", "Dark", "Dim" and "Bright"
+        """
+        return self._dimmer
+
+    @property
+    def delay(self) -> Optional[int]:
+        """
+        Returns the audio delay for the device in ms. Only available if using Telnet.
+        """
+        return self._delay
+
+    @property
+    def eco_mode(self) -> Optional[str]:
+        """
+        Returns the eco-mode for the device. Only available if using Telnet.
+
+        Possible values are: "Off", "On", "Auto"
+        """
+        return self._eco_mode
+
+    @property
+    def hdmi_output(self) -> Optional[str]:
+        """
+        Returns the HDMI-output for the device. Only available if using Telnet.
+
+        Possible values are: "Auto", "HDMI1", "HDMI2"
+        """
+        return self._hdmi_output
+
+    @property
+    def channel_levels(self) -> Optional[Dict[Channels, float]]:
+        """Return the channel levels of the device. Only available if using Telnet."""
+        return self._channel_levels
+
+    @property
     def telnet_available(self) -> bool:
         """Return true if telnet is connected and healthy."""
         return self.telnet_api.connected and self.telnet_api.healthy
+
+    ##########
+    # Getter #
+    ##########
+    def channel_level(self, channel: Channels) -> Optional[float]:
+        """Returns the level of a channel. Only available if using Telnet."""
+        self._is_valid_channel(channel)
+        if self._channel_levels is None:
+            return None
+        return self._channel_levels[channel]
 
     ##########
     # Setter #
@@ -729,11 +857,6 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(
                 self.urls.command_channel_level_down.format(channel=mapped_channel)
             )
-
-    @staticmethod
-    def _is_valid_channel(channel: Channels):
-        if channel not in Channels:
-            raise AvrCommandError("Invalid channel")
 
     async def async_delay_up(self) -> None:
         """Delay up on receiver via HTTP get command."""

@@ -164,6 +164,7 @@ class DenonAVR(DenonAVRFoundation):
             await self.tonecontrol.async_setup()
             self.vol.setup()
             self.audyssey.setup()
+            self.dirac.setup()
 
             for zone_name, zone_item in self._zones.items():
                 if zone_name != self.zone:
@@ -528,6 +529,52 @@ class DenonAVR(DenonAVRFoundation):
     def multi_eq_setting_list(self) -> List[str]:
         """Return a list of available MultiEQ settings."""
         return self.audyssey.multi_eq_setting_list
+
+    @property
+    def dimmer(self) -> Optional[str]:
+        """
+        Returns the dimmer state of the device. Only available if using Telnet.
+
+        Possible values are: "Off", "Dark", "Dim" and "Bright"
+        """
+        return self._device.dimmer
+
+    @property
+    def delay(self) -> Optional[int]:
+        """
+        Returns the audio delay for the device in ms. Only available if using Telnet.
+        """
+        return self._device.delay
+
+    @property
+    def eco_mode(self) -> Optional[str]:
+        """
+        Returns the eco-mode for the device. Only available if using Telnet.
+
+        Possible values are: "Off", "On", "Auto"
+        """
+        return self._device.eco_mode
+
+    @property
+    def hdmi_output(self) -> Optional[str]:
+        """
+        Returns the HDMI-output for the device. Only available if using Telnet.
+
+        Possible values are: "Auto", "HDMI1", "HDMI2"
+        """
+        return self._device.hdmi_output
+
+    @property
+    def channel_levels(self) -> Optional[Dict[Channels, float]]:
+        """Returns the channel levels of the device. Only available if using Telnet."""
+        return self._device.channel_levels
+
+    ##########
+    # Getter #
+    ##########
+    def channel_level(self, channel: Channels) -> Optional[float]:
+        """Returns the level of a channel. Only available if using Telnet."""
+        return self._device.channel_level(channel)
 
     ##########
     # Setter #

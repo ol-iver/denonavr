@@ -792,6 +792,11 @@ STATE_PAUSED = "paused"
 SETTINGS_MENU_ON = "ON"
 SETTINGS_MENU_OFF = "OFF"
 SETTINGS_MENU_STATES = {SETTINGS_MENU_ON, SETTINGS_MENU_OFF}
+DIMER_BRIGHT = "BRI"
+DIMER_DIM = "DIM"
+DIMER_DARK = "DAR"
+DIMER_OFF = "OFF"
+DIMMER_STATES = {DIMER_BRIGHT, DIMER_DIM, DIMER_DARK, DIMER_OFF}
 
 # Zones
 ALL_ZONES = "All"
@@ -850,12 +855,19 @@ DYNAMIC_VOLUME_MAP_LABELS_TELNET = {
     value: key for key, value in DYNAMIC_VOLUME_MAP_TELNET.items()
 }
 
-DIMMER_MODE_MAP = {"Off": "OFF", "Dark": "DAR", "Dim": "DIM", "Bright": "BRI"}
+DIMMER_MODE_MAP = {
+    "Off": DIMER_OFF,
+    "Dark": DIMER_DARK,
+    "Dim": DIMER_DIM,
+    "Bright": DIMER_BRIGHT,
+}
+DIMMER_MODE_MAP_LABELS = {value: key for key, value in DIMMER_MODE_MAP.items()}
 
 DimmerModes = Literal["Off", "Dark", "Dim", "Bright"]
 """Dimmer modes."""
 
 DIRAC_FILTER_MAP = {"Off": "OFF", "Slot 1": "1", "Slot 2": "2", "Slot 3": "3"}
+DIRAC_FILTER_MAP_LABELS = {value: key for key, value in DIRAC_FILTER_MAP.items()}
 
 DiracFilters = Literal["Slot 1", "Slot 2", "Slot 3", "Off"]
 """Dirac filters."""
@@ -865,6 +877,7 @@ ECO_MODE_MAP = {
     "Auto": "AUTO",
     "Off": "OFF",
 }
+ECO_MODE_MAP_LABELS = {value: key for key, value in ECO_MODE_MAP.items()}
 
 EcoModes = Literal["On", "Auto", "Off"]
 """Eco modes."""
@@ -873,6 +886,11 @@ HDMI_OUTPUT_MAP = {
     "Auto": "AUTO",
     "HDMI1": "1",
     "HDMI2": "2",
+}
+HDMI_OUTPUT_MAP_LABELS = {
+    "MONIAUTO": "Auto",
+    "MONI1": "HDMI1",
+    "MONI2": "HDMI2",
 }
 
 HDMIOutputs = Literal["Auto", "HDMI1", "HDMI2"]
@@ -913,6 +931,7 @@ CHANNEL_MAP = {
     "Top Surround": "TS",
     "Center Height": "CH",
 }
+CHANNEL_MAP_LABELS = {value: key for key, value in CHANNEL_MAP.items()}
 
 Channels = Literal[
     "Front Left",

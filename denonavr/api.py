@@ -568,6 +568,13 @@ class DenonAVRTelnetApi:
             "PSDYNVOL ?",
             "MS?",
             "MNMEN?",
+            "DIM ?",
+            "PSDELAY?",
+            "ECO?",
+            "VSMONI ?",
+            "PSDIRAC ?",
+            "PSDEL ?",
+            "CV?",
             skip_confirmation=True,
         )
 
