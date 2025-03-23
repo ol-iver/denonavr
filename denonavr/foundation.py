@@ -646,7 +646,7 @@ class DenonAVRDeviceInfo:
     @property
     def delay(self) -> Optional[int]:
         """
-        Returns the audio delay for the device in ms. Only available if using Telnet.
+        Return the audio delay for the device in ms. Only available if using Telnet.
         """
         return self._delay
 
@@ -682,7 +682,7 @@ class DenonAVRDeviceInfo:
     # Getter #
     ##########
     def channel_level(self, channel: Channels) -> Optional[float]:
-        """Returns the level of a channel. Only available if using Telnet."""
+        """Return the level of a channel. Only available if using Telnet."""
         self._is_valid_channel(channel)
         if self._channel_levels is None:
             return None
