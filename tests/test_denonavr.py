@@ -42,6 +42,7 @@ TESTING_RECEIVERS = {
     "AVR-3312": (NO_ZONES, denonavr.const.AVR),
     "NR1609": (ZONE2, denonavr.const.AVR_X_2016),
     "AVC-8500H": (ZONE2_ZONE3, denonavr.const.AVR_X_2016),
+    "AVC-A10H": (ZONE2_ZONE3, denonavr.const.AVR_X_2016),
     "AVR-X4300H": (ZONE2_ZONE3, denonavr.const.AVR_X_2016),
     "AVR-X1100W": (ZONE2, denonavr.const.AVR_X),
     "SR6012": (ZONE2, denonavr.const.AVR_X_2016),
