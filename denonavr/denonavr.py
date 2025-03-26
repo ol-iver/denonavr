@@ -904,3 +904,19 @@ class DenonAVR(DenonAVRFoundation):
     async def async_transducer_lpf_set(self, lpf: TransducerLPFs) -> None:
         """Set transducer low pass filter on receiver via HTTP get command."""
         await self._device.async_transducer_lpf_set(lpf)
+
+    async def async_quick_select_mode(self, quick_select_number: int) -> None:
+        """
+        Set quick select mode on receiver via HTTP get command.
+
+        Valid quick select numbers are 1-5.
+        """
+        await self._device.async_quick_select_mode(quick_select_number)
+
+    async def async_quick_select_memory(self, quick_select_number: int) -> None:
+        """
+        Set quick select memory on receiver via HTTP get command.
+
+        Valid quick select numbers are 1-5.
+        """
+        await self._device.async_quick_select_memory(quick_select_number)
