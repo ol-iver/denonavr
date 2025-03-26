@@ -21,10 +21,10 @@ from .const import (
     DENON_ATTR_SETATTR,
     MAIN_ZONE,
     STATE_ON,
-    Channels,
     SUBWOOFERS_MAP,
-    Subwoofers,
     SUBWOOFERS_MAP_LABELS,
+    Channels,
+    Subwoofers,
 )
 from .exceptions import AvrCommandError, AvrProcessingError
 from .foundation import DenonAVRFoundation

@@ -24,6 +24,7 @@ from .const import (
     AVR,
     AVR_X,
     AVR_X_2016,
+    CHANNEL_VOLUME_MAP,
     DENON_ATTR_SETATTR,
     DENONAVR_TELNET_COMMANDS,
     DENONAVR_URLS,
@@ -52,7 +53,6 @@ from .const import (
     ReceiverType,
     ReceiverURLs,
     TelnetCommands,
-    CHANNEL_VOLUME_MAP,
     TransducerLPFs,
 )
 from .exceptions import (
