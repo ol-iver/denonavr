@@ -40,6 +40,8 @@ ReceiverURLs = namedtuple(
         "command_mute_on",
         "command_mute_off",
         "command_sel_sound_mode",
+        "command_neural_x_on_off",
+        "command_imax_auto_off",
         "command_netaudio_post",
         "command_set_all_zone_stereo",
         "command_pause",
@@ -82,6 +84,8 @@ TelnetCommands = namedtuple(
         "command_mute_on",
         "command_mute_off",
         "command_sel_sound_mode",
+        "command_neural_x_on_off",
+        "command_imax_auto_off",
         "command_set_all_zone_stereo",
         "command_pause",
         "command_play",
@@ -405,6 +409,8 @@ COMMAND_MUTE_ON_URL = "/goform/formiPhoneAppMute.xml?1+MuteOn"
 COMMAND_MUTE_OFF_URL = "/goform/formiPhoneAppMute.xml?1+MuteOff"
 COMMAND_SEL_SM_URL = "/goform/formiPhoneAppDirect.xml?MS"
 COMMAND_SET_ZST_URL = "/goform/formiPhoneAppDirect.xml?MN"
+COMMAND_NEURAL_X_ON_OFF = "/goform/formiPhoneAppDirect.xml?PSNEURAL%20{mode}"
+COMMAND_IMAX_AUTO_OFF = "/goform/formiPhoneAppDirect.xml?PSIMAX%20{mode}"
 COMMAND_CURSOR_UP = "/goform/formiPhoneAppDirect.xml?MNCUP"
 COMMAND_CURSOR_DOWN = "/goform/formiPhoneAppDirect.xml?MNCDN"
 COMMAND_CURSOR_LEFT = "/goform/formiPhoneAppDirect.xml?MNCLT"
@@ -471,6 +477,8 @@ DENONAVR_URLS = ReceiverURLs(
     command_mute_on=COMMAND_MUTE_ON_URL,
     command_mute_off=COMMAND_MUTE_OFF_URL,
     command_sel_sound_mode=COMMAND_SEL_SM_URL,
+    command_neural_x_on_off=COMMAND_MUTE_ON_URL,
+    command_imax_auto_off=COMMAND_IMAX_AUTO_OFF,
     command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
@@ -519,6 +527,8 @@ ZONE2_URLS = ReceiverURLs(
     command_mute_on=COMMAND_MUTE_ON_Z2_URL,
     command_mute_off=COMMAND_MUTE_OFF_Z2_URL,
     command_sel_sound_mode=COMMAND_SEL_SM_URL,
+    command_neural_x_on_off=COMMAND_NEURAL_X_ON_OFF,
+    command_imax_auto_off=COMMAND_IMAX_AUTO_OFF,
     command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
@@ -567,6 +577,8 @@ ZONE3_URLS = ReceiverURLs(
     command_mute_on=COMMAND_MUTE_ON_Z3_URL,
     command_mute_off=COMMAND_MUTE_OFF_Z3_URL,
     command_sel_sound_mode=COMMAND_SEL_SM_URL,
+    command_neural_x_on_off=COMMAND_IMAX_AUTO_OFF,
+    command_imax_auto_off=COMMAND_IMAX_AUTO_OFF,
     command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
@@ -662,6 +674,8 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_mute_on="MUON",
     command_mute_off="MUOFF",
     command_sel_sound_mode="MS",
+    command_neural_x_on_off="PSNEURAL {mode}",
+    command_imax_auto_off="PSIMAX {mode}",
     command_set_all_zone_stereo="MN",
     command_pause="NS9B",
     command_play="NS9A",
@@ -708,6 +722,8 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_mute_on="Z2MUON",
     command_mute_off="Z2MUOFF",
     command_sel_sound_mode="MS",
+    command_neural_x_on_off="PSNEURAL {mode}",
+    command_imax_auto_off="PSIMAX {mode}",
     command_set_all_zone_stereo="MN",
     command_pause="NS9B",
     command_play="NS9A",
@@ -754,6 +770,8 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_mute_on="Z3MUON",
     command_mute_off="Z3MUOFF",
     command_sel_sound_mode="MS",
+    command_neural_x_on_off="PSNEURAL {mode}",
+    command_imax_auto_off="PSIMAX {mode}",
     command_set_all_zone_stereo="MN",
     command_pause="NS9B",
     command_play="NS9A",

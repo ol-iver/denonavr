@@ -573,8 +573,9 @@ class DenonAVRTelnetApi:
             "ECO?",
             "VSMONI ?",
             "PSDIRAC ?",
-            "PSDEL ?",
             "CV?",
+            "PSNEURAL ?",
+            "PSIMAX ?",
             skip_confirmation=True,
         )
 

@@ -67,6 +67,12 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     _sound_mode_raw: Optional[str] = attr.ib(
         converter=attr.converters.optional(convert_sound_mode), default=None
     )
+    _neural_x_on_off: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _imax_auto_off: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
     _sound_mode_map: Dict[str, list] = attr.ib(
         validator=attr.validators.deep_mapping(
             attr.validators.instance_of(str),
@@ -113,6 +119,10 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             self._device.telnet_api.register_callback(
                 "MS", self._async_soundmode_callback
             )
+            self._device.telnet_api.register_callback(
+                "PS", self._async_neural_x_callback
+            )
+            self._device.telnet_api.register_callback("PS", self._async_imax_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished sound mode setup")
@@ -125,6 +135,22 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             return
 
         self._sound_mode_raw = parameter
+
+    async def _async_neural_x_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a Neural X change event."""
+        parameter_name_length = len("NEURAL")
+        if parameter[:parameter_name_length] == "NEURAL":
+            _LOGGER.debug("Neural X callback: %s, %s, %s", zone, event, parameter)
+            self._neural_x_on_off = parameter[parameter_name_length + 1 :]
+
+    async def _async_imax_callback(self, zone: str, event: str, parameter: str) -> None:
+        """Handle an IMAX change event."""
+        parameter_name_length = len("IMAX")
+        if parameter[:parameter_name_length] == "IMAX":
+            _LOGGER.debug("IMAX callback: %s, %s, %s", zone, event, parameter)
+            self._imax_auto_off = parameter[parameter_name_length + 1 :]
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -292,6 +318,28 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         """Return the current sound mode as string as received from the AVR."""
         return self._sound_mode_raw
 
+    @property
+    def neural_x(self) -> Optional[str]:
+        """
+        Return the current Neural:X status.
+
+        Only available if using Telnet.
+
+        Possible values are: "ON", "OFF"
+        """
+        return self._neural_x_on_off
+
+    @property
+    def imax(self) -> Optional[str]:
+        """
+        Return the current IMAX status.
+
+        Only available if using Telnet.
+
+        Possible values are: "AUTO", "OFF"
+        """
+        return self._imax_auto_off
+
     ##########
     # Setter #
     ##########
@@ -346,6 +394,72 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             await self._device.api.async_get_command(
                 self._device.urls.command_sel_sound_mode + "LEFT"
             )
+
+    async def async_neural_x_on(self):
+        """Turn on Neural:X sound mode."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_neural_x_on_off.format(mode="ON")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_neural_x_on_off.format(mode="ON")
+            )
+
+    async def async_neural_x_off(self):
+        """Turn off Neural:X sound mode."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_neural_x_on_off.format(mode="OFF")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_neural_x_on_off.format(mode="OFF")
+            )
+
+    async def async_neural_x_toggle(self):
+        """
+        Toggle Neural:X sound mode.
+
+        Only available if using Telnet.
+        """
+        if self._neural_x_on_off == "ON":
+            await self.async_neural_x_off()
+        else:
+            await self.async_neural_x_on()
+
+    async def async_imax_auto(self):
+        """Set IMAX sound mode to Auto."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_imax_auto_off.format(mode="AUTO")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_imax_auto_off.format(mode="AUTO")
+            )
+
+    async def async_imax_off(self):
+        """Turn off IMAX sound mode."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_imax_auto_off.format(mode="OFF")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_imax_auto_off.format(mode="OFF")
+            )
+
+    async def async_imax_toggle(self):
+        """
+        Toggle IMAX sound mode between auto and off.
+
+        Only available if using Telnet.
+        """
+        if self._imax_auto_off != "OFF":
+            await self.async_imax_off()
+        else:
+            await self.async_imax_auto()
 
 
 def sound_mode_factory(instance: DenonAVRFoundation) -> DenonAVRSoundMode:
