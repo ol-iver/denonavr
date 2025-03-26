@@ -57,8 +57,9 @@ ReceiverURLs = namedtuple(
         "command_setup_query",
         "command_dimmer_toggle",
         "command_dimmer_set",
-        "command_channel_level_up",
-        "command_channel_level_down",
+        "command_channel_volume_up",
+        "command_channel_volume_down",
+        "command_channel_volumes_reset",
         "command_delay_up",
         "command_delay_down",
         "command_dirac_filter",
@@ -104,8 +105,9 @@ TelnetCommands = namedtuple(
         "command_setup_query",
         "command_dimmer_toggle",
         "command_dimmer_set",
-        "command_channel_level_up",
-        "command_channel_level_down",
+        "command_channel_volume_up",
+        "command_channel_volume_down",
+        "command_channel_volumes_reset",
         "command_delay_up",
         "command_delay_down",
         "command_dirac_filter",
@@ -416,8 +418,9 @@ COMMAND_SETUP_CLOSE = "/goform/formiPhoneAppDirect.xml?MNMEN%20OFF"
 COMMAND_SETUP_QUERY = "/goform/formiPhoneAppDirect.xml?MNMEN?"
 COMMAND_DIMMER_TOGGLE = "/goform/formiPhoneAppDirect.xml?DIM%20SEL"
 COMMAND_DIMMER_SET = "/goform/formiPhoneAppDirect.xml?DIM%20{mode}"
-COMMAND_CHANNEL_LEVEL_UP = "/goform/formiPhoneAppDirect.xml?CV{channel}%20UP"
-COMMAND_CHANNEL_LEVEL_DOWN = "/goform/formiPhoneAppDirect.xml?CV{channel}%20DOWN"
+COMMAND_CHANNEL_VOLUME_UP = "/goform/formiPhoneAppDirect.xml?CV{channel}%20UP"
+COMMAND_CHANNEL_VOLUME_DOWN = "/goform/formiPhoneAppDirect.xml?CV{channel}%20DOWN"
+COMMAND_CHANNEL_VOLUMES_RESET = "/goform/formiPhoneAppDirect.xml?CVZRL"
 COMMAND_DELAY_UP = "/goform/formiPhoneAppDirect.xml?PSDELAY%20UP"
 COMMAND_DELAY_DOWN = "/goform/formiPhoneAppDirect.xml?PSDELAY%20DOWN"
 COMMAND_DIRAC_FILTER = "/goform/formiPhoneAppDirect.xml?PSDIRAC%20{filter}"
@@ -485,8 +488,9 @@ DENONAVR_URLS = ReceiverURLs(
     command_setup_query=COMMAND_SETUP_QUERY,
     command_dimmer_toggle=COMMAND_DIMMER_TOGGLE,
     command_dimmer_set=COMMAND_DIMMER_SET,
-    command_channel_level_up=COMMAND_CHANNEL_LEVEL_UP,
-    command_channel_level_down=COMMAND_CHANNEL_LEVEL_DOWN,
+    command_channel_volume_up=COMMAND_CHANNEL_VOLUME_UP,
+    command_channel_volume_down=COMMAND_CHANNEL_VOLUME_DOWN,
+    command_channel_volumes_reset=COMMAND_CHANNEL_VOLUMES_RESET,
     command_delay_up=COMMAND_DELAY_UP,
     command_delay_down=COMMAND_DELAY_DOWN,
     command_dirac_filter=COMMAND_DIRAC_FILTER,
@@ -532,8 +536,9 @@ ZONE2_URLS = ReceiverURLs(
     command_setup_query=COMMAND_SETUP_QUERY,
     command_dimmer_toggle=COMMAND_DIMMER_TOGGLE,
     command_dimmer_set=COMMAND_DIMMER_SET,
-    command_channel_level_up=COMMAND_CHANNEL_LEVEL_UP,
-    command_channel_level_down=COMMAND_CHANNEL_LEVEL_DOWN,
+    command_channel_volume_up=COMMAND_CHANNEL_VOLUME_UP,
+    command_channel_volume_down=COMMAND_CHANNEL_VOLUME_DOWN,
+    command_channel_volumes_reset=COMMAND_CHANNEL_VOLUMES_RESET,
     command_delay_up=COMMAND_DELAY_UP,
     command_delay_down=COMMAND_DELAY_DOWN,
     command_dirac_filter=COMMAND_DIRAC_FILTER,
@@ -579,8 +584,9 @@ ZONE3_URLS = ReceiverURLs(
     command_setup_query=COMMAND_SETUP_QUERY,
     command_dimmer_toggle=COMMAND_DIMMER_TOGGLE,
     command_dimmer_set=COMMAND_DIMMER_SET,
-    command_channel_level_up=COMMAND_CHANNEL_LEVEL_UP,
-    command_channel_level_down=COMMAND_CHANNEL_LEVEL_DOWN,
+    command_channel_volume_up=COMMAND_CHANNEL_VOLUME_UP,
+    command_channel_volume_down=COMMAND_CHANNEL_VOLUME_DOWN,
+    command_channel_volumes_reset=COMMAND_CHANNEL_VOLUMES_RESET,
     command_delay_up=COMMAND_DELAY_UP,
     command_delay_down=COMMAND_DELAY_DOWN,
     command_dirac_filter=COMMAND_DIRAC_FILTER,
@@ -679,8 +685,9 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_setup_query="MNMEN?",
     command_dimmer_toggle="DIM SEL",
     command_dimmer_set="DIM {mode}",
-    command_channel_level_up="CV{channel} UP",
-    command_channel_level_down="CV{channel} DOWN",
+    command_channel_volume_up="CV{channel} UP",
+    command_channel_volume_down="CV{channel} DOWN",
+    command_channel_volumes_reset="CVZRL",
     command_delay_up="PSDELAY UP",
     command_delay_down="PSDELAY DOWN",
     command_dirac_filter="PSDIRAC {filter}",
@@ -724,8 +731,9 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_setup_query="MNMEN?",
     command_dimmer_toggle="DIM SEL",
     command_dimmer_set="DIM {mode}",
-    command_channel_level_up="CV{channel} UP",
-    command_channel_level_down="CV{channel} DOWN",
+    command_channel_volume_up="CV{channel} UP",
+    command_channel_volume_down="CV{channel} DOWN",
+    command_channel_volumes_reset="CVZRL",
     command_delay_up="PSDELAY UP",
     command_delay_down="PSDELAY DOWN",
     command_dirac_filter="PSDIRAC {filter}",
@@ -769,8 +777,9 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_setup_query="MNMEN?",
     command_dimmer_toggle="DIM SEL",
     command_dimmer_set="DIM {mode}",
-    command_channel_level_up="CV{channel} UP",
-    command_channel_level_down="CV{channel} DOWN",
+    command_channel_volume_up="CV{channel} UP",
+    command_channel_volume_down="CV{channel} DOWN",
+    command_channel_volumes_reset="CVZRL",
     command_delay_up="PSDELAY UP",
     command_delay_down="PSDELAY DOWN",
     command_dirac_filter="PSDIRAC {filter}",
@@ -970,7 +979,7 @@ Channels = Literal[
 ]
 """Receiver Channels."""
 
-CHANNEL_LEVEL_MAP = {
+CHANNEL_VOLUME_MAP = {
     "38": -12.0,
     "385": -11.5,
     "39": -11.0,

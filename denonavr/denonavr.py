@@ -575,24 +575,24 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.hdmi_output
 
     @property
-    def channel_levels(self) -> Optional[Dict[Channels, float]]:
+    def channel_volumes(self) -> Optional[Dict[Channels, float]]:
         """
-        Returns the channel levels of the device in dB.
+        Returns the channel volumes of the receiver in dB.
 
         Only available if using Telnet.
         """
-        return self._device.channel_levels
+        return self.vol.channel_volumes
 
     ##########
     # Getter #
     ##########
-    def channel_level(self, channel: Channels) -> Optional[float]:
+    def channel_volume(self, channel: Channels) -> Optional[float]:
         """
-        Return the level of a channel in dB.
+        Return the volume of a channel in dB.
 
         Only available if using Telnet.
         """
-        return self._device.channel_level(channel)
+        return self.vol.channel_volume(channel)
 
     ##########
     # Setter #
@@ -815,13 +815,13 @@ class DenonAVR(DenonAVRFoundation):
         """Set dimmer mode on receiver via HTTP get command."""
         await self._device.async_dimmer_set(mode)
 
-    async def async_channel_level_up(self, channel: Channels) -> None:
-        """Increase level of the specified channel."""
-        await self._device.async_channel_level_up(channel)
+    async def async_channel_volume_up(self, channel: Channels) -> None:
+        """Increase volume of the specified channel."""
+        await self.vol.async_channel_volume_up(channel)
 
-    async def async_channel_level_down(self, channel: Channels) -> None:
-        """Decrease level of the specified channel."""
-        await self._device.async_channel_level_down(channel)
+    async def async_channel_volume_down(self, channel: Channels) -> None:
+        """Decrease volume of the specified channel."""
+        await self.vol.async_channel_volume_down(channel)
 
     async def async_delay_up(self) -> None:
         """Increase delay of the audio."""

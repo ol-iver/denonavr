@@ -9,12 +9,20 @@ This module implements the handler for volume of Denon AVR receivers.
 
 import logging
 from collections.abc import Hashable
-from typing import Optional, Union
+from typing import Dict, Optional, Union, get_args
 
 import attr
 
 from .appcommand import AppCommands
-from .const import DENON_ATTR_SETATTR, MAIN_ZONE, STATE_ON
+from .const import (
+    CHANNEL_MAP,
+    CHANNEL_MAP_LABELS,
+    CHANNEL_VOLUME_MAP,
+    DENON_ATTR_SETATTR,
+    MAIN_ZONE,
+    STATE_ON,
+    Channels,
+)
 from .exceptions import AvrCommandError, AvrProcessingError
 from .foundation import DenonAVRFoundation
 
@@ -43,6 +51,10 @@ class DenonAVRVolume(DenonAVRFoundation):
     _muted: Optional[bool] = attr.ib(
         converter=attr.converters.optional(convert_muted), default=None
     )
+    _channel_volumes: Optional[Dict[Channels, float]] = attr.ib(
+        converter=attr.converters.optional(dict), default=None
+    )
+    _valid_channels = get_args(Channels)
 
     # Update tags for attributes
     # AppCommand.xml interface
@@ -61,6 +73,9 @@ class DenonAVRVolume(DenonAVRFoundation):
 
         self._device.telnet_api.register_callback("MV", self._async_volume_callback)
         self._device.telnet_api.register_callback("MU", self._async_mute_callback)
+        self._device.telnet_api.register_callback(
+            "CV", self._async_channel_volume_callback
+        )
 
         self._is_setup = True
 
@@ -84,6 +99,24 @@ class DenonAVRVolume(DenonAVRFoundation):
             return
 
         self._muted = parameter
+
+    async def _async_channel_volume_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a channel volume change event."""
+        if event != "CV":
+            return
+
+        channel_volume = parameter.split()
+        if len(channel_volume) != 2 or channel_volume[0] not in CHANNEL_MAP_LABELS:
+            return
+
+        if self._channel_volumes is None:
+            self._channel_volumes = {}
+
+        channel = CHANNEL_MAP_LABELS[channel_volume[0]]
+        volume = channel_volume[1]
+        self._channel_volumes[channel] = CHANNEL_VOLUME_MAP[volume]
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -140,6 +173,29 @@ class DenonAVRVolume(DenonAVRFoundation):
         Minimum is -80.0, maximum at 18.0
         """
         return self._volume
+
+    @property
+    def channel_volumes(self) -> Optional[Dict[Channels, float]]:
+        """
+        Return the channel levels of the device in dB.
+
+        Only available if using Telnet.
+        """
+        return self._channel_volumes
+
+    ##########
+    # Getter #
+    ##########
+    def channel_volume(self, channel: Channels) -> Optional[float]:
+        """
+        Return the volume of a channel in dB.
+
+        Only available if using Telnet.
+        """
+        self._is_valid_channel(channel)
+        if self._channel_volumes is None:
+            return None
+        return self._channel_volumes[channel]
 
     ##########
     # Setter #
@@ -209,6 +265,58 @@ class DenonAVRVolume(DenonAVRFoundation):
                 await self._device.api.async_get_command(
                     self._device.urls.command_mute_off
                 )
+
+    async def async_channel_volume_up(self, channel: Channels) -> None:
+        """Channel volume up on receiver via HTTP get command."""
+        self._is_valid_channel(channel)
+
+        mapped_channel = CHANNEL_MAP[channel]
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_channel_volume_up.format(
+                    channel=mapped_channel
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_channel_volume_up.format(
+                    channel=mapped_channel
+                )
+            )
+
+    async def async_channel_volume_down(self, channel: Channels) -> None:
+        """Channel volume down on receiver via HTTP get command."""
+        self._is_valid_channel(channel)
+
+        mapped_channel = CHANNEL_MAP[channel]
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_channel_volume_down.format(
+                    channel=mapped_channel
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_channel_volume_down.format(
+                    channel=mapped_channel
+                )
+            )
+
+    async def async_channel_volumes_reset(self) -> None:
+        """Reset channel volumes on receiver via HTTP get command."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_channel_volumes_reset
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_channel_volumes_reset
+            )
+
+    @staticmethod
+    def _is_valid_channel(channel: Channels):
+        if channel not in DenonAVRVolume._valid_channels:
+            raise AvrCommandError("Invalid channel")
 
 
 def volume_factory(instance: DenonAVRFoundation) -> DenonAVRVolume:

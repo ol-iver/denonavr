@@ -12,7 +12,7 @@ import logging
 import xml.etree.ElementTree as ET
 from collections.abc import Hashable
 from copy import deepcopy
-from typing import Dict, List, Optional, Union, get_args
+from typing import Dict, List, Optional, Union
 
 import attr
 
@@ -24,9 +24,6 @@ from .const import (
     AVR,
     AVR_X,
     AVR_X_2016,
-    CHANNEL_LEVEL_MAP,
-    CHANNEL_MAP,
-    CHANNEL_MAP_LABELS,
     DENON_ATTR_SETATTR,
     DENONAVR_TELNET_COMMANDS,
     DENONAVR_URLS,
@@ -49,7 +46,6 @@ from .const import (
     ZONE3,
     ZONE3_TELNET_COMMANDS,
     ZONE3_URLS,
-    Channels,
     DimmerModes,
     EcoModes,
     HDMIOutputs,
@@ -131,11 +127,6 @@ class DenonAVRDeviceInfo:
     _hdmi_output: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
-    _channel_levels: Optional[Dict[Channels, float]] = attr.ib(
-        converter=attr.converters.optional(dict), default=None
-    )
-
-    _valid_channels = get_args(Channels)
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
@@ -201,24 +192,6 @@ class DenonAVRDeviceInfo:
         if event == "VS" and parameter[0:4] == "MONI":
             self._hdmi_output = HDMI_OUTPUT_MAP_LABELS[parameter]
 
-    async def _async_channel_level_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
-        """Handle a channel level change event."""
-        if event != "CV":
-            return
-
-        channel_level = parameter.split()
-        if len(channel_level) != 2 or channel_level[0] not in CHANNEL_MAP_LABELS:
-            return
-
-        if self._channel_levels is None:
-            self._channel_levels = {}
-
-        channel = CHANNEL_MAP_LABELS[channel_level[0]]
-        level = channel_level[1]
-        self._channel_levels[channel] = CHANNEL_LEVEL_MAP[level]
-
     def get_own_zone(self) -> str:
         """
         Get zone from actual instance.
@@ -263,7 +236,6 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback("PS", self._async_delay_callback)
             self.telnet_api.register_callback("ECO", self._async_eco_mode_callback)
             self.telnet_api.register_callback("VS", self._async_hdmi_output_callback)
-            self.telnet_api.register_callback("CV", self._async_channel_level_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished device setup")
@@ -370,11 +342,6 @@ class DenonAVRDeviceInfo:
             pass
 
         return False
-
-    @staticmethod
-    def _is_valid_channel(channel: Channels):
-        if channel not in DenonAVRDeviceInfo._valid_channels:
-            raise AvrCommandError("Invalid channel")
 
     async def async_identify_update_method(self) -> None:
         """
@@ -678,32 +645,9 @@ class DenonAVRDeviceInfo:
         return self._hdmi_output
 
     @property
-    def channel_levels(self) -> Optional[Dict[Channels, float]]:
-        """
-        Return the channel levels of the device in dB.
-
-        Only available if using Telnet.
-        """
-        return self._channel_levels
-
-    @property
     def telnet_available(self) -> bool:
         """Return true if telnet is connected and healthy."""
         return self.telnet_api.connected and self.telnet_api.healthy
-
-    ##########
-    # Getter #
-    ##########
-    def channel_level(self, channel: Channels) -> Optional[float]:
-        """
-        Return the level of a channel in dB.
-
-        Only available if using Telnet.
-        """
-        self._is_valid_channel(channel)
-        if self._channel_levels is None:
-            return None
-        return self._channel_levels[channel]
 
     ##########
     # Setter #
@@ -841,38 +785,6 @@ class DenonAVRDeviceInfo:
         else:
             await self.api.async_get_command(
                 self.urls.command_dimmer_set.format(mode=mapped_mode)
-            )
-
-    async def async_channel_level_up(self, channel: Channels) -> None:
-        """Channel level up on receiver via HTTP get command."""
-        self._is_valid_channel(channel)
-
-        mapped_channel = CHANNEL_MAP[channel]
-        if self.telnet_available:
-            await self.telnet_api.async_send_commands(
-                self.telnet_commands.command_channel_level_up.format(
-                    channel=mapped_channel
-                )
-            )
-        else:
-            await self.api.async_get_command(
-                self.urls.command_channel_level_up.format(channel=mapped_channel)
-            )
-
-    async def async_channel_level_down(self, channel: Channels) -> None:
-        """Channel level down on receiver via HTTP get command."""
-        self._is_valid_channel(channel)
-
-        mapped_channel = CHANNEL_MAP[channel]
-        if self.telnet_available:
-            await self.telnet_api.async_send_commands(
-                self.telnet_commands.command_channel_level_down.format(
-                    channel=mapped_channel
-                )
-            )
-        else:
-            await self.api.async_get_command(
-                self.urls.command_channel_level_down.format(channel=mapped_channel)
             )
 
     async def async_delay_up(self) -> None:
