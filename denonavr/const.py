@@ -62,6 +62,8 @@ ReceiverURLs = namedtuple(
         "command_channel_volume_up",
         "command_channel_volume_down",
         "command_channel_volumes_reset",
+        "command_subwoofer_on_off",
+        "command_subwoofer_level",
         "command_delay_up",
         "command_delay_down",
         "command_dirac_filter",
@@ -112,6 +114,8 @@ TelnetCommands = namedtuple(
         "command_channel_volume_up",
         "command_channel_volume_down",
         "command_channel_volumes_reset",
+        "command_subwoofer_on_off",
+        "command_subwoofer_level",
         "command_delay_up",
         "command_delay_down",
         "command_dirac_filter",
@@ -427,6 +431,8 @@ COMMAND_DIMMER_SET = "/goform/formiPhoneAppDirect.xml?DIM%20{mode}"
 COMMAND_CHANNEL_VOLUME_UP = "/goform/formiPhoneAppDirect.xml?CV{channel}%20UP"
 COMMAND_CHANNEL_VOLUME_DOWN = "/goform/formiPhoneAppDirect.xml?CV{channel}%20DOWN"
 COMMAND_CHANNEL_VOLUMES_RESET = "/goform/formiPhoneAppDirect.xml?CVZRL"
+COMMAND_SUBWOOFER_ON_OFF = "/goform/formiPhoneAppDirect.xml?PSSWR%20{mode}"
+COMMAND_SUBWOOFER_LEVEL = "/goform/formiPhoneAppDirect.xml?PSSWL{number}%20{mode}"
 COMMAND_DELAY_UP = "/goform/formiPhoneAppDirect.xml?PSDELAY%20UP"
 COMMAND_DELAY_DOWN = "/goform/formiPhoneAppDirect.xml?PSDELAY%20DOWN"
 COMMAND_DIRAC_FILTER = "/goform/formiPhoneAppDirect.xml?PSDIRAC%20{filter}"
@@ -499,6 +505,8 @@ DENONAVR_URLS = ReceiverURLs(
     command_channel_volume_up=COMMAND_CHANNEL_VOLUME_UP,
     command_channel_volume_down=COMMAND_CHANNEL_VOLUME_DOWN,
     command_channel_volumes_reset=COMMAND_CHANNEL_VOLUMES_RESET,
+    command_subwoofer_on_off=COMMAND_SUBWOOFER_ON_OFF,
+    command_subwoofer_level=COMMAND_SUBWOOFER_LEVEL,
     command_delay_up=COMMAND_DELAY_UP,
     command_delay_down=COMMAND_DELAY_DOWN,
     command_dirac_filter=COMMAND_DIRAC_FILTER,
@@ -549,6 +557,8 @@ ZONE2_URLS = ReceiverURLs(
     command_channel_volume_up=COMMAND_CHANNEL_VOLUME_UP,
     command_channel_volume_down=COMMAND_CHANNEL_VOLUME_DOWN,
     command_channel_volumes_reset=COMMAND_CHANNEL_VOLUMES_RESET,
+    command_subwoofer_on_off=COMMAND_SUBWOOFER_ON_OFF,
+    command_subwoofer_level=COMMAND_SUBWOOFER_LEVEL,
     command_delay_up=COMMAND_DELAY_UP,
     command_delay_down=COMMAND_DELAY_DOWN,
     command_dirac_filter=COMMAND_DIRAC_FILTER,
@@ -599,6 +609,8 @@ ZONE3_URLS = ReceiverURLs(
     command_channel_volume_up=COMMAND_CHANNEL_VOLUME_UP,
     command_channel_volume_down=COMMAND_CHANNEL_VOLUME_DOWN,
     command_channel_volumes_reset=COMMAND_CHANNEL_VOLUMES_RESET,
+    command_subwoofer_on_off=COMMAND_SUBWOOFER_ON_OFF,
+    command_subwoofer_level=COMMAND_SUBWOOFER_LEVEL,
     command_delay_up=COMMAND_DELAY_UP,
     command_delay_down=COMMAND_DELAY_DOWN,
     command_dirac_filter=COMMAND_DIRAC_FILTER,
@@ -702,6 +714,8 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_channel_volume_up="CV{channel} UP",
     command_channel_volume_down="CV{channel} DOWN",
     command_channel_volumes_reset="CVZRL",
+    command_subwoofer_on_off="PSSWR {mode}",
+    command_subwoofer_level="PSSWL{number} {mode}",
     command_delay_up="PSDELAY UP",
     command_delay_down="PSDELAY DOWN",
     command_dirac_filter="PSDIRAC {filter}",
@@ -750,6 +764,8 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_channel_volume_up="CV{channel} UP",
     command_channel_volume_down="CV{channel} DOWN",
     command_channel_volumes_reset="CVZRL",
+    command_subwoofer_on_off="PSSWR {mode}",
+    command_subwoofer_level="PSSWL{number} {mode}",
     command_delay_up="PSDELAY UP",
     command_delay_down="PSDELAY DOWN",
     command_dirac_filter="PSDIRAC {filter}",
@@ -798,6 +814,8 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_channel_volume_up="CV{channel} UP",
     command_channel_volume_down="CV{channel} DOWN",
     command_channel_volumes_reset="CVZRL",
+    command_subwoofer_on_off="PSSWR {mode}",
+    command_subwoofer_level="PSSWL{number} {mode}",
     command_delay_up="PSDELAY UP",
     command_delay_down="PSDELAY DOWN",
     command_dirac_filter="PSDIRAC {filter}",
@@ -922,6 +940,24 @@ HDMI_OUTPUT_MAP_LABELS = {
 
 HDMIOutputs = Literal["Auto", "HDMI1", "HDMI2"]
 """HDMI output modes."""
+
+Subwoofers = Literal["Subwoofer", "Subwoofer 2", "Subwoofer 3", "Subwoofer 4"]
+"""Subwoofers."""
+
+SUBWOOFERS_MAP = {
+    "Subwoofer": "",
+    "Subwoofer 2": "2",
+    "Subwoofer 3": "3",
+    "Subwoofer 4": "4",
+}
+"""Subwoofers."""
+
+SUBWOOFERS_MAP_LABELS = {
+    "SWL": "Subwoofer",
+    "SWL2": "Subwoofer 2",
+    "SWL3": "Subwoofer 3",
+    "SWL4": "Subwoofer 4",
+}
 
 CHANNEL_MAP = {
     "Front Left": "FL",

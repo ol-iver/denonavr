@@ -22,6 +22,9 @@ from .const import (
     MAIN_ZONE,
     STATE_ON,
     Channels,
+    SUBWOOFERS_MAP,
+    Subwoofers,
+    SUBWOOFERS_MAP_LABELS,
 )
 from .exceptions import AvrCommandError, AvrProcessingError
 from .foundation import DenonAVRFoundation
@@ -55,7 +58,13 @@ class DenonAVRVolume(DenonAVRFoundation):
         converter=attr.converters.optional(dict), default=None
     )
     _valid_channels = get_args(Channels)
-
+    _subwoofer: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _subwoofer_levels: Optional[Dict[Subwoofers, float]] = attr.ib(
+        converter=attr.converters.optional(dict), default=None
+    )
+    _valid_subwoofers = get_args(Subwoofers)
     # Update tags for attributes
     # AppCommand.xml interface
     appcommand_attrs = {
@@ -75,6 +84,12 @@ class DenonAVRVolume(DenonAVRFoundation):
         self._device.telnet_api.register_callback("MU", self._async_mute_callback)
         self._device.telnet_api.register_callback(
             "CV", self._async_channel_volume_callback
+        )
+        self._device.telnet_api.register_callback(
+            "PS", self._async_subwoofer_state_callback
+        )
+        self._device.telnet_api.register_callback(
+            "PS", self._async_subwoofer_levels_callback
         )
 
         self._is_setup = True
@@ -117,6 +132,37 @@ class DenonAVRVolume(DenonAVRFoundation):
         channel = CHANNEL_MAP_LABELS[channel_volume[0]]
         volume = channel_volume[1]
         self._channel_volumes[channel] = CHANNEL_VOLUME_MAP[volume]
+
+    async def _async_subwoofer_state_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        if parameter[:3] == "SWR":
+            self._subwoofer = parameter[4:]
+
+    async def _async_subwoofer_levels_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        if parameter[:3] != "SWL":
+            return
+
+        subwoofer_volume = parameter.split()
+        _LOGGER.debug("Subwoofer volume: %s", subwoofer_volume)
+        if (
+            len(subwoofer_volume) != 2
+            or subwoofer_volume[0] not in SUBWOOFERS_MAP_LABELS
+        ):
+            return
+
+        if self._subwoofer_levels is None:
+            self._subwoofer_levels = {}
+
+        subwoofer = SUBWOOFERS_MAP_LABELS[subwoofer_volume[0]]
+        _LOGGER.debug("Subwoofer: %s", subwoofer)
+        level = subwoofer_volume[1]
+        _LOGGER.debug("Subwoofer level: %s", level)
+        mapped = CHANNEL_VOLUME_MAP[level]
+        _LOGGER.debug("Subwoofer mapped: %s", mapped)
+        self._subwoofer_levels[subwoofer] = CHANNEL_VOLUME_MAP[level]
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -183,6 +229,26 @@ class DenonAVRVolume(DenonAVRFoundation):
         """
         return self._channel_volumes
 
+    @property
+    def subwoofer(self) -> Optional[str]:
+        """
+        Return the state of the subwoofer.
+
+        Only available if using Telnet.
+
+        Possible values are: "ON", "OFF"
+        """
+        return self._subwoofer
+
+    @property
+    def subwoofer_levels(self) -> Optional[Dict[Subwoofers, float]]:
+        """
+        Return the subwoofer levels of the device in dB.
+
+        Only available if using Telnet.
+        """
+        return self._subwoofer_levels
+
     ##########
     # Getter #
     ##########
@@ -196,6 +262,17 @@ class DenonAVRVolume(DenonAVRFoundation):
         if self._channel_volumes is None:
             return None
         return self._channel_volumes[channel]
+
+    def subwoofer_level(self, subwoofer: Subwoofers) -> Optional[float]:
+        """
+        Return the volume of a subwoofer in dB.
+
+        Only available if using Telnet.
+        """
+        self._is_valid_subwoofer(subwoofer)
+        if self._subwoofer_levels is None:
+            return None
+        return self._subwoofer_levels[subwoofer]
 
     ##########
     # Setter #
@@ -313,10 +390,82 @@ class DenonAVRVolume(DenonAVRFoundation):
                 self._device.urls.command_channel_volumes_reset
             )
 
+    async def async_subwoofer_on(self) -> None:
+        """Turn on Subwoofer on receiver via HTTP get command."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_subwoofer_on_off.format(mode="ON")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_subwoofer_on_off.format(mode="ON")
+            )
+
+    async def async_subwoofer_off(self) -> None:
+        """Turn on Subwoofer on receiver via HTTP get command."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_subwoofer_on_off.format(mode="OFF")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_subwoofer_on_off.format(mode="OFF")
+            )
+
+    async def async_subwoofer_toggle(self) -> None:
+        """
+        Toggle Subwoofer on receiver via HTTP get command.
+
+        Only available if using Telnet.
+        """
+        if self._subwoofer == "ON":
+            await self.async_subwoofer_off()
+        else:
+            await self.async_subwoofer_on()
+
+    async def async_subwoofer_level_up(self, subwoofer: Subwoofers) -> None:
+        """Turn Subwoofer level up on receiver via HTTP get command."""
+        self._is_valid_subwoofer(subwoofer)
+        mapped_subwoofer = SUBWOOFERS_MAP[subwoofer]
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_subwoofer_level.format(
+                    number=mapped_subwoofer, mode="UP"
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_subwoofer_level.format(
+                    number=mapped_subwoofer, mode="UP"
+                )
+            )
+
+    async def async_subwoofer_level_down(self, subwoofer: Subwoofers) -> None:
+        """Turn Subwoofer level down on receiver via HTTP get command."""
+        self._is_valid_subwoofer(subwoofer)
+        mapped_subwoofer = SUBWOOFERS_MAP[subwoofer]
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_subwoofer_level.format(
+                    number=mapped_subwoofer, mode="DOWN"
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_subwoofer_level.format(
+                    number=mapped_subwoofer, mode="DOWN"
+                )
+            )
+
     @staticmethod
     def _is_valid_channel(channel: Channels):
         if channel not in DenonAVRVolume._valid_channels:
             raise AvrCommandError("Invalid channel")
+
+    @staticmethod
+    def _is_valid_subwoofer(subwoofer: Subwoofers):
+        if subwoofer not in DenonAVRVolume._valid_subwoofers:
+            raise AvrCommandError("Invalid subwoofer")
 
 
 def volume_factory(instance: DenonAVRFoundation) -> DenonAVRVolume:
