@@ -25,6 +25,7 @@ from .const import (
     DiracFilters,
     EcoModes,
     HDMIOutputs,
+    TransducerLPFs,
 )
 from .dirac import DenonAVRDirac, dirac_factory
 from .exceptions import AvrCommandError
@@ -583,6 +584,35 @@ class DenonAVR(DenonAVRFoundation):
         """
         return self.vol.channel_volumes
 
+    @property
+    def tactile_transducer(self) -> Optional[str]:
+        """
+        Return the tactile transducer state of the device.
+
+        Only available if using Telnet.
+
+        Possible values are ON, OFF and Number representing the intensity
+        """
+        return self._device.tactile_transducer
+
+    @property
+    def tactile_transducer_level(self) -> Optional[float]:
+        """
+        Return the tactile transducer level in dB.
+
+        Only available if using Telnet.
+        """
+        return self._device.tactile_transducer_level
+
+    @property
+    def tactile_transducer_lpf(self) -> Optional[str]:
+        """
+        Return the tactile transducer low pass filter frequency.
+
+        Only available if using Telnet.
+        """
+        return self._device.tactile_transducer_lpf
+
     ##########
     # Getter #
     ##########
@@ -846,3 +876,31 @@ class DenonAVR(DenonAVRFoundation):
         Only supported on Denon models.
         """
         await self._device.async_status()
+
+    async def async_tactile_transducer_on(self) -> None:
+        """Turn on tactile transducer on receiver via HTTP get command."""
+        await self._device.async_tactile_transducer_on()
+
+    async def async_tactile_transducer_off(self) -> None:
+        """Turn on tactile transducer on receiver via HTTP get command."""
+        await self._device.async_tactile_transducer_off()
+
+    async def async_tactile_transducer_toggle(self) -> None:
+        """
+        Turn on tactile transducer on receiver via HTTP get command.
+
+        Only available if using Telnet.
+        """
+        await self._device.async_tactile_transducer_toggle()
+
+    async def async_tactile_transducer_level_up(self) -> None:
+        """Turn up the transducer level on receiver via HTTP get command."""
+        await self._device.async_tactile_transducer_level_up()
+
+    async def async_tactile_transducer_level_down(self) -> None:
+        """Turn down the transducer on receiver via HTTP get command."""
+        await self._device.async_tactile_transducer_level_down()
+
+    async def async_transducer_lpf_set(self, lpf: TransducerLPFs) -> None:
+        """Set transducer low pass filter on receiver via HTTP get command."""
+        await self._device.async_transducer_lpf_set(lpf)

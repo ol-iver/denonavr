@@ -12,7 +12,7 @@ import logging
 import xml.etree.ElementTree as ET
 from collections.abc import Hashable
 from copy import deepcopy
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, get_args
 
 import attr
 
@@ -52,6 +52,8 @@ from .const import (
     ReceiverType,
     ReceiverURLs,
     TelnetCommands,
+    CHANNEL_VOLUME_MAP,
+    TransducerLPFs,
 )
 from .exceptions import (
     AvrCommandError,
@@ -127,6 +129,16 @@ class DenonAVRDeviceInfo:
     _hdmi_output: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _tactile_transducer: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _tactile_transducer_level: Optional[float] = attr.ib(
+        converter=attr.converters.optional(float), default=None
+    )
+    _tactile_transducer_lpf: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _tactile_transducer_lpfs = get_args(TransducerLPFs)
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
@@ -192,6 +204,26 @@ class DenonAVRDeviceInfo:
         if event == "VS" and parameter[0:4] == "MONI":
             self._hdmi_output = HDMI_OUTPUT_MAP_LABELS[parameter]
 
+    async def _async_tactile_transducer_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a tactile transducer change event."""
+        key_value = parameter.split()
+        if len(key_value) != 2 or parameter[0:3] != "TTR":
+            return
+
+        key = key_value[0]
+        value = key_value[1]
+        if value == "END":
+            return
+
+        if key == "TTR":
+            self._tactile_transducer = value
+        elif key == "TTRLEV":
+            self._tactile_transducer_level = CHANNEL_VOLUME_MAP[value]
+        elif key == "TTRLPF":
+            self._tactile_transducer_lpf = f"{int(value)} Hz"
+
     def get_own_zone(self) -> str:
         """
         Get zone from actual instance.
@@ -236,6 +268,9 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback("PS", self._async_delay_callback)
             self.telnet_api.register_callback("ECO", self._async_eco_mode_callback)
             self.telnet_api.register_callback("VS", self._async_hdmi_output_callback)
+            self.telnet_api.register_callback(
+                "SS", self._async_tactile_transducer_callback
+            )
 
             self._is_setup = True
             _LOGGER.debug("Finished device setup")
@@ -645,6 +680,35 @@ class DenonAVRDeviceInfo:
         return self._hdmi_output
 
     @property
+    def tactile_transducer(self) -> Optional[str]:
+        """
+        Return the tactile transducer state of the device.
+
+        Only available if using Telnet.
+
+        Possible values are ON, OFF and Number representing the intensity
+        """
+        return self._tactile_transducer
+
+    @property
+    def tactile_transducer_level(self) -> Optional[float]:
+        """
+        Return the tactile transducer level in dB.
+
+        Only available if using Telnet.
+        """
+        return self._tactile_transducer_level
+
+    @property
+    def tactile_transducer_lpf(self) -> Optional[str]:
+        """
+        Return the tactile transducer low pass filter frequency.
+
+        Only available if using Telnet.
+        """
+        return self._tactile_transducer_lpf
+
+    @property
     def telnet_available(self) -> bool:
         """Return true if telnet is connected and healthy."""
         return self.telnet_api.connected and self.telnet_api.healthy
@@ -786,6 +850,83 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(
                 self.urls.command_dimmer_set.format(mode=mapped_mode)
             )
+
+    async def async_tactile_transducer_on(self) -> None:
+        """Turn on tactile transducer on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_tactile_transducer.format(mode="ON")
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_tactile_transducer.format(mode="ON")
+            )
+
+    async def async_tactile_transducer_off(self) -> None:
+        """Turn on tactile transducer on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_tactile_transducer.format(mode="OFF")
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_tactile_transducer.format(mode="OFF")
+            )
+
+    async def async_tactile_transducer_toggle(self) -> None:
+        """
+        Turn on tactile transducer on receiver via HTTP get command.
+
+        Only available if using Telnet.
+        """
+        if self._tactile_transducer != "OFF":
+            await self.async_tactile_transducer_off()
+        else:
+            await self.async_tactile_transducer_on()
+
+    async def async_tactile_transducer_level_up(self) -> None:
+        """Turn up the transducer level on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_tactile_transducer_level.format(mode="UP")
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_tactile_transducer_level.format(mode="UP")
+            )
+
+    async def async_tactile_transducer_level_down(self) -> None:
+        """Turn down the transducer level on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_tactile_transducer_level.format(
+                    mode="DOWN"
+                )
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_tactile_transducer_level.format(mode="DOWN")
+            )
+
+    async def async_transducer_lpf_set(self, lpf: TransducerLPFs):
+        """Set transducer low pass filter on receiver via HTTP get command."""
+        if lpf not in self._tactile_transducer_lpfs:
+            raise AvrCommandError("Invalid tactile transducer low pass filter")
+
+        frequency = lpf.split()[0]
+        if len(frequency) == 2:
+            frequency = f"0{frequency}"
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_tactile_transducer_lpf.format(
+                    frequency=frequency
+                )
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_tactile_transducer_lpf.format(frequency=frequency)
+            )
+
 
     async def async_delay_up(self) -> None:
         """Delay up on receiver via HTTP get command."""

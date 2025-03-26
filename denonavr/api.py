@@ -578,6 +578,7 @@ class DenonAVRTelnetApi:
             "PSIMAX ?",
             "PSSWR ?",
             "PSSWL ?",
+            "SSTTR ?",
             skip_confirmation=True,
         )
 
