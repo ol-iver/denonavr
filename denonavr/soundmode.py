@@ -142,14 +142,12 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         """Handle a Neural X change event."""
         parameter_name_length = len("NEURAL")
         if parameter[:parameter_name_length] == "NEURAL":
-            _LOGGER.debug("Neural X callback: %s, %s, %s", zone, event, parameter)
             self._neural_x_on_off = parameter[parameter_name_length + 1 :]
 
     async def _async_imax_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an IMAX change event."""
         parameter_name_length = len("IMAX")
         if parameter[:parameter_name_length] == "IMAX":
-            _LOGGER.debug("IMAX callback: %s, %s, %s", zone, event, parameter)
             self._imax_auto_off = parameter[parameter_name_length + 1 :]
 
     async def async_update(

@@ -927,6 +927,45 @@ class DenonAVRDeviceInfo:
                 self.urls.command_tactile_transducer_lpf.format(frequency=frequency)
             )
 
+    async def async_quick_select_mode(self, quick_select_number: int) -> None:
+        """
+        Set quick select mode on receiver via HTTP get command.
+
+        Valid quick select numbers are 1-5.
+        """
+        if quick_select_number not in range(1, 5):
+            raise AvrCommandError("Quick select number must be between 1 and 5")
+
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_quick_select_mode.format(
+                    number=quick_select_number
+                )
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_quick_select_mode.format(number=quick_select_number)
+            )
+
+    async def async_quick_select_memory(self, quick_select_number: int) -> None:
+        """
+        Set quick select memory on receiver via HTTP get command.
+
+        Valid quick select numbers are 1-5.
+        """
+        if quick_select_number not in range(1, 5):
+            raise AvrCommandError("Quick select number must be between 1 and 5")
+
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_quick_select_memory.format(
+                    number=quick_select_number
+                )
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_quick_select_memory.format(number=quick_select_number)
+            )
 
     async def async_delay_up(self) -> None:
         """Delay up on receiver via HTTP get command."""

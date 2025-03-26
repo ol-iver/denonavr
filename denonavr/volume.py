@@ -146,7 +146,6 @@ class DenonAVRVolume(DenonAVRFoundation):
             return
 
         subwoofer_volume = parameter.split()
-        _LOGGER.debug("Subwoofer volume: %s", subwoofer_volume)
         if (
             len(subwoofer_volume) != 2
             or subwoofer_volume[0] not in SUBWOOFERS_MAP_LABELS
@@ -157,11 +156,7 @@ class DenonAVRVolume(DenonAVRFoundation):
             self._subwoofer_levels = {}
 
         subwoofer = SUBWOOFERS_MAP_LABELS[subwoofer_volume[0]]
-        _LOGGER.debug("Subwoofer: %s", subwoofer)
         level = subwoofer_volume[1]
-        _LOGGER.debug("Subwoofer level: %s", level)
-        mapped = CHANNEL_VOLUME_MAP[level]
-        _LOGGER.debug("Subwoofer mapped: %s", mapped)
         self._subwoofer_levels[subwoofer] = CHANNEL_VOLUME_MAP[level]
 
     async def async_update(
