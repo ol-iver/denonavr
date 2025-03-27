@@ -579,7 +579,8 @@ class DenonAVRTelnetApi:
             "PSSWR ?",
             "PSSWL ?",
             "SSTTR ?",
-            "MSQUICK ?",  # Quick Select
+            "MSQUICK ?",
+            "STBY?",
             skip_confirmation=True,
         )
 

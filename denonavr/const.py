@@ -76,6 +76,7 @@ ReceiverURLs = namedtuple(
         "command_hdmi_output",
         "command_quick_select_mode",
         "command_quick_select_memory",
+        "command_auto_standby",
         "command_status",
     ],
 )
@@ -134,6 +135,7 @@ TelnetCommands = namedtuple(
         "command_hdmi_output",
         "command_quick_select_mode",
         "command_quick_select_memory",
+        "command_auto_standby",
         "command_status",
     ],
 )
@@ -458,6 +460,7 @@ COMMAND_LFC = "/goform/formiPhoneAppDirect.xml?PSLFC%20{mode}"
 COMMAND_HDMI_OUTPUT = "/goform/formiPhoneAppDirect.xml?VSMONI{output}"
 COMMAND_QUICK_SELECT_MODE = "/goform/formiPhoneAppDirect.xml?MSQUICK{number}"
 COMMAND_QUICK_SELECT_MEMORY = "/goform/formiPhoneAppDirect.xml?MSQUICK{number}"
+COMMAND_AUTO_STANDBY = "/goform/formiPhoneAppDirect.xml?STBY{mode}"
 COMMAND_STATUS = "/goform/formiPhoneAppDirect.xml?RCSHP0230030"
 
 # Zone 2 URLs
@@ -539,6 +542,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_hdmi_output=COMMAND_HDMI_OUTPUT,
     command_quick_select_mode=COMMAND_QUICK_SELECT_MODE,
     command_quick_select_memory=COMMAND_QUICK_SELECT_MODE,
+    command_auto_standby=COMMAND_AUTO_STANDBY,
     command_status=COMMAND_STATUS,
 )
 
@@ -597,6 +601,7 @@ ZONE2_URLS = ReceiverURLs(
     command_hdmi_output=COMMAND_HDMI_OUTPUT,
     command_quick_select_mode=COMMAND_QUICK_SELECT_MODE,
     command_quick_select_memory=COMMAND_QUICK_SELECT_MEMORY,
+    command_auto_standby=COMMAND_AUTO_STANDBY,
     command_status=COMMAND_STATUS,
 )
 
@@ -655,6 +660,7 @@ ZONE3_URLS = ReceiverURLs(
     command_hdmi_output=COMMAND_HDMI_OUTPUT,
     command_quick_select_mode=COMMAND_QUICK_SELECT_MODE,
     command_quick_select_memory=COMMAND_QUICK_SELECT_MEMORY,
+    command_auto_standby=COMMAND_AUTO_STANDBY,
     command_status=COMMAND_STATUS,
 )
 
@@ -766,6 +772,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_hdmi_output="VSMONI{output}",
     command_quick_select_mode="MSQUICK{number}",
     command_quick_select_memory="MSQUICK{number} MEMORY",
+    command_auto_standby="STBY{mode}",
     command_status="RCSHP0230030",
 )
 
@@ -822,6 +829,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_hdmi_output="VSMONI{output}",
     command_quick_select_mode="MSQUICK{number}",
     command_quick_select_memory="MSQUICK{number} MEMORY",
+    command_auto_standby="STBY{mode}",
     command_status="RCSHP0230030",
 )
 
@@ -878,6 +886,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_hdmi_output="VSMONI{output}",
     command_quick_select_mode="MSQUICK{number}",
     command_quick_select_memory="MSQUICK{number} MEMORY",
+    command_auto_standby="STBY{mode}",
     command_status="RCSHP0230030",
 )
 
@@ -955,6 +964,8 @@ DYNAMIC_VOLUME_MAP_LABELS_APPCOMMAND = {
 DYNAMIC_VOLUME_MAP_LABELS_TELNET = {
     value: key for key, value in DYNAMIC_VOLUME_MAP_TELNET.items()
 }
+
+AutoStandbys = Literal["OFF", "15M", "30M", "60M"]
 
 DIMMER_MODE_MAP = {
     "Off": DIMER_OFF,

@@ -47,6 +47,7 @@ from .const import (
     ZONE3,
     ZONE3_TELNET_COMMANDS,
     ZONE3_URLS,
+    AutoStandbys,
     DimmerModes,
     EcoModes,
     HDMIOutputs,
@@ -120,6 +121,10 @@ class DenonAVRDeviceInfo:
     _dimmer: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _auto_standby: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _auto_standbys = get_args(AutoStandbys)
     _delay: Optional[int] = attr.ib(
         converter=attr.converters.optional(int), default=None
     )
@@ -182,6 +187,13 @@ class DenonAVRDeviceInfo:
         """Handle a dimmer change event."""
         if event == "DIM" and parameter[1:] in DIMMER_MODE_MAP_LABELS:
             self._dimmer = DIMMER_MODE_MAP_LABELS[parameter[1:]]
+
+    async def _async_auto_standby_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a auto standby change event."""
+        if event == "STBY":
+            self._auto_standby = parameter
 
     async def _async_delay_callback(
         self, zone: str, event: str, parameter: str
@@ -271,6 +283,7 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback(
                 "SS", self._async_tactile_transducer_callback
             )
+            self.telnet_api.register_callback("STBY", self._async_auto_standby_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished device setup")
@@ -649,6 +662,17 @@ class DenonAVRDeviceInfo:
         return self._dimmer
 
     @property
+    def auto_standby(self) -> Optional[str]:
+        """
+        Return the auto-standby state of the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "OFF", "15M", "30M", "60M"
+        """
+        return self._auto_standby
+
+    @property
     def delay(self) -> Optional[int]:
         """
         Return the audio delay for the device in ms.
@@ -869,6 +893,19 @@ class DenonAVRDeviceInfo:
         else:
             await self.api.async_get_command(
                 self.urls.command_tactile_transducer.format(mode="ON")
+            )
+
+    async def async_auto_standby_set(self, auto_standby: AutoStandbys) -> None:
+        """Set auto standby on receiver via HTTP get command."""
+        if auto_standby not in self._auto_standbys:
+            raise AvrCommandError("Invalid Auto Standby mode")
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_auto_standby.format(mode=auto_standby)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_auto_standby.format(mode=auto_standby)
             )
 
     async def async_tactile_transducer_off(self) -> None:

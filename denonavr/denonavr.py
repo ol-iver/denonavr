@@ -20,6 +20,7 @@ from .const import (
     DENON_ATTR_SETATTR,
     MAIN_ZONE,
     VALID_ZONES,
+    AutoStandbys,
     Channels,
     DimmerModes,
     DiracFilters,
@@ -545,6 +546,17 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.dimmer
 
     @property
+    def auto_standby(self) -> Optional[str]:
+        """
+        Return the auto-standby state of the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "OFF", "15M", "30M", "60M"
+        """
+        return self._device.auto_standby
+
+    @property
     def delay(self) -> Optional[int]:
         """
         Return the audio delay for the device in ms.
@@ -848,6 +860,10 @@ class DenonAVR(DenonAVRFoundation):
     async def async_dimmer_set(self, mode: DimmerModes) -> None:
         """Set dimmer mode on receiver via HTTP get command."""
         await self._device.async_dimmer_set(mode)
+
+    async def async_auto_standby_set(self, auto_standby: AutoStandbys) -> None:
+        """Set auto standby on receiver via HTTP get command."""
+        await self._device.async_auto_standby_set(auto_standby)
 
     async def async_channel_volume_up(self, channel: Channels) -> None:
         """Increase volume of the specified channel."""
