@@ -85,6 +85,7 @@ ReceiverURLs = namedtuple(
         "command_auto_standby",
         "command_sleep",
         "command_center_spread",
+        "command_video_processing_mode",
         "command_status",
     ],
 )
@@ -152,6 +153,7 @@ TelnetCommands = namedtuple(
         "command_auto_standby",
         "command_sleep",
         "command_center_spread",
+        "command_video_processing_mode",
         "command_status",
     ],
 )
@@ -485,6 +487,7 @@ COMMAND_QUICK_SELECT_MEMORY = "/goform/formiPhoneAppDirect.xml?MSQUICK{number}"
 COMMAND_AUTO_STANDBY = "/goform/formiPhoneAppDirect.xml?STBY{mode}"
 COMMAND_SLEEP = "/goform/formiPhoneAppDirect.xml?SLP{value}"
 COMMAND_CENTER_SPREAD = "/goform/formiPhoneAppDirect.xml?PSCES%20{mode}"
+COMMAND_VIDEO_PROCESSING_MODE = "/goform/formiPhoneAppDirect.xml?VSVPM{mode}"
 COMMAND_STATUS = "/goform/formiPhoneAppDirect.xml?RCSHP0230030"
 
 # Zone 2 URLs
@@ -575,6 +578,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_auto_standby=COMMAND_AUTO_STANDBY,
     command_sleep=COMMAND_SLEEP,
     command_center_spread=COMMAND_CENTER_SPREAD,
+    command_video_processing_mode=COMMAND_VIDEO_PROCESSING_MODE,
     command_status=COMMAND_STATUS,
 )
 
@@ -642,6 +646,7 @@ ZONE2_URLS = ReceiverURLs(
     command_auto_standby=COMMAND_AUTO_STANDBY,
     command_sleep=COMMAND_SLEEP,
     command_center_spread=COMMAND_CENTER_SPREAD,
+    command_video_processing_mode=COMMAND_VIDEO_PROCESSING_MODE,
     command_status=COMMAND_STATUS,
 )
 
@@ -709,6 +714,7 @@ ZONE3_URLS = ReceiverURLs(
     command_auto_standby=COMMAND_AUTO_STANDBY,
     command_sleep=COMMAND_SLEEP,
     command_center_spread=COMMAND_CENTER_SPREAD,
+    command_video_processing_mode=COMMAND_VIDEO_PROCESSING_MODE,
     command_status=COMMAND_STATUS,
 )
 
@@ -829,6 +835,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_auto_standby="STBY{mode}",
     command_sleep="SLP{value}",
     command_center_spread="PSCES {mode}",
+    command_video_processing_mode="VSVPM{mode}",
     command_status="RCSHP0230030",
 )
 
@@ -894,6 +901,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_auto_standby="STBY{mode}",
     command_sleep="SLP{value}",
     command_center_spread="PSCES {mode}",
+    command_video_processing_mode="VSVPM{mode}",
     command_status="RCSHP0230030",
 )
 
@@ -959,6 +967,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_auto_standby="STBY{mode}",
     command_sleep="SLP{value}",
     command_center_spread="PSCES {mode}",
+    command_video_processing_mode="VSVPM{mode}",
     command_status="RCSHP0230030",
 )
 
@@ -1248,3 +1257,17 @@ IMAXHPFs = Literal[
 
 IMAXLPFs = Literal["80", "90", "100", "110", "120", "150", "180", "200", "250"]
 """IMAX Low Pass Frequencies."""
+
+VideoProcessingModes = Literal["Auto", "Game", "Movie", "Bypass"]
+"""Video Processing Modes."""
+
+VIDEO_PROCESSING_MODES_MAP = {
+    "Auto": "AUTO",
+    "Game": "GAME",
+    "Movie": "MOVI",
+    "Bypass": "BYP",
+}
+
+VIDEO_PROCESSING_MODES_MAP_LABELS = {
+    value: key for key, value in VIDEO_PROCESSING_MODES_MAP.items()
+}

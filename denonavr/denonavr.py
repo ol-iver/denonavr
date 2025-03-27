@@ -28,6 +28,7 @@ from .const import (
     HDMIAudioDecodes,
     HDMIOutputs,
     TransducerLPFs,
+    VideoProcessingModes,
 )
 from .dirac import DenonAVRDirac, dirac_factory
 from .exceptions import AvrCommandError
@@ -611,6 +612,17 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.hdmi_audio_decode
 
     @property
+    def video_processing_mode(self) -> Optional[str]:
+        """
+        Return the video processing mode for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "Auto", "Game", "Movie", "Bypass"
+        """
+        return self._device.video_processing_mode
+
+    @property
     def channel_volumes(self) -> Optional[Dict[Channels, float]]:
         """
         Returns the channel volumes of the receiver in dB.
@@ -923,6 +935,10 @@ class DenonAVR(DenonAVRFoundation):
     async def async_hdmi_audio_decode(self, mode: HDMIAudioDecodes) -> None:
         """Set HDMI Audio Decode mode on receiver via HTTP get command."""
         await self._device.async_hdmi_audio_decode(mode)
+
+    async def async_video_processing_mode(self, mode: VideoProcessingModes) -> None:
+        """Set video processing mode on receiver via HTTP get command."""
+        await self._device.async_video_processing_mode(mode)
 
     async def async_status(self):
         """

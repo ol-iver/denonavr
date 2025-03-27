@@ -41,6 +41,8 @@ from .const import (
     SETTINGS_MENU_STATES,
     VALID_RECEIVER_TYPES,
     VALID_ZONES,
+    VIDEO_PROCESSING_MODES_MAP,
+    VIDEO_PROCESSING_MODES_MAP_LABELS,
     ZONE2,
     ZONE2_TELNET_COMMANDS,
     ZONE2_URLS,
@@ -56,6 +58,7 @@ from .const import (
     ReceiverURLs,
     TelnetCommands,
     TransducerLPFs,
+    VideoProcessingModes,
 )
 from .exceptions import (
     AvrCommandError,
@@ -142,6 +145,10 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(str), default=None
     )
     _hdmi_audio_decodes = get_args(HDMIAudioDecodes)
+    _video_processing_mode: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _video_processing_modes = get_args(VideoProcessingModes)
     _tactile_transducer: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
@@ -243,6 +250,15 @@ class DenonAVRDeviceInfo:
         if event == "VS" and parameter[0:5] == "AUDIO":
             self._hdmi_audio_decode = parameter[6:]
 
+    async def _async_video_processing_mode_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a HDMI Audio Decode mode change event."""
+        if event == "VS" and parameter[0:3] == "VPM":
+            self._video_processing_mode = VIDEO_PROCESSING_MODES_MAP_LABELS[
+                parameter[3:]
+            ]
+
     async def _async_tactile_transducer_callback(
         self, zone: str, event: str, parameter: str
     ) -> None:
@@ -309,6 +325,9 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback("VS", self._async_hdmi_output_callback)
             self.telnet_api.register_callback(
                 "VS", self._async_hdmi_audio_decode_callback
+            )
+            self.telnet_api.register_callback(
+                "VS", self._async_video_processing_mode_callback
             )
             self.telnet_api.register_callback(
                 "SS", self._async_tactile_transducer_callback
@@ -757,6 +776,17 @@ class DenonAVRDeviceInfo:
         return self._hdmi_audio_decode
 
     @property
+    def video_processing_mode(self) -> Optional[str]:
+        """
+        Return the video processing mode for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "Auto", "Game", "Movie", "Bypass"
+        """
+        return self._video_processing_mode
+
+    @property
     def tactile_transducer(self) -> Optional[str]:
         """
         Return the tactile transducer state of the device.
@@ -1145,6 +1175,22 @@ class DenonAVRDeviceInfo:
         else:
             await self.api.async_get_command(
                 self.urls.command_hdmi_audio_decode.format(mode=mode)
+            )
+
+    async def async_video_processing_mode(self, mode: VideoProcessingModes) -> None:
+        """Set video processing mode on receiver via HTTP get command."""
+        if mode not in self._video_processing_modes:
+            raise AvrCommandError("Invalid video processing mode")
+        processing_mode = VIDEO_PROCESSING_MODES_MAP[mode]
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_video_processing_mode.format(
+                    mode=processing_mode
+                )
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_video_processing_mode.format(mode=processing_mode)
             )
 
     async def async_status(self):
