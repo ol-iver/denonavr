@@ -42,6 +42,11 @@ ReceiverURLs = namedtuple(
         "command_sel_sound_mode",
         "command_neural_x_on_off",
         "command_imax_auto_off",
+        "command_imax_audio_settings",
+        "command_imax_hpf",
+        "command_imax_lpf",
+        "command_imax_subwoofer_mode",
+        "command_imax_subwoofer_output",
         "command_netaudio_post",
         "command_set_all_zone_stereo",
         "command_pause",
@@ -98,6 +103,11 @@ TelnetCommands = namedtuple(
         "command_sel_sound_mode",
         "command_neural_x_on_off",
         "command_imax_auto_off",
+        "command_imax_audio_settings",
+        "command_imax_hpf",
+        "command_imax_lpf",
+        "command_imax_subwoofer_mode",
+        "command_imax_subwoofer_output",
         "command_set_all_zone_stereo",
         "command_pause",
         "command_play",
@@ -435,6 +445,11 @@ COMMAND_SEL_SM_URL = "/goform/formiPhoneAppDirect.xml?MS"
 COMMAND_SET_ZST_URL = "/goform/formiPhoneAppDirect.xml?MN"
 COMMAND_NEURAL_X_ON_OFF = "/goform/formiPhoneAppDirect.xml?PSNEURAL%20{mode}"
 COMMAND_IMAX_AUTO_OFF = "/goform/formiPhoneAppDirect.xml?PSIMAX%20{mode}"
+COMMAND_IMAX_AUDIO_SETTINGS = "/goform/formiPhoneAppDirect.xml?PSIMAXAUD%20{mode}"
+COMMAND_IMAX_HPF = "/goform/formiPhoneAppDirect.xml?PSIMAXHPF%20{frequency}"
+COMMAND_IMAX_LPF = "/goform/formiPhoneAppDirect.xml?PSIMAXLPF%20{frequency}"
+COMMAND_IMAX_SUBWOOFER_MODE = "/goform/formiPhoneAppDirect.xml?PSIMAXSWM%20{mode}"
+COMMAND_IMAX_SUBWOOFER_OUTPUT = "/goform/formiPhoneAppDirect.xml?PSIMAXSWO%20{mode}"
 COMMAND_CURSOR_UP = "/goform/formiPhoneAppDirect.xml?MNCUP"
 COMMAND_CURSOR_DOWN = "/goform/formiPhoneAppDirect.xml?MNCDN"
 COMMAND_CURSOR_LEFT = "/goform/formiPhoneAppDirect.xml?MNCLT"
@@ -517,6 +532,11 @@ DENONAVR_URLS = ReceiverURLs(
     command_sel_sound_mode=COMMAND_SEL_SM_URL,
     command_neural_x_on_off=COMMAND_MUTE_ON_URL,
     command_imax_auto_off=COMMAND_IMAX_AUTO_OFF,
+    command_imax_audio_settings=COMMAND_IMAX_AUTO_OFF,
+    command_imax_hpf=COMMAND_IMAX_HPF,
+    command_imax_lpf=COMMAND_IMAX_LPF,
+    command_imax_subwoofer_mode=COMMAND_IMAX_SUBWOOFER_MODE,
+    command_imax_subwoofer_output=COMMAND_IMAX_SUBWOOFER_OUTPUT,
     command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
@@ -579,6 +599,11 @@ ZONE2_URLS = ReceiverURLs(
     command_sel_sound_mode=COMMAND_SEL_SM_URL,
     command_neural_x_on_off=COMMAND_NEURAL_X_ON_OFF,
     command_imax_auto_off=COMMAND_IMAX_AUTO_OFF,
+    command_imax_audio_settings=COMMAND_IMAX_AUDIO_SETTINGS,
+    command_imax_hpf=COMMAND_IMAX_HPF,
+    command_imax_lpf=COMMAND_IMAX_LPF,
+    command_imax_subwoofer_mode=COMMAND_IMAX_SUBWOOFER_MODE,
+    command_imax_subwoofer_output=COMMAND_IMAX_SUBWOOFER_OUTPUT,
     command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
@@ -641,6 +666,11 @@ ZONE3_URLS = ReceiverURLs(
     command_sel_sound_mode=COMMAND_SEL_SM_URL,
     command_neural_x_on_off=COMMAND_IMAX_AUTO_OFF,
     command_imax_auto_off=COMMAND_IMAX_AUTO_OFF,
+    command_imax_audio_settings=COMMAND_IMAX_AUDIO_SETTINGS,
+    command_imax_hpf=COMMAND_IMAX_HPF,
+    command_imax_lpf=COMMAND_IMAX_LPF,
+    command_imax_subwoofer_mode=COMMAND_IMAX_SUBWOOFER_MODE,
+    command_imax_subwoofer_output=COMMAND_IMAX_SUBWOOFER_OUTPUT,
     command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
@@ -750,6 +780,11 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_sel_sound_mode="MS",
     command_neural_x_on_off="PSNEURAL {mode}",
     command_imax_auto_off="PSIMAX {mode}",
+    command_imax_audio_settings="PSIMAXAUD {mode}",
+    command_imax_hpf="PSIMAXHPF {frequency}",
+    command_imax_lpf="PSIMAXLPF {frequency}",
+    command_imax_subwoofer_mode="PSIMAXSWM {mode}",
+    command_imax_subwoofer_output="PSIMAXSWO {mode}",
     command_set_all_zone_stereo="MN",
     command_pause="NS9B",
     command_play="NS9A",
@@ -810,6 +845,11 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_sel_sound_mode="MS",
     command_neural_x_on_off="PSNEURAL {mode}",
     command_imax_auto_off="PSIMAX {mode}",
+    command_imax_audio_settings="PSIMAXAUD {mode}",
+    command_imax_hpf="PSIMAXHPF {frequency}",
+    command_imax_lpf="PSIMAXLPF {frequency}",
+    command_imax_subwoofer_mode="PSIMAXSWM {mode}",
+    command_imax_subwoofer_output="PSIMAXSWO {mode}",
     command_set_all_zone_stereo="MN",
     command_pause="NS9B",
     command_play="NS9A",
@@ -870,6 +910,11 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_sel_sound_mode="MS",
     command_neural_x_on_off="PSNEURAL {mode}",
     command_imax_auto_off="PSIMAX {mode}",
+    command_imax_audio_settings="PSIMAXAUD {mode}",
+    command_imax_hpf="PSIMAXHPF {frequency}",
+    command_imax_lpf="PSIMAXLPF {frequency}",
+    command_imax_subwoofer_mode="PSIMAXSWM {mode}",
+    command_imax_subwoofer_output="PSIMAXSWO {mode}",
     command_set_all_zone_stereo="MN",
     command_pause="NS9B",
     command_play="NS9A",
@@ -1195,3 +1240,11 @@ TransducerLPFs = Literal[
     "250 Hz",
 ]
 """Tactile Transducer Low Pass Frequencies."""
+
+IMAXHPFs = Literal[
+    "40", "60", "80", "90", "100", "110", "120", "150", "180", "200", "250"
+]
+"""IMAX High Pass Frequencies."""
+
+IMAXLPFs = Literal["80", "90", "100", "110", "120", "150", "180", "200", "250"]
+"""IMAX Low Pass Frequencies."""
