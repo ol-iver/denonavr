@@ -50,6 +50,7 @@ from .const import (
     AutoStandbys,
     DimmerModes,
     EcoModes,
+    HDMIAudioDecodes,
     HDMIOutputs,
     ReceiverType,
     ReceiverURLs,
@@ -137,6 +138,10 @@ class DenonAVRDeviceInfo:
     _hdmi_output: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _hdmi_audio_decode: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _hdmi_audio_decodes = get_args(HDMIAudioDecodes)
     _tactile_transducer: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
@@ -231,6 +236,13 @@ class DenonAVRDeviceInfo:
         if event == "VS" and parameter[0:4] == "MONI":
             self._hdmi_output = HDMI_OUTPUT_MAP_LABELS[parameter]
 
+    async def _async_hdmi_audio_decode_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a HDMI Audio Decode mode change event."""
+        if event == "VS" and parameter[0:5] == "AUDIO":
+            self._hdmi_audio_decode = parameter[6:]
+
     async def _async_tactile_transducer_callback(
         self, zone: str, event: str, parameter: str
     ) -> None:
@@ -295,6 +307,9 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback("PS", self._async_delay_callback)
             self.telnet_api.register_callback("ECO", self._async_eco_mode_callback)
             self.telnet_api.register_callback("VS", self._async_hdmi_output_callback)
+            self.telnet_api.register_callback(
+                "VS", self._async_hdmi_audio_decode_callback
+            )
             self.telnet_api.register_callback(
                 "SS", self._async_tactile_transducer_callback
             )
@@ -731,6 +746,17 @@ class DenonAVRDeviceInfo:
         return self._hdmi_output
 
     @property
+    def hdmi_audio_decode(self) -> Optional[str]:
+        """
+        Returns the HDMI Audio Decode for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "AMP", "TV"
+        """
+        return self._hdmi_audio_decode
+
+    @property
     def tactile_transducer(self) -> Optional[str]:
         """
         Return the tactile transducer state of the device.
@@ -1105,6 +1131,20 @@ class DenonAVRDeviceInfo:
         else:
             await self.api.async_get_command(
                 self.urls.command_hdmi_output.format(output=mapped_output)
+            )
+
+    async def async_hdmi_audio_decode(self, mode: HDMIAudioDecodes) -> None:
+        """Set HDMI Audio Decode mode on receiver via HTTP get command."""
+        if mode not in self._hdmi_audio_decodes:
+            raise AvrCommandError("Invalid HDMI Audio Decode mode")
+
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_hdmi_audio_decode.format(mode=mode)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_hdmi_audio_decode.format(mode=mode)
             )
 
     async def async_status(self):

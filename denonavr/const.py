@@ -74,6 +74,7 @@ ReceiverURLs = namedtuple(
         "command_eco_mode",
         "command_lfc",
         "command_hdmi_output",
+        "command_hdmi_audio_decode",
         "command_quick_select_mode",
         "command_quick_select_memory",
         "command_auto_standby",
@@ -134,6 +135,7 @@ TelnetCommands = namedtuple(
         "command_eco_mode",
         "command_lfc",
         "command_hdmi_output",
+        "command_hdmi_audio_decode",
         "command_quick_select_mode",
         "command_quick_select_memory",
         "command_auto_standby",
@@ -460,6 +462,7 @@ COMMAND_DELAY_DOWN = "/goform/formiPhoneAppDirect.xml?PSDELAY%20DOWN"
 COMMAND_DIRAC_FILTER = "/goform/formiPhoneAppDirect.xml?PSDIRAC%20{filter}"
 COMMAND_LFC = "/goform/formiPhoneAppDirect.xml?PSLFC%20{mode}"
 COMMAND_HDMI_OUTPUT = "/goform/formiPhoneAppDirect.xml?VSMONI{output}"
+COMMAND_HDMI_AUDIO_DECODE = "/goform/formiPhoneAppDirect.xml?VSAUDIO%20{mode}"
 COMMAND_QUICK_SELECT_MODE = "/goform/formiPhoneAppDirect.xml?MSQUICK{number}"
 COMMAND_QUICK_SELECT_MEMORY = "/goform/formiPhoneAppDirect.xml?MSQUICK{number}"
 COMMAND_AUTO_STANDBY = "/goform/formiPhoneAppDirect.xml?STBY{mode}"
@@ -543,6 +546,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_eco_mode=COMMAND_ECO_MODE,
     command_lfc=COMMAND_LFC,
     command_hdmi_output=COMMAND_HDMI_OUTPUT,
+    command_hdmi_audio_decode=COMMAND_HDMI_AUDIO_DECODE,
     command_quick_select_mode=COMMAND_QUICK_SELECT_MODE,
     command_quick_select_memory=COMMAND_QUICK_SELECT_MODE,
     command_auto_standby=COMMAND_AUTO_STANDBY,
@@ -603,6 +607,7 @@ ZONE2_URLS = ReceiverURLs(
     command_eco_mode=COMMAND_ECO_MODE,
     command_lfc=COMMAND_LFC,
     command_hdmi_output=COMMAND_HDMI_OUTPUT,
+    command_hdmi_audio_decode=COMMAND_HDMI_AUDIO_DECODE,
     command_quick_select_mode=COMMAND_QUICK_SELECT_MODE,
     command_quick_select_memory=COMMAND_QUICK_SELECT_MEMORY,
     command_auto_standby=COMMAND_AUTO_STANDBY,
@@ -663,6 +668,7 @@ ZONE3_URLS = ReceiverURLs(
     command_eco_mode=COMMAND_ECO_MODE,
     command_lfc=COMMAND_LFC,
     command_hdmi_output=COMMAND_HDMI_OUTPUT,
+    command_hdmi_audio_decode=COMMAND_HDMI_AUDIO_DECODE,
     command_quick_select_mode=COMMAND_QUICK_SELECT_MODE,
     command_quick_select_memory=COMMAND_QUICK_SELECT_MEMORY,
     command_auto_standby=COMMAND_AUTO_STANDBY,
@@ -776,6 +782,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_eco_mode="ECO{mode}",
     command_lfc="PSLFC {mode}",
     command_hdmi_output="VSMONI{output}",
+    command_hdmi_audio_decode="VSAUDIO {mode}",
     command_quick_select_mode="MSQUICK{number}",
     command_quick_select_memory="MSQUICK{number} MEMORY",
     command_auto_standby="STBY{mode}",
@@ -834,6 +841,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_eco_mode="ECO{mode}",
     command_lfc="PSLFC {mode}",
     command_hdmi_output="VSMONI{output}",
+    command_hdmi_audio_decode="VSAUDIO {mode}",
     command_quick_select_mode="MSQUICK{number}",
     command_quick_select_memory="MSQUICK{number} MEMORY",
     command_auto_standby="STBY{mode}",
@@ -892,6 +900,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_eco_mode="ECO{mode}",
     command_lfc="PSLFC {mode}",
     command_hdmi_output="VSMONI{output}",
+    command_hdmi_audio_decode="VSAUDIO {mode}",
     command_quick_select_mode="MSQUICK{number}",
     command_quick_select_memory="MSQUICK{number} MEMORY",
     command_auto_standby="STBY{mode}",
@@ -1016,6 +1025,8 @@ HDMI_OUTPUT_MAP_LABELS = {
 
 HDMIOutputs = Literal["Auto", "HDMI1", "HDMI2"]
 """HDMI output modes."""
+
+HDMIAudioDecodes = Literal["AMP", "TV"]
 
 Subwoofers = Literal["Subwoofer", "Subwoofer 2", "Subwoofer 3", "Subwoofer 4"]
 """Subwoofers."""

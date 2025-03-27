@@ -582,6 +582,7 @@ class DenonAVRTelnetApi:
             "MSQUICK ?",
             "STBY?",
             "SLP?",
+            "VSAUDIO ?",
             skip_confirmation=True,
         )
 

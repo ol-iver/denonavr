@@ -25,6 +25,7 @@ from .const import (
     DimmerModes,
     DiracFilters,
     EcoModes,
+    HDMIAudioDecodes,
     HDMIOutputs,
     TransducerLPFs,
 )
@@ -599,6 +600,17 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.hdmi_output
 
     @property
+    def hdmi_audio_decode(self) -> Optional[str]:
+        """
+        Returns the HDMI Audio Decode mode for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "AMP", "TV"
+        """
+        return self._device.hdmi_audio_decode
+
+    @property
     def channel_volumes(self) -> Optional[Dict[Channels, float]]:
         """
         Returns the channel volumes of the receiver in dB.
@@ -907,6 +919,10 @@ class DenonAVR(DenonAVRFoundation):
     async def async_hdmi_output(self, output: HDMIOutputs) -> None:
         """Set HDMI output."""
         await self._device.async_hdmi_output(output)
+
+    async def async_hdmi_audio_decode(self, mode: HDMIAudioDecodes) -> None:
+        """Set HDMI Audio Decode mode on receiver via HTTP get command."""
+        await self._device.async_hdmi_audio_decode(mode)
 
     async def async_status(self):
         """
