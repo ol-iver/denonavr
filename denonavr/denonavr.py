@@ -10,7 +10,7 @@ This module implements the interface to Denon AVR receivers.
 import asyncio
 import logging
 import time
-from typing import Awaitable, Callable, Dict, List, Optional
+from typing import Awaitable, Callable, Dict, List, Literal, Optional, Union
 
 import attr
 import httpx
@@ -557,6 +557,17 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.auto_standby
 
     @property
+    def sleep(self) -> Optional[Union[str, int]]:
+        """
+        Return the sleep timer for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "OFF" and 1-120 (in minutes)
+        """
+        return self._device.sleep
+
+    @property
     def delay(self) -> Optional[int]:
         """
         Return the audio delay for the device in ms.
@@ -864,6 +875,14 @@ class DenonAVR(DenonAVRFoundation):
     async def async_auto_standby_set(self, auto_standby: AutoStandbys) -> None:
         """Set auto standby on receiver via HTTP get command."""
         await self._device.async_auto_standby_set(auto_standby)
+
+    async def async_sleep_set(self, sleep: Union[Literal["OFF"], int]) -> None:
+        """
+        Set auto standby on receiver via HTTP get command.
+
+        Valid sleep values are "OFF" and 1-120 (in minutes)
+        """
+        await self._device.async_sleep_set(sleep)
 
     async def async_channel_volume_up(self, channel: Channels) -> None:
         """Increase volume of the specified channel."""

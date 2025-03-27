@@ -77,6 +77,7 @@ ReceiverURLs = namedtuple(
         "command_quick_select_mode",
         "command_quick_select_memory",
         "command_auto_standby",
+        "command_sleep",
         "command_status",
     ],
 )
@@ -136,6 +137,7 @@ TelnetCommands = namedtuple(
         "command_quick_select_mode",
         "command_quick_select_memory",
         "command_auto_standby",
+        "command_sleep",
         "command_status",
     ],
 )
@@ -461,6 +463,7 @@ COMMAND_HDMI_OUTPUT = "/goform/formiPhoneAppDirect.xml?VSMONI{output}"
 COMMAND_QUICK_SELECT_MODE = "/goform/formiPhoneAppDirect.xml?MSQUICK{number}"
 COMMAND_QUICK_SELECT_MEMORY = "/goform/formiPhoneAppDirect.xml?MSQUICK{number}"
 COMMAND_AUTO_STANDBY = "/goform/formiPhoneAppDirect.xml?STBY{mode}"
+COMMAND_SLEEP = "/goform/formiPhoneAppDirect.xml?SLP{value}"
 COMMAND_STATUS = "/goform/formiPhoneAppDirect.xml?RCSHP0230030"
 
 # Zone 2 URLs
@@ -543,6 +546,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_quick_select_mode=COMMAND_QUICK_SELECT_MODE,
     command_quick_select_memory=COMMAND_QUICK_SELECT_MODE,
     command_auto_standby=COMMAND_AUTO_STANDBY,
+    command_sleep=COMMAND_SLEEP,
     command_status=COMMAND_STATUS,
 )
 
@@ -602,6 +606,7 @@ ZONE2_URLS = ReceiverURLs(
     command_quick_select_mode=COMMAND_QUICK_SELECT_MODE,
     command_quick_select_memory=COMMAND_QUICK_SELECT_MEMORY,
     command_auto_standby=COMMAND_AUTO_STANDBY,
+    command_sleep=COMMAND_SLEEP,
     command_status=COMMAND_STATUS,
 )
 
@@ -661,6 +666,7 @@ ZONE3_URLS = ReceiverURLs(
     command_quick_select_mode=COMMAND_QUICK_SELECT_MODE,
     command_quick_select_memory=COMMAND_QUICK_SELECT_MEMORY,
     command_auto_standby=COMMAND_AUTO_STANDBY,
+    command_sleep=COMMAND_SLEEP,
     command_status=COMMAND_STATUS,
 )
 
@@ -773,6 +779,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_quick_select_mode="MSQUICK{number}",
     command_quick_select_memory="MSQUICK{number} MEMORY",
     command_auto_standby="STBY{mode}",
+    command_sleep="SLP{value}",
     command_status="RCSHP0230030",
 )
 
@@ -830,6 +837,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_quick_select_mode="MSQUICK{number}",
     command_quick_select_memory="MSQUICK{number} MEMORY",
     command_auto_standby="STBY{mode}",
+    command_sleep="SLP{value}",
     command_status="RCSHP0230030",
 )
 
@@ -887,6 +895,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_quick_select_mode="MSQUICK{number}",
     command_quick_select_memory="MSQUICK{number} MEMORY",
     command_auto_standby="STBY{mode}",
+    command_sleep="SLP{value}",
     command_status="RCSHP0230030",
 )
 

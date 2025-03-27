@@ -12,7 +12,7 @@ import logging
 import xml.etree.ElementTree as ET
 from collections.abc import Hashable
 from copy import deepcopy
-from typing import Dict, List, Optional, Union, get_args
+from typing import Dict, List, Literal, Optional, Union, get_args
 
 import attr
 
@@ -125,6 +125,9 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(str), default=None
     )
     _auto_standbys = get_args(AutoStandbys)
+    _sleep: Optional[Union[str, int]] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
     _delay: Optional[int] = attr.ib(
         converter=attr.converters.optional(int), default=None
     )
@@ -194,6 +197,18 @@ class DenonAVRDeviceInfo:
         """Handle a auto standby change event."""
         if event == "STBY":
             self._auto_standby = parameter
+
+    async def _async_auto_sleep_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a sleep change event."""
+        if event != "SLP":
+            return
+
+        if parameter == "OFF":
+            self._sleep = parameter
+        else:
+            self._sleep = int(parameter)
 
     async def _async_delay_callback(
         self, zone: str, event: str, parameter: str
@@ -284,6 +299,7 @@ class DenonAVRDeviceInfo:
                 "SS", self._async_tactile_transducer_callback
             )
             self.telnet_api.register_callback("STBY", self._async_auto_standby_callback)
+            self.telnet_api.register_callback("SLP", self._async_auto_sleep_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished device setup")
@@ -673,6 +689,17 @@ class DenonAVRDeviceInfo:
         return self._auto_standby
 
     @property
+    def sleep(self) -> Optional[Union[str, int]]:
+        """
+        Return the sleep timer for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "OFF" and 1-120 (in minutes)
+        """
+        return self._sleep
+
+    @property
     def delay(self) -> Optional[int]:
         """
         Return the audio delay for the device in ms.
@@ -906,6 +933,25 @@ class DenonAVRDeviceInfo:
         else:
             await self.api.async_get_command(
                 self.urls.command_auto_standby.format(mode=auto_standby)
+            )
+
+    async def async_sleep_set(self, sleep: Union[Literal["OFF"], int]) -> None:
+        """
+        Set auto standby on receiver via HTTP get command.
+
+        Valid sleep values are "OFF" and 1-120 (in minutes)
+        """
+        if sleep != "OFF" and sleep not in range(1, 120):
+            raise AvrCommandError("Invalid sleep value")
+
+        local_sleep = f"{sleep:03}" if isinstance(sleep, int) else sleep
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_sleep.format(value=local_sleep)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_sleep.format(value=local_sleep)
             )
 
     async def async_tactile_transducer_off(self) -> None:
