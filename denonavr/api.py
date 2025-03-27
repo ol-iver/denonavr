@@ -583,6 +583,7 @@ class DenonAVRTelnetApi:
             "STBY?",
             "SLP?",
             "VSAUDIO ?",
+            "PSCES ?",
             skip_confirmation=True,
         )
 
