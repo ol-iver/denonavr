@@ -57,6 +57,7 @@ ReceiverURLs = namedtuple(
         "command_setup_open",
         "command_setup_close",
         "command_setup_query",
+        "command_channel_level_adjust",
         "command_dimmer_toggle",
         "command_dimmer_set",
         "command_channel_volume_up",
@@ -114,6 +115,7 @@ TelnetCommands = namedtuple(
         "command_setup_open",
         "command_setup_close",
         "command_setup_query",
+        "command_channel_level_adjust",
         "command_dimmer_toggle",
         "command_dimmer_set",
         "command_channel_volume_up",
@@ -436,6 +438,7 @@ COMMAND_OPTIONS = "/goform/formiPhoneAppDirect.xml?MNOPT"
 COMMAND_SETUP_OPEN = "/goform/formiPhoneAppDirect.xml?MNMEN%20ON"
 COMMAND_SETUP_CLOSE = "/goform/formiPhoneAppDirect.xml?MNMEN%20OFF"
 COMMAND_SETUP_QUERY = "/goform/formiPhoneAppDirect.xml?MNMEN?"
+COMMAND_CHANNEL_LEVEL_ADJUST = "/goform/formiPhoneAppDirect.xml?MNCHL"
 COMMAND_DIMMER_TOGGLE = "/goform/formiPhoneAppDirect.xml?DIM%20SEL"
 COMMAND_DIMMER_SET = "/goform/formiPhoneAppDirect.xml?DIM%20{mode}"
 COMMAND_CHANNEL_VOLUME_UP = "/goform/formiPhoneAppDirect.xml?CV{channel}%20UP"
@@ -517,6 +520,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_setup_open=COMMAND_SETUP_OPEN,
     command_setup_close=COMMAND_SETUP_CLOSE,
     command_setup_query=COMMAND_SETUP_QUERY,
+    command_channel_level_adjust=COMMAND_CHANNEL_LEVEL_ADJUST,
     command_dimmer_toggle=COMMAND_DIMMER_TOGGLE,
     command_dimmer_set=COMMAND_DIMMER_SET,
     command_channel_volume_up=COMMAND_CHANNEL_VOLUME_UP,
@@ -574,6 +578,7 @@ ZONE2_URLS = ReceiverURLs(
     command_setup_open=COMMAND_SETUP_OPEN,
     command_setup_close=COMMAND_SETUP_CLOSE,
     command_setup_query=COMMAND_SETUP_QUERY,
+    command_channel_level_adjust=COMMAND_CHANNEL_LEVEL_ADJUST,
     command_dimmer_toggle=COMMAND_DIMMER_TOGGLE,
     command_dimmer_set=COMMAND_DIMMER_SET,
     command_channel_volume_up=COMMAND_CHANNEL_VOLUME_UP,
@@ -631,6 +636,7 @@ ZONE3_URLS = ReceiverURLs(
     command_setup_open=COMMAND_SETUP_OPEN,
     command_setup_close=COMMAND_SETUP_CLOSE,
     command_setup_query=COMMAND_SETUP_QUERY,
+    command_channel_level_adjust=COMMAND_CHANNEL_LEVEL_ADJUST,
     command_dimmer_toggle=COMMAND_DIMMER_TOGGLE,
     command_dimmer_set=COMMAND_DIMMER_SET,
     command_channel_volume_up=COMMAND_CHANNEL_VOLUME_UP,
@@ -741,6 +747,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_setup_open="MNMEN ON",
     command_setup_close="MNMEN OFF",
     command_setup_query="MNMEN?",
+    command_channel_level_adjust="MNCHL",
     command_dimmer_toggle="DIM SEL",
     command_dimmer_set="DIM {mode}",
     command_channel_volume_up="CV{channel} UP",
@@ -796,6 +803,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_setup_open="MNMEN ON",
     command_setup_close="MNMEN OFF",
     command_setup_query="MNMEN?",
+    command_channel_level_adjust="MNCHL",
     command_dimmer_toggle="DIM SEL",
     command_dimmer_set="DIM {mode}",
     command_channel_volume_up="CV{channel} UP",
@@ -851,6 +859,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_setup_open="MNMEN ON",
     command_setup_close="MNMEN OFF",
     command_setup_query="MNMEN?",
+    command_channel_level_adjust="MNCHL",
     command_dimmer_toggle="DIM SEL",
     command_dimmer_set="DIM {mode}",
     command_channel_volume_up="CV{channel} UP",

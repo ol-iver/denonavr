@@ -837,6 +837,10 @@ class DenonAVR(DenonAVRFoundation):
         """Raise settings menu to receiver via HTTP get command."""
         await self._device.async_settings_menu()
 
+    async def async_channel_level_adjust(self) -> None:
+        """Toggle the channel level adjust menu on receiver via HTTP get command."""
+        await self._device.async_channel_level_adjust()
+
     async def async_dimmer_toggle(self) -> None:
         """Toggle dimmer on receiver via HTTP get command."""
         await self._device.async_dimmer_toggle()

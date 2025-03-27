@@ -827,6 +827,15 @@ class DenonAVRDeviceInfo:
         else:
             await self.api.async_get_command(self.urls.command_setup_open)
 
+    async def async_channel_level_adjust(self) -> None:
+        """Toggle the channel level adjust menu on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_channel_level_adjust
+            )
+        else:
+            await self.api.async_get_command(self.urls.command_channel_level_adjust)
+
     async def async_dimmer_toggle(self) -> None:
         """Toggle dimmer on receiver via HTTP get command."""
         if self.telnet_available:
