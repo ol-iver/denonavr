@@ -922,7 +922,7 @@ class DenonAVRDeviceInfo:
         else:
             await self.api.async_get_command(self.urls.command_dimmer_toggle)
 
-    async def async_dimmer_set(self, mode: DimmerModes) -> None:
+    async def async_dimmer(self, mode: DimmerModes) -> None:
         """Set dimmer mode on receiver via HTTP get command."""
         if mode not in DimmerModes:
             raise AvrCommandError("Invalid dimmer mode")
@@ -948,7 +948,7 @@ class DenonAVRDeviceInfo:
                 self.urls.command_tactile_transducer.format(mode="ON")
             )
 
-    async def async_auto_standby_set(self, auto_standby: AutoStandbys) -> None:
+    async def async_auto_standby(self, auto_standby: AutoStandbys) -> None:
         """Set auto standby on receiver via HTTP get command."""
         if auto_standby not in self._auto_standbys:
             raise AvrCommandError("Invalid Auto Standby mode")
@@ -961,7 +961,7 @@ class DenonAVRDeviceInfo:
                 self.urls.command_auto_standby.format(mode=auto_standby)
             )
 
-    async def async_sleep_set(self, sleep: Union[Literal["OFF"], int]) -> None:
+    async def async_sleep(self, sleep: Union[Literal["OFF"], int]) -> None:
         """
         Set auto standby on receiver via HTTP get command.
 
@@ -1026,7 +1026,7 @@ class DenonAVRDeviceInfo:
                 self.urls.command_tactile_transducer_level.format(mode="DOWN")
             )
 
-    async def async_transducer_lpf_set(self, lpf: TransducerLPFs):
+    async def async_transducer_lpf(self, lpf: TransducerLPFs):
         """Set transducer low pass filter on receiver via HTTP get command."""
         if lpf not in self._tactile_transducer_lpfs:
             raise AvrCommandError("Invalid tactile transducer low pass filter")

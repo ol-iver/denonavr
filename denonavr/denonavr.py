@@ -880,21 +880,21 @@ class DenonAVR(DenonAVRFoundation):
         """Toggle dimmer on receiver via HTTP get command."""
         await self._device.async_dimmer_toggle()
 
-    async def async_dimmer_set(self, mode: DimmerModes) -> None:
+    async def async_dimmer(self, mode: DimmerModes) -> None:
         """Set dimmer mode on receiver via HTTP get command."""
-        await self._device.async_dimmer_set(mode)
+        await self._device.async_dimmer(mode)
 
-    async def async_auto_standby_set(self, auto_standby: AutoStandbys) -> None:
+    async def async_auto_standby(self, auto_standby: AutoStandbys) -> None:
         """Set auto standby on receiver via HTTP get command."""
-        await self._device.async_auto_standby_set(auto_standby)
+        await self._device.async_auto_standby(auto_standby)
 
-    async def async_sleep_set(self, sleep: Union[Literal["OFF"], int]) -> None:
+    async def async_sleep(self, sleep: Union[Literal["OFF"], int]) -> None:
         """
         Set auto standby on receiver via HTTP get command.
 
         Valid sleep values are "OFF" and 1-120 (in minutes)
         """
-        await self._device.async_sleep_set(sleep)
+        await self._device.async_sleep(sleep)
 
     async def async_channel_volume_up(self, channel: Channels) -> None:
         """Increase volume of the specified channel."""
@@ -956,9 +956,9 @@ class DenonAVR(DenonAVRFoundation):
         """Turn down the transducer on receiver via HTTP get command."""
         await self._device.async_tactile_transducer_level_down()
 
-    async def async_transducer_lpf_set(self, lpf: TransducerLPFs) -> None:
+    async def async_transducer_lpf(self, lpf: TransducerLPFs) -> None:
         """Set transducer low pass filter on receiver via HTTP get command."""
-        await self._device.async_transducer_lpf_set(lpf)
+        await self._device.async_transducer_lpf(lpf)
 
     async def async_quick_select_mode(self, quick_select_number: int) -> None:
         """
