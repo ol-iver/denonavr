@@ -593,6 +593,7 @@ class DenonAVRTelnetApi:
             "PSLFE ?",
             "PSLOM ?",
             "PSBSC ?",
+            "PSDEH ?",
             skip_confirmation=True,
         )
 

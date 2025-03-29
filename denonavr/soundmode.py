@@ -19,7 +19,10 @@ from .appcommand import AppCommands
 from .const import (
     ALL_ZONE_STEREO,
     DENON_ATTR_SETATTR,
+    DIALOG_ENHANCER_LEVEL_MAP,
+    DIALOG_ENHANCER_LEVEL_MAP_LABELS,
     SOUND_MODE_MAPPING,
+    DialogEnhancerLevels,
     IMAXHPFs,
     IMAXLPFs,
 )
@@ -102,6 +105,10 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     _loudness_management: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _dialog_enhancer_level: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _dialog_enhancer_levels = get_args(DialogEnhancerLevels)
     _sound_mode_map: Dict[str, list] = attr.ib(
         validator=attr.validators.deep_mapping(
             attr.validators.instance_of(str),
@@ -158,6 +165,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             self._device.telnet_api.register_callback(
                 "PS", self._async_loudness_management_callback
             )
+            self._device.telnet_api.register_callback(
+                "PS", self._async_dialog_enhancer_callback
+            )
 
             self._is_setup = True
             _LOGGER.debug("Finished sound mode setup")
@@ -211,6 +221,15 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         """Handle a Loudness Management change event."""
         if parameter[:3] == "LOM":
             self._loudness_management = parameter[4:]
+
+    async def _async_dialog_enhancer_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a Loudness Management change event."""
+        if parameter[:3] == "DEH":
+            self._dialog_enhancer_level = DIALOG_ENHANCER_LEVEL_MAP_LABELS[
+                parameter[4:]
+            ]
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -468,6 +487,17 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         Possible values are: "ON", "OFF"
         """
         return self._loudness_management
+
+    @property
+    def dialog_enhancer(self) -> Optional[str]:
+        """
+        Return the current Dialog Enhancer level.
+
+        Only available if using Telnet.
+
+        Possible values are: "Off", "Low", "Medium", "High"
+        """
+        return self._dialog_enhancer_level
 
     ##########
     # Setter #
@@ -756,6 +786,23 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             await self.async_loudness_management_off()
         else:
             await self.async_loudness_management_on()
+
+    async def async_dialog_enhancer(self, level: DialogEnhancerLevels) -> None:
+        """Set Dialog Enhancer level."""
+        if level not in self._dialog_enhancer_levels:
+            raise AvrCommandError(f"{level} is not a valid dialog enhancer level")
+
+        level_mapped = DIALOG_ENHANCER_LEVEL_MAP[level]
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_dialog_enhancer.format(
+                    level=level_mapped
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_dialog_enhancer.format(level=level_mapped)
+            )
 
 
 def sound_mode_factory(instance: DenonAVRFoundation) -> DenonAVRSoundMode:
