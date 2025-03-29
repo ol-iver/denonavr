@@ -1233,7 +1233,7 @@ class DenonAVRDeviceInfo:
                 self.urls.command_video_processing_mode.format(mode=processing_mode)
             )
 
-    async def async_status(self):
+    async def async_status(self) -> str:
         """Get status of receiver via HTTP get command."""
         if "denon" not in self.manufacturer.lower():
             raise AvrCommandError("Status command is only supported for Denon devices")
