@@ -47,6 +47,7 @@ ReceiverURLs = namedtuple(
         "command_imax_lpf",
         "command_imax_subwoofer_mode",
         "command_imax_subwoofer_output",
+        "command_cinema_eq",
         "command_netaudio_post",
         "command_set_all_zone_stereo",
         "command_pause",
@@ -112,6 +113,7 @@ TelnetCommands = namedtuple(
         "command_imax_lpf",
         "command_imax_subwoofer_mode",
         "command_imax_subwoofer_output",
+        "command_cinema_eq",
         "command_set_all_zone_stereo",
         "command_pause",
         "command_play",
@@ -458,6 +460,7 @@ COMMAND_IMAX_HPF = "/goform/formiPhoneAppDirect.xml?PSIMAXHPF%20{frequency}"
 COMMAND_IMAX_LPF = "/goform/formiPhoneAppDirect.xml?PSIMAXLPF%20{frequency}"
 COMMAND_IMAX_SUBWOOFER_MODE = "/goform/formiPhoneAppDirect.xml?PSIMAXSWM%20{mode}"
 COMMAND_IMAX_SUBWOOFER_OUTPUT = "/goform/formiPhoneAppDirect.xml?PSIMAXSWO%20{mode}"
+COMMAND_CINEMA_EQ = "/goform/formiPhoneAppDirect.xml?PSCINEMA%20EQ.{mode}"
 COMMAND_CURSOR_UP = "/goform/formiPhoneAppDirect.xml?MNCUP"
 COMMAND_CURSOR_DOWN = "/goform/formiPhoneAppDirect.xml?MNCDN"
 COMMAND_CURSOR_LEFT = "/goform/formiPhoneAppDirect.xml?MNCLT"
@@ -549,6 +552,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_imax_lpf=COMMAND_IMAX_LPF,
     command_imax_subwoofer_mode=COMMAND_IMAX_SUBWOOFER_MODE,
     command_imax_subwoofer_output=COMMAND_IMAX_SUBWOOFER_OUTPUT,
+    command_cinema_eq=COMMAND_CINEMA_EQ,
     command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
@@ -620,6 +624,7 @@ ZONE2_URLS = ReceiverURLs(
     command_imax_lpf=COMMAND_IMAX_LPF,
     command_imax_subwoofer_mode=COMMAND_IMAX_SUBWOOFER_MODE,
     command_imax_subwoofer_output=COMMAND_IMAX_SUBWOOFER_OUTPUT,
+    command_cinema_eq=COMMAND_CINEMA_EQ,
     command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
@@ -691,6 +696,7 @@ ZONE3_URLS = ReceiverURLs(
     command_imax_lpf=COMMAND_IMAX_LPF,
     command_imax_subwoofer_mode=COMMAND_IMAX_SUBWOOFER_MODE,
     command_imax_subwoofer_output=COMMAND_IMAX_SUBWOOFER_OUTPUT,
+    command_cinema_eq=COMMAND_CINEMA_EQ,
     command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
@@ -809,6 +815,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_imax_lpf="PSIMAXLPF {frequency}",
     command_imax_subwoofer_mode="PSIMAXSWM {mode}",
     command_imax_subwoofer_output="PSIMAXSWO {mode}",
+    command_cinema_eq="PSCINEMA EQ.{mode}",
     command_set_all_zone_stereo="MN",
     command_pause="NS9B",
     command_play="NS9A",
@@ -878,6 +885,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_imax_lpf="PSIMAXLPF {frequency}",
     command_imax_subwoofer_mode="PSIMAXSWM {mode}",
     command_imax_subwoofer_output="PSIMAXSWO {mode}",
+    command_cinema_eq="PSCINEMA EQ.{mode}",
     command_set_all_zone_stereo="MN",
     command_pause="NS9B",
     command_play="NS9A",
@@ -947,6 +955,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_imax_lpf="PSIMAXLPF {frequency}",
     command_imax_subwoofer_mode="PSIMAXSWM {mode}",
     command_imax_subwoofer_output="PSIMAXSWO {mode}",
+    command_cinema_eq="PSCINEMA EQ.{mode}",
     command_set_all_zone_stereo="MN",
     command_pause="NS9B",
     command_play="NS9A",

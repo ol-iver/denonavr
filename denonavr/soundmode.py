@@ -99,6 +99,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     _imax_subwoofer_output: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _cinema_eq: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
     _center_spread: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
@@ -160,6 +163,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             )
             self._device.telnet_api.register_callback("PS", self._async_imax_callback)
             self._device.telnet_api.register_callback(
+                "PS", self._async_cinema_eq_callback
+            )
+            self._device.telnet_api.register_callback(
                 "PS", self._async_center_spread_callback
             )
             self._device.telnet_api.register_callback(
@@ -207,6 +213,13 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             self._imax_subwoofer_mode = parameter[8:]
         elif key_value[0] == "IMAXSWO":
             self._imax_subwoofer_output = parameter[8:]
+
+    async def _async_cinema_eq_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a Cinema EQ change event."""
+        if parameter[:10] == "CINEMA EQ.":
+            self._cinema_eq = parameter[10:]
 
     async def _async_center_spread_callback(
         self, zone: str, event: str, parameter: str
@@ -467,6 +480,17 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         return self._imax_subwoofer_output
 
     @property
+    def cinema_eq(self) -> Optional[str]:
+        """
+        Return the current Cinema EQ status.
+
+        Only available if using Telnet.
+
+        Possible values are: "ON", "OFF"
+        """
+        return self._cinema_eq
+
+    @property
     def center_spread(self) -> Optional[str]:
         """
         Return the current Center Spread status.
@@ -716,6 +740,39 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             await self._device.api.async_get_command(
                 self._device.urls.command_imax_subwoofer_output.format(mode=mode)
             )
+
+    async def async_cinema_eq_on(self):
+        """Set Cinema EQ to ON."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_cinema_eq.format(mode="ON")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_cinema_eq.format(mode="ON")
+            )
+
+    async def async_cinema_eq_off(self):
+        """Set Cinema EQ to OFF."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_cinema_eq.format(mode="OFF")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_cinema_eq.format(mode="OFF")
+            )
+
+    async def async_cinema_eq_toggle(self):
+        """
+        Toggle Cinema EQ.
+
+        Only available if using Telnet.
+        """
+        if self._cinema_eq == "ON":
+            await self.async_cinema_eq_off()
+        else:
+            await self.async_cinema_eq_on()
 
     async def async_center_spread_on(self):
         """Set Center Spread to ON."""

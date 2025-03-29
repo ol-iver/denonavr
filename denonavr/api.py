@@ -594,6 +594,7 @@ class DenonAVRTelnetApi:
             "PSLOM ?",
             "PSBSC ?",
             "PSDEH ?",
+            "PSCINEMA EQ. ?",
             skip_confirmation=True,
         )
 
