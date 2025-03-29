@@ -11,12 +11,18 @@ import asyncio
 import logging
 from collections.abc import Hashable
 from copy import deepcopy
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Optional, get_args
 
 import attr
 
 from .appcommand import AppCommands
-from .const import ALL_ZONE_STEREO, DENON_ATTR_SETATTR, SOUND_MODE_MAPPING
+from .const import (
+    ALL_ZONE_STEREO,
+    DENON_ATTR_SETATTR,
+    SOUND_MODE_MAPPING,
+    IMAXHPFs,
+    IMAXLPFs,
+)
 from .exceptions import AvrCommandError, AvrIncompleteResponseError, AvrProcessingError
 from .foundation import DenonAVRFoundation
 
@@ -67,6 +73,35 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     _sound_mode_raw: Optional[str] = attr.ib(
         converter=attr.converters.optional(convert_sound_mode), default=None
     )
+    _neural_x_on_off: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _imax_auto_off: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _imax_audio_settings: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _imax_hpf: Optional[int] = attr.ib(
+        converter=attr.converters.optional(int), default=None
+    )
+    _imax_hpfs = get_args(IMAXHPFs)
+    _imax_lpf: Optional[int] = attr.ib(
+        converter=attr.converters.optional(int), default=None
+    )
+    _imax_lpfs = get_args(IMAXLPFs)
+    _imax_subwoofer_mode: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _imax_subwoofer_output: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _center_spread: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _loudness_management: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
     _sound_mode_map: Dict[str, list] = attr.ib(
         validator=attr.validators.deep_mapping(
             attr.validators.instance_of(str),
@@ -113,6 +148,16 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             self._device.telnet_api.register_callback(
                 "MS", self._async_soundmode_callback
             )
+            self._device.telnet_api.register_callback(
+                "PS", self._async_neural_x_callback
+            )
+            self._device.telnet_api.register_callback("PS", self._async_imax_callback)
+            self._device.telnet_api.register_callback(
+                "PS", self._async_center_spread_callback
+            )
+            self._device.telnet_api.register_callback(
+                "PS", self._async_loudness_management_callback
+            )
 
             self._is_setup = True
             _LOGGER.debug("Finished sound mode setup")
@@ -125,6 +170,47 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             return
 
         self._sound_mode_raw = parameter
+
+    async def _async_neural_x_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a Neural X change event."""
+        parameter_name_length = len("NEURAL")
+        if parameter[:parameter_name_length] == "NEURAL":
+            self._neural_x_on_off = parameter[parameter_name_length + 1 :]
+
+    async def _async_imax_callback(self, zone: str, event: str, parameter: str) -> None:
+        """Handle an IMAX change event."""
+        key_value = parameter.split()
+        if len(key_value) != 2 or key_value[0][:4] != "IMAX":
+            return
+
+        if key_value[0] == "IMAX":
+            self._imax_auto_off = parameter[5:]
+        elif key_value[0] == "IMAXAUD":
+            self._imax_audio_settings = parameter[8:]
+        elif key_value[0] == "IMAXHPF":
+            self._imax_hpf = int(parameter[8:])
+        elif key_value[0] == "IMAXLPF":
+            self._imax_lpf = int(parameter[8:])
+        elif key_value[0] == "IMAXSWM":
+            self._imax_subwoofer_mode = parameter[8:]
+        elif key_value[0] == "IMAXSWO":
+            self._imax_subwoofer_output = parameter[8:]
+
+    async def _async_center_spread_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a Center Spread change event."""
+        if parameter[:3] == "CES":
+            self._center_spread = parameter[4:]
+
+    async def _async_loudness_management_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a Loudness Management change event."""
+        if parameter[:3] == "LOM":
+            self._loudness_management = parameter[4:]
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -292,6 +378,97 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         """Return the current sound mode as string as received from the AVR."""
         return self._sound_mode_raw
 
+    @property
+    def neural_x(self) -> Optional[str]:
+        """
+        Return the current Neural:X status.
+
+        Only available if using Telnet.
+
+        Possible values are: "ON", "OFF"
+        """
+        return self._neural_x_on_off
+
+    @property
+    def imax(self) -> Optional[str]:
+        """
+        Return the current IMAX status.
+
+        Only available if using Telnet.
+
+        Possible values are: "AUTO", "OFF"
+        """
+        return self._imax_auto_off
+
+    @property
+    def imax_audio_settings(self) -> Optional[str]:
+        """
+        Return the current IMAX Audio Settings.
+
+        Only available if using Telnet.
+
+        Possible values are: "AUTO", "MANUAL"
+        """
+        return self._imax_audio_settings
+
+    @property
+    def imax_hpf(self) -> Optional[int]:
+        """
+        Return the current IMAX High Pass Filter.
+
+        Only available if using Telnet.
+        """
+        return self._imax_hpf
+
+    @property
+    def imax_lpf(self) -> Optional[int]:
+        """
+        Return the current IMAX Low Pass Filter.
+
+        Only available if using Telnet.
+        """
+        return self._imax_lpf
+
+    @property
+    def imax_subwoofer_mode(self) -> Optional[str]:
+        """
+        Return the current IMAX Subwoofer Mode.
+
+        Only available if using Telnet.
+        """
+        return self._imax_subwoofer_mode
+
+    @property
+    def imax_subwoofer_output(self) -> Optional[str]:
+        """
+        Return the current IMAX Subwoofer Output Mode.
+
+        Only available if using Telnet.
+        """
+        return self._imax_subwoofer_output
+
+    @property
+    def center_spread(self) -> Optional[str]:
+        """
+        Return the current Center Spread status.
+
+        Only available if using Telnet.
+
+        Possible values are: "ON", "OFF"
+        """
+        return self._center_spread
+
+    @property
+    def loudness_management(self) -> Optional[str]:
+        """
+        Return the current Loudness Management status.
+
+        Only available if using Telnet.
+
+        Possible values are: "ON", "OFF"
+        """
+        return self._loudness_management
+
     ##########
     # Setter #
     ##########
@@ -324,6 +501,261 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             await self._device.telnet_api.async_send_commands(telnet_command)
         else:
             await self._device.api.async_get_command(command_url)
+
+    async def async_sound_mode_next(self):
+        """Select next sound mode."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_sel_sound_mode + "RIGHT"
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_sel_sound_mode + "RIGHT"
+            )
+
+    async def async_sound_mode_previous(self):
+        """Select previous sound mode."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_sel_sound_mode + "LEFT"
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_sel_sound_mode + "LEFT"
+            )
+
+    async def async_neural_x_on(self):
+        """Turn on Neural:X sound mode."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_neural_x_on_off.format(mode="ON")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_neural_x_on_off.format(mode="ON")
+            )
+
+    async def async_neural_x_off(self):
+        """Turn off Neural:X sound mode."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_neural_x_on_off.format(mode="OFF")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_neural_x_on_off.format(mode="OFF")
+            )
+
+    async def async_neural_x_toggle(self):
+        """
+        Toggle Neural:X sound mode.
+
+        Only available if using Telnet.
+        """
+        if self._neural_x_on_off == "ON":
+            await self.async_neural_x_off()
+        else:
+            await self.async_neural_x_on()
+
+    async def async_imax_auto(self):
+        """Set IMAX sound mode to Auto."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_imax_auto_off.format(mode="AUTO")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_imax_auto_off.format(mode="AUTO")
+            )
+
+    async def async_imax_off(self):
+        """Turn off IMAX sound mode."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_imax_auto_off.format(mode="OFF")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_imax_auto_off.format(mode="OFF")
+            )
+
+    async def async_imax_toggle(self):
+        """
+        Toggle IMAX sound mode between auto and off.
+
+        Only available if using Telnet.
+        """
+        if self._imax_auto_off != "OFF":
+            await self.async_imax_off()
+        else:
+            await self.async_imax_auto()
+
+    async def async_imax_audio_settings(self, mode: Literal["AUTO", "MANUAL"]):
+        """Set IMAX audio settings."""
+        if mode not in ["AUTO", "MANUAL"]:
+            raise AvrCommandError(f"{mode} is not a valid IMAX audio setting")
+
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_imax_audio_settings.format(
+                    mode=mode
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_imax_audio_settings.format(mode=mode)
+            )
+
+    async def async_imax_audio_settings_toggle(self) -> None:
+        """
+        Toggle IMAX audio settings between auto and manual.
+
+        Only available if using Telnet.
+        """
+        if self._imax_audio_settings == "AUTO":
+            await self.async_imax_audio_settings("MANUAL")
+        else:
+            await self.async_imax_audio_settings("AUTO")
+
+    async def async_imax_hpf(self, hpf: IMAXHPFs) -> None:
+        """Set IMAX High Pass Filter."""
+        if hpf not in self._imax_hpfs:
+            raise AvrCommandError(f"{hpf} is not a valid IMAX high pass filter")
+
+        local_hpf = self._padded_pass_filter(hpf)
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_imax_hpf.format(
+                    frequency=local_hpf
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_imax_hpf.format(frequency=local_hpf)
+            )
+
+    async def async_imax_lpf(self, lpf: IMAXLPFs) -> None:
+        """Set IMAX Low Pass Filter."""
+        if lpf not in self._imax_lpfs:
+            raise AvrCommandError(f"{lpf} is not a valid IMAX low pass filter")
+        # pad lpf with 0 if it is a only two digits digit
+        local_lpf = self._padded_pass_filter(lpf)
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_imax_lpf.format(
+                    frequency=local_lpf
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_imax_lpf.format(frequency=local_lpf)
+            )
+
+    @staticmethod
+    def _padded_pass_filter(pass_filter: str) -> str:
+        return f"0{pass_filter}" if len(str(pass_filter)) == 2 else str(pass_filter)
+
+    async def async_imax_subwoofer_mode(self, mode: Literal["ON", "OFF"]) -> None:
+        """Set IMAX Subwoofer Mode."""
+        if mode not in ["ON", "OFF"]:
+            raise AvrCommandError(f"{mode} is not a valid IMAX subwoofer mode")
+
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_imax_subwoofer_mode.format(
+                    mode=mode
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_imax_subwoofer_mode.format(mode=mode)
+            )
+
+    async def async_imax_subwoofer_output(self, mode: Literal["L+M", "LFE"]) -> None:
+        """Set IMAX Subwoofer Output Mode."""
+        if mode not in ["L+M", "LFE"]:
+            raise AvrCommandError(f"{mode} is not a valid IMAX subwoofer output mode")
+
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_imax_subwoofer_output.format(
+                    mode=mode
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_imax_subwoofer_output.format(mode=mode)
+            )
+
+    async def async_center_spread_on(self):
+        """Set Center Spread to ON."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_center_spread.format(mode="ON")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_center_spread.format(mode="ON")
+            )
+
+    async def async_center_spread_off(self):
+        """Set Center Spread to ON."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_center_spread.format(mode="OFF")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_center_spread.format(mode="OFF")
+            )
+
+    async def async_center_spread_toggle(self):
+        """
+        Toggle Center Spread.
+
+        Only available if using Telnet.
+        """
+        if self._center_spread == "ON":
+            await self.async_center_spread_off()
+        else:
+            await self.async_center_spread_on()
+
+    async def async_loudness_management_on(self):
+        """Set Loudness Management to ON."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_loudness_management.format(
+                    mode="ON"
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_loudness_management.format(mode="ON")
+            )
+
+    async def async_loudness_management_off(self):
+        """Set Loudness Management to OFF."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_loudness_management.format(
+                    mode="OFF"
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_loudness_management.format(mode="OFF")
+            )
+
+    async def async_loudness_management_toggle(self):
+        """
+        Toggle Loudness Management.
+
+        Only available if using Telnet.
+        """
+        if self._loudness_management == "ON":
+            await self.async_loudness_management_off()
+        else:
+            await self.async_loudness_management_on()
 
 
 def sound_mode_factory(instance: DenonAVRFoundation) -> DenonAVRSoundMode:

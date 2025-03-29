@@ -12,7 +12,7 @@ import logging
 import xml.etree.ElementTree as ET
 from collections.abc import Hashable
 from copy import deepcopy
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Literal, Optional, Union, get_args
 
 import attr
 
@@ -24,28 +24,44 @@ from .const import (
     AVR,
     AVR_X,
     AVR_X_2016,
+    CHANNEL_VOLUME_MAP,
     DENON_ATTR_SETATTR,
     DENONAVR_TELNET_COMMANDS,
     DENONAVR_URLS,
     DESCRIPTION_TYPES,
     DEVICEINFO_AVR_X_PATTERN,
     DEVICEINFO_COMMAPI_PATTERN,
+    DIMMER_MODE_MAP,
+    DIMMER_MODE_MAP_LABELS,
+    ECO_MODE_MAP,
+    ECO_MODE_MAP_LABELS,
+    HDMI_OUTPUT_MAP_LABELS,
     MAIN_ZONE,
     POWER_STATES,
     SETTINGS_MENU_STATES,
     VALID_RECEIVER_TYPES,
     VALID_ZONES,
+    VIDEO_PROCESSING_MODES_MAP,
+    VIDEO_PROCESSING_MODES_MAP_LABELS,
     ZONE2,
     ZONE2_TELNET_COMMANDS,
     ZONE2_URLS,
     ZONE3,
     ZONE3_TELNET_COMMANDS,
     ZONE3_URLS,
+    AutoStandbys,
+    DimmerModes,
+    EcoModes,
+    HDMIAudioDecodes,
+    HDMIOutputs,
     ReceiverType,
     ReceiverURLs,
     TelnetCommands,
+    TransducerLPFs,
+    VideoProcessingModes,
 )
 from .exceptions import (
+    AvrCommandError,
     AvrForbiddenError,
     AvrIncompleteResponseError,
     AvrNetworkError,
@@ -106,6 +122,43 @@ class DenonAVRDeviceInfo:
     _settings_menu: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _dimmer: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _auto_standby: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _auto_standbys = get_args(AutoStandbys)
+    _sleep: Optional[Union[str, int]] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _delay: Optional[int] = attr.ib(
+        converter=attr.converters.optional(int), default=None
+    )
+    _eco_mode: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _hdmi_output: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _hdmi_audio_decode: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _hdmi_audio_decodes = get_args(HDMIAudioDecodes)
+    _video_processing_mode: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _video_processing_modes = get_args(VideoProcessingModes)
+    _tactile_transducer: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _tactile_transducer_level: Optional[float] = attr.ib(
+        converter=attr.converters.optional(float), default=None
+    )
+    _tactile_transducer_lpf: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _tactile_transducer_lpfs = get_args(TransducerLPFs)
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
@@ -142,6 +195,89 @@ class DenonAVRDeviceInfo:
             and parameter[4:] in SETTINGS_MENU_STATES
         ):
             self._settings_menu = parameter[4:]
+
+    async def _async_dimmer_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a dimmer change event."""
+        if event == "DIM" and parameter[1:] in DIMMER_MODE_MAP_LABELS:
+            self._dimmer = DIMMER_MODE_MAP_LABELS[parameter[1:]]
+
+    async def _async_auto_standby_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a auto standby change event."""
+        if event == "STBY":
+            self._auto_standby = parameter
+
+    async def _async_auto_sleep_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a sleep change event."""
+        if event != "SLP":
+            return
+
+        if parameter == "OFF":
+            self._sleep = parameter
+        else:
+            self._sleep = int(parameter)
+
+    async def _async_delay_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a delay change event."""
+        if event == "PS" and parameter[0:3] == "DEL":
+            self._delay = int(parameter[4:])
+
+    async def _async_eco_mode_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle an Eco-mode change event."""
+        if event == "ECO" and parameter in ECO_MODE_MAP_LABELS:
+            self._eco_mode = ECO_MODE_MAP_LABELS[parameter]
+
+    async def _async_hdmi_output_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a HDMI output change event."""
+        if event == "VS" and parameter[0:4] == "MONI":
+            self._hdmi_output = HDMI_OUTPUT_MAP_LABELS[parameter]
+
+    async def _async_hdmi_audio_decode_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a HDMI Audio Decode mode change event."""
+        if event == "VS" and parameter[0:5] == "AUDIO":
+            self._hdmi_audio_decode = parameter[6:]
+
+    async def _async_video_processing_mode_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a HDMI Audio Decode mode change event."""
+        if event == "VS" and parameter[0:3] == "VPM":
+            self._video_processing_mode = VIDEO_PROCESSING_MODES_MAP_LABELS[
+                parameter[3:]
+            ]
+
+    async def _async_tactile_transducer_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a tactile transducer change event."""
+        key_value = parameter.split()
+        if len(key_value) != 2 or parameter[0:3] != "TTR":
+            return
+
+        key = key_value[0]
+        value = key_value[1]
+        if value == "END":
+            return
+
+        if key == "TTR":
+            self._tactile_transducer = value
+        elif key == "TTRLEV":
+            self._tactile_transducer_level = CHANNEL_VOLUME_MAP[value]
+        elif key == "TTRLPF":
+            self._tactile_transducer_lpf = f"{int(value)} Hz"
 
     def get_own_zone(self) -> str:
         """
@@ -183,6 +319,21 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback(power_event, self._async_power_callback)
 
             self.telnet_api.register_callback("MN", self._async_settings_menu_callback)
+            self.telnet_api.register_callback("DIM", self._async_dimmer_callback)
+            self.telnet_api.register_callback("PS", self._async_delay_callback)
+            self.telnet_api.register_callback("ECO", self._async_eco_mode_callback)
+            self.telnet_api.register_callback("VS", self._async_hdmi_output_callback)
+            self.telnet_api.register_callback(
+                "VS", self._async_hdmi_audio_decode_callback
+            )
+            self.telnet_api.register_callback(
+                "VS", self._async_video_processing_mode_callback
+            )
+            self.telnet_api.register_callback(
+                "SS", self._async_tactile_transducer_callback
+            )
+            self.telnet_api.register_callback("STBY", self._async_auto_standby_callback)
+            self.telnet_api.register_callback("SLP", self._async_auto_sleep_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished device setup")
@@ -541,11 +692,128 @@ class DenonAVRDeviceInfo:
     @property
     def settings_menu(self) -> Optional[str]:
         """
-        Return the settings menu state of the device. Only available if using Telnet.
+        Returns the settings menu state of the device.
+
+        Only available if using Telnet.
 
         Possible values are: "ON" and "OFF"
         """
         return self._settings_menu
+
+    @property
+    def dimmer(self) -> Optional[str]:
+        """
+        Returns the dimmer state of the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "Off", "Dark", "Dim" and "Bright"
+        """
+        return self._dimmer
+
+    @property
+    def auto_standby(self) -> Optional[str]:
+        """
+        Return the auto-standby state of the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "OFF", "15M", "30M", "60M"
+        """
+        return self._auto_standby
+
+    @property
+    def sleep(self) -> Optional[Union[str, int]]:
+        """
+        Return the sleep timer for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "OFF" and 1-120 (in minutes)
+        """
+        return self._sleep
+
+    @property
+    def delay(self) -> Optional[int]:
+        """
+        Return the audio delay for the device in ms.
+
+        Only available if using Telnet.
+        """
+        return self._delay
+
+    @property
+    def eco_mode(self) -> Optional[str]:
+        """
+        Returns the eco-mode for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "Off", "On", "Auto"
+        """
+        return self._eco_mode
+
+    @property
+    def hdmi_output(self) -> Optional[str]:
+        """
+        Returns the HDMI-output for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "Auto", "HDMI1", "HDMI2"
+        """
+        return self._hdmi_output
+
+    @property
+    def hdmi_audio_decode(self) -> Optional[str]:
+        """
+        Returns the HDMI Audio Decode for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "AMP", "TV"
+        """
+        return self._hdmi_audio_decode
+
+    @property
+    def video_processing_mode(self) -> Optional[str]:
+        """
+        Return the video processing mode for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "Auto", "Game", "Movie", "Bypass"
+        """
+        return self._video_processing_mode
+
+    @property
+    def tactile_transducer(self) -> Optional[str]:
+        """
+        Return the tactile transducer state of the device.
+
+        Only available if using Telnet.
+
+        Possible values are ON, OFF and Number representing the intensity
+        """
+        return self._tactile_transducer
+
+    @property
+    def tactile_transducer_level(self) -> Optional[float]:
+        """
+        Return the tactile transducer level in dB.
+
+        Only available if using Telnet.
+        """
+        return self._tactile_transducer_level
+
+    @property
+    def tactile_transducer_lpf(self) -> Optional[str]:
+        """
+        Return the tactile transducer low pass filter frequency.
+
+        Only available if using Telnet.
+        """
+        return self._tactile_transducer_lpf
 
     @property
     def telnet_available(self) -> bool:
@@ -665,6 +933,271 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(self.urls.command_setup_close)
         else:
             await self.api.async_get_command(self.urls.command_setup_open)
+
+    async def async_channel_level_adjust(self) -> None:
+        """Toggle the channel level adjust menu on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_channel_level_adjust
+            )
+        else:
+            await self.api.async_get_command(self.urls.command_channel_level_adjust)
+
+    async def async_dimmer_toggle(self) -> None:
+        """Toggle dimmer on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_dimmer_toggle
+            )
+        else:
+            await self.api.async_get_command(self.urls.command_dimmer_toggle)
+
+    async def async_dimmer(self, mode: DimmerModes) -> None:
+        """Set dimmer mode on receiver via HTTP get command."""
+        if mode not in DimmerModes:
+            raise AvrCommandError("Invalid dimmer mode")
+
+        mapped_mode = DIMMER_MODE_MAP[mode]
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_dimmer_set.format(mode=mapped_mode)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_dimmer_set.format(mode=mapped_mode)
+            )
+
+    async def async_tactile_transducer_on(self) -> None:
+        """Turn on tactile transducer on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_tactile_transducer.format(mode="ON")
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_tactile_transducer.format(mode="ON")
+            )
+
+    async def async_auto_standby(self, auto_standby: AutoStandbys) -> None:
+        """Set auto standby on receiver via HTTP get command."""
+        if auto_standby not in self._auto_standbys:
+            raise AvrCommandError("Invalid Auto Standby mode")
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_auto_standby.format(mode=auto_standby)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_auto_standby.format(mode=auto_standby)
+            )
+
+    async def async_sleep(self, sleep: Union[Literal["OFF"], int]) -> None:
+        """
+        Set auto standby on receiver via HTTP get command.
+
+        Valid sleep values are "OFF" and 1-120 (in minutes)
+        """
+        if sleep != "OFF" and sleep not in range(1, 120):
+            raise AvrCommandError("Invalid sleep value")
+
+        local_sleep = f"{sleep:03}" if isinstance(sleep, int) else sleep
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_sleep.format(value=local_sleep)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_sleep.format(value=local_sleep)
+            )
+
+    async def async_tactile_transducer_off(self) -> None:
+        """Turn on tactile transducer on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_tactile_transducer.format(mode="OFF")
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_tactile_transducer.format(mode="OFF")
+            )
+
+    async def async_tactile_transducer_toggle(self) -> None:
+        """
+        Turn on tactile transducer on receiver via HTTP get command.
+
+        Only available if using Telnet.
+        """
+        if self._tactile_transducer != "OFF":
+            await self.async_tactile_transducer_off()
+        else:
+            await self.async_tactile_transducer_on()
+
+    async def async_tactile_transducer_level_up(self) -> None:
+        """Turn up the transducer level on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_tactile_transducer_level.format(mode="UP")
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_tactile_transducer_level.format(mode="UP")
+            )
+
+    async def async_tactile_transducer_level_down(self) -> None:
+        """Turn down the transducer level on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_tactile_transducer_level.format(
+                    mode="DOWN"
+                )
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_tactile_transducer_level.format(mode="DOWN")
+            )
+
+    async def async_transducer_lpf(self, lpf: TransducerLPFs):
+        """Set transducer low pass filter on receiver via HTTP get command."""
+        if lpf not in self._tactile_transducer_lpfs:
+            raise AvrCommandError("Invalid tactile transducer low pass filter")
+
+        frequency = lpf.split()[0]
+        if len(frequency) == 2:
+            frequency = f"0{frequency}"
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_tactile_transducer_lpf.format(
+                    frequency=frequency
+                )
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_tactile_transducer_lpf.format(frequency=frequency)
+            )
+
+    async def async_quick_select_mode(self, quick_select_number: int) -> None:
+        """
+        Set quick select mode on receiver via HTTP get command.
+
+        Valid quick select numbers are 1-5.
+        """
+        if quick_select_number not in range(1, 5):
+            raise AvrCommandError("Quick select number must be between 1 and 5")
+
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_quick_select_mode.format(
+                    number=quick_select_number
+                )
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_quick_select_mode.format(number=quick_select_number)
+            )
+
+    async def async_quick_select_memory(self, quick_select_number: int) -> None:
+        """
+        Set quick select memory on receiver via HTTP get command.
+
+        Valid quick select numbers are 1-5.
+        """
+        if quick_select_number not in range(1, 5):
+            raise AvrCommandError("Quick select number must be between 1 and 5")
+
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_quick_select_memory.format(
+                    number=quick_select_number
+                )
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_quick_select_memory.format(number=quick_select_number)
+            )
+
+    async def async_delay_up(self) -> None:
+        """Delay up on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_delay_up
+            )
+        else:
+            await self.api.async_get_command(self.urls.command_delay_up)
+
+    async def async_delay_down(self) -> None:
+        """Delay down on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_delay_down
+            )
+        else:
+            await self.api.async_get_command(self.urls.command_delay_down)
+
+    async def async_eco_mode(self, mode: EcoModes) -> None:
+        """Set Eco mode."""
+        if mode not in EcoModes:
+            raise AvrCommandError("Invalid Eco mode")
+
+        mapped_mode = ECO_MODE_MAP[mode]
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_eco_mode.format(mode=mapped_mode)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_eco_mode.format(mode=mapped_mode)
+            )
+
+    async def async_hdmi_output(self, output: HDMIOutputs) -> None:
+        """Set HDMI output."""
+        if output not in HDMIOutputs:
+            raise AvrCommandError("Invalid HDMI output mode")
+
+        mapped_output = HDMIOutputs[output]
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_hdmi_output.format(output=mapped_output)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_hdmi_output.format(output=mapped_output)
+            )
+
+    async def async_hdmi_audio_decode(self, mode: HDMIAudioDecodes) -> None:
+        """Set HDMI Audio Decode mode on receiver via HTTP get command."""
+        if mode not in self._hdmi_audio_decodes:
+            raise AvrCommandError("Invalid HDMI Audio Decode mode")
+
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_hdmi_audio_decode.format(mode=mode)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_hdmi_audio_decode.format(mode=mode)
+            )
+
+    async def async_video_processing_mode(self, mode: VideoProcessingModes) -> None:
+        """Set video processing mode on receiver via HTTP get command."""
+        if mode not in self._video_processing_modes:
+            raise AvrCommandError("Invalid video processing mode")
+        processing_mode = VIDEO_PROCESSING_MODES_MAP[mode]
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_video_processing_mode.format(
+                    mode=processing_mode
+                )
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_video_processing_mode.format(mode=processing_mode)
+            )
+
+    async def async_status(self):
+        """Get status of receiver via HTTP get command."""
+        if "denon" not in self.manufacturer.lower():
+            raise AvrCommandError("Status command is only supported for Denon devices")
+        return await self.api.async_get_command(self.urls.command_status)
 
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)

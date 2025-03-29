@@ -10,13 +10,27 @@ This module implements the interface to Denon AVR receivers.
 import asyncio
 import logging
 import time
-from typing import Awaitable, Callable, Dict, List, Optional
+from typing import Awaitable, Callable, Dict, List, Literal, Optional, Union
 
 import attr
 import httpx
 
 from .audyssey import DenonAVRAudyssey, audyssey_factory
-from .const import DENON_ATTR_SETATTR, MAIN_ZONE, VALID_ZONES
+from .const import (
+    DENON_ATTR_SETATTR,
+    MAIN_ZONE,
+    VALID_ZONES,
+    AutoStandbys,
+    Channels,
+    DimmerModes,
+    DiracFilters,
+    EcoModes,
+    HDMIAudioDecodes,
+    HDMIOutputs,
+    TransducerLPFs,
+    VideoProcessingModes,
+)
+from .dirac import DenonAVRDirac, dirac_factory
 from .exceptions import AvrCommandError
 from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
 from .input import DenonAVRInput, input_factory
@@ -81,6 +95,11 @@ class DenonAVR(DenonAVRFoundation):
     audyssey: DenonAVRAudyssey = attr.ib(
         validator=attr.validators.instance_of(DenonAVRAudyssey),
         default=attr.Factory(audyssey_factory, takes_self=True),
+        init=False,
+    )
+    dirac: DenonAVRDirac = attr.ib(
+        validator=attr.validators.instance_of(DenonAVRDirac),
+        default=attr.Factory(dirac_factory, takes_self=True),
         init=False,
     )
     input: DenonAVRInput = attr.ib(
@@ -149,6 +168,7 @@ class DenonAVR(DenonAVRFoundation):
             await self.tonecontrol.async_setup()
             self.vol.setup()
             self.audyssey.setup()
+            self.dirac.setup()
 
             for zone_name, zone_item in self._zones.items():
                 if zone_name != self.zone:
@@ -281,7 +301,9 @@ class DenonAVR(DenonAVRFoundation):
     @property
     def settings_menu(self) -> Optional[str]:
         """
-        Return the settings menu state of the device. Only available if using Telnet.
+        Return the settings menu state of the device.
+
+        Only available if using Telnet.
 
         Possible values are: "ON" and "OFF"
         """
@@ -514,6 +536,141 @@ class DenonAVR(DenonAVRFoundation):
         """Return a list of available MultiEQ settings."""
         return self.audyssey.multi_eq_setting_list
 
+    @property
+    def dimmer(self) -> Optional[str]:
+        """
+        Returns the dimmer state of the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "Off", "Dark", "Dim" and "Bright"
+        """
+        return self._device.dimmer
+
+    @property
+    def auto_standby(self) -> Optional[str]:
+        """
+        Return the auto-standby state of the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "OFF", "15M", "30M", "60M"
+        """
+        return self._device.auto_standby
+
+    @property
+    def sleep(self) -> Optional[Union[str, int]]:
+        """
+        Return the sleep timer for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "OFF" and 1-120 (in minutes)
+        """
+        return self._device.sleep
+
+    @property
+    def delay(self) -> Optional[int]:
+        """
+        Return the audio delay for the device in ms.
+
+        Only available if using Telnet.
+        """
+        return self._device.delay
+
+    @property
+    def eco_mode(self) -> Optional[str]:
+        """
+        Returns the eco-mode for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "Off", "On", "Auto"
+        """
+        return self._device.eco_mode
+
+    @property
+    def hdmi_output(self) -> Optional[str]:
+        """
+        Returns the HDMI-output for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "Auto", "HDMI1", "HDMI2"
+        """
+        return self._device.hdmi_output
+
+    @property
+    def hdmi_audio_decode(self) -> Optional[str]:
+        """
+        Returns the HDMI Audio Decode mode for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "AMP", "TV"
+        """
+        return self._device.hdmi_audio_decode
+
+    @property
+    def video_processing_mode(self) -> Optional[str]:
+        """
+        Return the video processing mode for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "Auto", "Game", "Movie", "Bypass"
+        """
+        return self._device.video_processing_mode
+
+    @property
+    def channel_volumes(self) -> Optional[Dict[Channels, float]]:
+        """
+        Returns the channel volumes of the receiver in dB.
+
+        Only available if using Telnet.
+        """
+        return self.vol.channel_volumes
+
+    @property
+    def tactile_transducer(self) -> Optional[str]:
+        """
+        Return the tactile transducer state of the device.
+
+        Only available if using Telnet.
+
+        Possible values are ON, OFF and Number representing the intensity
+        """
+        return self._device.tactile_transducer
+
+    @property
+    def tactile_transducer_level(self) -> Optional[float]:
+        """
+        Return the tactile transducer level in dB.
+
+        Only available if using Telnet.
+        """
+        return self._device.tactile_transducer_level
+
+    @property
+    def tactile_transducer_lpf(self) -> Optional[str]:
+        """
+        Return the tactile transducer low pass filter frequency.
+
+        Only available if using Telnet.
+        """
+        return self._device.tactile_transducer_lpf
+
+    ##########
+    # Getter #
+    ##########
+    def channel_volume(self, channel: Channels) -> Optional[float]:
+        """
+        Return the volume of a channel in dB.
+
+        Only available if using Telnet.
+        """
+        return self.vol.channel_volume(channel)
+
     ##########
     # Setter #
     ##########
@@ -553,6 +710,10 @@ class DenonAVR(DenonAVRFoundation):
     async def async_set_dynamicvol(self, value: str) -> None:
         """Set Dynamic Volume."""
         await self.audyssey.async_set_dynamicvol(value)
+
+    async def async_dirac_filter(self, dirac_filter: DiracFilters) -> None:
+        """Set Dirac filter."""
+        await self.dirac.async_dirac_filter(dirac_filter)
 
     async def async_set_input_func(self, input_func: str) -> None:
         """
@@ -722,3 +883,111 @@ class DenonAVR(DenonAVRFoundation):
     async def async_settings_menu(self) -> None:
         """Raise settings menu to receiver via HTTP get command."""
         await self._device.async_settings_menu()
+
+    async def async_channel_level_adjust(self) -> None:
+        """Toggle the channel level adjust menu on receiver via HTTP get command."""
+        await self._device.async_channel_level_adjust()
+
+    async def async_dimmer_toggle(self) -> None:
+        """Toggle dimmer on receiver via HTTP get command."""
+        await self._device.async_dimmer_toggle()
+
+    async def async_dimmer(self, mode: DimmerModes) -> None:
+        """Set dimmer mode on receiver via HTTP get command."""
+        await self._device.async_dimmer(mode)
+
+    async def async_auto_standby(self, auto_standby: AutoStandbys) -> None:
+        """Set auto standby on receiver via HTTP get command."""
+        await self._device.async_auto_standby(auto_standby)
+
+    async def async_sleep(self, sleep: Union[Literal["OFF"], int]) -> None:
+        """
+        Set auto standby on receiver via HTTP get command.
+
+        Valid sleep values are "OFF" and 1-120 (in minutes)
+        """
+        await self._device.async_sleep(sleep)
+
+    async def async_channel_volume_up(self, channel: Channels) -> None:
+        """Increase volume of the specified channel."""
+        await self.vol.async_channel_volume_up(channel)
+
+    async def async_channel_volume_down(self, channel: Channels) -> None:
+        """Decrease volume of the specified channel."""
+        await self.vol.async_channel_volume_down(channel)
+
+    async def async_delay_up(self) -> None:
+        """Increase delay of the audio."""
+        await self._device.async_delay_up()
+
+    async def async_delay_down(self) -> None:
+        """Decrease delay of the audio."""
+        await self._device.async_delay_down()
+
+    async def async_eco_mode(self, mode: EcoModes) -> None:
+        """Set Eco mode."""
+        await self._device.async_eco_mode(mode)
+
+    async def async_hdmi_output(self, output: HDMIOutputs) -> None:
+        """Set HDMI output."""
+        await self._device.async_hdmi_output(output)
+
+    async def async_hdmi_audio_decode(self, mode: HDMIAudioDecodes) -> None:
+        """Set HDMI Audio Decode mode on receiver via HTTP get command."""
+        await self._device.async_hdmi_audio_decode(mode)
+
+    async def async_video_processing_mode(self, mode: VideoProcessingModes) -> None:
+        """Set video processing mode on receiver via HTTP get command."""
+        await self._device.async_video_processing_mode(mode)
+
+    async def async_status(self):
+        """
+        Toggles the display of status on the device.
+
+        Only supported on Denon models.
+        """
+        await self._device.async_status()
+
+    async def async_tactile_transducer_on(self) -> None:
+        """Turn on tactile transducer on receiver via HTTP get command."""
+        await self._device.async_tactile_transducer_on()
+
+    async def async_tactile_transducer_off(self) -> None:
+        """Turn on tactile transducer on receiver via HTTP get command."""
+        await self._device.async_tactile_transducer_off()
+
+    async def async_tactile_transducer_toggle(self) -> None:
+        """
+        Turn on tactile transducer on receiver via HTTP get command.
+
+        Only available if using Telnet.
+        """
+        await self._device.async_tactile_transducer_toggle()
+
+    async def async_tactile_transducer_level_up(self) -> None:
+        """Turn up the transducer level on receiver via HTTP get command."""
+        await self._device.async_tactile_transducer_level_up()
+
+    async def async_tactile_transducer_level_down(self) -> None:
+        """Turn down the transducer on receiver via HTTP get command."""
+        await self._device.async_tactile_transducer_level_down()
+
+    async def async_transducer_lpf(self, lpf: TransducerLPFs) -> None:
+        """Set transducer low pass filter on receiver via HTTP get command."""
+        await self._device.async_transducer_lpf(lpf)
+
+    async def async_quick_select_mode(self, quick_select_number: int) -> None:
+        """
+        Set quick select mode on receiver via HTTP get command.
+
+        Valid quick select numbers are 1-5.
+        """
+        await self._device.async_quick_select_mode(quick_select_number)
+
+    async def async_quick_select_memory(self, quick_select_number: int) -> None:
+        """
+        Set quick select memory on receiver via HTTP get command.
+
+        Valid quick select numbers are 1-5.
+        """
+        await self._device.async_quick_select_memory(quick_select_number)

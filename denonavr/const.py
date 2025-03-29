@@ -9,6 +9,7 @@ This module inherits constants for Denon AVR receivers.
 
 import re
 from collections import namedtuple
+from typing import Literal
 
 import attr
 
@@ -39,6 +40,13 @@ ReceiverURLs = namedtuple(
         "command_mute_on",
         "command_mute_off",
         "command_sel_sound_mode",
+        "command_neural_x_on_off",
+        "command_imax_auto_off",
+        "command_imax_audio_settings",
+        "command_imax_hpf",
+        "command_imax_lpf",
+        "command_imax_subwoofer_mode",
+        "command_imax_subwoofer_output",
         "command_netaudio_post",
         "command_set_all_zone_stereo",
         "command_pause",
@@ -54,6 +62,33 @@ ReceiverURLs = namedtuple(
         "command_setup_open",
         "command_setup_close",
         "command_setup_query",
+        "command_channel_level_adjust",
+        "command_dimmer_toggle",
+        "command_dimmer_set",
+        "command_channel_volume_up",
+        "command_channel_volume_down",
+        "command_channel_volumes_reset",
+        "command_subwoofer_on_off",
+        "command_subwoofer_level",
+        "command_lfe",
+        "command_tactile_transducer",
+        "command_tactile_transducer_level",
+        "command_tactile_transducer_lpf",
+        "command_delay_up",
+        "command_delay_down",
+        "command_dirac_filter",
+        "command_eco_mode",
+        "command_lfc",
+        "command_loudness_management",
+        "command_hdmi_output",
+        "command_hdmi_audio_decode",
+        "command_quick_select_mode",
+        "command_quick_select_memory",
+        "command_auto_standby",
+        "command_sleep",
+        "command_center_spread",
+        "command_video_processing_mode",
+        "command_status",
     ],
 )
 TelnetCommands = namedtuple(
@@ -69,6 +104,13 @@ TelnetCommands = namedtuple(
         "command_mute_on",
         "command_mute_off",
         "command_sel_sound_mode",
+        "command_neural_x_on_off",
+        "command_imax_auto_off",
+        "command_imax_audio_settings",
+        "command_imax_hpf",
+        "command_imax_lpf",
+        "command_imax_subwoofer_mode",
+        "command_imax_subwoofer_output",
         "command_set_all_zone_stereo",
         "command_pause",
         "command_play",
@@ -90,6 +132,33 @@ TelnetCommands = namedtuple(
         "command_setup_open",
         "command_setup_close",
         "command_setup_query",
+        "command_channel_level_adjust",
+        "command_dimmer_toggle",
+        "command_dimmer_set",
+        "command_channel_volume_up",
+        "command_channel_volume_down",
+        "command_channel_volumes_reset",
+        "command_subwoofer_on_off",
+        "command_subwoofer_level",
+        "command_lfe",
+        "command_tactile_transducer",
+        "command_tactile_transducer_level",
+        "command_tactile_transducer_lpf",
+        "command_delay_up",
+        "command_delay_down",
+        "command_dirac_filter",
+        "command_eco_mode",
+        "command_lfc",
+        "command_loudness_management",
+        "command_hdmi_output",
+        "command_hdmi_audio_decode",
+        "command_quick_select_mode",
+        "command_quick_select_memory",
+        "command_auto_standby",
+        "command_sleep",
+        "command_center_spread",
+        "command_video_processing_mode",
+        "command_status",
     ],
 )
 
@@ -363,6 +432,7 @@ HDTUNERSTATUS_URL = "/goform/formTuner_HdXml.xml"
 COMMAND_NETAUDIO_POST_URL = "/NetAudio/index.put.asp"
 COMMAND_PAUSE = "/goform/formiPhoneAppDirect.xml?NS9B"
 COMMAND_PLAY = "/goform/formiPhoneAppDirect.xml?NS9A"
+COMMAND_ECO_MODE = "/goform/formiPhoneAppDirect.xml?ECO{mode}"
 
 
 # Main Zone URLs
@@ -379,6 +449,13 @@ COMMAND_MUTE_ON_URL = "/goform/formiPhoneAppMute.xml?1+MuteOn"
 COMMAND_MUTE_OFF_URL = "/goform/formiPhoneAppMute.xml?1+MuteOff"
 COMMAND_SEL_SM_URL = "/goform/formiPhoneAppDirect.xml?MS"
 COMMAND_SET_ZST_URL = "/goform/formiPhoneAppDirect.xml?MN"
+COMMAND_NEURAL_X_ON_OFF = "/goform/formiPhoneAppDirect.xml?PSNEURAL%20{mode}"
+COMMAND_IMAX_AUTO_OFF = "/goform/formiPhoneAppDirect.xml?PSIMAX%20{mode}"
+COMMAND_IMAX_AUDIO_SETTINGS = "/goform/formiPhoneAppDirect.xml?PSIMAXAUD%20{mode}"
+COMMAND_IMAX_HPF = "/goform/formiPhoneAppDirect.xml?PSIMAXHPF%20{frequency}"
+COMMAND_IMAX_LPF = "/goform/formiPhoneAppDirect.xml?PSIMAXLPF%20{frequency}"
+COMMAND_IMAX_SUBWOOFER_MODE = "/goform/formiPhoneAppDirect.xml?PSIMAXSWM%20{mode}"
+COMMAND_IMAX_SUBWOOFER_OUTPUT = "/goform/formiPhoneAppDirect.xml?PSIMAXSWO%20{mode}"
 COMMAND_CURSOR_UP = "/goform/formiPhoneAppDirect.xml?MNCUP"
 COMMAND_CURSOR_DOWN = "/goform/formiPhoneAppDirect.xml?MNCDN"
 COMMAND_CURSOR_LEFT = "/goform/formiPhoneAppDirect.xml?MNCLT"
@@ -390,6 +467,34 @@ COMMAND_OPTIONS = "/goform/formiPhoneAppDirect.xml?MNOPT"
 COMMAND_SETUP_OPEN = "/goform/formiPhoneAppDirect.xml?MNMEN%20ON"
 COMMAND_SETUP_CLOSE = "/goform/formiPhoneAppDirect.xml?MNMEN%20OFF"
 COMMAND_SETUP_QUERY = "/goform/formiPhoneAppDirect.xml?MNMEN?"
+COMMAND_CHANNEL_LEVEL_ADJUST = "/goform/formiPhoneAppDirect.xml?MNCHL"
+COMMAND_DIMMER_TOGGLE = "/goform/formiPhoneAppDirect.xml?DIM%20SEL"
+COMMAND_DIMMER_SET = "/goform/formiPhoneAppDirect.xml?DIM%20{mode}"
+COMMAND_CHANNEL_VOLUME_UP = "/goform/formiPhoneAppDirect.xml?CV{channel}%20UP"
+COMMAND_CHANNEL_VOLUME_DOWN = "/goform/formiPhoneAppDirect.xml?CV{channel}%20DOWN"
+COMMAND_CHANNEL_VOLUMES_RESET = "/goform/formiPhoneAppDirect.xml?CVZRL"
+COMMAND_SUBWOOFER_ON_OFF = "/goform/formiPhoneAppDirect.xml?PSSWR%20{mode}"
+COMMAND_SUBWOOFER_LEVEL = "/goform/formiPhoneAppDirect.xml?PSSWL{number}%20{mode}"
+COMMAND_LFE = "/goform/formiPhoneAppDirect.xml?PSLFE%20{mode}"
+COMMAND_TACTILE_TRANSDUCER = "/goform/formiPhoneAppDirect.xml?SSTTR%20{mode}"
+COMMAND_TACTILE_TRANSDUCER_LEVEL = "/goform/formiPhoneAppDirect.xml?SSTTRLEV%20{mode}"
+COMMAND_TACTILE_TRANSDUCER_LPF = (
+    "/goform/formiPhoneAppDirect.xml?SSTTRLPF%20{frequency}"
+)
+COMMAND_DELAY_UP = "/goform/formiPhoneAppDirect.xml?PSDELAY%20UP"
+COMMAND_DELAY_DOWN = "/goform/formiPhoneAppDirect.xml?PSDELAY%20DOWN"
+COMMAND_DIRAC_FILTER = "/goform/formiPhoneAppDirect.xml?PSDIRAC%20{filter}"
+COMMAND_LFC = "/goform/formiPhoneAppDirect.xml?PSLFC%20{mode}"
+COMMAND_LOUDNESS_MANAGEMENT = "/goform/formiPhoneAppDirect.xml?PSLOM%20{mode}"
+COMMAND_HDMI_OUTPUT = "/goform/formiPhoneAppDirect.xml?VSMONI{output}"
+COMMAND_HDMI_AUDIO_DECODE = "/goform/formiPhoneAppDirect.xml?VSAUDIO%20{mode}"
+COMMAND_QUICK_SELECT_MODE = "/goform/formiPhoneAppDirect.xml?MSQUICK{number}"
+COMMAND_QUICK_SELECT_MEMORY = "/goform/formiPhoneAppDirect.xml?MSQUICK{number}"
+COMMAND_AUTO_STANDBY = "/goform/formiPhoneAppDirect.xml?STBY{mode}"
+COMMAND_SLEEP = "/goform/formiPhoneAppDirect.xml?SLP{value}"
+COMMAND_CENTER_SPREAD = "/goform/formiPhoneAppDirect.xml?PSCES%20{mode}"
+COMMAND_VIDEO_PROCESSING_MODE = "/goform/formiPhoneAppDirect.xml?VSVPM{mode}"
+COMMAND_STATUS = "/goform/formiPhoneAppDirect.xml?RCSHP0230030"
 
 # Zone 2 URLs
 STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
@@ -434,6 +539,13 @@ DENONAVR_URLS = ReceiverURLs(
     command_mute_on=COMMAND_MUTE_ON_URL,
     command_mute_off=COMMAND_MUTE_OFF_URL,
     command_sel_sound_mode=COMMAND_SEL_SM_URL,
+    command_neural_x_on_off=COMMAND_NEURAL_X_ON_OFF,
+    command_imax_auto_off=COMMAND_IMAX_AUTO_OFF,
+    command_imax_audio_settings=COMMAND_IMAX_AUTO_OFF,
+    command_imax_hpf=COMMAND_IMAX_HPF,
+    command_imax_lpf=COMMAND_IMAX_LPF,
+    command_imax_subwoofer_mode=COMMAND_IMAX_SUBWOOFER_MODE,
+    command_imax_subwoofer_output=COMMAND_IMAX_SUBWOOFER_OUTPUT,
     command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
@@ -449,6 +561,33 @@ DENONAVR_URLS = ReceiverURLs(
     command_setup_open=COMMAND_SETUP_OPEN,
     command_setup_close=COMMAND_SETUP_CLOSE,
     command_setup_query=COMMAND_SETUP_QUERY,
+    command_channel_level_adjust=COMMAND_CHANNEL_LEVEL_ADJUST,
+    command_dimmer_toggle=COMMAND_DIMMER_TOGGLE,
+    command_dimmer_set=COMMAND_DIMMER_SET,
+    command_channel_volume_up=COMMAND_CHANNEL_VOLUME_UP,
+    command_channel_volume_down=COMMAND_CHANNEL_VOLUME_DOWN,
+    command_channel_volumes_reset=COMMAND_CHANNEL_VOLUMES_RESET,
+    command_subwoofer_on_off=COMMAND_SUBWOOFER_ON_OFF,
+    command_subwoofer_level=COMMAND_SUBWOOFER_LEVEL,
+    command_lfe=COMMAND_LFE,
+    command_tactile_transducer=COMMAND_TACTILE_TRANSDUCER,
+    command_tactile_transducer_level=COMMAND_TACTILE_TRANSDUCER_LEVEL,
+    command_tactile_transducer_lpf=COMMAND_TACTILE_TRANSDUCER_LPF,
+    command_delay_up=COMMAND_DELAY_UP,
+    command_delay_down=COMMAND_DELAY_DOWN,
+    command_dirac_filter=COMMAND_DIRAC_FILTER,
+    command_eco_mode=COMMAND_ECO_MODE,
+    command_lfc=COMMAND_LFC,
+    command_loudness_management=COMMAND_LOUDNESS_MANAGEMENT,
+    command_hdmi_output=COMMAND_HDMI_OUTPUT,
+    command_hdmi_audio_decode=COMMAND_HDMI_AUDIO_DECODE,
+    command_quick_select_mode=COMMAND_QUICK_SELECT_MODE,
+    command_quick_select_memory=COMMAND_QUICK_SELECT_MODE,
+    command_auto_standby=COMMAND_AUTO_STANDBY,
+    command_sleep=COMMAND_SLEEP,
+    command_center_spread=COMMAND_CENTER_SPREAD,
+    command_video_processing_mode=COMMAND_VIDEO_PROCESSING_MODE,
+    command_status=COMMAND_STATUS,
 )
 
 ZONE2_URLS = ReceiverURLs(
@@ -470,6 +609,13 @@ ZONE2_URLS = ReceiverURLs(
     command_mute_on=COMMAND_MUTE_ON_Z2_URL,
     command_mute_off=COMMAND_MUTE_OFF_Z2_URL,
     command_sel_sound_mode=COMMAND_SEL_SM_URL,
+    command_neural_x_on_off=COMMAND_NEURAL_X_ON_OFF,
+    command_imax_auto_off=COMMAND_IMAX_AUTO_OFF,
+    command_imax_audio_settings=COMMAND_IMAX_AUDIO_SETTINGS,
+    command_imax_hpf=COMMAND_IMAX_HPF,
+    command_imax_lpf=COMMAND_IMAX_LPF,
+    command_imax_subwoofer_mode=COMMAND_IMAX_SUBWOOFER_MODE,
+    command_imax_subwoofer_output=COMMAND_IMAX_SUBWOOFER_OUTPUT,
     command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
@@ -485,6 +631,33 @@ ZONE2_URLS = ReceiverURLs(
     command_setup_open=COMMAND_SETUP_OPEN,
     command_setup_close=COMMAND_SETUP_CLOSE,
     command_setup_query=COMMAND_SETUP_QUERY,
+    command_channel_level_adjust=COMMAND_CHANNEL_LEVEL_ADJUST,
+    command_dimmer_toggle=COMMAND_DIMMER_TOGGLE,
+    command_dimmer_set=COMMAND_DIMMER_SET,
+    command_channel_volume_up=COMMAND_CHANNEL_VOLUME_UP,
+    command_channel_volume_down=COMMAND_CHANNEL_VOLUME_DOWN,
+    command_channel_volumes_reset=COMMAND_CHANNEL_VOLUMES_RESET,
+    command_subwoofer_on_off=COMMAND_SUBWOOFER_ON_OFF,
+    command_subwoofer_level=COMMAND_SUBWOOFER_LEVEL,
+    command_lfe=COMMAND_LFE,
+    command_tactile_transducer=COMMAND_TACTILE_TRANSDUCER,
+    command_tactile_transducer_level=COMMAND_TACTILE_TRANSDUCER_LEVEL,
+    command_tactile_transducer_lpf=COMMAND_TACTILE_TRANSDUCER_LPF,
+    command_delay_up=COMMAND_DELAY_UP,
+    command_delay_down=COMMAND_DELAY_DOWN,
+    command_dirac_filter=COMMAND_DIRAC_FILTER,
+    command_eco_mode=COMMAND_ECO_MODE,
+    command_lfc=COMMAND_LFC,
+    command_loudness_management=COMMAND_LOUDNESS_MANAGEMENT,
+    command_hdmi_output=COMMAND_HDMI_OUTPUT,
+    command_hdmi_audio_decode=COMMAND_HDMI_AUDIO_DECODE,
+    command_quick_select_mode=COMMAND_QUICK_SELECT_MODE,
+    command_quick_select_memory=COMMAND_QUICK_SELECT_MEMORY,
+    command_auto_standby=COMMAND_AUTO_STANDBY,
+    command_sleep=COMMAND_SLEEP,
+    command_center_spread=COMMAND_CENTER_SPREAD,
+    command_video_processing_mode=COMMAND_VIDEO_PROCESSING_MODE,
+    command_status=COMMAND_STATUS,
 )
 
 ZONE3_URLS = ReceiverURLs(
@@ -506,6 +679,13 @@ ZONE3_URLS = ReceiverURLs(
     command_mute_on=COMMAND_MUTE_ON_Z3_URL,
     command_mute_off=COMMAND_MUTE_OFF_Z3_URL,
     command_sel_sound_mode=COMMAND_SEL_SM_URL,
+    command_neural_x_on_off=COMMAND_NEURAL_X_ON_OFF,
+    command_imax_auto_off=COMMAND_IMAX_AUTO_OFF,
+    command_imax_audio_settings=COMMAND_IMAX_AUDIO_SETTINGS,
+    command_imax_hpf=COMMAND_IMAX_HPF,
+    command_imax_lpf=COMMAND_IMAX_LPF,
+    command_imax_subwoofer_mode=COMMAND_IMAX_SUBWOOFER_MODE,
+    command_imax_subwoofer_output=COMMAND_IMAX_SUBWOOFER_OUTPUT,
     command_netaudio_post=COMMAND_NETAUDIO_POST_URL,
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
@@ -521,6 +701,33 @@ ZONE3_URLS = ReceiverURLs(
     command_setup_open=COMMAND_SETUP_OPEN,
     command_setup_close=COMMAND_SETUP_CLOSE,
     command_setup_query=COMMAND_SETUP_QUERY,
+    command_channel_level_adjust=COMMAND_CHANNEL_LEVEL_ADJUST,
+    command_dimmer_toggle=COMMAND_DIMMER_TOGGLE,
+    command_dimmer_set=COMMAND_DIMMER_SET,
+    command_channel_volume_up=COMMAND_CHANNEL_VOLUME_UP,
+    command_channel_volume_down=COMMAND_CHANNEL_VOLUME_DOWN,
+    command_channel_volumes_reset=COMMAND_CHANNEL_VOLUMES_RESET,
+    command_subwoofer_on_off=COMMAND_SUBWOOFER_ON_OFF,
+    command_subwoofer_level=COMMAND_SUBWOOFER_LEVEL,
+    command_lfe=COMMAND_LFE,
+    command_tactile_transducer=COMMAND_TACTILE_TRANSDUCER,
+    command_tactile_transducer_level=COMMAND_TACTILE_TRANSDUCER_LEVEL,
+    command_tactile_transducer_lpf=COMMAND_TACTILE_TRANSDUCER_LPF,
+    command_delay_up=COMMAND_DELAY_UP,
+    command_delay_down=COMMAND_DELAY_DOWN,
+    command_dirac_filter=COMMAND_DIRAC_FILTER,
+    command_eco_mode=COMMAND_ECO_MODE,
+    command_lfc=COMMAND_LFC,
+    command_loudness_management=COMMAND_LOUDNESS_MANAGEMENT,
+    command_hdmi_output=COMMAND_HDMI_OUTPUT,
+    command_hdmi_audio_decode=COMMAND_HDMI_AUDIO_DECODE,
+    command_quick_select_mode=COMMAND_QUICK_SELECT_MODE,
+    command_quick_select_memory=COMMAND_QUICK_SELECT_MEMORY,
+    command_auto_standby=COMMAND_AUTO_STANDBY,
+    command_sleep=COMMAND_SLEEP,
+    command_center_spread=COMMAND_CENTER_SPREAD,
+    command_video_processing_mode=COMMAND_VIDEO_PROCESSING_MODE,
+    command_status=COMMAND_STATUS,
 )
 
 # Telnet Events
@@ -589,6 +796,13 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_mute_on="MUON",
     command_mute_off="MUOFF",
     command_sel_sound_mode="MS",
+    command_neural_x_on_off="PSNEURAL {mode}",
+    command_imax_auto_off="PSIMAX {mode}",
+    command_imax_audio_settings="PSIMAXAUD {mode}",
+    command_imax_hpf="PSIMAXHPF {frequency}",
+    command_imax_lpf="PSIMAXLPF {frequency}",
+    command_imax_subwoofer_mode="PSIMAXSWM {mode}",
+    command_imax_subwoofer_output="PSIMAXSWO {mode}",
     command_set_all_zone_stereo="MN",
     command_pause="NS9B",
     command_play="NS9A",
@@ -610,6 +824,33 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_setup_open="MNMEN ON",
     command_setup_close="MNMEN OFF",
     command_setup_query="MNMEN?",
+    command_channel_level_adjust="MNCHL",
+    command_dimmer_toggle="DIM SEL",
+    command_dimmer_set="DIM {mode}",
+    command_channel_volume_up="CV{channel} UP",
+    command_channel_volume_down="CV{channel} DOWN",
+    command_channel_volumes_reset="CVZRL",
+    command_subwoofer_on_off="PSSWR {mode}",
+    command_subwoofer_level="PSSWL{number} {mode}",
+    command_lfe="PSLFE {mode}",
+    command_tactile_transducer="SSTTR {mode}",
+    command_tactile_transducer_level="SSTTRLEV {mode}",
+    command_tactile_transducer_lpf="SSTTRLPF {frequency}",
+    command_delay_up="PSDELAY UP",
+    command_delay_down="PSDELAY DOWN",
+    command_dirac_filter="PSDIRAC {filter}",
+    command_eco_mode="ECO{mode}",
+    command_lfc="PSLFC {mode}",
+    command_loudness_management="PSLOM {mode}",
+    command_hdmi_output="VSMONI{output}",
+    command_hdmi_audio_decode="VSAUDIO {mode}",
+    command_quick_select_mode="MSQUICK{number}",
+    command_quick_select_memory="MSQUICK{number} MEMORY",
+    command_auto_standby="STBY{mode}",
+    command_sleep="SLP{value}",
+    command_center_spread="PSCES {mode}",
+    command_video_processing_mode="VSVPM{mode}",
+    command_status="RCSHP0230030",
 )
 
 ZONE2_TELNET_COMMANDS = TelnetCommands(
@@ -623,6 +864,13 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_mute_on="Z2MUON",
     command_mute_off="Z2MUOFF",
     command_sel_sound_mode="MS",
+    command_neural_x_on_off="PSNEURAL {mode}",
+    command_imax_auto_off="PSIMAX {mode}",
+    command_imax_audio_settings="PSIMAXAUD {mode}",
+    command_imax_hpf="PSIMAXHPF {frequency}",
+    command_imax_lpf="PSIMAXLPF {frequency}",
+    command_imax_subwoofer_mode="PSIMAXSWM {mode}",
+    command_imax_subwoofer_output="PSIMAXSWO {mode}",
     command_set_all_zone_stereo="MN",
     command_pause="NS9B",
     command_play="NS9A",
@@ -644,6 +892,33 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_setup_open="MNMEN ON",
     command_setup_close="MNMEN OFF",
     command_setup_query="MNMEN?",
+    command_channel_level_adjust="MNCHL",
+    command_dimmer_toggle="DIM SEL",
+    command_dimmer_set="DIM {mode}",
+    command_channel_volume_up="CV{channel} UP",
+    command_channel_volume_down="CV{channel} DOWN",
+    command_channel_volumes_reset="CVZRL",
+    command_subwoofer_on_off="PSSWR {mode}",
+    command_subwoofer_level="PSSWL{number} {mode}",
+    command_lfe="PSLFE {mode}",
+    command_tactile_transducer="SSTTR {mode}",
+    command_tactile_transducer_level="SSTTRLEV {mode}",
+    command_tactile_transducer_lpf="SSTTRLPF {frequency}",
+    command_delay_up="PSDELAY UP",
+    command_delay_down="PSDELAY DOWN",
+    command_dirac_filter="PSDIRAC {filter}",
+    command_eco_mode="ECO{mode}",
+    command_lfc="PSLFC {mode}",
+    command_loudness_management="PSLOM {mode}",
+    command_hdmi_output="VSMONI{output}",
+    command_hdmi_audio_decode="VSAUDIO {mode}",
+    command_quick_select_mode="MSQUICK{number}",
+    command_quick_select_memory="MSQUICK{number} MEMORY",
+    command_auto_standby="STBY{mode}",
+    command_sleep="SLP{value}",
+    command_center_spread="PSCES {mode}",
+    command_video_processing_mode="VSVPM{mode}",
+    command_status="RCSHP0230030",
 )
 
 ZONE3_TELNET_COMMANDS = TelnetCommands(
@@ -657,6 +932,13 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_mute_on="Z3MUON",
     command_mute_off="Z3MUOFF",
     command_sel_sound_mode="MS",
+    command_neural_x_on_off="PSNEURAL {mode}",
+    command_imax_auto_off="PSIMAX {mode}",
+    command_imax_audio_settings="PSIMAXAUD {mode}",
+    command_imax_hpf="PSIMAXHPF {frequency}",
+    command_imax_lpf="PSIMAXLPF {frequency}",
+    command_imax_subwoofer_mode="PSIMAXSWM {mode}",
+    command_imax_subwoofer_output="PSIMAXSWO {mode}",
     command_set_all_zone_stereo="MN",
     command_pause="NS9B",
     command_play="NS9A",
@@ -678,6 +960,33 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_setup_open="MNMEN ON",
     command_setup_close="MNMEN OFF",
     command_setup_query="MNMEN?",
+    command_channel_level_adjust="MNCHL",
+    command_dimmer_toggle="DIM SEL",
+    command_dimmer_set="DIM {mode}",
+    command_channel_volume_up="CV{channel} UP",
+    command_channel_volume_down="CV{channel} DOWN",
+    command_channel_volumes_reset="CVZRL",
+    command_subwoofer_on_off="PSSWR {mode}",
+    command_subwoofer_level="PSSWL{number} {mode}",
+    command_lfe="PSLFE {mode}",
+    command_tactile_transducer="SSTTR {mode}",
+    command_tactile_transducer_level="SSTTRLEV {mode}",
+    command_tactile_transducer_lpf="SSTTRLPF {frequency}",
+    command_delay_up="PSDELAY UP",
+    command_delay_down="PSDELAY DOWN",
+    command_dirac_filter="PSDIRAC {filter}",
+    command_eco_mode="ECO{mode}",
+    command_lfc="PSLFC {mode}",
+    command_loudness_management="PSLOM {mode}",
+    command_hdmi_output="VSMONI{output}",
+    command_hdmi_audio_decode="VSAUDIO {mode}",
+    command_quick_select_mode="MSQUICK{number}",
+    command_quick_select_memory="MSQUICK{number} MEMORY",
+    command_auto_standby="STBY{mode}",
+    command_sleep="SLP{value}",
+    command_center_spread="PSCES {mode}",
+    command_video_processing_mode="VSVPM{mode}",
+    command_status="RCSHP0230030",
 )
 
 # States
@@ -692,6 +1001,11 @@ STATE_PAUSED = "paused"
 SETTINGS_MENU_ON = "ON"
 SETTINGS_MENU_OFF = "OFF"
 SETTINGS_MENU_STATES = {SETTINGS_MENU_ON, SETTINGS_MENU_OFF}
+DIMER_BRIGHT = "BRI"
+DIMER_DIM = "DIM"
+DIMER_DARK = "DAR"
+DIMER_OFF = "OFF"
+DIMMER_STATES = {DIMER_BRIGHT, DIMER_DIM, DIMER_DARK, DIMER_OFF}
 
 # Zones
 ALL_ZONES = "All"
@@ -748,4 +1062,230 @@ DYNAMIC_VOLUME_MAP_LABELS_APPCOMMAND = {
 }
 DYNAMIC_VOLUME_MAP_LABELS_TELNET = {
     value: key for key, value in DYNAMIC_VOLUME_MAP_TELNET.items()
+}
+
+AutoStandbys = Literal["OFF", "15M", "30M", "60M"]
+
+DIMMER_MODE_MAP = {
+    "Off": DIMER_OFF,
+    "Dark": DIMER_DARK,
+    "Dim": DIMER_DIM,
+    "Bright": DIMER_BRIGHT,
+}
+DIMMER_MODE_MAP_LABELS = {value: key for key, value in DIMMER_MODE_MAP.items()}
+
+DimmerModes = Literal["Off", "Dark", "Dim", "Bright"]
+"""Dimmer modes."""
+
+DIRAC_FILTER_MAP = {"Off": "OFF", "Slot 1": "1", "Slot 2": "2", "Slot 3": "3"}
+DIRAC_FILTER_MAP_LABELS = {value: key for key, value in DIRAC_FILTER_MAP.items()}
+
+DiracFilters = Literal["Slot 1", "Slot 2", "Slot 3", "Off"]
+"""Dirac filters."""
+
+ECO_MODE_MAP = {
+    "On": "ON",
+    "Auto": "AUTO",
+    "Off": "OFF",
+}
+ECO_MODE_MAP_LABELS = {value: key for key, value in ECO_MODE_MAP.items()}
+
+EcoModes = Literal["On", "Auto", "Off"]
+"""Eco modes."""
+
+HDMI_OUTPUT_MAP = {
+    "Auto": "AUTO",
+    "HDMI1": "1",
+    "HDMI2": "2",
+}
+HDMI_OUTPUT_MAP_LABELS = {
+    "MONIAUTO": "Auto",
+    "MONI1": "HDMI1",
+    "MONI2": "HDMI2",
+}
+
+HDMIOutputs = Literal["Auto", "HDMI1", "HDMI2"]
+"""HDMI output modes."""
+
+HDMIAudioDecodes = Literal["AMP", "TV"]
+
+Subwoofers = Literal["Subwoofer", "Subwoofer 2", "Subwoofer 3", "Subwoofer 4"]
+"""Subwoofers."""
+
+SUBWOOFERS_MAP = {
+    "Subwoofer": "",
+    "Subwoofer 2": "2",
+    "Subwoofer 3": "3",
+    "Subwoofer 4": "4",
+}
+"""Subwoofers."""
+
+SUBWOOFERS_MAP_LABELS = {
+    "SWL": "Subwoofer",
+    "SWL2": "Subwoofer 2",
+    "SWL3": "Subwoofer 3",
+    "SWL4": "Subwoofer 4",
+}
+
+CHANNEL_MAP = {
+    "Front Left": "FL",
+    "Front Right": "FR",
+    "Center": "C",
+    "Subwoofer": "SW",
+    "Subwoofer 2": "SW2",
+    "Subwoofer 3": "SW3",
+    "Subwoofer 4": "SW4",
+    "Surround Left": "SL",
+    "Surround Right": "SR",
+    "Surround Back Left": "SBL",
+    "Surround Back Right": "SBR",
+    "Front Height Left": "FHL",
+    "Front Height Right": "FHR",
+    "Front Wide Left": "FWL",
+    "Front Wide Right": "FWR",
+    "Top Front Left": "TFL",
+    "Top Front Right": "TFR",
+    "Top Middle Left": "TML",
+    "Top Middle Right": "TMR",
+    "Top Rear Left": "TRL",
+    "Top Rear Right": "TRR",
+    "Rear Height Left": "RHL",
+    "Rear Height Right": "RHR",
+    "Front Dolby Left": "FDL",
+    "Front Dolby Right": "FDR",
+    "Surround Dolby Left": "SDL",
+    "Surround Dolby Right": "SDR",
+    "Back Dolby Left": "BDL",
+    "Back Dolby Right": "BDR",
+    "Surround Height Left": "SHL",
+    "Surround Height Right": "SHR",
+    "Top Surround": "TS",
+    "Center Height": "CH",
+}
+CHANNEL_MAP_LABELS = {value: key for key, value in CHANNEL_MAP.items()}
+
+Channels = Literal[
+    "Front Left",
+    "Front Right",
+    "Center",
+    "Subwoofer",
+    "Subwoofer 2",
+    "Subwoofer 3",
+    "Subwoofer 4",
+    "Surround Left",
+    "Surround Right",
+    "Surround Back Left",
+    "Surround Back Right",
+    "Front Height Left",
+    "Front Height Right",
+    "Front Wide Left",
+    "Front Wide Right",
+    "Top Front Left",
+    "Top Front Right",
+    "Top Middle Left",
+    "Top Middle Right",
+    "Top Rear Left",
+    "Top Rear Right",
+    "Rear Height Left",
+    "Rear Height Right",
+    "Front Dolby Left",
+    "Front Dolby Right",
+    "Surround Dolby Left",
+    "Surround Dolby Right",
+    "Back Dolby Left",
+    "Back Dolby Right",
+    "Surround Height Left",
+    "Surround Height Right",
+    "Top Surround",
+    "Center Height",
+]
+"""Receiver Channels."""
+
+CHANNEL_VOLUME_MAP = {
+    "38": -12.0,
+    "385": -11.5,
+    "39": -11.0,
+    "395": -10.5,
+    "40": -10.0,
+    "405": -9.5,
+    "41": -9.0,
+    "415": -8.5,
+    "42": -8.0,
+    "425": -7.5,
+    "43": -7.0,
+    "435": -6.5,
+    "44": -6.0,
+    "445": -5.5,
+    "45": -5.0,
+    "455": -4.5,
+    "46": -4.0,
+    "465": -3.5,
+    "47": -3.0,
+    "475": -2.5,
+    "48": -2.0,
+    "485": -1.5,
+    "49": -1.0,
+    "495": -0.5,
+    "50": 0.0,
+    "505": 0.5,
+    "51": 1.0,
+    "515": 1.5,
+    "52": 2.0,
+    "525": 2.5,
+    "53": 3.0,
+    "535": 3.5,
+    "54": 4.0,
+    "545": 4.5,
+    "55": 5.0,
+    "555": 5.5,
+    "56": 6.0,
+    "565": 6.5,
+    "57": 7.0,
+    "575": 7.5,
+    "58": 8.0,
+    "585": 8.5,
+    "59": 9.0,
+    "595": 9.5,
+    "60": 10.0,
+    "605": 10.5,
+    "61": 11.0,
+    "615": 11.5,
+    "62": 12.0,
+}
+
+TransducerLPFs = Literal[
+    "40 Hz",
+    "60 Hz",
+    "80 Hz",
+    "90 Hz",
+    "100 Hz",
+    "110 Hz",
+    "120 Hz",
+    "150 Hz",
+    "180 Hz",
+    "200 Hz",
+    "250 Hz",
+]
+"""Tactile Transducer Low Pass Frequencies."""
+
+IMAXHPFs = Literal[
+    "40", "60", "80", "90", "100", "110", "120", "150", "180", "200", "250"
+]
+"""IMAX High Pass Frequencies."""
+
+IMAXLPFs = Literal["80", "90", "100", "110", "120", "150", "180", "200", "250"]
+"""IMAX Low Pass Frequencies."""
+
+VideoProcessingModes = Literal["Auto", "Game", "Movie", "Bypass"]
+"""Video Processing Modes."""
+
+VIDEO_PROCESSING_MODES_MAP = {
+    "Auto": "AUTO",
+    "Game": "GAME",
+    "Movie": "MOVI",
+    "Bypass": "BYP",
+}
+
+VIDEO_PROCESSING_MODES_MAP_LABELS = {
+    value: key for key, value in VIDEO_PROCESSING_MODES_MAP.items()
 }
