@@ -63,6 +63,9 @@ class DenonAVRAudyssey(DenonAVRFoundation):
     _lfc: Optional[bool] = attr.ib(
         converter=attr.converters.optional(convert_string_int_bool), default=None
     )
+    _containment_amount: Optional[int] = attr.ib(
+        converter=attr.converters.optional(int), default=None
+    )
 
     # Update tags for attributes
     # AppCommand0300.xml interface
@@ -101,6 +104,8 @@ class DenonAVRAudyssey(DenonAVRFoundation):
             self._lfc = "1"
         elif parameter == "LFC OFF":
             self._lfc = "0"
+        elif parameter[:6] == "CNTAMT":
+            self._containment_amount = int(parameter[7:])
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -194,9 +199,14 @@ class DenonAVRAudyssey(DenonAVRFoundation):
         return list(MULTI_EQ_MAP_LABELS_APPCOMMAND.keys())
 
     @property
-    def lfc(self) -> Optional[str]:
+    def lfc(self) -> Optional[bool]:
         """Return value of LFC."""
         return self._lfc
+
+    @property
+    def containment_amount(self) -> Optional[int]:
+        """Return value of Containment Amount."""
+        return self._containment_amount
 
     ##########
     # Setter #
@@ -324,6 +334,48 @@ class DenonAVRAudyssey(DenonAVRFoundation):
             await self.async_lfc_off()
         else:
             await self.async_lfc_on()
+
+    async def async_containment_amount(self, amount: int) -> None:
+        """Set Containment Amount."""
+        if amount < 1 or amount > 7:
+            raise AvrCommandError("Containment amount must be between 1 and 7")
+        local_amount = f"{amount:02}"
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_containment_amount.format(
+                    value=local_amount
+                )
+            )
+            return
+        await self._device.api.async_get_command(
+            self._device.urls.command_containment_amount.format(value=local_amount)
+        )
+
+    async def async_containment_amount_up(self) -> None:
+        """Increase Containment Amount."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_containment_amount.format(
+                    value="UP"
+                )
+            )
+            return
+        await self._device.api.async_get_command(
+            self._device.urls.command_containment_amount.format(value="UP")
+        )
+
+    async def async_containment_amount_down(self) -> None:
+        """Decrease Containment Amount."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_containment_amount.format(
+                    value="DOWN"
+                )
+            )
+            return
+        await self._device.api.async_get_command(
+            self._device.urls.command_containment_amount.format(value="DOWN")
+        )
 
 
 def audyssey_factory(instance: DenonAVRFoundation) -> DenonAVRAudyssey:

@@ -563,6 +563,8 @@ class DenonAVRTelnetApi:
             "PSBAS ?",
             "PSTRE ?",
             "PSDYNEQ ?",
+            "PSLFC ?",
+            "PSCNTAMT ?",
             "PSMULTEQ: ?",
             "PSREFLEV ?",
             "PSDYNVOL ?",

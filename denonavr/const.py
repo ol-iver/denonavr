@@ -82,6 +82,7 @@ ReceiverURLs = namedtuple(
         "command_dirac_filter",
         "command_eco_mode",
         "command_lfc",
+        "command_containment_amount",
         "command_loudness_management",
         "command_bass_sync",
         "command_dialog_enhancer",
@@ -157,6 +158,7 @@ TelnetCommands = namedtuple(
         "command_dirac_filter",
         "command_eco_mode",
         "command_lfc",
+        "command_containment_amount",
         "command_loudness_management",
         "command_bass_sync",
         "command_dialog_enhancer",
@@ -498,6 +500,7 @@ COMMAND_AUROMATIC_3D_STRENGTH = "/goform/formiPhoneAppDirect.xml?PSAUROST%20{val
 COMMAND_AURO_3D_MODE = "/goform/formiPhoneAppDirect.xml?PSAUROMODEM%20{mode}"
 COMMAND_DIRAC_FILTER = "/goform/formiPhoneAppDirect.xml?PSDIRAC%20{filter}"
 COMMAND_LFC = "/goform/formiPhoneAppDirect.xml?PSLFC%20{mode}"
+COMMAND_CONTAMINATION_AMOUNT = "/goform/formiPhoneAppDirect.xml?PSCNTAMT%20{value}"
 COMMAND_LOUDNESS_MANAGEMENT = "/goform/formiPhoneAppDirect.xml?PSLOM%20{mode}"
 COMMAND_BASS_SYNC = "/goform/formiPhoneAppDirect.xml?PSBSC%20{mode}"
 COMMAND_DIALOG_ENHANCER = "/goform/formiPhoneAppDirect.xml?PSDEH%20{level}"
@@ -596,6 +599,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_dirac_filter=COMMAND_DIRAC_FILTER,
     command_eco_mode=COMMAND_ECO_MODE,
     command_lfc=COMMAND_LFC,
+    command_containment_amount=COMMAND_CONTAMINATION_AMOUNT,
     command_loudness_management=COMMAND_LOUDNESS_MANAGEMENT,
     command_bass_sync=COMMAND_BASS_SYNC,
     command_dialog_enhancer=COMMAND_DIALOG_ENHANCER,
@@ -671,6 +675,7 @@ ZONE2_URLS = ReceiverURLs(
     command_dirac_filter=COMMAND_DIRAC_FILTER,
     command_eco_mode=COMMAND_ECO_MODE,
     command_lfc=COMMAND_LFC,
+    command_containment_amount=COMMAND_CONTAMINATION_AMOUNT,
     command_loudness_management=COMMAND_LOUDNESS_MANAGEMENT,
     command_bass_sync=COMMAND_BASS_SYNC,
     command_dialog_enhancer=COMMAND_DIALOG_ENHANCER,
@@ -746,6 +751,7 @@ ZONE3_URLS = ReceiverURLs(
     command_dirac_filter=COMMAND_DIRAC_FILTER,
     command_eco_mode=COMMAND_ECO_MODE,
     command_lfc=COMMAND_LFC,
+    command_containment_amount=COMMAND_CONTAMINATION_AMOUNT,
     command_loudness_management=COMMAND_LOUDNESS_MANAGEMENT,
     command_bass_sync=COMMAND_BASS_SYNC,
     command_dialog_enhancer=COMMAND_DIALOG_ENHANCER,
@@ -874,6 +880,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_dirac_filter="PSDIRAC {filter}",
     command_eco_mode="ECO{mode}",
     command_lfc="PSLFC {mode}",
+    command_containment_amount="PSCNTAMT {value}",
     command_loudness_management="PSLOM {mode}",
     command_bass_sync="PSBSC {mode}",
     command_dialog_enhancer="PSDEH {level}",
@@ -947,6 +954,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_dirac_filter="PSDIRAC {filter}",
     command_eco_mode="ECO{mode}",
     command_lfc="PSLFC {mode}",
+    command_containment_amount="PSCNTAMT {value}",
     command_loudness_management="PSLOM {mode}",
     command_bass_sync="PSBSC {mode}",
     command_dialog_enhancer="PSDEH {level}",
@@ -1020,6 +1028,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_dirac_filter="PSDIRAC {filter}",
     command_eco_mode="ECO{mode}",
     command_lfc="PSLFC {mode}",
+    command_containment_amount="PSCNTAMT {value}",
     command_loudness_management="PSLOM {mode}",
     command_bass_sync="PSBSC {mode}",
     command_dialog_enhancer="PSDEH {level}",
