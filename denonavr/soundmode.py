@@ -99,6 +99,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     _center_spread: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _loudness_management: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
     _sound_mode_map: Dict[str, list] = attr.ib(
         validator=attr.validators.deep_mapping(
             attr.validators.instance_of(str),
@@ -152,6 +155,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             self._device.telnet_api.register_callback(
                 "PS", self._async_center_spread_callback
             )
+            self._device.telnet_api.register_callback(
+                "PS", self._async_loudness_management_callback
+            )
 
             self._is_setup = True
             _LOGGER.debug("Finished sound mode setup")
@@ -198,6 +204,13 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         """Handle a Center Spread change event."""
         if parameter[:3] == "CES":
             self._center_spread = parameter[4:]
+
+    async def _async_loudness_management_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a Loudness Management change event."""
+        if parameter[:3] == "LOM":
+            self._loudness_management = parameter[4:]
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -444,6 +457,17 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         Possible values are: "ON", "OFF"
         """
         return self._center_spread
+
+    @property
+    def loudness_management(self) -> Optional[str]:
+        """
+        Return the current Loudness Management status.
+
+        Only available if using Telnet.
+
+        Possible values are: "ON", "OFF"
+        """
+        return self._loudness_management
 
     ##########
     # Setter #
@@ -695,6 +719,43 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             await self.async_center_spread_off()
         else:
             await self.async_center_spread_on()
+
+    async def async_loudness_management_on(self):
+        """Set Loudness Management to ON."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_loudness_management.format(
+                    mode="ON"
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_loudness_management.format(mode="ON")
+            )
+
+    async def async_loudness_management_off(self):
+        """Set Loudness Management to OFF."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_loudness_management.format(
+                    mode="OFF"
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_loudness_management.format(mode="OFF")
+            )
+
+    async def async_loudness_management_toggle(self):
+        """
+        Toggle Loudness Management.
+
+        Only available if using Telnet.
+        """
+        if self._loudness_management == "ON":
+            await self.async_loudness_management_off()
+        else:
+            await self.async_loudness_management_on()
 
 
 def sound_mode_factory(instance: DenonAVRFoundation) -> DenonAVRSoundMode:

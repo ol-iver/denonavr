@@ -79,6 +79,7 @@ ReceiverURLs = namedtuple(
         "command_dirac_filter",
         "command_eco_mode",
         "command_lfc",
+        "command_loudness_management",
         "command_hdmi_output",
         "command_hdmi_audio_decode",
         "command_quick_select_mode",
@@ -148,6 +149,7 @@ TelnetCommands = namedtuple(
         "command_dirac_filter",
         "command_eco_mode",
         "command_lfc",
+        "command_loudness_management",
         "command_hdmi_output",
         "command_hdmi_audio_decode",
         "command_quick_select_mode",
@@ -483,6 +485,7 @@ COMMAND_DELAY_UP = "/goform/formiPhoneAppDirect.xml?PSDELAY%20UP"
 COMMAND_DELAY_DOWN = "/goform/formiPhoneAppDirect.xml?PSDELAY%20DOWN"
 COMMAND_DIRAC_FILTER = "/goform/formiPhoneAppDirect.xml?PSDIRAC%20{filter}"
 COMMAND_LFC = "/goform/formiPhoneAppDirect.xml?PSLFC%20{mode}"
+COMMAND_LOUDNESS_MANAGEMENT = "/goform/formiPhoneAppDirect.xml?PSLOM%20{mode}"
 COMMAND_HDMI_OUTPUT = "/goform/formiPhoneAppDirect.xml?VSMONI{output}"
 COMMAND_HDMI_AUDIO_DECODE = "/goform/formiPhoneAppDirect.xml?VSAUDIO%20{mode}"
 COMMAND_QUICK_SELECT_MODE = "/goform/formiPhoneAppDirect.xml?MSQUICK{number}"
@@ -575,6 +578,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_dirac_filter=COMMAND_DIRAC_FILTER,
     command_eco_mode=COMMAND_ECO_MODE,
     command_lfc=COMMAND_LFC,
+    command_loudness_management=COMMAND_LOUDNESS_MANAGEMENT,
     command_hdmi_output=COMMAND_HDMI_OUTPUT,
     command_hdmi_audio_decode=COMMAND_HDMI_AUDIO_DECODE,
     command_quick_select_mode=COMMAND_QUICK_SELECT_MODE,
@@ -644,6 +648,7 @@ ZONE2_URLS = ReceiverURLs(
     command_dirac_filter=COMMAND_DIRAC_FILTER,
     command_eco_mode=COMMAND_ECO_MODE,
     command_lfc=COMMAND_LFC,
+    command_loudness_management=COMMAND_LOUDNESS_MANAGEMENT,
     command_hdmi_output=COMMAND_HDMI_OUTPUT,
     command_hdmi_audio_decode=COMMAND_HDMI_AUDIO_DECODE,
     command_quick_select_mode=COMMAND_QUICK_SELECT_MODE,
@@ -713,6 +718,7 @@ ZONE3_URLS = ReceiverURLs(
     command_dirac_filter=COMMAND_DIRAC_FILTER,
     command_eco_mode=COMMAND_ECO_MODE,
     command_lfc=COMMAND_LFC,
+    command_loudness_management=COMMAND_LOUDNESS_MANAGEMENT,
     command_hdmi_output=COMMAND_HDMI_OUTPUT,
     command_hdmi_audio_decode=COMMAND_HDMI_AUDIO_DECODE,
     command_quick_select_mode=COMMAND_QUICK_SELECT_MODE,
@@ -835,6 +841,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_dirac_filter="PSDIRAC {filter}",
     command_eco_mode="ECO{mode}",
     command_lfc="PSLFC {mode}",
+    command_loudness_management="PSLOM {mode}",
     command_hdmi_output="VSMONI{output}",
     command_hdmi_audio_decode="VSAUDIO {mode}",
     command_quick_select_mode="MSQUICK{number}",
@@ -902,6 +909,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_dirac_filter="PSDIRAC {filter}",
     command_eco_mode="ECO{mode}",
     command_lfc="PSLFC {mode}",
+    command_loudness_management="PSLOM {mode}",
     command_hdmi_output="VSMONI{output}",
     command_hdmi_audio_decode="VSAUDIO {mode}",
     command_quick_select_mode="MSQUICK{number}",
@@ -969,6 +977,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_dirac_filter="PSDIRAC {filter}",
     command_eco_mode="ECO{mode}",
     command_lfc="PSLFC {mode}",
+    command_loudness_management="PSLOM {mode}",
     command_hdmi_output="VSMONI{output}",
     command_hdmi_audio_decode="VSAUDIO {mode}",
     command_quick_select_mode="MSQUICK{number}",
