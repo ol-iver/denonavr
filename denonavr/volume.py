@@ -18,6 +18,7 @@ from .const import (
     CHANNEL_MAP,
     CHANNEL_MAP_LABELS,
     CHANNEL_VOLUME_MAP,
+    CHANNEL_VOLUME_MAP_LABELS,
     DENON_ATTR_SETATTR,
     MAIN_ZONE,
     STATE_ON,
@@ -386,14 +387,14 @@ class DenonAVRVolume(DenonAVRFoundation):
         mapped_channel = CHANNEL_MAP[channel]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
-                self._device.telnet_commands.command_channel_volume_up.format(
-                    channel=mapped_channel
+                self._device.telnet_commands.command_channel_volume.format(
+                    channel=mapped_channel, value="UP"
                 )
             )
         else:
             await self._device.api.async_get_command(
-                self._device.urls.command_channel_volume_up.format(
-                    channel=mapped_channel
+                self._device.urls.command_channel_volume.format(
+                    channel=mapped_channel, value="UP"
                 )
             )
 
@@ -404,14 +405,39 @@ class DenonAVRVolume(DenonAVRFoundation):
         mapped_channel = CHANNEL_MAP[channel]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
-                self._device.telnet_commands.command_channel_volume_down.format(
-                    channel=mapped_channel
+                self._device.telnet_commands.command_channel_volume.format(
+                    channel=mapped_channel, value="DOWN"
                 )
             )
         else:
             await self._device.api.async_get_command(
-                self._device.urls.command_channel_volume_down.format(
-                    channel=mapped_channel
+                self._device.urls.command_channel_volume.format(
+                    channel=mapped_channel, value="DOWN"
+                )
+            )
+
+    async def async_channel_volume(self, channel: Channels, volume: float) -> None:
+        """
+        Set Channel volume on receiver via HTTP get command.
+
+        Valid volumes are -12 to 12 with 0.5 steps.
+        """
+        self._is_valid_channel(channel)
+        if volume not in CHANNEL_VOLUME_MAP_LABELS:
+            raise AvrCommandError(f"Invalid channel volume: {volume}")
+
+        mapped_channel = CHANNEL_MAP[channel]
+        mapped_volume = CHANNEL_VOLUME_MAP_LABELS[volume]
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_channel_volume.format(
+                    channel=mapped_channel, value=mapped_volume
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_channel_volume.format(
+                    channel=mapped_channel, value=mapped_volume
                 )
             )
 

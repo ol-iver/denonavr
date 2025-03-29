@@ -65,8 +65,7 @@ ReceiverURLs = namedtuple(
         "command_channel_level_adjust",
         "command_dimmer_toggle",
         "command_dimmer_set",
-        "command_channel_volume_up",
-        "command_channel_volume_down",
+        "command_channel_volume",
         "command_channel_volumes_reset",
         "command_subwoofer_on_off",
         "command_subwoofer_level",
@@ -137,8 +136,7 @@ TelnetCommands = namedtuple(
         "command_channel_level_adjust",
         "command_dimmer_toggle",
         "command_dimmer_set",
-        "command_channel_volume_up",
-        "command_channel_volume_down",
+        "command_channel_volume",
         "command_channel_volumes_reset",
         "command_subwoofer_on_off",
         "command_subwoofer_level",
@@ -474,8 +472,7 @@ COMMAND_SETUP_QUERY = "/goform/formiPhoneAppDirect.xml?MNMEN?"
 COMMAND_CHANNEL_LEVEL_ADJUST = "/goform/formiPhoneAppDirect.xml?MNCHL"
 COMMAND_DIMMER_TOGGLE = "/goform/formiPhoneAppDirect.xml?DIM%20SEL"
 COMMAND_DIMMER_SET = "/goform/formiPhoneAppDirect.xml?DIM%20{mode}"
-COMMAND_CHANNEL_VOLUME_UP = "/goform/formiPhoneAppDirect.xml?CV{channel}%20UP"
-COMMAND_CHANNEL_VOLUME_DOWN = "/goform/formiPhoneAppDirect.xml?CV{channel}%20DOWN"
+COMMAND_CHANNEL_VOLUME = "/goform/formiPhoneAppDirect.xml?CV{channel}%20{value}"
 COMMAND_CHANNEL_VOLUMES_RESET = "/goform/formiPhoneAppDirect.xml?CVZRL"
 COMMAND_SUBWOOFER_ON_OFF = "/goform/formiPhoneAppDirect.xml?PSSWR%20{mode}"
 COMMAND_SUBWOOFER_LEVEL = "/goform/formiPhoneAppDirect.xml?PSSWL{number}%20{mode}"
@@ -570,8 +567,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_channel_level_adjust=COMMAND_CHANNEL_LEVEL_ADJUST,
     command_dimmer_toggle=COMMAND_DIMMER_TOGGLE,
     command_dimmer_set=COMMAND_DIMMER_SET,
-    command_channel_volume_up=COMMAND_CHANNEL_VOLUME_UP,
-    command_channel_volume_down=COMMAND_CHANNEL_VOLUME_DOWN,
+    command_channel_volume=COMMAND_CHANNEL_VOLUME,
     command_channel_volumes_reset=COMMAND_CHANNEL_VOLUMES_RESET,
     command_subwoofer_on_off=COMMAND_SUBWOOFER_ON_OFF,
     command_subwoofer_level=COMMAND_SUBWOOFER_LEVEL,
@@ -642,8 +638,7 @@ ZONE2_URLS = ReceiverURLs(
     command_channel_level_adjust=COMMAND_CHANNEL_LEVEL_ADJUST,
     command_dimmer_toggle=COMMAND_DIMMER_TOGGLE,
     command_dimmer_set=COMMAND_DIMMER_SET,
-    command_channel_volume_up=COMMAND_CHANNEL_VOLUME_UP,
-    command_channel_volume_down=COMMAND_CHANNEL_VOLUME_DOWN,
+    command_channel_volume=COMMAND_CHANNEL_VOLUME,
     command_channel_volumes_reset=COMMAND_CHANNEL_VOLUMES_RESET,
     command_subwoofer_on_off=COMMAND_SUBWOOFER_ON_OFF,
     command_subwoofer_level=COMMAND_SUBWOOFER_LEVEL,
@@ -714,8 +709,7 @@ ZONE3_URLS = ReceiverURLs(
     command_channel_level_adjust=COMMAND_CHANNEL_LEVEL_ADJUST,
     command_dimmer_toggle=COMMAND_DIMMER_TOGGLE,
     command_dimmer_set=COMMAND_DIMMER_SET,
-    command_channel_volume_up=COMMAND_CHANNEL_VOLUME_UP,
-    command_channel_volume_down=COMMAND_CHANNEL_VOLUME_DOWN,
+    command_channel_volume=COMMAND_CHANNEL_VOLUME,
     command_channel_volumes_reset=COMMAND_CHANNEL_VOLUMES_RESET,
     command_subwoofer_on_off=COMMAND_SUBWOOFER_ON_OFF,
     command_subwoofer_level=COMMAND_SUBWOOFER_LEVEL,
@@ -839,8 +833,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_channel_level_adjust="MNCHL",
     command_dimmer_toggle="DIM SEL",
     command_dimmer_set="DIM {mode}",
-    command_channel_volume_up="CV{channel} UP",
-    command_channel_volume_down="CV{channel} DOWN",
+    command_channel_volume="CV{channel} {value}",
     command_channel_volumes_reset="CVZRL",
     command_subwoofer_on_off="PSSWR {mode}",
     command_subwoofer_level="PSSWL{number} {mode}",
@@ -909,8 +902,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_channel_level_adjust="MNCHL",
     command_dimmer_toggle="DIM SEL",
     command_dimmer_set="DIM {mode}",
-    command_channel_volume_up="CV{channel} UP",
-    command_channel_volume_down="CV{channel} DOWN",
+    command_channel_volume="CV{channel} {value}",
     command_channel_volumes_reset="CVZRL",
     command_subwoofer_on_off="PSSWR {mode}",
     command_subwoofer_level="PSSWL{number} {mode}",
@@ -979,8 +971,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_channel_level_adjust="MNCHL",
     command_dimmer_toggle="DIM SEL",
     command_dimmer_set="DIM {mode}",
-    command_channel_volume_up="CV{channel} UP",
-    command_channel_volume_down="CV{channel} DOWN",
+    command_channel_volume="CV{channel} {value}",
     command_channel_volumes_reset="CVZRL",
     command_subwoofer_on_off="PSSWR {mode}",
     command_subwoofer_level="PSSWL{number} {mode}",
@@ -1270,6 +1261,7 @@ CHANNEL_VOLUME_MAP = {
     "615": 11.5,
     "62": 12.0,
 }
+CHANNEL_VOLUME_MAP_LABELS = {value: key for key, value in CHANNEL_VOLUME_MAP.items()}
 
 DialogEnhancerLevels = Literal["Off", "Low", "Medium", "High"]
 """Dialog Enhancer levels."""
