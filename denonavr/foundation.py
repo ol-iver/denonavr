@@ -56,6 +56,7 @@ from .const import (
     HDMIOutputs,
     ReceiverType,
     ReceiverURLs,
+    RoomSizes,
     TelnetCommands,
     TransducerLPFs,
     VideoProcessingModes,
@@ -159,6 +160,10 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(str), default=None
     )
     _tactile_transducer_lpfs = get_args(TransducerLPFs)
+    _room_size: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _room_sizes = get_args(RoomSizes)
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
@@ -221,6 +226,15 @@ class DenonAVRDeviceInfo:
             self._sleep = parameter
         else:
             self._sleep = int(parameter)
+
+    async def _async_room_size_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a room size change event."""
+        if parameter[:3] != "RSZ":
+            return
+
+        self._room_size = parameter[4:]
 
     async def _async_delay_callback(
         self, zone: str, event: str, parameter: str
@@ -334,6 +348,7 @@ class DenonAVRDeviceInfo:
             )
             self.telnet_api.register_callback("STBY", self._async_auto_standby_callback)
             self.telnet_api.register_callback("SLP", self._async_auto_sleep_callback)
+            self.telnet_api.register_callback("PS", self._async_room_size_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished device setup")
@@ -816,6 +831,17 @@ class DenonAVRDeviceInfo:
         return self._tactile_transducer_lpf
 
     @property
+    def room_size(self) -> Optional[str]:
+        """
+        Return the room size for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "S", "MS", "M", "ML", "L"
+        """
+        return self._room_size
+
+    @property
     def telnet_available(self) -> bool:
         """Return true if telnet is connected and healthy."""
         return self.telnet_api.connected and self.telnet_api.healthy
@@ -1073,6 +1099,20 @@ class DenonAVRDeviceInfo:
         else:
             await self.api.async_get_command(
                 self.urls.command_tactile_transducer_lpf.format(frequency=frequency)
+            )
+
+    async def async_room_size(self, room_size: RoomSizes) -> None:
+        """Set room size on receiver via HTTP get command."""
+        if room_size not in self._room_sizes:
+            raise AvrCommandError("Invalid room size")
+
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_room_size.format(size=room_size)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_room_size.format(size=room_size)
             )
 
     async def async_quick_select_mode(self, quick_select_number: int) -> None:

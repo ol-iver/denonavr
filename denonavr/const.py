@@ -94,6 +94,7 @@ ReceiverURLs = namedtuple(
         "command_sleep",
         "command_center_spread",
         "command_video_processing_mode",
+        "command_room_size",
         "command_status",
     ],
 )
@@ -170,6 +171,7 @@ TelnetCommands = namedtuple(
         "command_sleep",
         "command_center_spread",
         "command_video_processing_mode",
+        "command_room_size",
         "command_status",
     ],
 )
@@ -512,6 +514,7 @@ COMMAND_AUTO_STANDBY = "/goform/formiPhoneAppDirect.xml?STBY{mode}"
 COMMAND_SLEEP = "/goform/formiPhoneAppDirect.xml?SLP{value}"
 COMMAND_CENTER_SPREAD = "/goform/formiPhoneAppDirect.xml?PSCES%20{mode}"
 COMMAND_VIDEO_PROCESSING_MODE = "/goform/formiPhoneAppDirect.xml?VSVPM{mode}"
+COMMAND_ROOM_SIZE = "/goform/formiPhoneAppDirect.xml?PSRSZ%20{size}"
 COMMAND_STATUS = "/goform/formiPhoneAppDirect.xml?RCSHP0230030"
 
 # Zone 2 URLs
@@ -611,6 +614,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_sleep=COMMAND_SLEEP,
     command_center_spread=COMMAND_CENTER_SPREAD,
     command_video_processing_mode=COMMAND_VIDEO_PROCESSING_MODE,
+    command_room_size=COMMAND_ROOM_SIZE,
     command_status=COMMAND_STATUS,
 )
 
@@ -687,6 +691,7 @@ ZONE2_URLS = ReceiverURLs(
     command_sleep=COMMAND_SLEEP,
     command_center_spread=COMMAND_CENTER_SPREAD,
     command_video_processing_mode=COMMAND_VIDEO_PROCESSING_MODE,
+    command_room_size=COMMAND_ROOM_SIZE,
     command_status=COMMAND_STATUS,
 )
 
@@ -763,6 +768,7 @@ ZONE3_URLS = ReceiverURLs(
     command_sleep=COMMAND_SLEEP,
     command_center_spread=COMMAND_CENTER_SPREAD,
     command_video_processing_mode=COMMAND_VIDEO_PROCESSING_MODE,
+    command_room_size=COMMAND_ROOM_SIZE,
     command_status=COMMAND_STATUS,
 )
 
@@ -892,6 +898,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_sleep="SLP{value}",
     command_center_spread="PSCES {mode}",
     command_video_processing_mode="VSVPM{mode}",
+    command_room_size="PSRSZ {size}",
     command_status="RCSHP0230030",
 )
 
@@ -966,6 +973,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_sleep="SLP{value}",
     command_center_spread="PSCES {mode}",
     command_video_processing_mode="VSVPM{mode}",
+    command_room_size="PSRSZ {size}",
     command_status="RCSHP0230030",
 )
 
@@ -1040,6 +1048,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_sleep="SLP{value}",
     command_center_spread="PSCES {mode}",
     command_video_processing_mode="VSVPM{mode}",
+    command_room_size="PSRSZ {size}",
     command_status="RCSHP0230030",
 )
 
@@ -1370,6 +1379,15 @@ IMAXHPFs = Literal[
 
 IMAXLPFs = Literal["80", "90", "100", "110", "120", "150", "180", "200", "250"]
 """IMAX Low Pass Frequencies."""
+
+RoomSizes = Literal[
+    "S",
+    "MS",
+    "M",
+    "ML",
+    "L",
+]
+"""Room Sizes."""
 
 VideoProcessingModes = Literal["Auto", "Game", "Movie", "Bypass"]
 """Video Processing Modes."""

@@ -27,6 +27,7 @@ from .const import (
     EcoModes,
     HDMIAudioDecodes,
     HDMIOutputs,
+    RoomSizes,
     TransducerLPFs,
     VideoProcessingModes,
 )
@@ -660,6 +661,17 @@ class DenonAVR(DenonAVRFoundation):
         """
         return self._device.tactile_transducer_lpf
 
+    @property
+    def room_size(self) -> Optional[str]:
+        """
+        Return the room size for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "S", "MS", "M", "ML", "L"
+        """
+        return self._device.room_size
+
     ##########
     # Getter #
     ##########
@@ -975,6 +987,10 @@ class DenonAVR(DenonAVRFoundation):
     async def async_transducer_lpf(self, lpf: TransducerLPFs) -> None:
         """Set transducer low pass filter on receiver via HTTP get command."""
         await self._device.async_transducer_lpf(lpf)
+
+    async def async_room_size(self, room_size: RoomSizes) -> None:
+        """Set room size on receiver via HTTP get command."""
+        await self._device.async_room_size(room_size)
 
     async def async_quick_select_mode(self, quick_select_number: int) -> None:
         """
