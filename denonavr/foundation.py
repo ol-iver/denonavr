@@ -164,6 +164,9 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(str), default=None
     )
     _room_sizes = get_args(RoomSizes)
+    _triggers: Optional[dict[int, str]] = attr.ib(
+        converter=attr.converters.optional(dict), default=None
+    )
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
@@ -235,6 +238,22 @@ class DenonAVRDeviceInfo:
             return
 
         self._room_size = parameter[4:]
+
+    async def _async_trigger_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a trigger change event."""
+        if event != "TR":
+            return
+
+        values = parameter.split()
+        if len(values) != 2:
+            return
+
+        if self._triggers is None:
+            self._triggers = {}
+
+        self._triggers[int(values[0])] = values[1]
 
     async def _async_delay_callback(
         self, zone: str, event: str, parameter: str
@@ -349,6 +368,7 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback("STBY", self._async_auto_standby_callback)
             self.telnet_api.register_callback("SLP", self._async_auto_sleep_callback)
             self.telnet_api.register_callback("PS", self._async_room_size_callback)
+            self.telnet_api.register_callback("TR", self._async_trigger_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished device setup")
@@ -842,9 +862,37 @@ class DenonAVRDeviceInfo:
         return self._room_size
 
     @property
+    def triggers(self) -> dict[int, str]:
+        """
+        Return the trigger and their statuses for the device.
+
+        Only available if using Telnet.
+        """
+        return self._triggers
+
+    @property
     def telnet_available(self) -> bool:
         """Return true if telnet is connected and healthy."""
         return self.telnet_api.connected and self.telnet_api.healthy
+
+    ##########
+    # Getter #
+    ##########
+
+    def get_trigger(self, trigger: int) -> Optional[str]:
+        """
+        Return the status of a specific trigger.
+
+        Only available if using Telnet.
+
+        Valid trigger values are 1-3.
+        """
+        if trigger < 1 or trigger > 3:
+            raise AvrCommandError(f"Invalid trigger {trigger}, must be between 1 and 3")
+
+        if self._triggers is None:
+            return None
+        return self._triggers.get(trigger)
 
     ##########
     # Setter #
@@ -1114,6 +1162,59 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(
                 self.urls.command_room_size.format(size=room_size)
             )
+
+    async def async_trigger_on(self, trigger: int) -> None:
+        """
+        Set trigger to ON on receiver via HTTP get command.
+
+        Valid trigger numbers are 1-3.
+        """
+        if trigger < 1 or trigger > 3:
+            raise AvrCommandError("Trigger number must be between 1 and 3")
+
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_trigger.format(number=trigger, mode="ON")
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_trigger.format(number=trigger, mode="ON")
+            )
+
+    async def async_trigger_off(self, trigger: int) -> None:
+        """
+        Set trigger to OFF on receiver via HTTP get command.
+
+        Valid trigger numbers are 1-3.
+        """
+        if trigger < 1 or trigger > 3:
+            raise AvrCommandError("Trigger number must be between 1 and 3")
+
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_trigger.format(number=trigger, mode="OFF")
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_trigger.format(number=trigger, mode="OFF")
+            )
+
+    async def async_trigger_toggle(self, trigger: int) -> None:
+        """
+        Toggle trigger on receiver via HTTP get command.
+
+        Only available if using Telnet.
+
+        Valid trigger numbers are 1-3.
+        """
+        if trigger < 1 or trigger > 3:
+            raise AvrCommandError("Trigger number must be between 1 and 3")
+
+        trigger_status = self._triggers.get(trigger)
+        if trigger_status == "ON":
+            await self.async_trigger_off(trigger)
+        else:
+            await self.async_trigger_on(trigger)
 
     async def async_quick_select_mode(self, quick_select_number: int) -> None:
         """

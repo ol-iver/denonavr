@@ -601,6 +601,7 @@ class DenonAVRTelnetApi:
             "PSAUROST ?",
             "PSAUROMODE ?",
             "PSRSZ ?",
+            "TR?",
             skip_confirmation=True,
         )
 

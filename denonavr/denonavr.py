@@ -672,6 +672,15 @@ class DenonAVR(DenonAVRFoundation):
         """
         return self._device.room_size
 
+    @property
+    def triggers(self) -> dict[int, str]:
+        """
+        Return the trigger and their statuses for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.triggers
+
     ##########
     # Getter #
     ##########
@@ -682,6 +691,20 @@ class DenonAVR(DenonAVRFoundation):
         Only available if using Telnet.
         """
         return self.vol.channel_volume(channel)
+
+    ##########
+    # Getter #
+    ##########
+
+    def get_trigger(self, trigger: int) -> Optional[str]:
+        """
+        Return the status of a specific trigger.
+
+        Only available if using Telnet.
+
+        Valid trigger values are 1-3.
+        """
+        return self._device.get_trigger(trigger)
 
     ##########
     # Setter #
@@ -999,6 +1022,32 @@ class DenonAVR(DenonAVRFoundation):
     async def async_room_size(self, room_size: RoomSizes) -> None:
         """Set room size on receiver via HTTP get command."""
         await self._device.async_room_size(room_size)
+
+    async def async_trigger_on(self, trigger: int) -> None:
+        """
+        Set trigger to ON on receiver via HTTP get command.
+
+        Valid trigger numbers are 1-3.
+        """
+        await self._device.async_trigger_on(trigger)
+
+    async def async_trigger_off(self, trigger: int) -> None:
+        """
+        Set trigger to OFF on receiver via HTTP get command.
+
+        Valid trigger numbers are 1-3.
+        """
+        await self._device.async_trigger_off(trigger)
+
+    async def async_trigger_toggle(self, trigger: int) -> None:
+        """
+        Toggle trigger on receiver via HTTP get command.
+
+        Only available if using Telnet.
+
+        Valid trigger numbers are 1-3.
+        """
+        await self._device.async_trigger_toggle(trigger)
 
     async def async_quick_select_mode(self, quick_select_number: int) -> None:
         """

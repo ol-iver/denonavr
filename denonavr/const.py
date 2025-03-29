@@ -98,6 +98,7 @@ ReceiverURLs = namedtuple(
         "command_status",
         "command_system_reset",
         "command_network_restart",
+        "command_trigger",
     ],
 )
 TelnetCommands = namedtuple(
@@ -177,6 +178,7 @@ TelnetCommands = namedtuple(
         "command_status",
         "command_system_reset",
         "command_network_restart",
+        "command_trigger",
     ],
 )
 
@@ -522,6 +524,7 @@ COMMAND_ROOM_SIZE = "/goform/formiPhoneAppDirect.xml?PSRSZ%20{size}"
 COMMAND_STATUS = "/goform/formiPhoneAppDirect.xml?RCSHP0230030"
 COMMAND_SYSTEM_RESET = "/goform/formiPhoneAppDirect.xml?SYRST"
 COMMAND_NETWORK_RESTART = "/goform/formiPhoneAppDirect.xml?NSRBT"
+COMMAND_TRIGGER = "/goform/formiPhoneAppDirect.xml?TR{number}%20{mode}"
 
 # Zone 2 URLs
 STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
@@ -624,6 +627,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_status=COMMAND_STATUS,
     command_system_reset=COMMAND_SYSTEM_RESET,
     command_network_restart=COMMAND_NETWORK_RESTART,
+    command_trigger=COMMAND_TRIGGER,
 )
 
 ZONE2_URLS = ReceiverURLs(
@@ -703,6 +707,7 @@ ZONE2_URLS = ReceiverURLs(
     command_status=COMMAND_STATUS,
     command_system_reset=COMMAND_SYSTEM_RESET,
     command_network_restart=COMMAND_NETWORK_RESTART,
+    command_trigger=COMMAND_TRIGGER,
 )
 
 ZONE3_URLS = ReceiverURLs(
@@ -782,6 +787,7 @@ ZONE3_URLS = ReceiverURLs(
     command_status=COMMAND_STATUS,
     command_system_reset=COMMAND_SYSTEM_RESET,
     command_network_restart=COMMAND_NETWORK_RESTART,
+    command_trigger=COMMAND_TRIGGER,
 )
 
 # Telnet Events
@@ -914,6 +920,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_status="RCSHP0230030",
     command_system_reset="SYRST",
     command_network_restart="NSRBT",
+    command_trigger="TR{number} {mode}",
 )
 
 ZONE2_TELNET_COMMANDS = TelnetCommands(
@@ -991,6 +998,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_status="RCSHP0230030",
     command_system_reset="SYRST",
     command_network_restart="NSRBT",
+    command_trigger="TR{number} {mode}",
 )
 
 ZONE3_TELNET_COMMANDS = TelnetCommands(
@@ -1068,6 +1076,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_status="RCSHP0230030",
     command_system_reset="SYRST",
     command_network_restart="NSRBT",
+    command_trigger="TR{number} {mode}",
 )
 
 # States
