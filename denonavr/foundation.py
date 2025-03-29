@@ -167,6 +167,9 @@ class DenonAVRDeviceInfo:
     _triggers: Optional[dict[int, str]] = attr.ib(
         converter=attr.converters.optional(dict), default=None
     )
+    _speaker_preset: Optional[int] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
@@ -312,6 +315,19 @@ class DenonAVRDeviceInfo:
         elif key == "TTRLPF":
             self._tactile_transducer_lpf = f"{int(value)} Hz"
 
+    async def _async_speaker_preset_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a speaker preset change event."""
+        _LOGGER.debug(
+            "Speaker preset zone: %s, event: %s, parameter: %s", zone, event, parameter
+        )
+        if event != "SP":
+            return
+
+        if parameter[0:2] == "PR":
+            self._speaker_preset = int(parameter[3:])
+
     def get_own_zone(self) -> str:
         """
         Get zone from actual instance.
@@ -369,6 +385,7 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback("SLP", self._async_auto_sleep_callback)
             self.telnet_api.register_callback("PS", self._async_room_size_callback)
             self.telnet_api.register_callback("TR", self._async_trigger_callback)
+            self.telnet_api.register_callback("SP", self._async_speaker_preset_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished device setup")
@@ -871,6 +888,17 @@ class DenonAVRDeviceInfo:
         return self._triggers
 
     @property
+    def speaker_preset(self) -> Optional[int]:
+        """
+        Return the speaker preset for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "1", "2"
+        """
+        return self._speaker_preset
+
+    @property
     def telnet_available(self) -> bool:
         """Return true if telnet is connected and healthy."""
         return self.telnet_api.connected and self.telnet_api.healthy
@@ -1357,6 +1385,29 @@ class DenonAVRDeviceInfo:
             )
         else:
             await self.api.async_get_command(self.urls.command_network_restart)
+
+    async def async_speaker_preset(self, preset: int) -> None:
+        """Set speaker preset on receiver via HTTP get command."""
+        if preset < 1 or preset > 2:
+            raise AvrCommandError("Speaker preset number must be 1 or 2")
+
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_speaker_preset.format(number=preset)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_speaker_preset.format(number=preset)
+            )
+
+    async def async_speaker_preset_toggle(self) -> None:
+        """
+        Toggle speaker preset on receiver via HTTP get command.
+
+        Only available if using Telnet.
+        """
+        speaker_preset = 1 if self._speaker_preset == 2 else 2
+        await self.async_speaker_preset(speaker_preset)
 
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)

@@ -99,6 +99,7 @@ ReceiverURLs = namedtuple(
         "command_system_reset",
         "command_network_restart",
         "command_trigger",
+        "command_speaker_preset",
     ],
 )
 TelnetCommands = namedtuple(
@@ -179,6 +180,7 @@ TelnetCommands = namedtuple(
         "command_system_reset",
         "command_network_restart",
         "command_trigger",
+        "command_speaker_preset",
     ],
 )
 
@@ -525,6 +527,7 @@ COMMAND_STATUS = "/goform/formiPhoneAppDirect.xml?RCSHP0230030"
 COMMAND_SYSTEM_RESET = "/goform/formiPhoneAppDirect.xml?SYRST"
 COMMAND_NETWORK_RESTART = "/goform/formiPhoneAppDirect.xml?NSRBT"
 COMMAND_TRIGGER = "/goform/formiPhoneAppDirect.xml?TR{number}%20{mode}"
+COMMAND_SPEAKER_PRESET = "/goform/formiPhoneAppDirect.xml?SPPR%20{number}"
 
 # Zone 2 URLs
 STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
@@ -628,6 +631,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_system_reset=COMMAND_SYSTEM_RESET,
     command_network_restart=COMMAND_NETWORK_RESTART,
     command_trigger=COMMAND_TRIGGER,
+    command_speaker_preset=COMMAND_SPEAKER_PRESET,
 )
 
 ZONE2_URLS = ReceiverURLs(
@@ -708,6 +712,7 @@ ZONE2_URLS = ReceiverURLs(
     command_system_reset=COMMAND_SYSTEM_RESET,
     command_network_restart=COMMAND_NETWORK_RESTART,
     command_trigger=COMMAND_TRIGGER,
+    command_speaker_preset=COMMAND_SPEAKER_PRESET,
 )
 
 ZONE3_URLS = ReceiverURLs(
@@ -788,6 +793,7 @@ ZONE3_URLS = ReceiverURLs(
     command_system_reset=COMMAND_SYSTEM_RESET,
     command_network_restart=COMMAND_NETWORK_RESTART,
     command_trigger=COMMAND_TRIGGER,
+    command_speaker_preset=COMMAND_SPEAKER_PRESET,
 )
 
 # Telnet Events
@@ -813,6 +819,7 @@ TELNET_EVENTS = {
     "SD",
     "SI",
     "SLP",
+    "SP",
     "SR",
     "SS",
     "STBY",
@@ -921,6 +928,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_system_reset="SYRST",
     command_network_restart="NSRBT",
     command_trigger="TR{number} {mode}",
+    command_speaker_preset="SPPR {number}",
 )
 
 ZONE2_TELNET_COMMANDS = TelnetCommands(
@@ -999,6 +1007,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_system_reset="SYRST",
     command_network_restart="NSRBT",
     command_trigger="TR{number} {mode}",
+    command_speaker_preset="SPPR {number}",
 )
 
 ZONE3_TELNET_COMMANDS = TelnetCommands(
@@ -1077,6 +1086,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_system_reset="SYRST",
     command_network_restart="NSRBT",
     command_trigger="TR{number} {mode}",
+    command_speaker_preset="SPPR {number}",
 )
 
 # States

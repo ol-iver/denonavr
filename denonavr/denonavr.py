@@ -681,6 +681,17 @@ class DenonAVR(DenonAVRFoundation):
         """
         return self._device.triggers
 
+    @property
+    def speaker_preset(self) -> Optional[int]:
+        """
+        Return the speaker preset for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "1", "2"
+        """
+        return self._device.speaker_preset
+
     ##########
     # Getter #
     ##########
@@ -990,6 +1001,18 @@ class DenonAVR(DenonAVRFoundation):
     async def async_network_restart(self) -> None:
         """Restart the network on the receiver via HTTP get command."""
         await self._device.async_network_restart()
+
+    async def async_speaker_preset(self, preset: int) -> None:
+        """Set speaker preset on receiver via HTTP get command."""
+        await self._device.async_speaker_preset(preset)
+
+    async def async_speaker_preset_toggle(self) -> None:
+        """
+        Toggle speaker preset on receiver via HTTP get command.
+
+        Only available if using Telnet.
+        """
+        await self._device.async_speaker_preset_toggle()
 
     async def async_tactile_transducer_on(self) -> None:
         """Turn on tactile transducer on receiver via HTTP get command."""
