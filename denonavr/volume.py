@@ -144,6 +144,7 @@ class DenonAVRVolume(DenonAVRFoundation):
     async def _async_subwoofer_levels_callback(
         self, zone: str, event: str, parameter: str
     ) -> None:
+        """Handle a subwoofer levels change event."""
         if parameter[:3] != "SWL":
             return
 
@@ -162,6 +163,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         self._subwoofer_levels[subwoofer] = CHANNEL_VOLUME_MAP[level]
 
     async def _async_lfe_callback(self, zone: str, event: str, parameter: str) -> None:
+        """Handle a LFE change event."""
         if parameter[:3] != "LFE":
             return
 
