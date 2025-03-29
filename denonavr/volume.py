@@ -501,7 +501,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         """
         if lfe < -10 or lfe > 0:
             raise AvrCommandError(f"Invalid LFE: {lfe}")
-        # remove minus sign, pad with 0 if single digit
+
         lfe_local = str(lfe).replace("-", "").zfill(2)
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
