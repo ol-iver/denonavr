@@ -590,6 +590,7 @@ class DenonAVRTelnetApi:
             "VSAUDIO ?",
             "PSCES ?",
             "VSVPM ?",
+            "PSLFE ?",
             skip_confirmation=True,
         )
 

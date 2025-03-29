@@ -65,6 +65,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         converter=attr.converters.optional(dict), default=None
     )
     _valid_subwoofers = get_args(Subwoofers)
+    _lfe: Optional[int] = attr.ib(converter=attr.converters.optional(int), default=None)
     # Update tags for attributes
     # AppCommand.xml interface
     appcommand_attrs = {
@@ -91,6 +92,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         self._device.telnet_api.register_callback(
             "PS", self._async_subwoofer_levels_callback
         )
+        self._device.telnet_api.register_callback("PS", self._async_lfe_callback)
 
         self._is_setup = True
 
@@ -158,6 +160,12 @@ class DenonAVRVolume(DenonAVRFoundation):
         subwoofer = SUBWOOFERS_MAP_LABELS[subwoofer_volume[0]]
         level = subwoofer_volume[1]
         self._subwoofer_levels[subwoofer] = CHANNEL_VOLUME_MAP[level]
+
+    async def _async_lfe_callback(self, zone: str, event: str, parameter: str) -> None:
+        if parameter[:3] != "LFE":
+            return
+
+        self._lfe = int(parameter[4:]) * -1
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -243,6 +251,15 @@ class DenonAVRVolume(DenonAVRFoundation):
         Only available if using Telnet.
         """
         return self._subwoofer_levels
+
+    @property
+    def lfe(self) -> Optional[int]:
+        """
+        Return LFE level in dB.
+
+        Only available if using Telnet.
+        """
+        return self._lfe
 
     ##########
     # Getter #
@@ -450,6 +467,47 @@ class DenonAVRVolume(DenonAVRFoundation):
                 self._device.urls.command_subwoofer_level.format(
                     number=mapped_subwoofer, mode="DOWN"
                 )
+            )
+
+    async def async_lfe_up(self) -> None:
+        """Turn LFE up on receiver via HTTP get command."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_lfe.format(mode="UP")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_lfe.format(mode="UP")
+            )
+
+    async def async_lfe_down(self, subwoofer: Subwoofers) -> None:
+        """Turn LFE down on receiver via HTTP get command."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_lfe.format(mode="DOWN")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_lfe.format(mode="DOWN")
+            )
+
+    async def async_lfe(self, lfe: int) -> None:
+        """
+        Set LFE level on receiver via HTTP get command.
+
+        Valid values are -10 to 0.
+        """
+        if lfe < -10 or lfe > 0:
+            raise AvrCommandError(f"Invalid LFE: {lfe}")
+        # remove minus sign, pad with 0 if single digit
+        lfe_local = str(lfe).replace("-", "").zfill(2)
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_lfe.format(mode=lfe_local)
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_lfe.format(mode=lfe_local)
             )
 
     @staticmethod

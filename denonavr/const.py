@@ -70,6 +70,7 @@ ReceiverURLs = namedtuple(
         "command_channel_volumes_reset",
         "command_subwoofer_on_off",
         "command_subwoofer_level",
+        "command_lfe",
         "command_tactile_transducer",
         "command_tactile_transducer_level",
         "command_tactile_transducer_lpf",
@@ -138,6 +139,7 @@ TelnetCommands = namedtuple(
         "command_channel_volumes_reset",
         "command_subwoofer_on_off",
         "command_subwoofer_level",
+        "command_lfe",
         "command_tactile_transducer",
         "command_tactile_transducer_level",
         "command_tactile_transducer_lpf",
@@ -471,6 +473,7 @@ COMMAND_CHANNEL_VOLUME_DOWN = "/goform/formiPhoneAppDirect.xml?CV{channel}%20DOW
 COMMAND_CHANNEL_VOLUMES_RESET = "/goform/formiPhoneAppDirect.xml?CVZRL"
 COMMAND_SUBWOOFER_ON_OFF = "/goform/formiPhoneAppDirect.xml?PSSWR%20{mode}"
 COMMAND_SUBWOOFER_LEVEL = "/goform/formiPhoneAppDirect.xml?PSSWL{number}%20{mode}"
+COMMAND_LFE = "/goform/formiPhoneAppDirect.xml?PSLFE%20{mode}"
 COMMAND_TACTILE_TRANSDUCER = "/goform/formiPhoneAppDirect.xml?SSTTR%20{mode}"
 COMMAND_TACTILE_TRANSDUCER_LEVEL = "/goform/formiPhoneAppDirect.xml?SSTTRLEV%20{mode}"
 COMMAND_TACTILE_TRANSDUCER_LPF = (
@@ -563,6 +566,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_channel_volumes_reset=COMMAND_CHANNEL_VOLUMES_RESET,
     command_subwoofer_on_off=COMMAND_SUBWOOFER_ON_OFF,
     command_subwoofer_level=COMMAND_SUBWOOFER_LEVEL,
+    command_lfe=COMMAND_LFE,
     command_tactile_transducer=COMMAND_TACTILE_TRANSDUCER,
     command_tactile_transducer_level=COMMAND_TACTILE_TRANSDUCER_LEVEL,
     command_tactile_transducer_lpf=COMMAND_TACTILE_TRANSDUCER_LPF,
@@ -631,6 +635,7 @@ ZONE2_URLS = ReceiverURLs(
     command_channel_volumes_reset=COMMAND_CHANNEL_VOLUMES_RESET,
     command_subwoofer_on_off=COMMAND_SUBWOOFER_ON_OFF,
     command_subwoofer_level=COMMAND_SUBWOOFER_LEVEL,
+    command_lfe=COMMAND_LFE,
     command_tactile_transducer=COMMAND_TACTILE_TRANSDUCER,
     command_tactile_transducer_level=COMMAND_TACTILE_TRANSDUCER_LEVEL,
     command_tactile_transducer_lpf=COMMAND_TACTILE_TRANSDUCER_LPF,
@@ -699,6 +704,7 @@ ZONE3_URLS = ReceiverURLs(
     command_channel_volumes_reset=COMMAND_CHANNEL_VOLUMES_RESET,
     command_subwoofer_on_off=COMMAND_SUBWOOFER_ON_OFF,
     command_subwoofer_level=COMMAND_SUBWOOFER_LEVEL,
+    command_lfe=COMMAND_LFE,
     command_tactile_transducer=COMMAND_TACTILE_TRANSDUCER,
     command_tactile_transducer_level=COMMAND_TACTILE_TRANSDUCER_LEVEL,
     command_tactile_transducer_lpf=COMMAND_TACTILE_TRANSDUCER_LPF,
@@ -820,6 +826,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_channel_volumes_reset="CVZRL",
     command_subwoofer_on_off="PSSWR {mode}",
     command_subwoofer_level="PSSWL{number} {mode}",
+    command_lfe="PSLFE {mode}",
     command_tactile_transducer="SSTTR {mode}",
     command_tactile_transducer_level="SSTTRLEV {mode}",
     command_tactile_transducer_lpf="SSTTRLPF {frequency}",
@@ -886,6 +893,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_channel_volumes_reset="CVZRL",
     command_subwoofer_on_off="PSSWR {mode}",
     command_subwoofer_level="PSSWL{number} {mode}",
+    command_lfe="PSLFE {mode}",
     command_tactile_transducer="SSTTR {mode}",
     command_tactile_transducer_level="SSTTRLEV {mode}",
     command_tactile_transducer_lpf="SSTTRLPF {frequency}",
@@ -952,6 +960,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_channel_volumes_reset="CVZRL",
     command_subwoofer_on_off="PSSWR {mode}",
     command_subwoofer_level="PSSWL{number} {mode}",
+    command_lfe="PSLFE {mode}",
     command_tactile_transducer="SSTTR {mode}",
     command_tactile_transducer_level="SSTTRLEV {mode}",
     command_tactile_transducer_lpf="SSTTRLPF {frequency}",
