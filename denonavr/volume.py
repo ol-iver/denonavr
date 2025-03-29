@@ -66,6 +66,9 @@ class DenonAVRVolume(DenonAVRFoundation):
     )
     _valid_subwoofers = get_args(Subwoofers)
     _lfe: Optional[int] = attr.ib(converter=attr.converters.optional(int), default=None)
+    _bass_sync: Optional[int] = attr.ib(
+        converter=attr.converters.optional(int), default=None
+    )
     # Update tags for attributes
     # AppCommand.xml interface
     appcommand_attrs = {
@@ -93,6 +96,7 @@ class DenonAVRVolume(DenonAVRFoundation):
             "PS", self._async_subwoofer_levels_callback
         )
         self._device.telnet_api.register_callback("PS", self._async_lfe_callback)
+        self._device.telnet_api.register_callback("PS", self._async_bass_sync_callback)
 
         self._is_setup = True
 
@@ -168,6 +172,15 @@ class DenonAVRVolume(DenonAVRFoundation):
             return
 
         self._lfe = int(parameter[4:]) * -1
+
+    async def _async_bass_sync_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a LFE change event."""
+        if parameter[:3] != "BSC":
+            return
+
+        self._bass_sync = int(parameter[4:]) * -1
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -262,6 +275,15 @@ class DenonAVRVolume(DenonAVRFoundation):
         Only available if using Telnet.
         """
         return self._lfe
+
+    @property
+    def bass_sync(self) -> Optional[int]:
+        """
+        Return Bass Sync level in dB.
+
+        Only available if using Telnet.
+        """
+        return self._bass_sync
 
     ##########
     # Getter #
@@ -482,7 +504,7 @@ class DenonAVRVolume(DenonAVRFoundation):
                 self._device.urls.command_lfe.format(mode="UP")
             )
 
-    async def async_lfe_down(self, subwoofer: Subwoofers) -> None:
+    async def async_lfe_down(self) -> None:
         """Turn LFE down on receiver via HTTP get command."""
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
@@ -510,6 +532,49 @@ class DenonAVRVolume(DenonAVRFoundation):
         else:
             await self._device.api.async_get_command(
                 self._device.urls.command_lfe.format(mode=lfe_local)
+            )
+
+    async def async_bass_sync_up(self) -> None:
+        """Turn Bass Sync up on receiver via HTTP get command."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_bass_sync.format(mode="UP")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_bass_sync.format(mode="UP")
+            )
+
+    async def async_bass_sync_down(self) -> None:
+        """Turn Bass Sync down on receiver via HTTP get command."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_bass_sync.format(mode="DOWN")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_bass_sync.format(mode="DOWN")
+            )
+
+    async def async_bass_sync(self, lfe: int) -> None:
+        """
+        Set Bass Sync level on receiver via HTTP get command.
+
+        Valid values are -10 to 0.
+        """
+        if lfe < -10 or lfe > 0:
+            raise AvrCommandError(f"Invalid Bass Sync: {lfe}")
+
+        bass_sync_local = str(lfe).replace("-", "").zfill(2)
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_bass_sync.format(
+                    mode=bass_sync_local
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_bass_sync.format(mode=bass_sync_local)
             )
 
     @staticmethod
