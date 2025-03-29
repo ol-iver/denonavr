@@ -96,6 +96,8 @@ ReceiverURLs = namedtuple(
         "command_video_processing_mode",
         "command_room_size",
         "command_status",
+        "command_system_reset",
+        "command_network_restart",
     ],
 )
 TelnetCommands = namedtuple(
@@ -173,6 +175,8 @@ TelnetCommands = namedtuple(
         "command_video_processing_mode",
         "command_room_size",
         "command_status",
+        "command_system_reset",
+        "command_network_restart",
     ],
 )
 
@@ -516,6 +520,8 @@ COMMAND_CENTER_SPREAD = "/goform/formiPhoneAppDirect.xml?PSCES%20{mode}"
 COMMAND_VIDEO_PROCESSING_MODE = "/goform/formiPhoneAppDirect.xml?VSVPM{mode}"
 COMMAND_ROOM_SIZE = "/goform/formiPhoneAppDirect.xml?PSRSZ%20{size}"
 COMMAND_STATUS = "/goform/formiPhoneAppDirect.xml?RCSHP0230030"
+COMMAND_SYSTEM_RESET = "/goform/formiPhoneAppDirect.xml?SYRST"
+COMMAND_NETWORK_RESTART = "/goform/formiPhoneAppDirect.xml?NSRBT"
 
 # Zone 2 URLs
 STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
@@ -616,6 +622,8 @@ DENONAVR_URLS = ReceiverURLs(
     command_video_processing_mode=COMMAND_VIDEO_PROCESSING_MODE,
     command_room_size=COMMAND_ROOM_SIZE,
     command_status=COMMAND_STATUS,
+    command_system_reset=COMMAND_SYSTEM_RESET,
+    command_network_restart=COMMAND_NETWORK_RESTART,
 )
 
 ZONE2_URLS = ReceiverURLs(
@@ -693,6 +701,8 @@ ZONE2_URLS = ReceiverURLs(
     command_video_processing_mode=COMMAND_VIDEO_PROCESSING_MODE,
     command_room_size=COMMAND_ROOM_SIZE,
     command_status=COMMAND_STATUS,
+    command_system_reset=COMMAND_SYSTEM_RESET,
+    command_network_restart=COMMAND_NETWORK_RESTART,
 )
 
 ZONE3_URLS = ReceiverURLs(
@@ -770,6 +780,8 @@ ZONE3_URLS = ReceiverURLs(
     command_video_processing_mode=COMMAND_VIDEO_PROCESSING_MODE,
     command_room_size=COMMAND_ROOM_SIZE,
     command_status=COMMAND_STATUS,
+    command_system_reset=COMMAND_SYSTEM_RESET,
+    command_network_restart=COMMAND_NETWORK_RESTART,
 )
 
 # Telnet Events
@@ -900,6 +912,8 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_video_processing_mode="VSVPM{mode}",
     command_room_size="PSRSZ {size}",
     command_status="RCSHP0230030",
+    command_system_reset="SYRST",
+    command_network_restart="NSRBT",
 )
 
 ZONE2_TELNET_COMMANDS = TelnetCommands(
@@ -975,6 +989,8 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_video_processing_mode="VSVPM{mode}",
     command_room_size="PSRSZ {size}",
     command_status="RCSHP0230030",
+    command_system_reset="SYRST",
+    command_network_restart="NSRBT",
 )
 
 ZONE3_TELNET_COMMANDS = TelnetCommands(
@@ -1050,6 +1066,8 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_video_processing_mode="VSVPM{mode}",
     command_room_size="PSRSZ {size}",
     command_status="RCSHP0230030",
+    command_system_reset="SYRST",
+    command_network_restart="NSRBT",
 )
 
 # States

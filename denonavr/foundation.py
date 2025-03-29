@@ -1239,6 +1239,24 @@ class DenonAVRDeviceInfo:
             raise AvrCommandError("Status command is only supported for Denon devices")
         return await self.api.async_get_command(self.urls.command_status)
 
+    async def async_system_reset(self) -> None:
+        """DANGER! Reset the receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_system_reset
+            )
+        else:
+            await self.api.async_get_command(self.urls.command_system_reset)
+
+    async def async_network_restart(self) -> None:
+        """Restart the network on the receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_network_restart
+            )
+        else:
+            await self.api.async_get_command(self.urls.command_network_restart)
+
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
 class DenonAVRFoundation:

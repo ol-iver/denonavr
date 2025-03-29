@@ -960,6 +960,14 @@ class DenonAVR(DenonAVRFoundation):
         """
         await self._device.async_status()
 
+    async def async_system_reset(self) -> None:
+        """DANGER! Reset the receiver via HTTP get command."""
+        await self._device.async_system_reset()
+
+    async def async_network_restart(self) -> None:
+        """Restart the network on the receiver via HTTP get command."""
+        await self._device.async_network_restart()
+
     async def async_tactile_transducer_on(self) -> None:
         """Turn on tactile transducer on receiver via HTTP get command."""
         await self._device.async_tactile_transducer_on()
