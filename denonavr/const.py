@@ -76,6 +76,9 @@ ReceiverURLs = namedtuple(
         "command_tactile_transducer_lpf",
         "command_delay_up",
         "command_delay_down",
+        "command_auromatic_3d_preset",
+        "command_auromatic_3d_strength",
+        "command_auro_3d_mode",
         "command_dirac_filter",
         "command_eco_mode",
         "command_lfc",
@@ -148,6 +151,9 @@ TelnetCommands = namedtuple(
         "command_tactile_transducer_lpf",
         "command_delay_up",
         "command_delay_down",
+        "command_auromatic_3d_preset",
+        "command_auromatic_3d_strength",
+        "command_auro_3d_mode",
         "command_dirac_filter",
         "command_eco_mode",
         "command_lfc",
@@ -487,6 +493,9 @@ COMMAND_TACTILE_TRANSDUCER_LPF = (
 )
 COMMAND_DELAY_UP = "/goform/formiPhoneAppDirect.xml?PSDELAY%20UP"
 COMMAND_DELAY_DOWN = "/goform/formiPhoneAppDirect.xml?PSDELAY%20DOWN"
+COMMAND_AUROMATIC_3D_PRESET = "/goform/formiPhoneAppDirect.xml?PSAUROPR%20{preset}"
+COMMAND_AUROMATIC_3D_STRENGTH = "/goform/formiPhoneAppDirect.xml?PSAUROST%20{value}"
+COMMAND_AURO_3D_MODE = "/goform/formiPhoneAppDirect.xml?PSAUROMODEM%20{mode}"
 COMMAND_DIRAC_FILTER = "/goform/formiPhoneAppDirect.xml?PSDIRAC%20{filter}"
 COMMAND_LFC = "/goform/formiPhoneAppDirect.xml?PSLFC%20{mode}"
 COMMAND_LOUDNESS_MANAGEMENT = "/goform/formiPhoneAppDirect.xml?PSLOM%20{mode}"
@@ -581,6 +590,9 @@ DENONAVR_URLS = ReceiverURLs(
     command_tactile_transducer_lpf=COMMAND_TACTILE_TRANSDUCER_LPF,
     command_delay_up=COMMAND_DELAY_UP,
     command_delay_down=COMMAND_DELAY_DOWN,
+    command_auromatic_3d_preset=COMMAND_AUROMATIC_3D_PRESET,
+    command_auromatic_3d_strength=COMMAND_AUROMATIC_3D_STRENGTH,
+    command_auro_3d_mode=COMMAND_AURO_3D_MODE,
     command_dirac_filter=COMMAND_DIRAC_FILTER,
     command_eco_mode=COMMAND_ECO_MODE,
     command_lfc=COMMAND_LFC,
@@ -653,6 +665,9 @@ ZONE2_URLS = ReceiverURLs(
     command_tactile_transducer_lpf=COMMAND_TACTILE_TRANSDUCER_LPF,
     command_delay_up=COMMAND_DELAY_UP,
     command_delay_down=COMMAND_DELAY_DOWN,
+    command_auromatic_3d_preset=COMMAND_AUROMATIC_3D_PRESET,
+    command_auromatic_3d_strength=COMMAND_AUROMATIC_3D_STRENGTH,
+    command_auro_3d_mode=COMMAND_AURO_3D_MODE,
     command_dirac_filter=COMMAND_DIRAC_FILTER,
     command_eco_mode=COMMAND_ECO_MODE,
     command_lfc=COMMAND_LFC,
@@ -725,6 +740,9 @@ ZONE3_URLS = ReceiverURLs(
     command_tactile_transducer_lpf=COMMAND_TACTILE_TRANSDUCER_LPF,
     command_delay_up=COMMAND_DELAY_UP,
     command_delay_down=COMMAND_DELAY_DOWN,
+    command_auromatic_3d_preset=COMMAND_AUROMATIC_3D_PRESET,
+    command_auromatic_3d_strength=COMMAND_AUROMATIC_3D_STRENGTH,
+    command_auro_3d_mode=COMMAND_AURO_3D_MODE,
     command_dirac_filter=COMMAND_DIRAC_FILTER,
     command_eco_mode=COMMAND_ECO_MODE,
     command_lfc=COMMAND_LFC,
@@ -850,6 +868,9 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_tactile_transducer_lpf="SSTTRLPF {frequency}",
     command_delay_up="PSDELAY UP",
     command_delay_down="PSDELAY DOWN",
+    command_auromatic_3d_preset="PSAUROPR {preset}",
+    command_auromatic_3d_strength="PSAUROST {value}",
+    command_auro_3d_mode="PSAUROMODE {mode}",
     command_dirac_filter="PSDIRAC {filter}",
     command_eco_mode="ECO{mode}",
     command_lfc="PSLFC {mode}",
@@ -920,6 +941,9 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_tactile_transducer_lpf="SSTTRLPF {frequency}",
     command_delay_up="PSDELAY UP",
     command_delay_down="PSDELAY DOWN",
+    command_auromatic_3d_preset="PSAUROPR {preset}",
+    command_auromatic_3d_strength="PSAUROST {value}",
+    command_auro_3d_mode="PSAUROMODE {mode}",
     command_dirac_filter="PSDIRAC {filter}",
     command_eco_mode="ECO{mode}",
     command_lfc="PSLFC {mode}",
@@ -990,6 +1014,9 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_tactile_transducer_lpf="SSTTRLPF {frequency}",
     command_delay_up="PSDELAY UP",
     command_delay_down="PSDELAY DOWN",
+    command_auromatic_3d_preset="PSAUROPR {preset}",
+    command_auromatic_3d_strength="PSAUROST {value}",
+    command_auro_3d_mode="PSAUROMODE {mode}",
     command_dirac_filter="PSDIRAC {filter}",
     command_eco_mode="ECO{mode}",
     command_lfc="PSLFC {mode}",
@@ -1081,6 +1108,32 @@ DYNAMIC_VOLUME_MAP_LABELS_APPCOMMAND = {
 DYNAMIC_VOLUME_MAP_LABELS_TELNET = {
     value: key for key, value in DYNAMIC_VOLUME_MAP_TELNET.items()
 }
+
+AuroMatic3DPresets = Literal[
+    "Small",
+    "Medium",
+    "Large",
+    "Speech",
+    "Movie",
+]
+"""Auro-Matic 3D Presets."""
+
+AURO_MATIC_3D_PRESET_MAP = {
+    "Small": "SMA",
+    "Medium": "MED",
+    "Large": "LAR",
+    "Speech": "SPE",
+    "Movie": "MOV",
+}
+AURO_MATIC_3D_PRESET_MAP_LABELS = {
+    value: key for key, value in AURO_MATIC_3D_PRESET_MAP.items()
+}
+
+Auro3DModes = Literal["Direct", "Channel Expansion"]
+"""Auro 3D Modes."""
+
+AURO_3D_MODE_MAP = {"Direct": "DRCT", "Channel Expansion": "EXP"}
+AURO_3D_MODE_MAP_MAP_LABELS = {value: key for key, value in AURO_3D_MODE_MAP.items()}
 
 AutoStandbys = Literal["OFF", "15M", "30M", "60M"]
 

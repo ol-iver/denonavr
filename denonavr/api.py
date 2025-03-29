@@ -595,6 +595,9 @@ class DenonAVRTelnetApi:
             "PSBSC ?",
             "PSDEH ?",
             "PSCINEMA EQ. ?",
+            "PSAUROPR ?",
+            "PSAUROST ?",
+            "PSAUROMODE ?",
             skip_confirmation=True,
         )
 

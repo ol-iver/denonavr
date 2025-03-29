@@ -18,10 +18,16 @@ import attr
 from .appcommand import AppCommands
 from .const import (
     ALL_ZONE_STEREO,
+    AURO_3D_MODE_MAP,
+    AURO_3D_MODE_MAP_MAP_LABELS,
+    AURO_MATIC_3D_PRESET_MAP,
+    AURO_MATIC_3D_PRESET_MAP_LABELS,
     DENON_ATTR_SETATTR,
     DIALOG_ENHANCER_LEVEL_MAP,
     DIALOG_ENHANCER_LEVEL_MAP_LABELS,
     SOUND_MODE_MAPPING,
+    Auro3DModes,
+    AuroMatic3DPresets,
     DialogEnhancerLevels,
     IMAXHPFs,
     IMAXLPFs,
@@ -112,6 +118,17 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         converter=attr.converters.optional(str), default=None
     )
     _dialog_enhancer_levels = get_args(DialogEnhancerLevels)
+    _auromatic_3d_preset: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _auromatic_3d_presets = get_args(AuroMatic3DPresets)
+    _auromatic_3d_strength: Optional[int] = attr.ib(
+        converter=attr.converters.optional(int), default=None
+    )
+    _auro_3d_mode: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _auro_3d_modes = get_args(Auro3DModes)
     _sound_mode_map: Dict[str, list] = attr.ib(
         validator=attr.validators.deep_mapping(
             attr.validators.instance_of(str),
@@ -174,6 +191,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             self._device.telnet_api.register_callback(
                 "PS", self._async_dialog_enhancer_callback
             )
+            self._device.telnet_api.register_callback("PS", self._async_auro_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished sound mode setup")
@@ -243,6 +261,19 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             self._dialog_enhancer_level = DIALOG_ENHANCER_LEVEL_MAP_LABELS[
                 parameter[4:]
             ]
+
+    async def _async_auro_callback(self, zone: str, event: str, parameter: str) -> None:
+        """Handle a Auro change event."""
+        key_value = parameter.split()
+        if len(key_value) != 2 or key_value[0][:4] != "AURO":
+            return
+
+        if key_value[0] == "AUROPR":
+            self._auromatic_3d_preset = AURO_MATIC_3D_PRESET_MAP_LABELS[parameter[7:]]
+        elif key_value[0] == "AUROST":
+            self._auromatic_3d_strength = int(parameter[7:])
+        elif key_value[0] == "AUROMODE":
+            self._auro_3d_mode = AURO_3D_MODE_MAP_MAP_LABELS[parameter[9:]]
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -522,6 +553,39 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         Possible values are: "Off", "Low", "Medium", "High"
         """
         return self._dialog_enhancer_level
+
+    @property
+    def auromatic_3d_preset(self) -> Optional[str]:
+        """
+        Return the current Auro-Matic 3D Preset.
+
+        Only available if using Telnet.
+
+        Possible values are: "Small, "Medium", "Large", "Speech", "Movie"
+        """
+        return self._auromatic_3d_preset
+
+    @property
+    def auromatic_3d_strength(self) -> Optional[int]:
+        """
+        Return the current Auro-Matic 3D Strength.
+
+        Only available if using Telnet.
+
+        Possible values are: 1-16
+        """
+        return self._auromatic_3d_strength
+
+    @property
+    def auro_3d_mode(self) -> Optional[str]:
+        """
+        Return the current Auro 3D mode.
+
+        Only available if using Telnet.
+
+        Possible values are: "Direct", "Channel Expansion"
+        """
+        return self._auro_3d_mode
 
     ##########
     # Setter #
@@ -859,6 +923,91 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         else:
             await self._device.api.async_get_command(
                 self._device.urls.command_dialog_enhancer.format(level=level_mapped)
+            )
+
+    async def async_auromatic_3d_preset(self, preset: AuroMatic3DPresets) -> None:
+        """Set Auro-Matic 3D Preset."""
+        if preset not in self._auromatic_3d_presets:
+            raise AvrCommandError(f"{preset} is not a valid Auro-Matic 3D Preset")
+
+        local_preset = AURO_MATIC_3D_PRESET_MAP[preset]
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_auromatic_3d_preset.format(
+                    preset=local_preset
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_auromatic_3d_preset.format(
+                    preset=local_preset
+                )
+            )
+
+    async def async_auromatic_3d_strength_up(self) -> None:
+        """Increase Auro-Matic 3D Strength."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_auromatic_3d_strength.format(
+                    value="UP"
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_auromatic_3d_strength.format(value="UP")
+            )
+
+    async def async_auromatic_3d_strength_down(self) -> None:
+        """Decrease Auro-Matic 3D Strength."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_auromatic_3d_strength.format(
+                    value="DOWN"
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_auromatic_3d_strength.format(value="DOWN")
+            )
+
+    async def async_auromatic_3d_strength(self, strength: int) -> None:
+        """
+        Set Auro-Matic 3D Strength.
+
+        Valid values are 1-16.
+        """
+        if strength < 1 or strength > 16:
+            raise AvrCommandError(f"{strength} is not a valid Auro-Matic 3D Strength")
+
+        local_strength = f"{strength:02}"
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_auromatic_3d_strength.format(
+                    value=local_strength
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_auromatic_3d_strength.format(
+                    value=local_strength
+                )
+            )
+
+    async def async_auromatic_3d_mode(self, mode: Auro3DModes) -> None:
+        """Set Auro 3D Mode."""
+        if mode not in self._auro_3d_modes:
+            raise AvrCommandError(f"{mode} is not a valid Auro 3D Mode")
+
+        local_mode = AURO_3D_MODE_MAP[mode]
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_auro_3d_mode.format(
+                    mode=local_mode
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_auro_3d_mode.format(mode=local_mode)
             )
 
 
