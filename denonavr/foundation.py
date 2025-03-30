@@ -238,7 +238,7 @@ class DenonAVRDeviceInfo:
         self, zone: str, event: str, parameter: str
     ) -> None:
         """Handle a auto standby change event."""
-        if event == "STBY":
+        if zone == "Main" and event == "STBY":
             self._auto_standby = parameter
 
     async def _async_auto_sleep_callback(
