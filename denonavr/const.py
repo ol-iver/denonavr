@@ -100,6 +100,7 @@ ReceiverURLs = namedtuple(
         "command_network_restart",
         "command_trigger",
         "command_speaker_preset",
+        "command_bluetooth_transmitter",
     ],
 )
 TelnetCommands = namedtuple(
@@ -181,6 +182,7 @@ TelnetCommands = namedtuple(
         "command_network_restart",
         "command_trigger",
         "command_speaker_preset",
+        "command_bluetooth_transmitter",
     ],
 )
 
@@ -528,6 +530,7 @@ COMMAND_SYSTEM_RESET = "/goform/formiPhoneAppDirect.xml?SYRST"
 COMMAND_NETWORK_RESTART = "/goform/formiPhoneAppDirect.xml?NSRBT"
 COMMAND_TRIGGER = "/goform/formiPhoneAppDirect.xml?TR{number}%20{mode}"
 COMMAND_SPEAKER_PRESET = "/goform/formiPhoneAppDirect.xml?SPPR%20{number}"
+COMMAND_BLUETOOTH_TRANSMITTER = "/goform/formiPhoneAppDirect.xml?BTTX%20{mode}"
 
 # Zone 2 URLs
 STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
@@ -632,6 +635,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_network_restart=COMMAND_NETWORK_RESTART,
     command_trigger=COMMAND_TRIGGER,
     command_speaker_preset=COMMAND_SPEAKER_PRESET,
+    command_bluetooth_transmitter=COMMAND_BLUETOOTH_TRANSMITTER,
 )
 
 ZONE2_URLS = ReceiverURLs(
@@ -713,6 +717,7 @@ ZONE2_URLS = ReceiverURLs(
     command_network_restart=COMMAND_NETWORK_RESTART,
     command_trigger=COMMAND_TRIGGER,
     command_speaker_preset=COMMAND_SPEAKER_PRESET,
+    command_bluetooth_transmitter=COMMAND_BLUETOOTH_TRANSMITTER,
 )
 
 ZONE3_URLS = ReceiverURLs(
@@ -794,11 +799,13 @@ ZONE3_URLS = ReceiverURLs(
     command_network_restart=COMMAND_NETWORK_RESTART,
     command_trigger=COMMAND_TRIGGER,
     command_speaker_preset=COMMAND_SPEAKER_PRESET,
+    command_bluetooth_transmitter=COMMAND_BLUETOOTH_TRANSMITTER,
 )
 
 # Telnet Events
 ALL_TELNET_EVENTS = "ALL"
 TELNET_EVENTS = {
+    "BT",
     "CV",
     "DC",
     "DIM",
@@ -929,6 +936,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_network_restart="NSRBT",
     command_trigger="TR{number} {mode}",
     command_speaker_preset="SPPR {number}",
+    command_bluetooth_transmitter="BTTX {mode}",
 )
 
 ZONE2_TELNET_COMMANDS = TelnetCommands(
@@ -1008,6 +1016,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_network_restart="NSRBT",
     command_trigger="TR{number} {mode}",
     command_speaker_preset="SPPR {number}",
+    command_bluetooth_transmitter="BTTX {mode}",
 )
 
 ZONE3_TELNET_COMMANDS = TelnetCommands(
@@ -1087,6 +1096,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_network_restart="NSRBT",
     command_trigger="TR{number} {mode}",
     command_speaker_preset="SPPR {number}",
+    command_bluetooth_transmitter="BTTX {mode}",
 )
 
 # States
@@ -1191,6 +1201,17 @@ AURO_3D_MODE_MAP = {"Direct": "DRCT", "Channel Expansion": "EXP"}
 AURO_3D_MODE_MAP_MAP_LABELS = {value: key for key, value in AURO_3D_MODE_MAP.items()}
 
 AutoStandbys = Literal["OFF", "15M", "30M", "60M"]
+
+BluetoothOutputModes = Literal["Bluetooth + Speakers", "Bluetooth Only"]
+"""Bluetooth Output Modes."""
+
+BLUETOOTH_OUTPUT_MODES_MAP = {
+    "Bluetooth + Speakers": "SP",
+    "Bluetooth Only": "BT",
+}
+BLUETOOTH_OUTPUT_MAP_LABELS = {
+    value: key for key, value in BLUETOOTH_OUTPUT_MODES_MAP.items()
+}
 
 DIMMER_MODE_MAP = {
     "Off": DIMER_OFF,

@@ -21,6 +21,7 @@ from .const import (
     MAIN_ZONE,
     VALID_ZONES,
     AutoStandbys,
+    BluetoothOutputModes,
     Channels,
     DimmerModes,
     DiracFilters,
@@ -692,6 +693,28 @@ class DenonAVR(DenonAVRFoundation):
         """
         return self._device.speaker_preset
 
+    @property
+    def bt_transmitter(self) -> Optional[str]:
+        """
+        Return the Bluetooth transmitter state for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "OFF", "ON"
+        """
+        return self._device.bt_transmitter
+
+    @property
+    def bt_output_mode(self) -> Optional[str]:
+        """
+        Return the Bluetooth output mode for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "Bluetooth + Speakers", "Bluetooth Only"
+        """
+        return self._device.bt_output_mode
+
     ##########
     # Getter #
     ##########
@@ -1013,6 +1036,38 @@ class DenonAVR(DenonAVRFoundation):
         Only available if using Telnet.
         """
         await self._device.async_speaker_preset_toggle()
+
+    async def async_bt_transmitter_on(
+        self,
+    ) -> None:
+        """Turn on Bluetooth transmitter on receiver via HTTP get command."""
+        await self._device.async_bt_transmitter_on()
+
+    async def async_bt_transmitter_off(
+        self,
+    ) -> None:
+        """Turn off Bluetooth transmitter on receiver via HTTP get command."""
+        await self._device.async_bt_transmitter_off()
+
+    async def async_bt_transmitter_toggle(self) -> None:
+        """
+        Toggle Bluetooth transmitter mode on receiver via HTTP get command.
+
+        Only available if using Telnet.
+        """
+        await self._device.async_bt_transmitter_toggle()
+
+    async def async_bt_output_mode(self, mode: BluetoothOutputModes) -> None:
+        """Set Bluetooth transmitter mode on receiver via HTTP get command."""
+        await self._device.async_bt_output_mode(mode)
+
+    async def async_bt_output_mode_toggle(self) -> None:
+        """
+        Toggle Bluetooth output mode on receiver via HTTP get command.
+
+        Only available if using Telnet.
+        """
+        await self._device.async_bt_output_mode_toggle()
 
     async def async_tactile_transducer_on(self) -> None:
         """Turn on tactile transducer on receiver via HTTP get command."""

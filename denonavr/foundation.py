@@ -24,6 +24,8 @@ from .const import (
     AVR,
     AVR_X,
     AVR_X_2016,
+    BLUETOOTH_OUTPUT_MAP_LABELS,
+    BLUETOOTH_OUTPUT_MODES_MAP,
     CHANNEL_VOLUME_MAP,
     DENON_ATTR_SETATTR,
     DENONAVR_TELNET_COMMANDS,
@@ -50,6 +52,7 @@ from .const import (
     ZONE3_TELNET_COMMANDS,
     ZONE3_URLS,
     AutoStandbys,
+    BluetoothOutputModes,
     DimmerModes,
     EcoModes,
     HDMIAudioDecodes,
@@ -170,6 +173,13 @@ class DenonAVRDeviceInfo:
     _speaker_preset: Optional[int] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _bt_transmitter: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _bt_output_mode: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _bt_output_modes = get_args(BluetoothOutputModes)
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
@@ -328,6 +338,17 @@ class DenonAVRDeviceInfo:
         if parameter[0:2] == "PR":
             self._speaker_preset = int(parameter[3:])
 
+    async def _async_bt_callback(self, zone: str, event: str, parameter: str) -> None:
+        """Handle a Bluetooth transmitter mode change event."""
+        _LOGGER.debug("Bluetooth callback: %s %s %s", zone, event, parameter)
+        if event != "BT" or parameter[0:2] != "TX":
+            return
+
+        if parameter[3:] in ("ON", "OFF"):
+            self._bt_transmitter = parameter[3:]
+        else:
+            self._bt_output_mode = BLUETOOTH_OUTPUT_MAP_LABELS[parameter[3:]]
+
     def get_own_zone(self) -> str:
         """
         Get zone from actual instance.
@@ -386,6 +407,7 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback("PS", self._async_room_size_callback)
             self.telnet_api.register_callback("TR", self._async_trigger_callback)
             self.telnet_api.register_callback("SP", self._async_speaker_preset_callback)
+            self.telnet_api.register_callback("BT", self._async_bt_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished device setup")
@@ -899,6 +921,28 @@ class DenonAVRDeviceInfo:
         return self._speaker_preset
 
     @property
+    def bt_transmitter(self) -> Optional[str]:
+        """
+        Return the Bluetooth transmitter state for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "OFF", "ON"
+        """
+        return self._bt_transmitter
+
+    @property
+    def bt_output_mode(self) -> Optional[str]:
+        """
+        Return the Bluetooth output mode for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "Bluetooth + Speakers", "Bluetooth Only"
+        """
+        return self._bt_output_mode
+
+    @property
     def telnet_available(self) -> bool:
         """Return true if telnet is connected and healthy."""
         return self.telnet_api.connected and self.telnet_api.healthy
@@ -1408,6 +1452,71 @@ class DenonAVRDeviceInfo:
         """
         speaker_preset = 1 if self._speaker_preset == 2 else 2
         await self.async_speaker_preset(speaker_preset)
+
+    async def async_bt_transmitter_on(
+        self,
+    ) -> None:
+        """Turn on Bluetooth transmitter on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_bluetooth_transmitter.format(mode="ON")
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_bluetooth_transmitter.format(mode="ON")
+            )
+
+    async def async_bt_transmitter_off(
+        self,
+    ) -> None:
+        """Turn off Bluetooth transmitter on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_bluetooth_transmitter.format(mode="OFF")
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_bluetooth_transmitter.format(mode="OFF")
+            )
+
+    async def async_bt_transmitter_toggle(self) -> None:
+        """
+        Toggle Bluetooth transmitter mode on receiver via HTTP get command.
+
+        Only available if using Telnet.
+        """
+        if self.bt_transmitter == "ON":
+            await self.async_bt_transmitter_off()
+        else:
+            await self.async_bt_transmitter_on()
+
+    async def async_bt_output_mode(self, mode: BluetoothOutputModes) -> None:
+        """Set Bluetooth transmitter mode on receiver via HTTP get command."""
+        if mode not in self._bt_output_modes:
+            raise AvrCommandError("Invalid Bluetooth output mode")
+
+        mapped_mode = BLUETOOTH_OUTPUT_MODES_MAP[mode]
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_bluetooth_transmitter.format(
+                    mode=mapped_mode
+                )
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_bluetooth_transmitter.format(mode=mapped_mode)
+            )
+
+    async def async_bt_output_mode_toggle(self) -> None:
+        """
+        Toggle Bluetooth output mode on receiver via HTTP get command.
+
+        Only available if using Telnet.
+        """
+        if self.bt_output_mode == "Bluetooth + Speakers":
+            await self.async_bt_output_mode("Bluetooth Only")
+        else:
+            await self.async_bt_output_mode("Bluetooth + Speakers")
 
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)

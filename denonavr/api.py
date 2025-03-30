@@ -603,6 +603,7 @@ class DenonAVRTelnetApi:
             "PSRSZ ?",
             "TR?",
             "SPPR ?",
+            "BTTX ?",
             skip_confirmation=True,
         )
 
