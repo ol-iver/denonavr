@@ -605,6 +605,7 @@ class DenonAVRTelnetApi:
             "SPPR ?",
             "BTTX ?",
             "PSDIC ?",
+            "PSSPV ?",
             skip_confirmation=True,
         )
 
