@@ -329,9 +329,6 @@ class DenonAVRDeviceInfo:
         self, zone: str, event: str, parameter: str
     ) -> None:
         """Handle a speaker preset change event."""
-        _LOGGER.debug(
-            "Speaker preset zone: %s, event: %s, parameter: %s", zone, event, parameter
-        )
         if event != "SP":
             return
 
@@ -340,7 +337,6 @@ class DenonAVRDeviceInfo:
 
     async def _async_bt_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Bluetooth transmitter mode change event."""
-        _LOGGER.debug("Bluetooth callback: %s %s %s", zone, event, parameter)
         if event != "BT" or parameter[0:2] != "TX":
             return
 
