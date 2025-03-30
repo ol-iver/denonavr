@@ -171,8 +171,8 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(str), default=None
     )
     _room_sizes = get_args(RoomSizes)
-    _triggers: Optional[dict[int, str]] = attr.ib(
-        converter=attr.converters.optional(dict), default=None
+    _triggers: Optional[Dict[int, str]] = attr.ib(
+        converter=attr.converters.optional(Dict), default=None
     )
     _speaker_preset: Optional[int] = attr.ib(
         converter=attr.converters.optional(str), default=None
@@ -929,7 +929,7 @@ class DenonAVRDeviceInfo:
         return self._room_size
 
     @property
-    def triggers(self) -> dict[int, str]:
+    def triggers(self) -> Dict[int, str]:
         """
         Return the trigger and their statuses for the device.
 

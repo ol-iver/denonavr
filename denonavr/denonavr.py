@@ -676,7 +676,7 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.room_size
 
     @property
-    def triggers(self) -> dict[int, str]:
+    def triggers(self) -> Dict[int, str]:
         """
         Return the trigger and their statuses for the device.
 

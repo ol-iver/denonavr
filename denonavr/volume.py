@@ -56,14 +56,14 @@ class DenonAVRVolume(DenonAVRFoundation):
         converter=attr.converters.optional(convert_muted), default=None
     )
     _channel_volumes: Optional[Dict[Channels, float]] = attr.ib(
-        converter=attr.converters.optional(dict), default=None
+        converter=attr.converters.optional(Dict), default=None
     )
     _valid_channels = get_args(Channels)
     _subwoofer: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
     _subwoofer_levels: Optional[Dict[Subwoofers, float]] = attr.ib(
-        converter=attr.converters.optional(dict), default=None
+        converter=attr.converters.optional(Dict), default=None
     )
     _valid_subwoofers = get_args(Subwoofers)
     _lfe: Optional[int] = attr.ib(converter=attr.converters.optional(int), default=None)
