@@ -25,10 +25,13 @@ from .const import (
     DENON_ATTR_SETATTR,
     DIALOG_ENHANCER_LEVEL_MAP,
     DIALOG_ENHANCER_LEVEL_MAP_LABELS,
+    EFFECT_SPEAKER_SELECTION_MAP,
+    EFFECT_SPEAKER_SELECTION_MAP_LABELS,
     SOUND_MODE_MAPPING,
     Auro3DModes,
     AuroMatic3DPresets,
     DialogEnhancerLevels,
+    EffectSpeakers,
     IMAXHPFs,
     IMAXLPFs,
 )
@@ -135,6 +138,10 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     _speaker_virtualizer: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _effect_speaker_selection: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _effect_speakers = get_args(EffectSpeakers)
     _sound_mode_map: Dict[str, list] = attr.ib(
         validator=attr.validators.deep_mapping(
             attr.validators.instance_of(str),
@@ -203,6 +210,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             )
             self._device.telnet_api.register_callback(
                 "PS", self._async_speaker_virtualizer_callback
+            )
+            self._device.telnet_api.register_callback(
+                "PS", self._async_effect_speaker_selection_callback
             )
 
             self._is_setup = True
@@ -306,6 +316,18 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             return
 
         self._speaker_virtualizer = key_value[1]
+
+    async def _async_effect_speaker_selection_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a Effect Speaker Selection change event."""
+        key_value = parameter.split(":")
+        if len(key_value) != 2 or key_value[0] != "SP":
+            return
+
+        self._effect_speaker_selection = EFFECT_SPEAKER_SELECTION_MAP_LABELS[
+            key_value[1]
+        ]
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -640,6 +662,17 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         Possible values are: "ON", "OFF"
         """
         return self._speaker_virtualizer
+
+    @property
+    def effect_speaker_selection(self) -> Optional[str]:
+        """
+        Return the current Effect Speaker Selection.
+
+        Only available if using Telnet.
+
+        Possible values are: "Floor", "Height + Floor"
+        """
+        return self._effect_speaker_selection
 
     ##########
     # Setter #
@@ -1139,6 +1172,36 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             await self.async_speaker_virtualizer_off()
         else:
             await self.async_speaker_virtualizer_on()
+
+    async def async_effect_speaker_selection(self, mode: EffectSpeakers) -> None:
+        """Set Effect Speaker."""
+        if mode not in self._effect_speakers:
+            raise AvrCommandError(f"{mode} is not a valid effect speaker selection")
+
+        local_mode = EFFECT_SPEAKER_SELECTION_MAP[mode]
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_effect_speaker_selection.format(
+                    mode=local_mode
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_effect_speaker_selection.format(
+                    mode=local_mode
+                )
+            )
+
+    async def async_effect_speaker_selection_toggle(self) -> None:
+        """
+        Toggle Effect Speaker Selection.
+
+        Only available if using Telnet.
+        """
+        if self._effect_speaker_selection == "Floor":
+            await self.async_effect_speaker_selection("Height + Floor")
+        else:
+            await self.async_effect_speaker_selection("Floor")
 
 
 def sound_mode_factory(instance: DenonAVRFoundation) -> DenonAVRSoundMode:
