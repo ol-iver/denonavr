@@ -1103,7 +1103,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
                 )
             )
 
-    async def async_auromatic_3d_mode(self, mode: Auro3DModes) -> None:
+    async def async_auro_3d_mode(self, mode: Auro3DModes) -> None:
         """Set Auro 3D Mode."""
         if mode not in self._auro_3d_modes:
             raise AvrCommandError(f"{mode} is not a valid Auro 3D Mode")
