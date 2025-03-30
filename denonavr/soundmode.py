@@ -129,6 +129,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         converter=attr.converters.optional(str), default=None
     )
     _auro_3d_modes = get_args(Auro3DModes)
+    _dialog_control: Optional[int] = attr.ib(
+        converter=attr.converters.optional(int), default=None
+    )
     _sound_mode_map: Dict[str, list] = attr.ib(
         validator=attr.validators.deep_mapping(
             attr.validators.instance_of(str),
@@ -192,6 +195,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
                 "PS", self._async_dialog_enhancer_callback
             )
             self._device.telnet_api.register_callback("PS", self._async_auro_callback)
+            self._device.telnet_api.register_callback(
+                "PS", self._async_dialog_control_callback
+            )
 
             self._is_setup = True
             _LOGGER.debug("Finished sound mode setup")
@@ -274,6 +280,16 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             self._auromatic_3d_strength = int(parameter[7:])
         elif key_value[0] == "AUROMODE":
             self._auro_3d_mode = AURO_3D_MODE_MAP_MAP_LABELS[parameter[9:]]
+
+    async def _async_dialog_control_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a Dialog Control change event."""
+        key_value = parameter.split()
+        if len(key_value) != 2 or key_value[0] != "DIC":
+            return
+
+        self._dialog_control = int(key_value[1])
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -586,6 +602,17 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         Possible values are: "Direct", "Channel Expansion"
         """
         return self._auro_3d_mode
+
+    @property
+    def dialog_control(self) -> Optional[int]:
+        """
+        Return the current Dialog Control level.
+
+        Only available if using Telnet.
+
+        Possible values are: 0-6
+        """
+        return self._dialog_control
 
     ##########
     # Setter #
@@ -1008,6 +1035,45 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         else:
             await self._device.api.async_get_command(
                 self._device.urls.command_auro_3d_mode.format(mode=local_mode)
+            )
+
+    async def async_dialog_control_up(self) -> None:
+        """Increase Dialog Control level."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_dialog_control.format(value="UP")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_dialog_control.format(value="UP")
+            )
+
+    async def async_dialog_control_down(self) -> None:
+        """Decrease Dialog Control level."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_dialog_control.format(value="DOWN")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_dialog_control.format(value="DOWN")
+            )
+
+    async def async_dialog_control(self, level: int) -> None:
+        """Set Dialog Control level."""
+        if level < 0 or level > 6:
+            raise AvrCommandError(f"{level} is not a valid dialog control level")
+
+        local_level = f"{level:02}"
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_dialog_control.format(
+                    value=local_level
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_dialog_control.format(value=local_level)
             )
 
 

@@ -101,6 +101,7 @@ ReceiverURLs = namedtuple(
         "command_trigger",
         "command_speaker_preset",
         "command_bluetooth_transmitter",
+        "command_dialog_control",
     ],
 )
 TelnetCommands = namedtuple(
@@ -183,6 +184,7 @@ TelnetCommands = namedtuple(
         "command_trigger",
         "command_speaker_preset",
         "command_bluetooth_transmitter",
+        "command_dialog_control",
     ],
 )
 
@@ -531,6 +533,7 @@ COMMAND_NETWORK_RESTART = "/goform/formiPhoneAppDirect.xml?NSRBT"
 COMMAND_TRIGGER = "/goform/formiPhoneAppDirect.xml?TR{number}%20{mode}"
 COMMAND_SPEAKER_PRESET = "/goform/formiPhoneAppDirect.xml?SPPR%20{number}"
 COMMAND_BLUETOOTH_TRANSMITTER = "/goform/formiPhoneAppDirect.xml?BTTX%20{mode}"
+COMMAND_DIALOG_CONTROL = "/goform/formiPhoneAppDirect.xml?PSDIC%20{value}"
 
 # Zone 2 URLs
 STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
@@ -636,6 +639,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_trigger=COMMAND_TRIGGER,
     command_speaker_preset=COMMAND_SPEAKER_PRESET,
     command_bluetooth_transmitter=COMMAND_BLUETOOTH_TRANSMITTER,
+    command_dialog_control=COMMAND_DIALOG_CONTROL,
 )
 
 ZONE2_URLS = ReceiverURLs(
@@ -718,6 +722,7 @@ ZONE2_URLS = ReceiverURLs(
     command_trigger=COMMAND_TRIGGER,
     command_speaker_preset=COMMAND_SPEAKER_PRESET,
     command_bluetooth_transmitter=COMMAND_BLUETOOTH_TRANSMITTER,
+    command_dialog_control=COMMAND_DIALOG_CONTROL,
 )
 
 ZONE3_URLS = ReceiverURLs(
@@ -800,6 +805,7 @@ ZONE3_URLS = ReceiverURLs(
     command_trigger=COMMAND_TRIGGER,
     command_speaker_preset=COMMAND_SPEAKER_PRESET,
     command_bluetooth_transmitter=COMMAND_BLUETOOTH_TRANSMITTER,
+    command_dialog_control=COMMAND_DIALOG_CONTROL,
 )
 
 # Telnet Events
@@ -937,6 +943,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_trigger="TR{number} {mode}",
     command_speaker_preset="SPPR {number}",
     command_bluetooth_transmitter="BTTX {mode}",
+    command_dialog_control="PSDIC {value}",
 )
 
 ZONE2_TELNET_COMMANDS = TelnetCommands(
@@ -1017,6 +1024,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_trigger="TR{number} {mode}",
     command_speaker_preset="SPPR {number}",
     command_bluetooth_transmitter="BTTX {mode}",
+    command_dialog_control="PSDIC {value}",
 )
 
 ZONE3_TELNET_COMMANDS = TelnetCommands(
@@ -1097,6 +1105,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_trigger="TR{number} {mode}",
     command_speaker_preset="SPPR {number}",
     command_bluetooth_transmitter="BTTX {mode}",
+    command_dialog_control="PSDIC {value}",
 )
 
 # States
