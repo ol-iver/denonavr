@@ -20,6 +20,7 @@ from .const import (
     DENON_ATTR_SETATTR,
     MAIN_ZONE,
     VALID_ZONES,
+    AudioRestorers,
     AutoStandbys,
     BluetoothOutputModes,
     Channels,
@@ -724,6 +725,17 @@ class DenonAVR(DenonAVRFoundation):
         """
         return self._device.delay_time
 
+    @property
+    def audio_restorer(self) -> Optional[str]:
+        """
+        Return the audio restorer for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "Off", "Low", "Medium", "High"
+        """
+        return self._device.audio_restorer
+
     ##########
     # Getter #
     ##########
@@ -1093,6 +1105,10 @@ class DenonAVR(DenonAVRFoundation):
         Valid delay time values are 0-999 ms.
         """
         await self._device.async_delay_time(delay_time)
+
+    async def async_audio_restorer(self, mode: AudioRestorers):
+        """Set audio restorer on receiver via HTTP get command."""
+        await self._device.async_audio_restorer(mode)
 
     async def async_tactile_transducer_on(self) -> None:
         """Turn on tactile transducer on receiver via HTTP get command."""

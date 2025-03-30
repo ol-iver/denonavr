@@ -106,6 +106,7 @@ ReceiverURLs = namedtuple(
         "command_effect_speaker_selection",
         "command_drc",
         "command_delay_time",
+        "command_audio_restorer",
     ],
 )
 TelnetCommands = namedtuple(
@@ -193,6 +194,7 @@ TelnetCommands = namedtuple(
         "command_effect_speaker_selection",
         "command_drc",
         "command_delay_time",
+        "command_audio_restorer",
     ],
 )
 
@@ -546,6 +548,7 @@ COMMAND_SPEAKER_VIRTUALIZER = "/goform/formiPhoneAppDirect.xml?PSSPV%20{mode}"
 COMMAND_EFFECT_SPEAKER_SELECTION = "/goform/formiPhoneAppDirect.xml?PSSP:{mode}"
 COMMAND_DRC = "/goform/formiPhoneAppDirect.xml?PSDRC%20{mode}"
 COMMAND_DELAY_TIME = "/goform/formiPhoneAppDirect.xml?PSDEL%20{value}"
+COMMAND_AUDIO_RESTORER = "/goform/formiPhoneAppDirect.xml?PSRSTR%20{mode}"
 
 # Zone 2 URLs
 STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
@@ -656,6 +659,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_effect_speaker_selection=COMMAND_EFFECT_SPEAKER_SELECTION,
     command_drc=COMMAND_DRC,
     command_delay_time=COMMAND_DELAY_TIME,
+    command_audio_restorer=COMMAND_AUDIO_RESTORER,
 )
 
 ZONE2_URLS = ReceiverURLs(
@@ -743,6 +747,7 @@ ZONE2_URLS = ReceiverURLs(
     command_effect_speaker_selection=COMMAND_EFFECT_SPEAKER_SELECTION,
     command_drc=COMMAND_DRC,
     command_delay_time=COMMAND_DELAY_TIME,
+    command_audio_restorer=COMMAND_AUDIO_RESTORER,
 )
 
 ZONE3_URLS = ReceiverURLs(
@@ -830,6 +835,7 @@ ZONE3_URLS = ReceiverURLs(
     command_effect_speaker_selection=COMMAND_EFFECT_SPEAKER_SELECTION,
     command_drc=COMMAND_DRC,
     command_delay_time=COMMAND_DELAY_TIME,
+    command_audio_restorer=COMMAND_AUDIO_RESTORER,
 )
 
 # Telnet Events
@@ -972,6 +978,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_effect_speaker_selection="PSSP:{mode}",
     command_drc="PSDRC {mode}",
     command_delay_time="PSDEL {value}",
+    command_audio_restorer="PSRSTR {mode}",
 )
 
 ZONE2_TELNET_COMMANDS = TelnetCommands(
@@ -1057,6 +1064,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_effect_speaker_selection="PSSP:{mode}",
     command_drc="PSDRC {mode}",
     command_delay_time="PSDEL {value}",
+    command_audio_restorer="PSRSTR {mode}",
 )
 
 ZONE3_TELNET_COMMANDS = TelnetCommands(
@@ -1142,6 +1150,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_effect_speaker_selection="PSSP:{mode}",
     command_drc="PSDRC {mode}",
     command_delay_time="PSDEL {value}",
+    command_audio_restorer="PSRSTR {mode}",
 )
 
 # States
@@ -1218,6 +1227,17 @@ DYNAMIC_VOLUME_MAP_LABELS_APPCOMMAND = {
 DYNAMIC_VOLUME_MAP_LABELS_TELNET = {
     value: key for key, value in DYNAMIC_VOLUME_MAP_TELNET.items()
 }
+
+AudioRestorers = Literal["Off", "Low", "Medium", "High"]
+"""Audio Restorer settings."""
+
+AUDIO_RESTORER_MAP = {
+    "Off": "OFF",
+    "Low": "LOW",
+    "Medium": "MED",
+    "High": "HI",
+}
+AUDIO_RESTORER_MAP_LABELS = {value: key for key, value in AUDIO_RESTORER_MAP.items()}
 
 AuroMatic3DPresets = Literal[
     "Small",

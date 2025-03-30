@@ -21,6 +21,8 @@ from .appcommand import AppCommandCmd, AppCommands
 from .const import (
     APPCOMMAND_CMD_TEXT,
     APPCOMMAND_NAME,
+    AUDIO_RESTORER_MAP,
+    AUDIO_RESTORER_MAP_LABELS,
     AVR,
     AVR_X,
     AVR_X_2016,
@@ -51,6 +53,7 @@ from .const import (
     ZONE3,
     ZONE3_TELNET_COMMANDS,
     ZONE3_URLS,
+    AudioRestorers,
     AutoStandbys,
     BluetoothOutputModes,
     DimmerModes,
@@ -183,6 +186,10 @@ class DenonAVRDeviceInfo:
     _delay_time: Optional[int] = attr.ib(
         converter=attr.converters.optional(int), default=None
     )
+    _audio_restorer: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _audio_restorers = get_args(AudioRestorers)
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
@@ -357,6 +364,15 @@ class DenonAVRDeviceInfo:
 
         self._delay_time = int(parameter[4:])
 
+    async def _async_audio_restorer_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a delay time change event."""
+        if event != "PS" or parameter[0:4] != "RSTR":
+            return
+
+        self._audio_restorer = AUDIO_RESTORER_MAP_LABELS[parameter[5:]]
+
     def get_own_zone(self) -> str:
         """
         Get zone from actual instance.
@@ -417,6 +433,7 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback("SP", self._async_speaker_preset_callback)
             self.telnet_api.register_callback("BT", self._async_bt_callback)
             self.telnet_api.register_callback("PS", self._async_delay_time_callback)
+            self.telnet_api.register_callback("PS", self._async_audio_restorer_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished device setup")
@@ -959,6 +976,17 @@ class DenonAVRDeviceInfo:
         Only available if using Telnet.
         """
         return self._delay_time
+
+    @property
+    def audio_restorer(self) -> Optional[str]:
+        """
+        Return the audio restorer for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "Off", "Low", "Medium", "High"
+        """
+        return self._audio_restorer
 
     @property
     def telnet_available(self) -> bool:
@@ -1574,6 +1602,21 @@ class DenonAVRDeviceInfo:
         else:
             await self.api.async_get_command(
                 self.urls.command_delay_time.format(value=delay_time)
+            )
+
+    async def async_audio_restorer(self, mode: AudioRestorers):
+        """Set audio restorer on receiver via HTTP get command."""
+        if mode not in self._audio_restorers:
+            raise AvrCommandError("Invalid audio restorer mode")
+
+        mapped_mode = AUDIO_RESTORER_MAP[mode]
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_audio_restorer.format(mode=mapped_mode)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_audio_restorer.format(mode=mapped_mode)
             )
 
 
