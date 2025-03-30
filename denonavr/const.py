@@ -107,6 +107,9 @@ ReceiverURLs = namedtuple(
         "command_drc",
         "command_delay_time",
         "command_audio_restorer",
+        "command_remote_control_lock",
+        "command_panel_lock",
+        "command_panel_and_volume_lock",
     ],
 )
 TelnetCommands = namedtuple(
@@ -195,6 +198,9 @@ TelnetCommands = namedtuple(
         "command_drc",
         "command_delay_time",
         "command_audio_restorer",
+        "command_remote_control_lock",
+        "command_panel_lock",
+        "command_panel_and_volume_lock",
     ],
 )
 
@@ -549,6 +555,9 @@ COMMAND_EFFECT_SPEAKER_SELECTION = "/goform/formiPhoneAppDirect.xml?PSSP:{mode}"
 COMMAND_DRC = "/goform/formiPhoneAppDirect.xml?PSDRC%20{mode}"
 COMMAND_DELAY_TIME = "/goform/formiPhoneAppDirect.xml?PSDEL%20{value}"
 COMMAND_AUDIO_RESTORER = "/goform/formiPhoneAppDirect.xml?PSRSTR%20{mode}"
+COMMAND_REMOTE_CONTROL_LOCK = "/goform/formiPhoneAppDirect.xml?SYREMOTE%20LOCK%20{mode}"
+COMMAND_PANEL_LOCK = "/goform/formiPhoneAppDirect.xml?SYPANEL%20LOCK%20{mode}"
+COMMAND_PANEL_AND_VOLUME_LOCK = "/goform/formiPhoneAppDirect.xml?SYPANEL+V%20LOCK%20ON"
 
 # Zone 2 URLs
 STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
@@ -660,6 +669,9 @@ DENONAVR_URLS = ReceiverURLs(
     command_drc=COMMAND_DRC,
     command_delay_time=COMMAND_DELAY_TIME,
     command_audio_restorer=COMMAND_AUDIO_RESTORER,
+    command_remote_control_lock=COMMAND_REMOTE_CONTROL_LOCK,
+    command_panel_lock=COMMAND_PANEL_LOCK,
+    command_panel_and_volume_lock=COMMAND_PANEL_AND_VOLUME_LOCK,
 )
 
 ZONE2_URLS = ReceiverURLs(
@@ -748,6 +760,9 @@ ZONE2_URLS = ReceiverURLs(
     command_drc=COMMAND_DRC,
     command_delay_time=COMMAND_DELAY_TIME,
     command_audio_restorer=COMMAND_AUDIO_RESTORER,
+    command_remote_control_lock=COMMAND_REMOTE_CONTROL_LOCK,
+    command_panel_lock=COMMAND_PANEL_LOCK,
+    command_panel_and_volume_lock=COMMAND_PANEL_AND_VOLUME_LOCK,
 )
 
 ZONE3_URLS = ReceiverURLs(
@@ -836,6 +851,9 @@ ZONE3_URLS = ReceiverURLs(
     command_drc=COMMAND_DRC,
     command_delay_time=COMMAND_DELAY_TIME,
     command_audio_restorer=COMMAND_AUDIO_RESTORER,
+    command_remote_control_lock=COMMAND_REMOTE_CONTROL_LOCK,
+    command_panel_lock=COMMAND_PANEL_LOCK,
+    command_panel_and_volume_lock=COMMAND_PANEL_AND_VOLUME_LOCK,
 )
 
 # Telnet Events
@@ -979,6 +997,9 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_drc="PSDRC {mode}",
     command_delay_time="PSDEL {value}",
     command_audio_restorer="PSRSTR {mode}",
+    command_remote_control_lock="SYREMOTE LOCK {mode}",
+    command_panel_lock="SYPANEL LOCK {mode}",
+    command_panel_and_volume_lock="SYPANEL+V LOCK ON",
 )
 
 ZONE2_TELNET_COMMANDS = TelnetCommands(
@@ -1065,6 +1086,9 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_drc="PSDRC {mode}",
     command_delay_time="PSDEL {value}",
     command_audio_restorer="PSRSTR {mode}",
+    command_remote_control_lock="SYREMOTE LOCK {mode}",
+    command_panel_lock="SYPANEL LOCK {mode}",
+    command_panel_and_volume_lock="SYPANEL+V LOCK ON",
 )
 
 ZONE3_TELNET_COMMANDS = TelnetCommands(
@@ -1151,6 +1175,9 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_drc="PSDRC {mode}",
     command_delay_time="PSDEL {value}",
     command_audio_restorer="PSRSTR {mode}",
+    command_remote_control_lock="SYREMOTE LOCK {mode}",
+    command_panel_lock="SYPANEL LOCK {mode}",
+    command_panel_and_volume_lock="SYPANEL+V LOCK ON",
 )
 
 # States
@@ -1516,6 +1543,9 @@ IMAXHPFs = Literal[
 
 IMAXLPFs = Literal["80", "90", "100", "110", "120", "150", "180", "200", "250"]
 """IMAX Low Pass Frequencies."""
+
+PanelLocks = Literal["Panel", "Panel + Master Volume"]
+"""Panel Lock Modes."""
 
 RoomSizes = Literal[
     "S",

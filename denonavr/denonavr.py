@@ -29,6 +29,7 @@ from .const import (
     EcoModes,
     HDMIAudioDecodes,
     HDMIOutputs,
+    PanelLocks,
     RoomSizes,
     TransducerLPFs,
     VideoProcessingModes,
@@ -1109,6 +1110,22 @@ class DenonAVR(DenonAVRFoundation):
     async def async_audio_restorer(self, mode: AudioRestorers):
         """Set audio restorer on receiver via HTTP get command."""
         await self._device.async_audio_restorer(mode)
+
+    async def async_remote_control_lock(self):
+        """Set remote control lock on receiver via HTTP get command."""
+        await self._device.async_remote_control_lock()
+
+    async def async_remote_control_unlock(self):
+        """Set remote control unlock on receiver via HTTP get command."""
+        await self._device.async_remote_control_unlock()
+
+    async def async_panel_lock(self, panel_lock_mode: PanelLocks):
+        """Set panel lock on receiver via HTTP get command."""
+        await self._device.async_panel_lock(panel_lock_mode)
+
+    async def async_panel_unlock(self):
+        """Set panel unlock on receiver via HTTP get command."""
+        await self._device.async_panel_unlock()
 
     async def async_tactile_transducer_on(self) -> None:
         """Turn on tactile transducer on receiver via HTTP get command."""

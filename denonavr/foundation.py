@@ -60,6 +60,7 @@ from .const import (
     EcoModes,
     HDMIAudioDecodes,
     HDMIOutputs,
+    PanelLocks,
     ReceiverType,
     ReceiverURLs,
     RoomSizes,
@@ -190,6 +191,7 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(str), default=None
     )
     _audio_restorers = get_args(AudioRestorers)
+    _panel_locks = get_args(PanelLocks)
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
@@ -1617,6 +1619,63 @@ class DenonAVRDeviceInfo:
         else:
             await self.api.async_get_command(
                 self.urls.command_audio_restorer.format(mode=mapped_mode)
+            )
+
+    async def async_remote_control_lock(self):
+        """Set remote control lock on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_remote_control_lock.format(mode="ON")
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_remote_control_lock.format(mode="ON")
+            )
+
+    async def async_remote_control_unlock(self):
+        """Set remote control unlock on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_remote_control_lock.format(mode="OFF")
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_remote_control_lock.format(mode="OFF")
+            )
+
+    async def async_panel_lock(self, panel_lock_mode: PanelLocks):
+        """Set panel lock on receiver via HTTP get command."""
+        if panel_lock_mode not in self._panel_locks:
+            raise AvrCommandError("Invalid panel lock mode")
+
+        if self.telnet_available:
+            if panel_lock_mode == "Panel":
+                await self.telnet_api.async_send_commands(
+                    self.telnet_commands.command_panel_lock.format(mode="ON")
+                )
+            else:
+                await self.telnet_api.async_send_commands(
+                    self.telnet_commands.command_panel_and_volume_lock
+                )
+        else:
+            if panel_lock_mode == "Panel":
+                await self.api.async_get_command(
+                    self.urls.command_panel_lock.format(mode="ON")
+                )
+            else:
+                await self.api.async_get_command(
+                    self.urls.command_panel_and_volume_lock
+                )
+
+    async def async_panel_unlock(self):
+        """Set panel unlock on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_panel_lock.format(mode="OFF")
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_panel_lock.format(mode="OFF")
             )
 
 
