@@ -171,9 +171,7 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(str), default=None
     )
     _room_sizes = get_args(RoomSizes)
-    _triggers: Optional[Dict[int, str]] = attr.ib(
-        converter=attr.converters.optional(Dict), default=None
-    )
+    _triggers: Optional[Dict[int, str]] = attr.ib(default=None)
     _speaker_preset: Optional[int] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
