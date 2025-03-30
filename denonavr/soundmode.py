@@ -234,7 +234,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def _async_neural_x_callback(
         self, zone: str, event: str, parameter: str
     ) -> None:
-        """Handle a Neural X change event."""
+        """Handle a Neural X:change event."""
         parameter_name_length = len("NEURAL")
         if parameter[:parameter_name_length] == "NEURAL":
             self._neural_x_on_off = parameter[parameter_name_length + 1 :]
@@ -282,7 +282,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def _async_dialog_enhancer_callback(
         self, zone: str, event: str, parameter: str
     ) -> None:
-        """Handle a Loudness Management change event."""
+        """Handle a Dialog Enhancer change event."""
         if parameter[:3] == "DEH":
             self._dialog_enhancer_level = DIALOG_ENHANCER_LEVEL_MAP_LABELS[
                 parameter[4:]
@@ -866,7 +866,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         """Set IMAX Low Pass Filter."""
         if lpf not in self._imax_lpfs:
             raise AvrCommandError(f"{lpf} is not a valid IMAX low pass filter")
-        # pad lpf with 0 if it is a only two digits digit
+
         local_lpf = self._padded_pass_filter(lpf)
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(

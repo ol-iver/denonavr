@@ -1314,13 +1314,13 @@ DIMMER_MODE_MAP = {
 DIMMER_MODE_MAP_LABELS = {value: key for key, value in DIMMER_MODE_MAP.items()}
 
 DimmerModes = Literal["Off", "Dark", "Dim", "Bright"]
-"""Dimmer modes."""
+"""Dimmer Modes."""
 
 DIRAC_FILTER_MAP = {"Off": "OFF", "Slot 1": "1", "Slot 2": "2", "Slot 3": "3"}
 DIRAC_FILTER_MAP_LABELS = {value: key for key, value in DIRAC_FILTER_MAP.items()}
 
 DiracFilters = Literal["Slot 1", "Slot 2", "Slot 3", "Off"]
-"""Dirac filters."""
+"""Dirac Filters."""
 
 ECO_MODE_MAP = {
     "On": "ON",
@@ -1330,10 +1330,10 @@ ECO_MODE_MAP = {
 ECO_MODE_MAP_LABELS = {value: key for key, value in ECO_MODE_MAP.items()}
 
 EcoModes = Literal["On", "Auto", "Off"]
-"""Eco modes."""
+"""Eco Modes."""
 
 EffectSpeakers = Literal["Floor", "Height + Floor"]
-"""Effect speakers."""
+"""Effect Speakers."""
 
 EFFECT_SPEAKER_SELECTION_MAP = {
     "Floor": "FL",
@@ -1344,7 +1344,7 @@ EFFECT_SPEAKER_SELECTION_MAP_LABELS = {
 }
 
 DRCs = Literal["AUTO", "LOW", "MID", "HI", "OFF"]
-"""Dynamic Range Control (DRC) settings."""
+"""Dynamic Range Control (DRC) Settings."""
 
 HDMI_OUTPUT_MAP = {
     "Auto": "AUTO",
@@ -1358,7 +1358,7 @@ HDMI_OUTPUT_MAP_LABELS = {
 }
 
 HDMIOutputs = Literal["Auto", "HDMI1", "HDMI2"]
-"""HDMI output modes."""
+"""HDMI Output Modes."""
 
 HDMIAudioDecodes = Literal["AMP", "TV"]
 
@@ -1508,7 +1508,7 @@ CHANNEL_VOLUME_MAP = {
 CHANNEL_VOLUME_MAP_LABELS = {value: key for key, value in CHANNEL_VOLUME_MAP.items()}
 
 DialogEnhancerLevels = Literal["Off", "Low", "Medium", "High"]
-"""Dialog Enhancer levels."""
+"""Dialog Enhancer Levels."""
 
 DIALOG_ENHANCER_LEVEL_MAP = {
     "Off": "OFF",

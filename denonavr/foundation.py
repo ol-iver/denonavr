@@ -311,7 +311,7 @@ class DenonAVRDeviceInfo:
     async def _async_video_processing_mode_callback(
         self, zone: str, event: str, parameter: str
     ) -> None:
-        """Handle a HDMI Audio Decode mode change event."""
+        """Handle a Video Processing Mode change event."""
         if event == "VS" and parameter[0:3] == "VPM":
             self._video_processing_mode = VIDEO_PROCESSING_MODES_MAP_LABELS[
                 parameter[3:]
@@ -348,7 +348,7 @@ class DenonAVRDeviceInfo:
             self._speaker_preset = int(parameter[3:])
 
     async def _async_bt_callback(self, zone: str, event: str, parameter: str) -> None:
-        """Handle a Bluetooth transmitter mode change event."""
+        """Handle a Bluetooth change event."""
         if event != "BT" or parameter[0:2] != "TX":
             return
 
@@ -369,7 +369,7 @@ class DenonAVRDeviceInfo:
     async def _async_audio_restorer_callback(
         self, zone: str, event: str, parameter: str
     ) -> None:
-        """Handle a delay time change event."""
+        """Handle an audio restorer change event."""
         if event != "PS" or parameter[0:4] != "RSTR":
             return
 
@@ -931,7 +931,7 @@ class DenonAVRDeviceInfo:
     @property
     def triggers(self) -> Dict[int, str]:
         """
-        Return the trigger and their statuses for the device.
+        Return the triggers and their statuses for the device.
 
         Only available if using Telnet.
         """
@@ -1227,7 +1227,7 @@ class DenonAVRDeviceInfo:
             await self.async_tactile_transducer_on()
 
     async def async_tactile_transducer_level_up(self) -> None:
-        """Turn up the transducer level on receiver via HTTP get command."""
+        """Increase the transducer level on receiver via HTTP get command."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_tactile_transducer_level.format(mode="UP")
@@ -1238,7 +1238,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_tactile_transducer_level_down(self) -> None:
-        """Turn down the transducer level on receiver via HTTP get command."""
+        """Decrease the transducer level on receiver via HTTP get command."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_tactile_transducer_level.format(

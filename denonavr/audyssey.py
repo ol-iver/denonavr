@@ -200,12 +200,20 @@ class DenonAVRAudyssey(DenonAVRFoundation):
 
     @property
     def lfc(self) -> Optional[bool]:
-        """Return value of LFC."""
+        """
+        Return value of LFC.
+
+        Only available if using Telnet.
+        """
         return self._lfc
 
     @property
     def containment_amount(self) -> Optional[int]:
-        """Return value of Containment Amount."""
+        """
+        Return value of Containment Amount.
+
+        Only available if using Telnet.
+        """
         return self._containment_amount
 
     ##########

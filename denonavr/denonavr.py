@@ -23,9 +23,7 @@ from .const import (
     AudioRestorers,
     AutoStandbys,
     BluetoothOutputModes,
-    Channels,
     DimmerModes,
-    DiracFilters,
     EcoModes,
     HDMIAudioDecodes,
     HDMIOutputs,
@@ -627,15 +625,6 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.video_processing_mode
 
     @property
-    def channel_volumes(self) -> Optional[Dict[Channels, float]]:
-        """
-        Returns the channel volumes of the receiver in dB.
-
-        Only available if using Telnet.
-        """
-        return self.vol.channel_volumes
-
-    @property
     def tactile_transducer(self) -> Optional[str]:
         """
         Return the tactile transducer state of the device.
@@ -678,7 +667,7 @@ class DenonAVR(DenonAVRFoundation):
     @property
     def triggers(self) -> Dict[int, str]:
         """
-        Return the trigger and their statuses for the device.
+        Return the triggers and their statuses for the device.
 
         Only available if using Telnet.
         """
@@ -740,17 +729,6 @@ class DenonAVR(DenonAVRFoundation):
     ##########
     # Getter #
     ##########
-    def channel_volume(self, channel: Channels) -> Optional[float]:
-        """
-        Return the volume of a channel in dB.
-
-        Only available if using Telnet.
-        """
-        return self.vol.channel_volume(channel)
-
-    ##########
-    # Getter #
-    ##########
 
     def get_trigger(self, trigger: int) -> Optional[str]:
         """
@@ -801,10 +779,6 @@ class DenonAVR(DenonAVRFoundation):
     async def async_set_dynamicvol(self, value: str) -> None:
         """Set Dynamic Volume."""
         await self.audyssey.async_set_dynamicvol(value)
-
-    async def async_dirac_filter(self, dirac_filter: DiracFilters) -> None:
-        """Set Dirac filter."""
-        await self.dirac.async_dirac_filter(dirac_filter)
 
     async def async_set_input_func(self, input_func: str) -> None:
         """
@@ -999,14 +973,6 @@ class DenonAVR(DenonAVRFoundation):
         """
         await self._device.async_sleep(sleep)
 
-    async def async_channel_volume_up(self, channel: Channels) -> None:
-        """Increase volume of the specified channel."""
-        await self.vol.async_channel_volume_up(channel)
-
-    async def async_channel_volume_down(self, channel: Channels) -> None:
-        """Decrease volume of the specified channel."""
-        await self.vol.async_channel_volume_down(channel)
-
     async def async_delay_up(self) -> None:
         """Increase delay of the audio."""
         await self._device.async_delay_up()
@@ -1059,15 +1025,11 @@ class DenonAVR(DenonAVRFoundation):
         """
         await self._device.async_speaker_preset_toggle()
 
-    async def async_bt_transmitter_on(
-        self,
-    ) -> None:
+    async def async_bt_transmitter_on(self) -> None:
         """Turn on Bluetooth transmitter on receiver via HTTP get command."""
         await self._device.async_bt_transmitter_on()
 
-    async def async_bt_transmitter_off(
-        self,
-    ) -> None:
+    async def async_bt_transmitter_off(self) -> None:
         """Turn off Bluetooth transmitter on receiver via HTTP get command."""
         await self._device.async_bt_transmitter_off()
 
@@ -1144,11 +1106,11 @@ class DenonAVR(DenonAVRFoundation):
         await self._device.async_tactile_transducer_toggle()
 
     async def async_tactile_transducer_level_up(self) -> None:
-        """Turn up the transducer level on receiver via HTTP get command."""
+        """Increase the transducer level on receiver via HTTP get command."""
         await self._device.async_tactile_transducer_level_up()
 
     async def async_tactile_transducer_level_down(self) -> None:
-        """Turn down the transducer on receiver via HTTP get command."""
+        """Decrease the transducer on receiver via HTTP get command."""
         await self._device.async_tactile_transducer_level_down()
 
     async def async_transducer_lpf(self, lpf: TransducerLPFs) -> None:
