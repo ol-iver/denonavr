@@ -715,6 +715,15 @@ class DenonAVR(DenonAVRFoundation):
         """
         return self._device.bt_output_mode
 
+    @property
+    def delay_time(self) -> Optional[int]:
+        """
+        Return the delay time for the device in ms.
+
+        Only available if using Telnet.
+        """
+        return self._device.delay_time
+
     ##########
     # Getter #
     ##########
@@ -1068,6 +1077,22 @@ class DenonAVR(DenonAVRFoundation):
         Only available if using Telnet.
         """
         await self._device.async_bt_output_mode_toggle()
+
+    async def async_delay_time_up(self) -> None:
+        """Delay time up on receiver via HTTP get command."""
+        await self._device.async_delay_time_up()
+
+    async def async_delay_time_down(self) -> None:
+        """Delay time up on receiver via HTTP get command."""
+        await self._device.async_delay_time_down()
+
+    async def async_delay_time(self, delay_time: int) -> None:
+        """
+        Set delay time on receiver via HTTP get command.
+
+        Valid delay time values are 0-999 ms.
+        """
+        await self._device.async_delay_time(delay_time)
 
     async def async_tactile_transducer_on(self) -> None:
         """Turn on tactile transducer on receiver via HTTP get command."""

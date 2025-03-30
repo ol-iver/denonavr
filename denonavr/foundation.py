@@ -180,6 +180,9 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(str), default=None
     )
     _bt_output_modes = get_args(BluetoothOutputModes)
+    _delay_time: Optional[int] = attr.ib(
+        converter=attr.converters.optional(int), default=None
+    )
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
@@ -345,6 +348,15 @@ class DenonAVRDeviceInfo:
         else:
             self._bt_output_mode = BLUETOOTH_OUTPUT_MAP_LABELS[parameter[3:]]
 
+    async def _async_delay_time_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a delay time change event."""
+        if event != "PS" or parameter[0:3] != "DEL":
+            return
+
+        self._delay_time = int(parameter[4:])
+
     def get_own_zone(self) -> str:
         """
         Get zone from actual instance.
@@ -404,6 +416,7 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback("TR", self._async_trigger_callback)
             self.telnet_api.register_callback("SP", self._async_speaker_preset_callback)
             self.telnet_api.register_callback("BT", self._async_bt_callback)
+            self.telnet_api.register_callback("PS", self._async_delay_time_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished device setup")
@@ -937,6 +950,15 @@ class DenonAVRDeviceInfo:
         Possible values are: "Bluetooth + Speakers", "Bluetooth Only"
         """
         return self._bt_output_mode
+
+    @property
+    def delay_time(self) -> Optional[int]:
+        """
+        Return the delay time for the device in ms.
+
+        Only available if using Telnet.
+        """
+        return self._delay_time
 
     @property
     def telnet_available(self) -> bool:
@@ -1513,6 +1535,46 @@ class DenonAVRDeviceInfo:
             await self.async_bt_output_mode("Bluetooth Only")
         else:
             await self.async_bt_output_mode("Bluetooth + Speakers")
+
+    async def async_delay_time_up(self) -> None:
+        """Delay time up on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_delay_time.format(value="UP")
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_delay_time.format(value="UP")
+            )
+
+    async def async_delay_time_down(self) -> None:
+        """Delay time up on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_delay_time.format(value="DOWN")
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_delay_time.format(value="DOWN")
+            )
+
+    async def async_delay_time(self, delay_time: int) -> None:
+        """
+        Set delay time on receiver via HTTP get command.
+
+        Valid delay time values are 0-999 ms.
+        """
+        if delay_time < 0 or delay_time > 999:
+            raise AvrCommandError("Invalid delay time value")
+
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_delay_time.format(value=delay_time)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_delay_time.format(value=delay_time)
+            )
 
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)

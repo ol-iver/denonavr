@@ -105,6 +105,7 @@ ReceiverURLs = namedtuple(
         "command_speaker_virtualizer",
         "command_effect_speaker_selection",
         "command_drc",
+        "command_delay_time",
     ],
 )
 TelnetCommands = namedtuple(
@@ -191,6 +192,7 @@ TelnetCommands = namedtuple(
         "command_speaker_virtualizer",
         "command_effect_speaker_selection",
         "command_drc",
+        "command_delay_time",
     ],
 )
 
@@ -543,6 +545,7 @@ COMMAND_DIALOG_CONTROL = "/goform/formiPhoneAppDirect.xml?PSDIC%20{value}"
 COMMAND_SPEAKER_VIRTUALIZER = "/goform/formiPhoneAppDirect.xml?PSSPV%20{mode}"
 COMMAND_EFFECT_SPEAKER_SELECTION = "/goform/formiPhoneAppDirect.xml?PSSP:{mode}"
 COMMAND_DRC = "/goform/formiPhoneAppDirect.xml?PSDRC%20{mode}"
+COMMAND_DELAY_TIME = "/goform/formiPhoneAppDirect.xml?PSDEL%20{value}"
 
 # Zone 2 URLs
 STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
@@ -652,6 +655,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_speaker_virtualizer=COMMAND_SPEAKER_VIRTUALIZER,
     command_effect_speaker_selection=COMMAND_EFFECT_SPEAKER_SELECTION,
     command_drc=COMMAND_DRC,
+    command_delay_time=COMMAND_DELAY_TIME,
 )
 
 ZONE2_URLS = ReceiverURLs(
@@ -738,6 +742,7 @@ ZONE2_URLS = ReceiverURLs(
     command_speaker_virtualizer=COMMAND_SPEAKER_VIRTUALIZER,
     command_effect_speaker_selection=COMMAND_EFFECT_SPEAKER_SELECTION,
     command_drc=COMMAND_DRC,
+    command_delay_time=COMMAND_DELAY_TIME,
 )
 
 ZONE3_URLS = ReceiverURLs(
@@ -824,6 +829,7 @@ ZONE3_URLS = ReceiverURLs(
     command_speaker_virtualizer=COMMAND_SPEAKER_VIRTUALIZER,
     command_effect_speaker_selection=COMMAND_EFFECT_SPEAKER_SELECTION,
     command_drc=COMMAND_DRC,
+    command_delay_time=COMMAND_DELAY_TIME,
 )
 
 # Telnet Events
@@ -965,6 +971,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_speaker_virtualizer="PSSPV {mode}",
     command_effect_speaker_selection="PSSP:{mode}",
     command_drc="PSDRC {mode}",
+    command_delay_time="PSDEL {value}",
 )
 
 ZONE2_TELNET_COMMANDS = TelnetCommands(
@@ -1049,6 +1056,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_speaker_virtualizer="PSSPV {mode}",
     command_effect_speaker_selection="PSSP:{mode}",
     command_drc="PSDRC {mode}",
+    command_delay_time="PSDEL {value}",
 )
 
 ZONE3_TELNET_COMMANDS = TelnetCommands(
@@ -1133,6 +1141,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_speaker_virtualizer="PSSPV {mode}",
     command_effect_speaker_selection="PSSP:{mode}",
     command_drc="PSDRC {mode}",
+    command_delay_time="PSDEL {value}",
 )
 
 # States
