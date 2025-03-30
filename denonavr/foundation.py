@@ -190,6 +190,9 @@ class DenonAVRDeviceInfo:
     )
     _audio_restorers = get_args(AudioRestorers)
     _panel_locks = get_args(PanelLocks)
+    _graphic_eq: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
     _headphone_eq: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
@@ -376,6 +379,15 @@ class DenonAVRDeviceInfo:
 
         self._audio_restorer = AUDIO_RESTORER_MAP_LABELS[parameter[5:]]
 
+    async def _async_graphic_eq_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a Graphic EQ change event."""
+        if parameter[0:3] != "GEQ":
+            return
+
+        self._graphic_eq = parameter[4:]
+
     async def _async_headphone_eq_callback(
         self, zone: str, event: str, parameter: str
     ) -> None:
@@ -446,6 +458,7 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback("BT", self._async_bt_callback)
             self.telnet_api.register_callback("PS", self._async_delay_time_callback)
             self.telnet_api.register_callback("PS", self._async_audio_restorer_callback)
+            self.telnet_api.register_callback("PS", self._async_graphic_eq_callback)
             self.telnet_api.register_callback("PS", self._async_headphone_eq_callback)
 
             self._is_setup = True
@@ -1000,6 +1013,17 @@ class DenonAVRDeviceInfo:
         Possible values are: "Off", "Low", "Medium", "High"
         """
         return self._audio_restorer
+
+    @property
+    def graphic_eq(self) -> Optional[str]:
+        """
+        Return the Graphic EQ status for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "OFF", "ON"
+        """
+        return self._graphic_eq
 
     @property
     def headphone_eq(self) -> Optional[str]:
@@ -1700,8 +1724,41 @@ class DenonAVRDeviceInfo:
                 self.urls.command_panel_lock.format(mode="OFF")
             )
 
+    async def async_graphic_eq_on(self) -> None:
+        """Turn on Graphic EQ on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_graphic_eq.format(mode="ON")
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_graphic_eq.format(mode="ON")
+            )
+
+    async def async_graphic_eq_off(self) -> None:
+        """Turn off Graphic EQ on receiver via HTTP get command."""
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_graphic_eq.format(mode="OFF")
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_graphic_eq.format(mode="OFF")
+            )
+
+    async def async_graphic_eq_toggle(self) -> None:
+        """
+        Toggle Graphic EQ on receiver via HTTP get command.
+
+        Only available if using Telnet.
+        """
+        if self._graphic_eq == "ON":
+            await self.async_graphic_eq_off()
+        else:
+            await self.async_graphic_eq_on()
+
     async def async_headphone_eq_on(self) -> None:
-        """Turn on headphone EQ on receiver via HTTP get command."""
+        """Turn on Headphone EQ on receiver via HTTP get command."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_headphone_eq.format(mode="ON")
@@ -1712,7 +1769,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_headphone_eq_off(self) -> None:
-        """Turn off headphone EQ on receiver via HTTP get command."""
+        """Turn off Headphone EQ on receiver via HTTP get command."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_headphone_eq.format(mode="OFF")
@@ -1724,7 +1781,7 @@ class DenonAVRDeviceInfo:
 
     async def async_headphone_eq_toggle(self) -> None:
         """
-        Toggle headphone EQ on receiver via HTTP get command.
+        Toggle Headphone EQ on receiver via HTTP get command.
 
         Only available if using Telnet.
         """

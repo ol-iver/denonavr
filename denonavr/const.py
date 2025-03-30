@@ -110,6 +110,7 @@ ReceiverURLs = namedtuple(
         "command_remote_control_lock",
         "command_panel_lock",
         "command_panel_and_volume_lock",
+        "command_graphic_eq",
         "command_headphone_eq",
     ],
 )
@@ -202,6 +203,7 @@ TelnetCommands = namedtuple(
         "command_remote_control_lock",
         "command_panel_lock",
         "command_panel_and_volume_lock",
+        "command_graphic_eq",
         "command_headphone_eq",
     ],
 )
@@ -560,6 +562,7 @@ COMMAND_AUDIO_RESTORER = "/goform/formiPhoneAppDirect.xml?PSRSTR%20{mode}"
 COMMAND_REMOTE_CONTROL_LOCK = "/goform/formiPhoneAppDirect.xml?SYREMOTE%20LOCK%20{mode}"
 COMMAND_PANEL_LOCK = "/goform/formiPhoneAppDirect.xml?SYPANEL%20LOCK%20{mode}"
 COMMAND_PANEL_AND_VOLUME_LOCK = "/goform/formiPhoneAppDirect.xml?SYPANEL+V%20LOCK%20ON"
+COMMAND_GRAPHIC_EQ = "/goform/formiPhoneAppDirect.xml?PSGEQ%20{mode}"
 COMMAND_HEADPHONE_EQ = "/goform/formiPhoneAppDirect.xml?PSHEQ%20{mode}"
 
 # Zone 2 URLs
@@ -675,6 +678,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_remote_control_lock=COMMAND_REMOTE_CONTROL_LOCK,
     command_panel_lock=COMMAND_PANEL_LOCK,
     command_panel_and_volume_lock=COMMAND_PANEL_AND_VOLUME_LOCK,
+    command_graphic_eq=COMMAND_GRAPHIC_EQ,
     command_headphone_eq=COMMAND_HEADPHONE_EQ,
 )
 
@@ -767,6 +771,7 @@ ZONE2_URLS = ReceiverURLs(
     command_remote_control_lock=COMMAND_REMOTE_CONTROL_LOCK,
     command_panel_lock=COMMAND_PANEL_LOCK,
     command_panel_and_volume_lock=COMMAND_PANEL_AND_VOLUME_LOCK,
+    command_graphic_eq=COMMAND_GRAPHIC_EQ,
     command_headphone_eq=COMMAND_HEADPHONE_EQ,
 )
 
@@ -859,6 +864,7 @@ ZONE3_URLS = ReceiverURLs(
     command_remote_control_lock=COMMAND_REMOTE_CONTROL_LOCK,
     command_panel_lock=COMMAND_PANEL_LOCK,
     command_panel_and_volume_lock=COMMAND_PANEL_AND_VOLUME_LOCK,
+    command_graphic_eq=COMMAND_GRAPHIC_EQ,
     command_headphone_eq=COMMAND_HEADPHONE_EQ,
 )
 
@@ -1006,6 +1012,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_remote_control_lock="SYREMOTE LOCK {mode}",
     command_panel_lock="SYPANEL LOCK {mode}",
     command_panel_and_volume_lock="SYPANEL+V LOCK ON",
+    command_graphic_eq="PSGEQ {mode}",
     command_headphone_eq="PSHEQ {mode}",
 )
 
@@ -1096,6 +1103,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_remote_control_lock="SYREMOTE LOCK {mode}",
     command_panel_lock="SYPANEL LOCK {mode}",
     command_panel_and_volume_lock="SYPANEL+V LOCK ON",
+    command_graphic_eq="PSGEQ {mode}",
     command_headphone_eq="PSHEQ {mode}",
 )
 
@@ -1186,6 +1194,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_remote_control_lock="SYREMOTE LOCK {mode}",
     command_panel_lock="SYPANEL LOCK {mode}",
     command_panel_and_volume_lock="SYPANEL+V LOCK ON",
+    command_graphic_eq="PSGEQ {mode}",
     command_headphone_eq="PSHEQ {mode}",
 )
 

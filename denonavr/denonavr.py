@@ -727,6 +727,17 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.audio_restorer
 
     @property
+    def graphic_eq(self) -> Optional[str]:
+        """
+        Return the Graphic EQ status for the device.
+
+        Only available if using Telnet.
+
+        Possible values are: "OFF", "ON"
+        """
+        return self._device.graphic_eq
+
+    @property
     def headphone_eq(self) -> Optional[str]:
         """
         Return the Headphone EQ status for the device.
@@ -1100,17 +1111,33 @@ class DenonAVR(DenonAVRFoundation):
         """Set panel unlock on receiver via HTTP get command."""
         await self._device.async_panel_unlock()
 
+    async def async_graphic_eq_on(self) -> None:
+        """Turn on Graphic EQ on receiver via HTTP get command."""
+        await self._device.async_graphic_eq_on()
+
+    async def async_graphic_eq_off(self) -> None:
+        """Turn off Graphic EQ on receiver via HTTP get command."""
+        await self._device.async_graphic_eq_off()
+
+    async def async_graphic_eq_toggle(self) -> None:
+        """
+        Toggle Graphic EQ on receiver via HTTP get command.
+
+        Only available if using Telnet.
+        """
+        await self._device.async_graphic_eq_toggle()
+
     async def async_headphone_eq_on(self) -> None:
-        """Turn on headphone EQ on receiver via HTTP get command."""
+        """Turn on Headphone EQ on receiver via HTTP get command."""
         await self._device.async_headphone_eq_on()
 
     async def async_headphone_eq_off(self) -> None:
-        """Turn off headphone EQ on receiver via HTTP get command."""
+        """Turn off Headphone EQ on receiver via HTTP get command."""
         await self._device.async_headphone_eq_off()
 
     async def async_headphone_eq_toggle(self) -> None:
         """
-        Toggle headphone EQ on receiver via HTTP get command.
+        Toggle Headphone EQ on receiver via HTTP get command.
 
         Only available if using Telnet.
         """
