@@ -104,6 +104,7 @@ ReceiverURLs = namedtuple(
         "command_dialog_control",
         "command_speaker_virtualizer",
         "command_effect_speaker_selection",
+        "command_drc",
     ],
 )
 TelnetCommands = namedtuple(
@@ -189,6 +190,7 @@ TelnetCommands = namedtuple(
         "command_dialog_control",
         "command_speaker_virtualizer",
         "command_effect_speaker_selection",
+        "command_drc",
     ],
 )
 
@@ -540,6 +542,7 @@ COMMAND_BLUETOOTH_TRANSMITTER = "/goform/formiPhoneAppDirect.xml?BTTX%20{mode}"
 COMMAND_DIALOG_CONTROL = "/goform/formiPhoneAppDirect.xml?PSDIC%20{value}"
 COMMAND_SPEAKER_VIRTUALIZER = "/goform/formiPhoneAppDirect.xml?PSSPV%20{mode}"
 COMMAND_EFFECT_SPEAKER_SELECTION = "/goform/formiPhoneAppDirect.xml?PSSP:{mode}"
+COMMAND_DRC = "/goform/formiPhoneAppDirect.xml?PSDRC%20{mode}"
 
 # Zone 2 URLs
 STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
@@ -648,6 +651,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_dialog_control=COMMAND_DIALOG_CONTROL,
     command_speaker_virtualizer=COMMAND_SPEAKER_VIRTUALIZER,
     command_effect_speaker_selection=COMMAND_EFFECT_SPEAKER_SELECTION,
+    command_drc=COMMAND_DRC,
 )
 
 ZONE2_URLS = ReceiverURLs(
@@ -733,6 +737,7 @@ ZONE2_URLS = ReceiverURLs(
     command_dialog_control=COMMAND_DIALOG_CONTROL,
     command_speaker_virtualizer=COMMAND_SPEAKER_VIRTUALIZER,
     command_effect_speaker_selection=COMMAND_EFFECT_SPEAKER_SELECTION,
+    command_drc=COMMAND_DRC,
 )
 
 ZONE3_URLS = ReceiverURLs(
@@ -818,6 +823,7 @@ ZONE3_URLS = ReceiverURLs(
     command_dialog_control=COMMAND_DIALOG_CONTROL,
     command_speaker_virtualizer=COMMAND_SPEAKER_VIRTUALIZER,
     command_effect_speaker_selection=COMMAND_EFFECT_SPEAKER_SELECTION,
+    command_drc=COMMAND_DRC,
 )
 
 # Telnet Events
@@ -958,6 +964,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_dialog_control="PSDIC {value}",
     command_speaker_virtualizer="PSSPV {mode}",
     command_effect_speaker_selection="PSSP:{mode}",
+    command_drc="PSDRC {mode}",
 )
 
 ZONE2_TELNET_COMMANDS = TelnetCommands(
@@ -1041,6 +1048,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_dialog_control="PSDIC {value}",
     command_speaker_virtualizer="PSSPV {mode}",
     command_effect_speaker_selection="PSSP:{mode}",
+    command_drc="PSDRC {mode}",
 )
 
 ZONE3_TELNET_COMMANDS = TelnetCommands(
@@ -1124,6 +1132,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_dialog_control="PSDIC {value}",
     command_speaker_virtualizer="PSSPV {mode}",
     command_effect_speaker_selection="PSSP:{mode}",
+    command_drc="PSDRC {mode}",
 )
 
 # States
@@ -1277,6 +1286,9 @@ EFFECT_SPEAKER_SELECTION_MAP = {
 EFFECT_SPEAKER_SELECTION_MAP_LABELS = {
     value: key for key, value in EFFECT_SPEAKER_SELECTION_MAP.items()
 }
+
+DRCs = Literal["AUTO", "LOW", "MID", "HI", "OFF"]
+"""Dynamic Range Control (DRC) settings."""
 
 HDMI_OUTPUT_MAP = {
     "Auto": "AUTO",

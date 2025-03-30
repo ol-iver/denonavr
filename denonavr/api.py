@@ -607,6 +607,7 @@ class DenonAVRTelnetApi:
             "PSDIC ?",
             "PSSPV ?",
             "PSSP: ?",
+            "PSDRC ?",
             skip_confirmation=True,
         )
 

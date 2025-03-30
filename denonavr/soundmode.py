@@ -31,6 +31,7 @@ from .const import (
     Auro3DModes,
     AuroMatic3DPresets,
     DialogEnhancerLevels,
+    DRCs,
     EffectSpeakers,
     IMAXHPFs,
     IMAXLPFs,
@@ -142,6 +143,8 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         converter=attr.converters.optional(str), default=None
     )
     _effect_speakers = get_args(EffectSpeakers)
+    _drc: Optional[str] = attr.ib(converter=attr.converters.optional(str), default=None)
+    _drcs = get_args(DRCs)
     _sound_mode_map: Dict[str, list] = attr.ib(
         validator=attr.validators.deep_mapping(
             attr.validators.instance_of(str),
@@ -214,6 +217,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             self._device.telnet_api.register_callback(
                 "PS", self._async_effect_speaker_selection_callback
             )
+            self._device.telnet_api.register_callback("PS", self._async_drc_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished sound mode setup")
@@ -328,6 +332,14 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         self._effect_speaker_selection = EFFECT_SPEAKER_SELECTION_MAP_LABELS[
             key_value[1]
         ]
+
+    async def _async_drc_callback(self, zone: str, event: str, parameter: str) -> None:
+        """Handle a DRC change event."""
+        key_value = parameter.split()
+        if len(key_value) != 2 or key_value[0] != "DRC":
+            return
+
+        self._drc = key_value[1]
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -673,6 +685,17 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         Possible values are: "Floor", "Height + Floor"
         """
         return self._effect_speaker_selection
+
+    @property
+    def drc(self) -> Optional[str]:
+        """
+        Return the current DRC status.
+
+        Only available if using Telnet.
+
+        Possible values are: "AUTO", "LOW", "MID", "HI", "OFF"
+        """
+        return self._drc
 
     ##########
     # Setter #
@@ -1202,6 +1225,20 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             await self.async_effect_speaker_selection("Height + Floor")
         else:
             await self.async_effect_speaker_selection("Floor")
+
+    async def async_drc(self, mode: DRCs) -> None:
+        """Set DRC mode."""
+        if mode not in self._drcs:
+            raise AvrCommandError(f"{mode} is not a valid DRC mode")
+
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_drc.format(mode=mode)
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_drc.format(mode=mode)
+            )
 
 
 def sound_mode_factory(instance: DenonAVRFoundation) -> DenonAVRSoundMode:
