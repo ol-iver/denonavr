@@ -1158,24 +1158,19 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(self.urls.command_options)
 
     async def async_settings_menu(self) -> None:
-        """Options menu on receiver via HTTP get command."""
-        # fast path if we already know the state
-        if self.telnet_available:
-            if self._settings_menu:
-                await self.telnet_api.async_send_commands(
-                    self.telnet_commands.command_setup_close
-                )
-            else:
-                await self.telnet_api.async_send_commands(
-                    self.telnet_commands.command_setup_open
-                )
-            return
-        # slow path if we need to query the state
-        res = await self.api.async_get_command(self.urls.command_setup_query)
-        if res is not None and res == "MNMEN ON":
-            await self.api.async_get_command(self.urls.command_setup_close)
+        """
+        Options menu on receiver via HTTP get command.
+
+        Only available if using Telnet.
+        """
+        if self._settings_menu:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_setup_close
+            )
         else:
-            await self.api.async_get_command(self.urls.command_setup_open)
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_setup_open
+            )
 
     async def async_channel_level_adjust(self) -> None:
         """Toggle the channel level adjust menu on receiver via HTTP get command."""
