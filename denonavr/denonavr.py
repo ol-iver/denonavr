@@ -301,13 +301,11 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.power
 
     @property
-    def settings_menu(self) -> Optional[str]:
+    def settings_menu(self) -> Optional[bool]:
         """
         Return the settings menu state of the device.
 
         Only available if using Telnet.
-
-        Possible values are: "ON" and "OFF"
         """
         return self._device.settings_menu
 
@@ -685,13 +683,11 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.speaker_preset
 
     @property
-    def bt_transmitter(self) -> Optional[str]:
+    def bt_transmitter(self) -> Optional[bool]:
         """
         Return the Bluetooth transmitter state for the device.
 
         Only available if using Telnet.
-
-        Possible values are: "OFF", "ON"
         """
         return self._device.bt_transmitter
 
@@ -727,24 +723,20 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.audio_restorer
 
     @property
-    def graphic_eq(self) -> Optional[str]:
+    def graphic_eq(self) -> Optional[bool]:
         """
         Return the Graphic EQ status for the device.
 
         Only available if using Telnet.
-
-        Possible values are: "OFF", "ON"
         """
         return self._device.graphic_eq
 
     @property
-    def headphone_eq(self) -> Optional[str]:
+    def headphone_eq(self) -> Optional[bool]:
         """
         Return the Headphone EQ status for the device.
 
         Only available if using Telnet.
-
-        Possible values are: "OFF", "ON"
         """
         return self._device.headphone_eq
 

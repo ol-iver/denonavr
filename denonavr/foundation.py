@@ -82,6 +82,17 @@ from .ssdp import evaluate_scpd_xml
 _LOGGER = logging.getLogger(__name__)
 
 
+def convert_on_off_bool(value: str) -> Optional[bool]:
+    """Convert a ON/OFF string to bool."""
+    if value is None:
+        return None
+    if value.lower() == "on":
+        return True
+    if value.lower() == "off":
+        return False
+    return None
+
+
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
 class DenonAVRDeviceInfo:
     """Implements a class with device information of the receiver."""
@@ -127,8 +138,8 @@ class DenonAVRDeviceInfo:
     _power: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
-    _settings_menu: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+    _settings_menu: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_on_off_bool), default=None
     )
     _dimmer: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
@@ -175,8 +186,8 @@ class DenonAVRDeviceInfo:
     _speaker_preset: Optional[int] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
-    _bt_transmitter: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+    _bt_transmitter: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_on_off_bool), default=None
     )
     _bt_output_mode: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
@@ -190,11 +201,11 @@ class DenonAVRDeviceInfo:
     )
     _audio_restorers = get_args(AudioRestorers)
     _panel_locks = get_args(PanelLocks)
-    _graphic_eq: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+    _graphic_eq: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_on_off_bool), default=None
     )
-    _headphone_eq: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+    _headphone_eq: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_on_off_bool), default=None
     )
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
@@ -816,13 +827,11 @@ class DenonAVRDeviceInfo:
         return self._power
 
     @property
-    def settings_menu(self) -> Optional[str]:
+    def settings_menu(self) -> Optional[bool]:
         """
         Returns the settings menu state of the device.
 
         Only available if using Telnet.
-
-        Possible values are: "ON" and "OFF"
         """
         return self._settings_menu
 
@@ -973,13 +982,11 @@ class DenonAVRDeviceInfo:
         return self._speaker_preset
 
     @property
-    def bt_transmitter(self) -> Optional[str]:
+    def bt_transmitter(self) -> Optional[bool]:
         """
         Return the Bluetooth transmitter state for the device.
 
         Only available if using Telnet.
-
-        Possible values are: "OFF", "ON"
         """
         return self._bt_transmitter
 
@@ -1015,24 +1022,20 @@ class DenonAVRDeviceInfo:
         return self._audio_restorer
 
     @property
-    def graphic_eq(self) -> Optional[str]:
+    def graphic_eq(self) -> Optional[bool]:
         """
         Return the Graphic EQ status for the device.
 
         Only available if using Telnet.
-
-        Possible values are: "OFF", "ON"
         """
         return self._graphic_eq
 
     @property
-    def headphone_eq(self) -> Optional[str]:
+    def headphone_eq(self) -> Optional[bool]:
         """
         Return the Headphone EQ status for the device.
 
         Only available if using Telnet.
-
-        Possible values are: "OFF", "ON"
         """
         return self._headphone_eq
 
@@ -1158,7 +1161,7 @@ class DenonAVRDeviceInfo:
         """Options menu on receiver via HTTP get command."""
         # fast path if we already know the state
         if self.telnet_available:
-            if self._settings_menu == "ON":
+            if self._settings_menu:
                 await self.telnet_api.async_send_commands(
                     self.telnet_commands.command_setup_close
                 )
@@ -1579,7 +1582,7 @@ class DenonAVRDeviceInfo:
 
         Only available if using Telnet.
         """
-        if self.bt_transmitter == "ON":
+        if self.bt_transmitter:
             await self.async_bt_transmitter_off()
         else:
             await self.async_bt_transmitter_on()
@@ -1752,7 +1755,7 @@ class DenonAVRDeviceInfo:
 
         Only available if using Telnet.
         """
-        if self._graphic_eq == "ON":
+        if self._graphic_eq:
             await self.async_graphic_eq_off()
         else:
             await self.async_graphic_eq_on()
@@ -1785,7 +1788,7 @@ class DenonAVRDeviceInfo:
 
         Only available if using Telnet.
         """
-        if self._headphone_eq == "ON":
+        if self._headphone_eq:
             await self.async_headphone_eq_off()
         else:
             await self.async_headphone_eq_on()

@@ -28,7 +28,7 @@ from .const import (
     Subwoofers,
 )
 from .exceptions import AvrCommandError, AvrProcessingError
-from .foundation import DenonAVRFoundation
+from .foundation import DenonAVRFoundation, convert_on_off_bool
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -57,8 +57,8 @@ class DenonAVRVolume(DenonAVRFoundation):
     )
     _channel_volumes: Optional[Dict[Channels, float]] = attr.ib(default=None)
     _valid_channels = get_args(Channels)
-    _subwoofer: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+    _subwoofer: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_on_off_bool), default=None
     )
     _subwoofer_levels: Optional[Dict[Subwoofers, float]] = attr.ib(default=None)
     _valid_subwoofers = get_args(Subwoofers)
@@ -246,13 +246,11 @@ class DenonAVRVolume(DenonAVRFoundation):
         return self._channel_volumes
 
     @property
-    def subwoofer(self) -> Optional[str]:
+    def subwoofer(self) -> Optional[bool]:
         """
         Return the state of the subwoofer.
 
         Only available if using Telnet.
-
-        Possible values are: "ON", "OFF"
         """
         return self._subwoofer
 
@@ -477,7 +475,7 @@ class DenonAVRVolume(DenonAVRFoundation):
 
         Only available if using Telnet.
         """
-        if self._subwoofer == "ON":
+        if self._subwoofer:
             await self.async_subwoofer_off()
         else:
             await self.async_subwoofer_on()

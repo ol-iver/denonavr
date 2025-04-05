@@ -37,7 +37,7 @@ from .const import (
     IMAXLPFs,
 )
 from .exceptions import AvrCommandError, AvrIncompleteResponseError, AvrProcessingError
-from .foundation import DenonAVRFoundation
+from .foundation import DenonAVRFoundation, convert_on_off_bool
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -86,8 +86,8 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     _sound_mode_raw: Optional[str] = attr.ib(
         converter=attr.converters.optional(convert_sound_mode), default=None
     )
-    _neural_x_on_off: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+    _neural_x: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_on_off_bool), default=None
     )
     _imax_auto_off: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
@@ -109,14 +109,14 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     _imax_subwoofer_output: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
-    _cinema_eq: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+    _cinema_eq: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_on_off_bool), default=None
     )
-    _center_spread: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+    _center_spread: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_on_off_bool), default=None
     )
-    _loudness_management: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+    _loudness_management: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_on_off_bool), default=None
     )
     _dialog_enhancer_level: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
@@ -136,8 +136,8 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     _dialog_control: Optional[int] = attr.ib(
         converter=attr.converters.optional(int), default=None
     )
-    _speaker_virtualizer: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+    _speaker_virtualizer: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_on_off_bool), default=None
     )
     _effect_speaker_selection: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
@@ -237,7 +237,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         """Handle a Neural X:change event."""
         parameter_name_length = len("NEURAL")
         if parameter[:parameter_name_length] == "NEURAL":
-            self._neural_x_on_off = parameter[parameter_name_length + 1 :]
+            self._neural_x = parameter[parameter_name_length + 1 :]
 
     async def _async_imax_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an IMAX change event."""
@@ -508,15 +508,13 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         return self._sound_mode_raw
 
     @property
-    def neural_x(self) -> Optional[str]:
+    def neural_x(self) -> Optional[bool]:
         """
         Return the current Neural:X status.
 
         Only available if using Telnet.
-
-        Possible values are: "ON", "OFF"
         """
-        return self._neural_x_on_off
+        return self._neural_x
 
     @property
     def imax(self) -> Optional[str]:
@@ -577,35 +575,29 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         return self._imax_subwoofer_output
 
     @property
-    def cinema_eq(self) -> Optional[str]:
+    def cinema_eq(self) -> Optional[bool]:
         """
         Return the current Cinema EQ status.
 
         Only available if using Telnet.
-
-        Possible values are: "ON", "OFF"
         """
         return self._cinema_eq
 
     @property
-    def center_spread(self) -> Optional[str]:
+    def center_spread(self) -> Optional[bool]:
         """
         Return the current Center Spread status.
 
         Only available if using Telnet.
-
-        Possible values are: "ON", "OFF"
         """
         return self._center_spread
 
     @property
-    def loudness_management(self) -> Optional[str]:
+    def loudness_management(self) -> Optional[bool]:
         """
         Return the current Loudness Management status.
 
         Only available if using Telnet.
-
-        Possible values are: "ON", "OFF"
         """
         return self._loudness_management
 
@@ -665,13 +657,11 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         return self._dialog_control
 
     @property
-    def speaker_virtualizer(self) -> Optional[str]:
+    def speaker_virtualizer(self) -> Optional[bool]:
         """
         Return the current Speaker Virtualizer status.
 
         Only available if using Telnet.
-
-        Possible values are: "ON", "OFF"
         """
         return self._speaker_virtualizer
 
@@ -780,7 +770,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         Only available if using Telnet.
         """
-        if self._neural_x_on_off == "ON":
+        if self._neural_x:
             await self.async_neural_x_off()
         else:
             await self.async_neural_x_on()
@@ -943,7 +933,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         Only available if using Telnet.
         """
-        if self._cinema_eq == "ON":
+        if self._cinema_eq:
             await self.async_cinema_eq_off()
         else:
             await self.async_cinema_eq_on()
@@ -976,7 +966,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         Only available if using Telnet.
         """
-        if self._center_spread == "ON":
+        if self._center_spread:
             await self.async_center_spread_off()
         else:
             await self.async_center_spread_on()
@@ -1013,7 +1003,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         Only available if using Telnet.
         """
-        if self._loudness_management == "ON":
+        if self._loudness_management:
             await self.async_loudness_management_off()
         else:
             await self.async_loudness_management_on()
@@ -1191,7 +1181,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         Only available if using Telnet.
         """
-        if self._speaker_virtualizer == "ON":
+        if self._speaker_virtualizer:
             await self.async_speaker_virtualizer_off()
         else:
             await self.async_speaker_virtualizer_on()
