@@ -1331,7 +1331,7 @@ class DenonAVRDeviceInfo:
         """
         Set trigger to ON on receiver via HTTP get command.
 
-        Valid trigger numbers are 1-3.
+        :param trigger: Trigger number to set to ON. Valid values are 1-3.
         """
         if trigger < 1 or trigger > 3:
             raise AvrCommandError("Trigger number must be between 1 and 3")
@@ -1349,7 +1349,7 @@ class DenonAVRDeviceInfo:
         """
         Set trigger to OFF on receiver via HTTP get command.
 
-        Valid trigger numbers are 1-3.
+        :param trigger: Trigger number to set to OFF. Valid values are 1-3.
         """
         if trigger < 1 or trigger > 3:
             raise AvrCommandError("Trigger number must be between 1 and 3")
@@ -1369,7 +1369,7 @@ class DenonAVRDeviceInfo:
 
         Only available if using Telnet.
 
-        Valid trigger numbers are 1-3.
+        :param trigger: Trigger number to toggle. Valid values are 1-3.
         """
         if trigger < 1 or trigger > 3:
             raise AvrCommandError("Trigger number must be between 1 and 3")
@@ -1384,7 +1384,7 @@ class DenonAVRDeviceInfo:
         """
         Set quick select mode on receiver via HTTP get command.
 
-        Valid quick select numbers are 1-5.
+        :param quick_select_number: Quick select number to set. Valid values are 1-5.
         """
         if quick_select_number not in range(1, 5):
             raise AvrCommandError("Quick select number must be between 1 and 5")
@@ -1404,7 +1404,7 @@ class DenonAVRDeviceInfo:
         """
         Set quick select memory on receiver via HTTP get command.
 
-        Valid quick select numbers are 1-5.
+        :param quick_select_number: Quick select number to set. Valid values are 1-5.
         """
         if quick_select_number not in range(1, 5):
             raise AvrCommandError("Quick select number must be between 1 and 5")
@@ -1523,7 +1523,11 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(self.urls.command_network_restart)
 
     async def async_speaker_preset(self, preset: int) -> None:
-        """Set speaker preset on receiver via HTTP get command."""
+        """
+        Set speaker preset on receiver via HTTP get command.
+
+        Valid preset values are 1-2.
+        """
         if preset < 1 or preset > 2:
             raise AvrCommandError("Speaker preset number must be 1 or 2")
 
@@ -1636,7 +1640,7 @@ class DenonAVRDeviceInfo:
         """
         Set delay time on receiver via HTTP get command.
 
-        Valid delay time values are 0-999 ms.
+        :param delay_time: Delay time in ms. Valid values are 0-999.
         """
         if delay_time < 0 or delay_time > 999:
             raise AvrCommandError("Invalid delay time value")

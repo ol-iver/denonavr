@@ -1074,7 +1074,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         """
         Set Auro-Matic 3D Strength.
 
-        Valid values are 1-16.
+        :param strength: Strength value to set. Valid values are 1-16.
         """
         if strength < 1 or strength > 16:
             raise AvrCommandError(f"{strength} is not a valid Auro-Matic 3D Strength")
@@ -1133,7 +1133,11 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             )
 
     async def async_dialog_control(self, level: int) -> None:
-        """Set Dialog Control level."""
+        """
+        Set Dialog Control level.
+
+        :param level: Level to set. Valid values are 0-6.
+        """
         if level < 0 or level > 6:
             raise AvrCommandError(f"{level} is not a valid dialog control level")
 

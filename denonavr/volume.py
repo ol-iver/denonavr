@@ -415,7 +415,8 @@ class DenonAVRVolume(DenonAVRFoundation):
         """
         Set Channel volume on receiver via HTTP get command.
 
-        Valid volumes are -12 to 12 with 0.5 steps.
+        :param channel: Channel to set.
+        :param volume: Volume to set. Valid values are -12 to 12 with 0.5 steps.
         """
         self._is_valid_channel(channel)
         if volume not in CHANNEL_VOLUME_MAP_LABELS:
@@ -540,7 +541,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         """
         Set LFE level on receiver via HTTP get command.
 
-        Valid values are -10 to 0.
+        :param lfe: LFE level to set. Valid values are -10 to 0.
         """
         if lfe < -10 or lfe > 0:
             raise AvrCommandError(f"Invalid LFE: {lfe}")
@@ -581,7 +582,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         """
         Set Bass Sync level on receiver via HTTP get command.
 
-        Valid values are -10 to 0.
+        :param lfe: Bass Sync level to set. Valid values are -10 to 0.
         """
         if lfe < -10 or lfe > 0:
             raise AvrCommandError(f"Invalid Bass Sync: {lfe}")

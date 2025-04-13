@@ -1028,7 +1028,11 @@ class DenonAVR(DenonAVRFoundation):
         await self._device.async_network_restart()
 
     async def async_speaker_preset(self, preset: int) -> None:
-        """Set speaker preset on receiver via HTTP get command."""
+        """
+        Set speaker preset on receiver via HTTP get command.
+
+        Valid preset values are 1-2.
+        """
         await self._device.async_speaker_preset(preset)
 
     async def async_speaker_preset_toggle(self) -> None:
@@ -1079,7 +1083,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Set delay time on receiver via HTTP get command.
 
-        Valid delay time values are 0-999 ms.
+        :param delay_time: Delay time in ms. Valid values are 0-999.
         """
         await self._device.async_delay_time(delay_time)
 
@@ -1171,7 +1175,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Set trigger to ON on receiver via HTTP get command.
 
-        Valid trigger numbers are 1-3.
+        :param trigger: Trigger number to set to ON. Valid values are 1-3.
         """
         await self._device.async_trigger_on(trigger)
 
@@ -1179,7 +1183,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Set trigger to OFF on receiver via HTTP get command.
 
-        Valid trigger numbers are 1-3.
+        :param trigger: Trigger number to set to OFF. Valid values are 1-3.
         """
         await self._device.async_trigger_off(trigger)
 
@@ -1189,7 +1193,7 @@ class DenonAVR(DenonAVRFoundation):
 
         Only available if using Telnet.
 
-        Valid trigger numbers are 1-3.
+        :param trigger: Trigger number to toggle. Valid values are 1-3.
         """
         await self._device.async_trigger_toggle(trigger)
 
@@ -1197,7 +1201,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Set quick select mode on receiver via HTTP get command.
 
-        Valid quick select numbers are 1-5.
+        :param quick_select_number: Quick select number to set. Valid values are 1-5.
         """
         await self._device.async_quick_select_mode(quick_select_number)
 
@@ -1205,6 +1209,6 @@ class DenonAVR(DenonAVRFoundation):
         """
         Set quick select memory on receiver via HTTP get command.
 
-        Valid quick select numbers are 1-5.
+        :param quick_select_number: Quick select number to set. Valid values are 1-5.
         """
         await self._device.async_quick_select_memory(quick_select_number)

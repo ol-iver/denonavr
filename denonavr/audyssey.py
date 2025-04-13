@@ -344,7 +344,11 @@ class DenonAVRAudyssey(DenonAVRFoundation):
             await self.async_lfc_on()
 
     async def async_containment_amount(self, amount: int) -> None:
-        """Set Containment Amount."""
+        """
+        Set Containment Amount.
+
+        Valid values are 1-7.
+        """
         if amount < 1 or amount > 7:
             raise AvrCommandError("Containment amount must be between 1 and 7")
         local_amount = f"{amount:02}"
