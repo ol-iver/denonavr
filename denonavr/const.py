@@ -210,7 +210,7 @@ TelnetCommands = namedtuple(
 
 # AVR-X search patterns
 DEVICEINFO_AVR_X_PATTERN = re.compile(
-    r"(.*AV(C|R)-(X|S).*|.*SR500[6-9]|.*SR60(07|08|09|10|11|12|13)|."
+    r"(.*AV(C|R)-(X|S|A).*|.*SR500[6-9]|.*SR60(07|08|09|10|11|12|13)|."
     r"*SR70(07|08|09|10|11|12|13)|.*SR501[3-4]|.*NR1604|.*NR1710)"
 )
 
