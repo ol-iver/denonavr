@@ -11,14 +11,33 @@ import asyncio
 import logging
 from collections.abc import Hashable
 from copy import deepcopy
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Optional, get_args
 
 import attr
 
 from .appcommand import AppCommands
-from .const import ALL_ZONE_STEREO, DENON_ATTR_SETATTR, SOUND_MODE_MAPPING
+from .const import (
+    ALL_ZONE_STEREO,
+    AURO_3D_MODE_MAP,
+    AURO_3D_MODE_MAP_MAP_LABELS,
+    AURO_MATIC_3D_PRESET_MAP,
+    AURO_MATIC_3D_PRESET_MAP_LABELS,
+    DENON_ATTR_SETATTR,
+    DIALOG_ENHANCER_LEVEL_MAP,
+    DIALOG_ENHANCER_LEVEL_MAP_LABELS,
+    EFFECT_SPEAKER_SELECTION_MAP,
+    EFFECT_SPEAKER_SELECTION_MAP_LABELS,
+    SOUND_MODE_MAPPING,
+    Auro3DModes,
+    AuroMatic3DPresets,
+    DialogEnhancerLevels,
+    DRCs,
+    EffectSpeakers,
+    IMAXHPFs,
+    IMAXLPFs,
+)
 from .exceptions import AvrCommandError, AvrIncompleteResponseError, AvrProcessingError
-from .foundation import DenonAVRFoundation
+from .foundation import DenonAVRFoundation, convert_on_off_bool
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -67,6 +86,65 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     _sound_mode_raw: Optional[str] = attr.ib(
         converter=attr.converters.optional(convert_sound_mode), default=None
     )
+    _neural_x: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_on_off_bool), default=None
+    )
+    _imax_auto_off: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _imax_audio_settings: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _imax_hpf: Optional[int] = attr.ib(
+        converter=attr.converters.optional(int), default=None
+    )
+    _imax_hpfs = get_args(IMAXHPFs)
+    _imax_lpf: Optional[int] = attr.ib(
+        converter=attr.converters.optional(int), default=None
+    )
+    _imax_lpfs = get_args(IMAXLPFs)
+    _imax_subwoofer_mode: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _imax_subwoofer_output: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _cinema_eq: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_on_off_bool), default=None
+    )
+    _center_spread: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_on_off_bool), default=None
+    )
+    _loudness_management: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_on_off_bool), default=None
+    )
+    _dialog_enhancer_level: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _dialog_enhancer_levels = get_args(DialogEnhancerLevels)
+    _auromatic_3d_preset: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _auromatic_3d_presets = get_args(AuroMatic3DPresets)
+    _auromatic_3d_strength: Optional[int] = attr.ib(
+        converter=attr.converters.optional(int), default=None
+    )
+    _auro_3d_mode: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _auro_3d_modes = get_args(Auro3DModes)
+    _dialog_control: Optional[int] = attr.ib(
+        converter=attr.converters.optional(int), default=None
+    )
+    _speaker_virtualizer: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(convert_on_off_bool), default=None
+    )
+    _effect_speaker_selection: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _effect_speakers = get_args(EffectSpeakers)
+    _drc: Optional[str] = attr.ib(converter=attr.converters.optional(str), default=None)
+    _drcs = get_args(DRCs)
     _sound_mode_map: Dict[str, list] = attr.ib(
         validator=attr.validators.deep_mapping(
             attr.validators.instance_of(str),
@@ -113,6 +191,33 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             self._device.telnet_api.register_callback(
                 "MS", self._async_soundmode_callback
             )
+            self._device.telnet_api.register_callback(
+                "PS", self._async_neural_x_callback
+            )
+            self._device.telnet_api.register_callback("PS", self._async_imax_callback)
+            self._device.telnet_api.register_callback(
+                "PS", self._async_cinema_eq_callback
+            )
+            self._device.telnet_api.register_callback(
+                "PS", self._async_center_spread_callback
+            )
+            self._device.telnet_api.register_callback(
+                "PS", self._async_loudness_management_callback
+            )
+            self._device.telnet_api.register_callback(
+                "PS", self._async_dialog_enhancer_callback
+            )
+            self._device.telnet_api.register_callback("PS", self._async_auro_callback)
+            self._device.telnet_api.register_callback(
+                "PS", self._async_dialog_control_callback
+            )
+            self._device.telnet_api.register_callback(
+                "PS", self._async_speaker_virtualizer_callback
+            )
+            self._device.telnet_api.register_callback(
+                "PS", self._async_effect_speaker_selection_callback
+            )
+            self._device.telnet_api.register_callback("PS", self._async_drc_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished sound mode setup")
@@ -125,6 +230,116 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             return
 
         self._sound_mode_raw = parameter
+
+    async def _async_neural_x_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a Neural X:change event."""
+        parameter_name_length = len("NEURAL")
+        if parameter[:parameter_name_length] == "NEURAL":
+            self._neural_x = parameter[parameter_name_length + 1 :]
+
+    async def _async_imax_callback(self, zone: str, event: str, parameter: str) -> None:
+        """Handle an IMAX change event."""
+        key_value = parameter.split()
+        if len(key_value) != 2 or key_value[0][:4] != "IMAX":
+            return
+
+        if key_value[0] == "IMAX":
+            self._imax_auto_off = parameter[5:]
+        elif key_value[0] == "IMAXAUD":
+            self._imax_audio_settings = parameter[8:]
+        elif key_value[0] == "IMAXHPF":
+            self._imax_hpf = int(parameter[8:])
+        elif key_value[0] == "IMAXLPF":
+            self._imax_lpf = int(parameter[8:])
+        elif key_value[0] == "IMAXSWM":
+            self._imax_subwoofer_mode = parameter[8:]
+        elif key_value[0] == "IMAXSWO":
+            self._imax_subwoofer_output = parameter[8:]
+
+    async def _async_cinema_eq_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a Cinema EQ change event."""
+        if parameter[:10] == "CINEMA EQ.":
+            self._cinema_eq = parameter[10:]
+
+    async def _async_center_spread_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a Center Spread change event."""
+        if parameter[:3] == "CES":
+            self._center_spread = parameter[4:]
+
+    async def _async_loudness_management_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a Loudness Management change event."""
+        if parameter[:3] == "LOM":
+            self._loudness_management = parameter[4:]
+
+    async def _async_dialog_enhancer_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a Dialog Enhancer change event."""
+        if parameter[:3] == "DEH":
+            self._dialog_enhancer_level = DIALOG_ENHANCER_LEVEL_MAP_LABELS[
+                parameter[4:]
+            ]
+
+    async def _async_auro_callback(self, zone: str, event: str, parameter: str) -> None:
+        """Handle a Auro change event."""
+        key_value = parameter.split()
+        if len(key_value) != 2 or key_value[0][:4] != "AURO":
+            return
+
+        if key_value[0] == "AUROPR":
+            self._auromatic_3d_preset = AURO_MATIC_3D_PRESET_MAP_LABELS[parameter[7:]]
+        elif key_value[0] == "AUROST":
+            self._auromatic_3d_strength = int(parameter[7:])
+        elif key_value[0] == "AUROMODE":
+            self._auro_3d_mode = AURO_3D_MODE_MAP_MAP_LABELS[parameter[9:]]
+
+    async def _async_dialog_control_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a Dialog Control change event."""
+        key_value = parameter.split()
+        if len(key_value) != 2 or key_value[0] != "DIC":
+            return
+
+        self._dialog_control = int(key_value[1])
+
+    async def _async_speaker_virtualizer_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a Speaker Virtualizer change event."""
+        key_value = parameter.split()
+        if len(key_value) != 2 or key_value[0] != "SPV":
+            return
+
+        self._speaker_virtualizer = key_value[1]
+
+    async def _async_effect_speaker_selection_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a Effect Speaker Selection change event."""
+        key_value = parameter.split(":")
+        if len(key_value) != 2 or key_value[0] != "SP":
+            return
+
+        self._effect_speaker_selection = EFFECT_SPEAKER_SELECTION_MAP_LABELS[
+            key_value[1]
+        ]
+
+    async def _async_drc_callback(self, zone: str, event: str, parameter: str) -> None:
+        """Handle a DRC change event."""
+        key_value = parameter.split()
+        if len(key_value) != 2 or key_value[0] != "DRC":
+            return
+
+        self._drc = key_value[1]
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -292,6 +507,186 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         """Return the current sound mode as string as received from the AVR."""
         return self._sound_mode_raw
 
+    @property
+    def neural_x(self) -> Optional[bool]:
+        """
+        Return the current Neural:X status.
+
+        Only available if using Telnet.
+        """
+        return self._neural_x
+
+    @property
+    def imax(self) -> Optional[str]:
+        """
+        Return the current IMAX status.
+
+        Only available if using Telnet.
+
+        Possible values are: "AUTO", "OFF"
+        """
+        return self._imax_auto_off
+
+    @property
+    def imax_audio_settings(self) -> Optional[str]:
+        """
+        Return the current IMAX Audio Settings.
+
+        Only available if using Telnet.
+
+        Possible values are: "AUTO", "MANUAL"
+        """
+        return self._imax_audio_settings
+
+    @property
+    def imax_hpf(self) -> Optional[int]:
+        """
+        Return the current IMAX High Pass Filter.
+
+        Only available if using Telnet.
+        """
+        return self._imax_hpf
+
+    @property
+    def imax_lpf(self) -> Optional[int]:
+        """
+        Return the current IMAX Low Pass Filter.
+
+        Only available if using Telnet.
+        """
+        return self._imax_lpf
+
+    @property
+    def imax_subwoofer_mode(self) -> Optional[str]:
+        """
+        Return the current IMAX Subwoofer Mode.
+
+        Only available if using Telnet.
+        """
+        return self._imax_subwoofer_mode
+
+    @property
+    def imax_subwoofer_output(self) -> Optional[str]:
+        """
+        Return the current IMAX Subwoofer Output Mode.
+
+        Only available if using Telnet.
+        """
+        return self._imax_subwoofer_output
+
+    @property
+    def cinema_eq(self) -> Optional[bool]:
+        """
+        Return the current Cinema EQ status.
+
+        Only available if using Telnet.
+        """
+        return self._cinema_eq
+
+    @property
+    def center_spread(self) -> Optional[bool]:
+        """
+        Return the current Center Spread status.
+
+        Only available if using Telnet.
+        """
+        return self._center_spread
+
+    @property
+    def loudness_management(self) -> Optional[bool]:
+        """
+        Return the current Loudness Management status.
+
+        Only available if using Telnet.
+        """
+        return self._loudness_management
+
+    @property
+    def dialog_enhancer(self) -> Optional[str]:
+        """
+        Return the current Dialog Enhancer level.
+
+        Only available if using Telnet.
+
+        Possible values are: "Off", "Low", "Medium", "High"
+        """
+        return self._dialog_enhancer_level
+
+    @property
+    def auromatic_3d_preset(self) -> Optional[str]:
+        """
+        Return the current Auro-Matic 3D Preset.
+
+        Only available if using Telnet.
+
+        Possible values are: "Small, "Medium", "Large", "Speech", "Movie"
+        """
+        return self._auromatic_3d_preset
+
+    @property
+    def auromatic_3d_strength(self) -> Optional[int]:
+        """
+        Return the current Auro-Matic 3D Strength.
+
+        Only available if using Telnet.
+
+        Possible values are: 1-16
+        """
+        return self._auromatic_3d_strength
+
+    @property
+    def auro_3d_mode(self) -> Optional[str]:
+        """
+        Return the current Auro 3D mode.
+
+        Only available if using Telnet.
+
+        Possible values are: "Direct", "Channel Expansion"
+        """
+        return self._auro_3d_mode
+
+    @property
+    def dialog_control(self) -> Optional[int]:
+        """
+        Return the current Dialog Control level.
+
+        Only available if using Telnet.
+
+        Possible values are: 0-6
+        """
+        return self._dialog_control
+
+    @property
+    def speaker_virtualizer(self) -> Optional[bool]:
+        """
+        Return the current Speaker Virtualizer status.
+
+        Only available if using Telnet.
+        """
+        return self._speaker_virtualizer
+
+    @property
+    def effect_speaker_selection(self) -> Optional[str]:
+        """
+        Return the current Effect Speaker Selection.
+
+        Only available if using Telnet.
+
+        Possible values are: "Floor", "Height + Floor"
+        """
+        return self._effect_speaker_selection
+
+    @property
+    def drc(self) -> Optional[str]:
+        """
+        Return the current DRC status.
+
+        Only available if using Telnet.
+
+        Possible values are: "AUTO", "LOW", "MID", "HI", "OFF"
+        """
+        return self._drc
+
     ##########
     # Setter #
     ##########
@@ -324,6 +719,520 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             await self._device.telnet_api.async_send_commands(telnet_command)
         else:
             await self._device.api.async_get_command(command_url)
+
+    async def async_sound_mode_next(self):
+        """Select next sound mode."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_sel_sound_mode + "RIGHT"
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_sel_sound_mode + "RIGHT"
+            )
+
+    async def async_sound_mode_previous(self):
+        """Select previous sound mode."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_sel_sound_mode + "LEFT"
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_sel_sound_mode + "LEFT"
+            )
+
+    async def async_neural_x_on(self):
+        """Turn on Neural:X sound mode."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_neural_x_on_off.format(mode="ON")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_neural_x_on_off.format(mode="ON")
+            )
+
+    async def async_neural_x_off(self):
+        """Turn off Neural:X sound mode."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_neural_x_on_off.format(mode="OFF")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_neural_x_on_off.format(mode="OFF")
+            )
+
+    async def async_neural_x_toggle(self):
+        """
+        Toggle Neural:X sound mode.
+
+        Only available if using Telnet.
+        """
+        if self._neural_x:
+            await self.async_neural_x_off()
+        else:
+            await self.async_neural_x_on()
+
+    async def async_imax_auto(self):
+        """Set IMAX sound mode to Auto."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_imax_auto_off.format(mode="AUTO")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_imax_auto_off.format(mode="AUTO")
+            )
+
+    async def async_imax_off(self):
+        """Turn off IMAX sound mode."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_imax_auto_off.format(mode="OFF")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_imax_auto_off.format(mode="OFF")
+            )
+
+    async def async_imax_toggle(self):
+        """
+        Toggle IMAX sound mode between auto and off.
+
+        Only available if using Telnet.
+        """
+        if self._imax_auto_off != "OFF":
+            await self.async_imax_off()
+        else:
+            await self.async_imax_auto()
+
+    async def async_imax_audio_settings(self, mode: Literal["AUTO", "MANUAL"]):
+        """Set IMAX audio settings."""
+        if mode not in ["AUTO", "MANUAL"]:
+            raise AvrCommandError(f"{mode} is not a valid IMAX audio setting")
+
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_imax_audio_settings.format(
+                    mode=mode
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_imax_audio_settings.format(mode=mode)
+            )
+
+    async def async_imax_audio_settings_toggle(self) -> None:
+        """
+        Toggle IMAX audio settings between auto and manual.
+
+        Only available if using Telnet.
+        """
+        if self._imax_audio_settings == "AUTO":
+            await self.async_imax_audio_settings("MANUAL")
+        else:
+            await self.async_imax_audio_settings("AUTO")
+
+    async def async_imax_hpf(self, hpf: IMAXHPFs) -> None:
+        """Set IMAX High Pass Filter."""
+        if hpf not in self._imax_hpfs:
+            raise AvrCommandError(f"{hpf} is not a valid IMAX high pass filter")
+
+        local_hpf = self._padded_pass_filter(hpf)
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_imax_hpf.format(
+                    frequency=local_hpf
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_imax_hpf.format(frequency=local_hpf)
+            )
+
+    async def async_imax_lpf(self, lpf: IMAXLPFs) -> None:
+        """Set IMAX Low Pass Filter."""
+        if lpf not in self._imax_lpfs:
+            raise AvrCommandError(f"{lpf} is not a valid IMAX low pass filter")
+
+        local_lpf = self._padded_pass_filter(lpf)
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_imax_lpf.format(
+                    frequency=local_lpf
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_imax_lpf.format(frequency=local_lpf)
+            )
+
+    @staticmethod
+    def _padded_pass_filter(pass_filter: str) -> str:
+        return f"0{pass_filter}" if len(str(pass_filter)) == 2 else str(pass_filter)
+
+    async def async_imax_subwoofer_mode(self, mode: Literal["ON", "OFF"]) -> None:
+        """Set IMAX Subwoofer Mode."""
+        if mode not in ["ON", "OFF"]:
+            raise AvrCommandError(f"{mode} is not a valid IMAX subwoofer mode")
+
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_imax_subwoofer_mode.format(
+                    mode=mode
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_imax_subwoofer_mode.format(mode=mode)
+            )
+
+    async def async_imax_subwoofer_output(self, mode: Literal["L+M", "LFE"]) -> None:
+        """Set IMAX Subwoofer Output Mode."""
+        if mode not in ["L+M", "LFE"]:
+            raise AvrCommandError(f"{mode} is not a valid IMAX subwoofer output mode")
+
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_imax_subwoofer_output.format(
+                    mode=mode
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_imax_subwoofer_output.format(mode=mode)
+            )
+
+    async def async_cinema_eq_on(self):
+        """Set Cinema EQ to ON."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_cinema_eq.format(mode="ON")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_cinema_eq.format(mode="ON")
+            )
+
+    async def async_cinema_eq_off(self):
+        """Set Cinema EQ to OFF."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_cinema_eq.format(mode="OFF")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_cinema_eq.format(mode="OFF")
+            )
+
+    async def async_cinema_eq_toggle(self):
+        """
+        Toggle Cinema EQ.
+
+        Only available if using Telnet.
+        """
+        if self._cinema_eq:
+            await self.async_cinema_eq_off()
+        else:
+            await self.async_cinema_eq_on()
+
+    async def async_center_spread_on(self):
+        """Set Center Spread to ON."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_center_spread.format(mode="ON")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_center_spread.format(mode="ON")
+            )
+
+    async def async_center_spread_off(self):
+        """Set Center Spread to ON."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_center_spread.format(mode="OFF")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_center_spread.format(mode="OFF")
+            )
+
+    async def async_center_spread_toggle(self):
+        """
+        Toggle Center Spread.
+
+        Only available if using Telnet.
+        """
+        if self._center_spread:
+            await self.async_center_spread_off()
+        else:
+            await self.async_center_spread_on()
+
+    async def async_loudness_management_on(self):
+        """Set Loudness Management to ON."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_loudness_management.format(
+                    mode="ON"
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_loudness_management.format(mode="ON")
+            )
+
+    async def async_loudness_management_off(self):
+        """Set Loudness Management to OFF."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_loudness_management.format(
+                    mode="OFF"
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_loudness_management.format(mode="OFF")
+            )
+
+    async def async_loudness_management_toggle(self):
+        """
+        Toggle Loudness Management.
+
+        Only available if using Telnet.
+        """
+        if self._loudness_management:
+            await self.async_loudness_management_off()
+        else:
+            await self.async_loudness_management_on()
+
+    async def async_dialog_enhancer(self, level: DialogEnhancerLevels) -> None:
+        """Set Dialog Enhancer level."""
+        if level not in self._dialog_enhancer_levels:
+            raise AvrCommandError(f"{level} is not a valid dialog enhancer level")
+
+        level_mapped = DIALOG_ENHANCER_LEVEL_MAP[level]
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_dialog_enhancer.format(
+                    level=level_mapped
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_dialog_enhancer.format(level=level_mapped)
+            )
+
+    async def async_auromatic_3d_preset(self, preset: AuroMatic3DPresets) -> None:
+        """Set Auro-Matic 3D Preset."""
+        if preset not in self._auromatic_3d_presets:
+            raise AvrCommandError(f"{preset} is not a valid Auro-Matic 3D Preset")
+
+        local_preset = AURO_MATIC_3D_PRESET_MAP[preset]
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_auromatic_3d_preset.format(
+                    preset=local_preset
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_auromatic_3d_preset.format(
+                    preset=local_preset
+                )
+            )
+
+    async def async_auromatic_3d_strength_up(self) -> None:
+        """Increase Auro-Matic 3D Strength."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_auromatic_3d_strength.format(
+                    value="UP"
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_auromatic_3d_strength.format(value="UP")
+            )
+
+    async def async_auromatic_3d_strength_down(self) -> None:
+        """Decrease Auro-Matic 3D Strength."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_auromatic_3d_strength.format(
+                    value="DOWN"
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_auromatic_3d_strength.format(value="DOWN")
+            )
+
+    async def async_auromatic_3d_strength(self, strength: int) -> None:
+        """
+        Set Auro-Matic 3D Strength.
+
+        :param strength: Strength value to set. Valid values are 1-16.
+        """
+        if strength < 1 or strength > 16:
+            raise AvrCommandError(f"{strength} is not a valid Auro-Matic 3D Strength")
+
+        local_strength = f"{strength:02}"
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_auromatic_3d_strength.format(
+                    value=local_strength
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_auromatic_3d_strength.format(
+                    value=local_strength
+                )
+            )
+
+    async def async_auro_3d_mode(self, mode: Auro3DModes) -> None:
+        """Set Auro 3D Mode."""
+        if mode not in self._auro_3d_modes:
+            raise AvrCommandError(f"{mode} is not a valid Auro 3D Mode")
+
+        local_mode = AURO_3D_MODE_MAP[mode]
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_auro_3d_mode.format(
+                    mode=local_mode
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_auro_3d_mode.format(mode=local_mode)
+            )
+
+    async def async_dialog_control_up(self) -> None:
+        """Increase Dialog Control level."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_dialog_control.format(value="UP")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_dialog_control.format(value="UP")
+            )
+
+    async def async_dialog_control_down(self) -> None:
+        """Decrease Dialog Control level."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_dialog_control.format(value="DOWN")
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_dialog_control.format(value="DOWN")
+            )
+
+    async def async_dialog_control(self, level: int) -> None:
+        """
+        Set Dialog Control level.
+
+        :param level: Level to set. Valid values are 0-6.
+        """
+        if level < 0 or level > 6:
+            raise AvrCommandError(f"{level} is not a valid dialog control level")
+
+        local_level = f"{level:02}"
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_dialog_control.format(
+                    value=local_level
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_dialog_control.format(value=local_level)
+            )
+
+    async def async_speaker_virtualizer_on(self) -> None:
+        """Set Speaker Virtualizer to ON."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_speaker_virtualizer.format(
+                    mode="ON"
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_speaker_virtualizer.format(mode="ON")
+            )
+
+    async def async_speaker_virtualizer_off(self) -> None:
+        """Set Speaker Virtualizer to OFF."""
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_speaker_virtualizer.format(
+                    mode="OFF"
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_speaker_virtualizer.format(mode="OFF")
+            )
+
+    async def async_speaker_virtualizer_toggle(self) -> None:
+        """
+        Toggle Speaker Virtualizer.
+
+        Only available if using Telnet.
+        """
+        if self._speaker_virtualizer:
+            await self.async_speaker_virtualizer_off()
+        else:
+            await self.async_speaker_virtualizer_on()
+
+    async def async_effect_speaker_selection(self, mode: EffectSpeakers) -> None:
+        """Set Effect Speaker."""
+        if mode not in self._effect_speakers:
+            raise AvrCommandError(f"{mode} is not a valid effect speaker selection")
+
+        local_mode = EFFECT_SPEAKER_SELECTION_MAP[mode]
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_effect_speaker_selection.format(
+                    mode=local_mode
+                )
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_effect_speaker_selection.format(
+                    mode=local_mode
+                )
+            )
+
+    async def async_effect_speaker_selection_toggle(self) -> None:
+        """
+        Toggle Effect Speaker Selection.
+
+        Only available if using Telnet.
+        """
+        if self._effect_speaker_selection == "Floor":
+            await self.async_effect_speaker_selection("Height + Floor")
+        else:
+            await self.async_effect_speaker_selection("Floor")
+
+    async def async_drc(self, mode: DRCs) -> None:
+        """Set DRC mode."""
+        if mode not in self._drcs:
+            raise AvrCommandError(f"{mode} is not a valid DRC mode")
+
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_drc.format(mode=mode)
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_drc.format(mode=mode)
+            )
 
 
 def sound_mode_factory(instance: DenonAVRFoundation) -> DenonAVRSoundMode:
