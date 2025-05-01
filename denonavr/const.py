@@ -1350,12 +1350,29 @@ ECO_MODE_MAP_LABELS = {value: key for key, value in ECO_MODE_MAP.items()}
 EcoModes = Literal["On", "Auto", "Off"]
 """Eco Modes."""
 
-EffectSpeakers = Literal["Floor", "Height + Floor"]
+EffectSpeakers = Literal[
+    "Floor",
+    "Front",
+    "Front Height",
+    "Front Wide",
+    "Front Height + Front Wide",
+    "Height + Floor",
+    "Surround Back",
+    "Surround Back + Front Height",
+    "Surround Back + Front Wide",
+]
 """Effect Speakers."""
 
 EFFECT_SPEAKER_SELECTION_MAP = {
     "Floor": "FL",
+    "Front": "FR",
+    "Front Height": "FH",
+    "Front Wide": "FW",
+    "Front Height + Front Wide": "HW",
     "Height + Floor": "HF",
+    "Surround Back": "SB",
+    "Surround Back + Front Height": "BH",
+    "Surround Back + Front Wide": "BW",
 }
 EFFECT_SPEAKER_SELECTION_MAP_LABELS = {
     value: key for key, value in EFFECT_SPEAKER_SELECTION_MAP.items()
