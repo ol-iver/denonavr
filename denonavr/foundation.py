@@ -1999,6 +1999,7 @@ def set_api_timeout(
     instance._device.api.timeout = value
     instance._device.api.read_timeout = max(value, 15.0)
     instance._device.telnet_api.timeout = value
+    instance._device.telnet_api._send_confirmation_timeout = value
     return value
 
 
