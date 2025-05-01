@@ -88,26 +88,10 @@ Other `async` methods available include:
 * `d.async_set_volume(50)`
 
 ## Collection of HTTP calls
-For a collection of HTTP calls for Denon receivers please have a look at the `doc` folder.
+For a collection of HTTP calls for Denon receivers please have a look at the [doc folder](doc/XML_data_dump.txt).
 
 ## License
 MIT
-
-## Author
-@ol-iver: https://github.com/ol-iver
-
-## Contributors
-@soldag: https://github.com/soldag  
-@shapiromatron: https://github.com/shapiromatron  
-@glance-: https://github.com/glance-  
-@p3dda: https://github.com/p3dda  
-@russel: https://github.com/russell  
-@starkillerOG: https://github.com/starkillerOG  
-@andrewsayre: https://github.com/andrewsayre  
-@JPHutchins: https://github.com/JPHutchins  
-@MarBra: https://github.com/MarBra  
-@dcmeglio: https://github.com/dcmeglio  
-@bdraco: https://github.com/bdraco  
 
 ## Users
 Home Assistant: https://github.com/home-assistant/home-assistant/  
