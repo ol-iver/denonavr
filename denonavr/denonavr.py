@@ -623,13 +623,11 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.video_processing_mode
 
     @property
-    def tactile_transducer(self) -> Optional[str]:
+    def tactile_transducer(self) -> Optional[bool]:
         """
         Return the tactile transducer state of the device.
 
         Only available if using Telnet.
-
-        Possible values are ON, OFF and Number representing the intensity
         """
         return self._device.tactile_transducer
 

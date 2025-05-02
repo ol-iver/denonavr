@@ -93,6 +93,15 @@ def convert_on_off_bool(value: str) -> Optional[bool]:
     return None
 
 
+def convert_on_off_bool_str(value: str) -> Optional[Union[bool, str]]:
+    """Convert a ON/OFF string to bool with fallback to raw value."""
+    val = convert_on_off_bool(value)
+    if val is not None:
+        return val
+
+    return value
+
+
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
 class DenonAVRDeviceInfo:
     """Implements a class with device information of the receiver."""
@@ -927,8 +936,6 @@ class DenonAVRDeviceInfo:
         Return the tactile transducer state of the device.
 
         Only available if using Telnet.
-
-        Possible values are ON, OFF and Number representing the intensity
         """
         return self._tactile_transducer
 
