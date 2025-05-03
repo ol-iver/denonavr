@@ -60,7 +60,9 @@ class DenonAVRVolume(DenonAVRFoundation):
     _subwoofer: Optional[bool] = attr.ib(
         converter=attr.converters.optional(convert_on_off_bool), default=None
     )
-    _subwoofer_levels: Optional[Dict[Subwoofers, float]] = attr.ib(default=None)
+    _subwoofer_levels: Optional[Dict[Subwoofers, Union[float, bool]]] = attr.ib(
+        default=None
+    )
     _valid_subwoofers = get_args(Subwoofers)
     _lfe: Optional[int] = attr.ib(converter=attr.converters.optional(int), default=None)
     _bass_sync: Optional[int] = attr.ib(
@@ -162,7 +164,11 @@ class DenonAVRVolume(DenonAVRFoundation):
 
         subwoofer = SUBWOOFERS_MAP_LABELS[subwoofer_volume[0]]
         level = subwoofer_volume[1]
-        self._subwoofer_levels[subwoofer] = CHANNEL_VOLUME_MAP[level]
+        val = convert_on_off_bool(level)
+        if val is not None:
+            self._subwoofer_levels[subwoofer] = val
+        else:
+            self._subwoofer_levels[subwoofer] = CHANNEL_VOLUME_MAP[level]
 
     async def _async_lfe_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a LFE change event."""
@@ -255,9 +261,9 @@ class DenonAVRVolume(DenonAVRFoundation):
         return self._subwoofer
 
     @property
-    def subwoofer_levels(self) -> Optional[Dict[Subwoofers, float]]:
+    def subwoofer_levels(self) -> Optional[Dict[Subwoofers, Union[bool, float]]]:
         """
-        Return the subwoofer levels of the device in dB.
+        Return the subwoofer levels of the device in dB or power state.
 
         Only available if using Telnet.
         """
