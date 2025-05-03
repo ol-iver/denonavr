@@ -60,9 +60,8 @@ class DenonAVRVolume(DenonAVRFoundation):
     _subwoofer: Optional[bool] = attr.ib(
         converter=attr.converters.optional(convert_on_off_bool), default=None
     )
-    _subwoofer_levels: Optional[Dict[Subwoofers, Union[float, bool]]] = attr.ib(
-        default=None
-    )
+    _subwoofer_levels_adjustment: bool = attr.ib(default=True)
+    _subwoofer_levels: Optional[Dict[Subwoofers, float]] = attr.ib(default=None)
     _valid_subwoofers = get_args(Subwoofers)
     _lfe: Optional[int] = attr.ib(converter=attr.converters.optional(int), default=None)
     _bass_sync: Optional[int] = attr.ib(
@@ -128,7 +127,11 @@ class DenonAVRVolume(DenonAVRFoundation):
             return
 
         channel_volume = parameter.split()
-        if len(channel_volume) != 2 or channel_volume[0] not in CHANNEL_MAP_LABELS:
+        if (
+            len(channel_volume) != 2
+            or channel_volume[0] not in CHANNEL_MAP_LABELS
+            or channel_volume[1] not in CHANNEL_VOLUME_MAP
+        ):
             return
 
         if self._channel_volumes is None:
@@ -166,8 +169,8 @@ class DenonAVRVolume(DenonAVRFoundation):
         level = subwoofer_volume[1]
         val = convert_on_off_bool(level)
         if val is not None:
-            self._subwoofer_levels[subwoofer] = val
-        else:
+            self._subwoofer_levels_adjustment = val
+        elif level in CHANNEL_VOLUME_MAP:
             self._subwoofer_levels[subwoofer] = CHANNEL_VOLUME_MAP[level]
 
     async def _async_lfe_callback(self, zone: str, event: str, parameter: str) -> None:
@@ -263,11 +266,14 @@ class DenonAVRVolume(DenonAVRFoundation):
     @property
     def subwoofer_levels(self) -> Optional[Dict[Subwoofers, Union[bool, float]]]:
         """
-        Return the subwoofer levels of the device in dB or power state.
+        Return the subwoofer levels of the device in dB when enabled.
 
         Only available if using Telnet.
         """
-        return self._subwoofer_levels
+        if self._subwoofer_levels_adjustment:
+            return self._subwoofer_levels
+
+        return None
 
     @property
     def lfe(self) -> Optional[int]:
