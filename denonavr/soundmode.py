@@ -1209,17 +1209,6 @@ class DenonAVRSoundMode(DenonAVRFoundation):
                 )
             )
 
-    async def async_effect_speaker_selection_toggle(self) -> None:
-        """
-        Toggle Effect Speaker Selection.
-
-        Only available if using Telnet.
-        """
-        if self._effect_speaker_selection == "Floor":
-            await self.async_effect_speaker_selection("Height + Floor")
-        else:
-            await self.async_effect_speaker_selection("Floor")
-
     async def async_drc(self, mode: DRCs) -> None:
         """Set DRC mode."""
         if mode not in self._drcs:
