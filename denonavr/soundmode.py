@@ -229,6 +229,10 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if self._device.zone != zone:
             return
 
+        # QUICK is not a sound mode
+        if parameter.startswith("QUICK"):
+            return
+
         self._sound_mode_raw = parameter
 
     async def _async_neural_x_callback(
