@@ -154,6 +154,7 @@ class DenonAVRDeviceInfo:
     _dimmer: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _dimmer_modes = get_args(DimmerModes)
     _auto_standby: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
@@ -1200,7 +1201,7 @@ class DenonAVRDeviceInfo:
 
     async def async_dimmer(self, mode: DimmerModes) -> None:
         """Set dimmer mode on receiver via HTTP get command."""
-        if mode not in DimmerModes:
+        if mode not in self._dimmer_modes:
             raise AvrCommandError("Invalid dimmer mode")
 
         mapped_mode = DIMMER_MODE_MAP[mode]
