@@ -8,7 +8,7 @@ This module implements the Audyssey settings of Denon AVR receivers.
 """
 
 import logging
-from typing import Optional
+from typing import Optional, get_args
 
 import attr
 
@@ -31,6 +31,7 @@ class DenonAVRDirac(DenonAVRFoundation):
     _dirac_filter: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _dirac_filters = get_args(DiracFilters)
 
     def setup(self) -> None:
         """Ensure that the instance is initialized."""
@@ -66,7 +67,7 @@ class DenonAVRDirac(DenonAVRFoundation):
     ##########
     async def async_dirac_filter(self, dirac_filter: DiracFilters) -> None:
         """Set Dirac filter."""
-        if dirac_filter not in DiracFilters:
+        if dirac_filter not in self._dirac_filters:
             raise AvrCommandError("Invalid Dirac filter")
 
         mapped_filter = DIRAC_FILTER_MAP[dirac_filter]

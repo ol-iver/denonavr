@@ -168,9 +168,11 @@ class DenonAVRDeviceInfo:
     _eco_mode: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _eco_modes = get_args(EcoModes)
     _hdmi_output: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _hdmi_outputs = get_args(HDMIOutputs)
     _hdmi_audio_decode: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
@@ -1449,7 +1451,7 @@ class DenonAVRDeviceInfo:
 
     async def async_eco_mode(self, mode: EcoModes) -> None:
         """Set Eco mode."""
-        if mode not in EcoModes:
+        if mode not in self._eco_modes:
             raise AvrCommandError("Invalid Eco mode")
 
         mapped_mode = ECO_MODE_MAP[mode]
@@ -1464,7 +1466,7 @@ class DenonAVRDeviceInfo:
 
     async def async_hdmi_output(self, output: HDMIOutputs) -> None:
         """Set HDMI output."""
-        if output not in HDMIOutputs:
+        if output not in self._hdmi_outputs:
             raise AvrCommandError("Invalid HDMI output mode")
 
         mapped_output = HDMI_OUTPUT_MAP[output]
