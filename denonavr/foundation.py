@@ -39,6 +39,7 @@ from .const import (
     DIMMER_MODE_MAP_LABELS,
     ECO_MODE_MAP,
     ECO_MODE_MAP_LABELS,
+    HDMI_OUTPUT_MAP,
     HDMI_OUTPUT_MAP_LABELS,
     MAIN_ZONE,
     POWER_STATES,
@@ -1465,7 +1466,7 @@ class DenonAVRDeviceInfo:
         if output not in HDMIOutputs:
             raise AvrCommandError("Invalid HDMI output mode")
 
-        mapped_output = HDMIOutputs[output]
+        mapped_output = HDMI_OUTPUT_MAP[output]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_hdmi_output.format(output=mapped_output)
