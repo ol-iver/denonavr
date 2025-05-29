@@ -1397,15 +1397,19 @@ class DenonAVRDeviceInfo:
             raise AvrCommandError("Quick select number must be between 1 and 5")
 
         if self.telnet_available:
+            if "denon" in self.manufacturer.lower():
+                command = self.telnet_commands.command_quick_select_memory
+            else:
+                command = self.telnet_commands.command_smart_select_memory
             await self.telnet_api.async_send_commands(
-                self.telnet_commands.command_quick_select_mode.format(
-                    number=quick_select_number
-                )
+                command.format(number=quick_select_number)
             )
         else:
-            await self.api.async_get_command(
-                self.urls.command_quick_select_mode.format(number=quick_select_number)
-            )
+            if "denon" in self.manufacturer.lower():
+                command = self.urls.command_quick_select_mode
+            else:
+                command = self.urls.command_smart_select_mode
+            await self.api.async_get_command(command.format(number=quick_select_number))
 
     async def async_quick_select_memory(self, quick_select_number: int) -> None:
         """
@@ -1417,15 +1421,19 @@ class DenonAVRDeviceInfo:
             raise AvrCommandError("Quick select number must be between 1 and 5")
 
         if self.telnet_available:
+            if "denon" in self.manufacturer.lower():
+                command = self.telnet_commands.command_quick_select_mode
+            else:
+                command = self.telnet_commands.command_smart_select_mode
             await self.telnet_api.async_send_commands(
-                self.telnet_commands.command_quick_select_memory.format(
-                    number=quick_select_number
-                )
+                command.format(number=quick_select_number)
             )
         else:
-            await self.api.async_get_command(
-                self.urls.command_quick_select_memory.format(number=quick_select_number)
-            )
+            if "denon" in self.manufacturer.lower():
+                command = self.urls.command_quick_select_memory
+            else:
+                command = self.urls.command_smart_select_memory
+            await self.api.async_get_command(command.format(number=quick_select_number))
 
     async def async_delay_up(self) -> None:
         """Delay up on receiver via HTTP get command."""

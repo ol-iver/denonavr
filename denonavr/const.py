@@ -90,6 +90,8 @@ ReceiverURLs = namedtuple(
         "command_hdmi_audio_decode",
         "command_quick_select_mode",
         "command_quick_select_memory",
+        "command_smart_select_mode",  # Marantz
+        "command_smart_select_memory",  # Marantz
         "command_auto_standby",
         "command_sleep",
         "command_center_spread",
@@ -183,6 +185,8 @@ TelnetCommands = namedtuple(
         "command_hdmi_audio_decode",
         "command_quick_select_mode",
         "command_quick_select_memory",
+        "command_smart_select_mode",  # Marantz
+        "command_smart_select_memory",  # Marantz
         "command_auto_standby",
         "command_sleep",
         "command_center_spread",
@@ -541,7 +545,11 @@ COMMAND_DIALOG_ENHANCER = "/goform/formiPhoneAppDirect.xml?PSDEH%20{level}"
 COMMAND_HDMI_OUTPUT = "/goform/formiPhoneAppDirect.xml?VSMONI{output}"
 COMMAND_HDMI_AUDIO_DECODE = "/goform/formiPhoneAppDirect.xml?VSAUDIO%20{mode}"
 COMMAND_QUICK_SELECT_MODE = "/goform/formiPhoneAppDirect.xml?MSQUICK{number}"
-COMMAND_QUICK_SELECT_MEMORY = "/goform/formiPhoneAppDirect.xml?MSQUICK{number}"
+COMMAND_QUICK_SELECT_MEMORY = "/goform/formiPhoneAppDirect.xml?MSQUICK{number}%20MEMORY"
+COMMAND_SMART_SELECT_MODE = "/goform/formiPhoneAppDirect.xml?MSSMART{number}"  # Marantz
+COMMAND_SMART_SELECT_MEMORY = (
+    "/goform/formiPhoneAppDirect.xml?MSSMART{number}%20MEMORY"  # Marantz
+)
 COMMAND_AUTO_STANDBY = "/goform/formiPhoneAppDirect.xml?STBY{mode}"
 COMMAND_SLEEP = "/goform/formiPhoneAppDirect.xml?SLP{value}"
 COMMAND_CENTER_SPREAD = "/goform/formiPhoneAppDirect.xml?PSCES%20{mode}"
@@ -658,6 +666,8 @@ DENONAVR_URLS = ReceiverURLs(
     command_hdmi_audio_decode=COMMAND_HDMI_AUDIO_DECODE,
     command_quick_select_mode=COMMAND_QUICK_SELECT_MODE,
     command_quick_select_memory=COMMAND_QUICK_SELECT_MODE,
+    command_smart_select_mode=COMMAND_SMART_SELECT_MODE,  # Marantz
+    command_smart_select_memory=COMMAND_SMART_SELECT_MEMORY,  # Marantz
     command_auto_standby=COMMAND_AUTO_STANDBY,
     command_sleep=COMMAND_SLEEP,
     command_center_spread=COMMAND_CENTER_SPREAD,
@@ -751,6 +761,8 @@ ZONE2_URLS = ReceiverURLs(
     command_hdmi_audio_decode=COMMAND_HDMI_AUDIO_DECODE,
     command_quick_select_mode=COMMAND_QUICK_SELECT_MODE,
     command_quick_select_memory=COMMAND_QUICK_SELECT_MEMORY,
+    command_smart_select_mode=COMMAND_SMART_SELECT_MODE,  # Marantz
+    command_smart_select_memory=COMMAND_SMART_SELECT_MEMORY,  # Marantz
     command_auto_standby=COMMAND_AUTO_STANDBY,
     command_sleep=COMMAND_SLEEP,
     command_center_spread=COMMAND_CENTER_SPREAD,
@@ -844,6 +856,8 @@ ZONE3_URLS = ReceiverURLs(
     command_hdmi_audio_decode=COMMAND_HDMI_AUDIO_DECODE,
     command_quick_select_mode=COMMAND_QUICK_SELECT_MODE,
     command_quick_select_memory=COMMAND_QUICK_SELECT_MEMORY,
+    command_smart_select_mode=COMMAND_SMART_SELECT_MODE,  # Marantz
+    command_smart_select_memory=COMMAND_SMART_SELECT_MEMORY,  # Marantz
     command_auto_standby=COMMAND_AUTO_STANDBY,
     command_sleep=COMMAND_SLEEP,
     command_center_spread=COMMAND_CENTER_SPREAD,
@@ -992,6 +1006,8 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_hdmi_audio_decode="VSAUDIO {mode}",
     command_quick_select_mode="MSQUICK{number}",
     command_quick_select_memory="MSQUICK{number} MEMORY",
+    command_smart_select_mode="MSSMART{number}",  # Marantz
+    command_smart_select_memory="MSSMART{number} MEMORY",  # Marantz
     command_auto_standby="STBY{mode}",
     command_sleep="SLP{value}",
     command_center_spread="PSCES {mode}",
@@ -1083,6 +1099,8 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_hdmi_audio_decode="VSAUDIO {mode}",
     command_quick_select_mode="MSQUICK{number}",
     command_quick_select_memory="MSQUICK{number} MEMORY",
+    command_smart_select_mode="MSSMART{number}",  # Marantz
+    command_smart_select_memory="MSSMART{number} MEMORY",  # Marantz
     command_auto_standby="STBY{mode}",
     command_sleep="SLP{value}",
     command_center_spread="PSCES {mode}",
@@ -1174,6 +1192,8 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_hdmi_audio_decode="VSAUDIO {mode}",
     command_quick_select_mode="MSQUICK{number}",
     command_quick_select_memory="MSQUICK{number} MEMORY",
+    command_smart_select_mode="MSSMART{number}",  # Marantz
+    command_smart_select_memory="MSSMART{number} MEMORY",  # Marantz
     command_auto_standby="STBY{mode}",
     command_sleep="SLP{value}",
     command_center_spread="PSCES {mode}",
