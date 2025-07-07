@@ -308,8 +308,8 @@ class DenonAVRDeviceInfo:
         self, zone: str, event: str, parameter: str
     ) -> None:
         """Handle a delay change event."""
-        if event == "PS" and parameter[0:3] == "DEL":
-            self._delay = int(parameter[4:])
+        if event == "PS" and parameter[0:5] == "DELAY":
+            self._delay = int(parameter[6:])
 
     async def _async_eco_mode_callback(
         self, zone: str, event: str, parameter: str
@@ -385,7 +385,8 @@ class DenonAVRDeviceInfo:
         self, zone: str, event: str, parameter: str
     ) -> None:
         """Handle a delay time change event."""
-        if event != "PS" or parameter[0:3] != "DEL":
+        # do not match "DELAY" as it's another event
+        if event != "PS" or parameter[0:3] != "DEL" or "DELAY" in parameter:
             return
 
         self._delay_time = int(parameter[4:])
