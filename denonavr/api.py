@@ -587,6 +587,7 @@ class DenonAVRTelnetApi:
             "PSSWL ?",
             "SSTTR ?",
             "MSQUICK ?",
+            "MSSMART ?",
             "STBY?",
             "SLP?",
             "VSAUDIO ?",

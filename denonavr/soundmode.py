@@ -229,8 +229,8 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if self._device.zone != zone:
             return
 
-        # QUICK is not a sound mode
-        if parameter.startswith("QUICK"):
+        # QUICK/SMART are not sound modes
+        if parameter.startswith("QUICK") or parameter.startswith("SMART"):
             return
 
         self._sound_mode_raw = parameter
