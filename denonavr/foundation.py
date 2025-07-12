@@ -39,6 +39,7 @@ from .const import (
     DIMMER_MODE_MAP_LABELS,
     ECO_MODE_MAP,
     ECO_MODE_MAP_LABELS,
+    HDMI_OUTPUT_MAP,
     HDMI_OUTPUT_MAP_LABELS,
     MAIN_ZONE,
     POWER_STATES,
@@ -153,6 +154,7 @@ class DenonAVRDeviceInfo:
     _dimmer: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _dimmer_modes = get_args(DimmerModes)
     _auto_standby: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
@@ -166,9 +168,11 @@ class DenonAVRDeviceInfo:
     _eco_mode: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _eco_modes = get_args(EcoModes)
     _hdmi_output: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _hdmi_outputs = get_args(HDMIOutputs)
     _hdmi_audio_decode: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
@@ -1199,7 +1203,7 @@ class DenonAVRDeviceInfo:
 
     async def async_dimmer(self, mode: DimmerModes) -> None:
         """Set dimmer mode on receiver via HTTP get command."""
-        if mode not in DimmerModes:
+        if mode not in self._dimmer_modes:
             raise AvrCommandError("Invalid dimmer mode")
 
         mapped_mode = DIMMER_MODE_MAP[mode]
@@ -1447,7 +1451,7 @@ class DenonAVRDeviceInfo:
 
     async def async_eco_mode(self, mode: EcoModes) -> None:
         """Set Eco mode."""
-        if mode not in EcoModes:
+        if mode not in self._eco_modes:
             raise AvrCommandError("Invalid Eco mode")
 
         mapped_mode = ECO_MODE_MAP[mode]
@@ -1462,10 +1466,10 @@ class DenonAVRDeviceInfo:
 
     async def async_hdmi_output(self, output: HDMIOutputs) -> None:
         """Set HDMI output."""
-        if output not in HDMIOutputs:
+        if output not in self._hdmi_outputs:
             raise AvrCommandError("Invalid HDMI output mode")
 
-        mapped_output = HDMIOutputs[output]
+        mapped_output = HDMI_OUTPUT_MAP[output]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_hdmi_output.format(output=mapped_output)
