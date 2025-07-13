@@ -386,7 +386,7 @@ class DenonAVRDeviceInfo:
     ) -> None:
         """Handle a delay time change event."""
         # do not match "DELAY" as it's another event
-        if event != "PS" or parameter[0:3] != "DEL" or "DELAY" in parameter:
+        if event != "PS" or parameter[0:3] != "DEL" or parameter[0:5] == "DELAY":
             return
 
         self._delay_time = int(parameter[4:])
