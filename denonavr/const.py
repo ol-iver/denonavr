@@ -411,6 +411,7 @@ SOUND_MODE_MAPPING = {
         "DTS-HD + DOLBY SURROUND",
         "DTS-HD + DSUR",
         "DTS-HD + NEURAL:X",
+        "DTS HD MSTR",
         "DTS-HD MSTR",
         "DTS-HD",
         "DTS:X MSTR",
