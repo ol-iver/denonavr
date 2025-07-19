@@ -22,19 +22,25 @@ from .const import (
     AURO_3D_MODE_MAP_MAP_LABELS,
     AURO_MATIC_3D_PRESET_MAP,
     AURO_MATIC_3D_PRESET_MAP_LABELS,
+    DAC_FILTERS_MAP,
+    DAC_FILTERS_MAP_LABELS,
     DENON_ATTR_SETATTR,
     DIALOG_ENHANCER_LEVEL_MAP,
     DIALOG_ENHANCER_LEVEL_MAP_LABELS,
     EFFECT_SPEAKER_SELECTION_MAP,
     EFFECT_SPEAKER_SELECTION_MAP_LABELS,
+    MDAX_MAP,
+    MDAX_MAP_LABELS,
     SOUND_MODE_MAPPING,
     Auro3DModes,
     AuroMatic3DPresets,
+    DACFilters,
     DialogEnhancerLevels,
     DRCs,
     EffectSpeakers,
     IMAXHPFs,
     IMAXLPFs,
+    MDAXs,
 )
 from .exceptions import AvrCommandError, AvrIncompleteResponseError, AvrProcessingError
 from .foundation import DenonAVRFoundation, convert_on_off_bool
@@ -145,6 +151,14 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     _effect_speakers = get_args(EffectSpeakers)
     _drc: Optional[str] = attr.ib(converter=attr.converters.optional(str), default=None)
     _drcs = get_args(DRCs)
+    _mdax: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _mdaxs = get_args(MDAXs)
+    _dac_filter: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _dac_filters = get_args(DACFilters)
     _sound_mode_map: Dict[str, list] = attr.ib(
         validator=attr.validators.deep_mapping(
             attr.validators.instance_of(str),
@@ -218,6 +232,14 @@ class DenonAVRSoundMode(DenonAVRFoundation):
                 "PS", self._async_effect_speaker_selection_callback
             )
             self._device.telnet_api.register_callback("PS", self._async_drc_callback)
+
+            if not self._device.is_denon_avr:
+                self._device.telnet_api.register_callback(
+                    "PS", self._async_mdax_callback
+                )
+                self._device.telnet_api.register_callback(
+                    "PS", self._async_dac_filter_callback
+                )
 
             self._is_setup = True
             _LOGGER.debug("Finished sound mode setup")
@@ -344,6 +366,24 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             return
 
         self._drc = key_value[1]
+
+    async def _async_mdax_callback(self, zone: str, event: str, parameter: str) -> None:
+        """Handle a M-DAX change event."""
+        key_value = parameter.split()
+        if len(key_value) != 2 or key_value[0] != "MDAX":
+            return
+
+        self._mdax = MDAX_MAP_LABELS[key_value[1]]
+
+    async def _async_dac_filter_callback(
+        self, zone: str, event: str, parameter: str
+    ) -> None:
+        """Handle a DAC Filter change event."""
+        key_value = parameter.split()
+        if len(key_value) != 2 or key_value[0] != "DACFIL":
+            return
+
+        self._dac_filter = DAC_FILTERS_MAP_LABELS[key_value[1]]
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -690,6 +730,28 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         Possible values are: "AUTO", "LOW", "MID", "HI", "OFF"
         """
         return self._drc
+
+    @property
+    def mdax(self) -> Optional[str]:
+        """
+        Return the current M-DAX status.
+
+        Only available on Marantz devices and when using Telnet.
+
+        Possible values are: "Off", "Low", "Medium", "High"
+        """
+        return self._mdax
+
+    @property
+    def dac_filter(self) -> Optional[str]:
+        """
+        Return the current DAC Filter status.
+
+        Only available on Marantz devices and when using Telnet.
+
+        Possible values are: "Mode 1", "Mode 2"
+        """
+        return self._dac_filter
 
     ##########
     # Setter #
@@ -1225,6 +1287,50 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         else:
             await self._device.api.async_get_command(
                 self._device.urls.command_drc.format(mode=mode)
+            )
+
+    async def async_mdax(self, mode: MDAXs) -> None:
+        """
+        Set M-DAX mode.
+
+        Only available for Marantz devices.
+        """
+        if self._device.is_denon_avr:
+            raise AvrCommandError("M-DAX is only available for Marantz devices")
+
+        if mode not in self._mdaxs:
+            raise AvrCommandError(f"{mode} is not a valid M-DAX mode")
+
+        local_mode = MDAX_MAP[mode]
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_mdax.format(mode=local_mode)
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_mdax.format(mode=local_mode)
+            )
+
+    async def async_dac_filter(self, mode: DACFilters) -> None:
+        """
+        Set DAC Filter mode.
+
+        Only available for Marantz devices.
+        """
+        if self._device.is_denon_avr:
+            raise AvrCommandError("DAC Filter is only available for Marantz devices")
+
+        if mode not in self._dac_filters:
+            raise AvrCommandError(f"{mode} is not a valid DAC Filter mode")
+
+        local_mode = DAC_FILTERS_MAP[mode]
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_dac_filter.format(mode=local_mode)
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_dac_filter.format(mode=local_mode)
             )
 
 
