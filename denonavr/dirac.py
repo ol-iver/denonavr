@@ -7,6 +7,7 @@ This module implements the Audyssey settings of Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
+import asyncio
 import logging
 from typing import Optional, get_args
 
@@ -33,16 +34,16 @@ class DenonAVRDirac(DenonAVRFoundation):
     )
     _dirac_filters = get_args(DiracFilters)
 
-    def setup(self) -> None:
+    async def async_setup(self) -> None:
         """Ensure that the instance is initialized."""
-        self._device.telnet_api.register_callback(
-            "PS", self._async_dirac_filter_callback
-        )
+        asyncio.create_task(self._async_register_dirac_callbacks())
+
         self._is_setup = True
 
-    async def _async_dirac_filter_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    async def _async_register_dirac_callbacks(self) -> None:
+        self._device.telnet_api.register_callback("PS", self._async_ps_callback)
+
+    async def _async_ps_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle Dirac filter change event."""
         if event == "PS" and parameter[0:5] == "DIRAC":
             self._dirac_filter = DIRAC_FILTER_MAP_LABELS[parameter[6:]]

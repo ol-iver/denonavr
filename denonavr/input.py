@@ -181,7 +181,7 @@ class DenonAVRInput(DenonAVRFoundation):
     # Status.xml interface
     status_xml_attrs = {"_input_func": "./InputFuncSelect/value"}
 
-    def setup(self) -> None:
+    async def async_setup(self) -> None:
         """Ensure that the instance is initialized."""
         # Add tags for a potential AppCommand.xml update
         # For update of input function list
@@ -192,6 +192,11 @@ class DenonAVRInput(DenonAVRFoundation):
         for tag in self.appcommand_attrs:
             self._device.api.add_appcommand_update_tag(tag)
 
+        asyncio.create_task(self._async_register_input_callbacks())
+
+        self._is_setup = True
+
+    async def _async_register_input_callbacks(self) -> None:
         power_event = "ZM"
         if self._device.zone == ZONE2:
             power_event = "Z2"
@@ -207,8 +212,6 @@ class DenonAVRInput(DenonAVRFoundation):
         self._device.telnet_api.register_callback(
             "SS", self._async_input_func_update_callback
         )
-
-        self._is_setup = True
 
     async def _async_input_callback(
         self, zone: str, event: str, parameter: str
@@ -417,7 +420,7 @@ class DenonAVRInput(DenonAVRFoundation):
         _LOGGER.debug("Starting input update")
         # Ensure instance is setup before updating
         if not self._is_setup:
-            self.setup()
+            await self.async_setup()
 
         # Update input functions
         _LOGGER.debug("Updating input functions")
