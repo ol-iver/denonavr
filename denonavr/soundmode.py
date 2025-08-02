@@ -233,7 +233,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             )
             self._device.telnet_api.register_callback("PS", self._async_drc_callback)
 
-            if not self._device.is_denon_avr:
+            if not self._device.is_denon:
                 self._device.telnet_api.register_callback(
                     "PS", self._async_mdax_callback
                 )
@@ -1295,7 +1295,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         Only available for Marantz devices.
         """
-        if self._device.is_denon_avr:
+        if self._device.is_denon:
             raise AvrCommandError("M-DAX is only available for Marantz devices")
 
         if mode not in self._mdaxs:
@@ -1317,7 +1317,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         Only available for Marantz devices.
         """
-        if self._device.is_denon_avr:
+        if self._device.is_denon:
             raise AvrCommandError("DAC Filter is only available for Marantz devices")
 
         if mode not in self._dac_filters:

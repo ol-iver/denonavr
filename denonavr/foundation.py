@@ -521,7 +521,7 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback("PS", self._async_graphic_eq_callback)
             self.telnet_api.register_callback("PS", self._async_headphone_eq_callback)
 
-            if not self.is_denon_avr:
+            if not self.is_denon:
                 self.telnet_api.register_callback(
                     "ILB", self._async_illumination_callback
                 )
@@ -772,7 +772,7 @@ class DenonAVRDeviceInfo:
 
         if device_info is None:
             self.manufacturer = "Denon"
-            self.telnet_api.is_denon = self.is_denon_avr
+            self.telnet_api.is_denon = self.is_denon
             self.model_name = "Unknown"
             self.serial_number = None
             _LOGGER.warning(
@@ -788,7 +788,7 @@ class DenonAVRDeviceInfo:
         if self.friendly_name is None and "friendlyName" in device_info:
             self.friendly_name = device_info["friendlyName"]
         self.manufacturer = device_info["manufacturer"]
-        self.telnet_api.is_denon = self.is_denon_avr
+        self.telnet_api.is_denon = self.is_denon
         self.model_name = device_info["modelName"]
         self.serial_number = device_info["serialNumber"]
 
@@ -1122,8 +1122,8 @@ class DenonAVRDeviceInfo:
         return self.telnet_api.connected and self.telnet_api.healthy
 
     @property
-    def is_denon_avr(self) -> bool:
-        """Return true if the receiver is a Denon AVR."""
+    def is_denon(self) -> bool:
+        """Return true if the receiver is a Denon device."""
         return "denon" in self.manufacturer.lower()
 
     ##########
@@ -1472,7 +1472,7 @@ class DenonAVRDeviceInfo:
             raise AvrCommandError("Quick select number must be between 1 and 5")
 
         if self.telnet_available:
-            if self.is_denon_avr:
+            if self.is_denon:
                 command = self.telnet_commands.command_quick_select_memory
             else:
                 command = self.telnet_commands.command_smart_select_memory
@@ -1480,7 +1480,7 @@ class DenonAVRDeviceInfo:
                 command.format(number=quick_select_number)
             )
         else:
-            if self.is_denon_avr:
+            if self.is_denon:
                 command = self.urls.command_quick_select_mode
             else:
                 command = self.urls.command_smart_select_mode
@@ -1496,7 +1496,7 @@ class DenonAVRDeviceInfo:
             raise AvrCommandError("Quick select number must be between 1 and 5")
 
         if self.telnet_available:
-            if self.is_denon_avr:
+            if self.is_denon:
                 command = self.telnet_commands.command_quick_select_mode
             else:
                 command = self.telnet_commands.command_smart_select_mode
@@ -1504,7 +1504,7 @@ class DenonAVRDeviceInfo:
                 command.format(number=quick_select_number)
             )
         else:
-            if self.is_denon_avr:
+            if self.is_denon:
                 command = self.urls.command_quick_select_memory
             else:
                 command = self.urls.command_smart_select_memory
@@ -1590,7 +1590,7 @@ class DenonAVRDeviceInfo:
 
     async def async_status(self) -> None:
         """Get status of receiver via HTTP get command."""
-        if not self.is_denon_avr:
+        if not self.is_denon:
             raise AvrCommandError("Status command is only supported for Denon devices")
 
         if self.telnet_available:
@@ -1893,13 +1893,13 @@ class DenonAVRDeviceInfo:
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_denon_hdmi_cec_on
-                if self.is_denon_avr
+                if self.is_denon
                 else self.urls.command_marantz_hdmi_cec_on
             )
         else:
             await self.api.async_get_command(
                 self.urls.command_denon_hdmi_cec_on
-                if self.is_denon_avr
+                if self.is_denon
                 else self.urls.command_marantz_hdmi_cec_on
             )
 
@@ -1908,13 +1908,13 @@ class DenonAVRDeviceInfo:
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_denon_hdmi_cec_off
-                if self.is_denon_avr
+                if self.is_denon
                 else self.urls.command_marantz_hdmi_cec_off
             )
         else:
             await self.api.async_get_command(
                 self.urls.command_denon_hdmi_cec_off
-                if self.is_denon_avr
+                if self.is_denon
                 else self.urls.command_marantz_hdmi_cec_off
             )
 
@@ -1924,7 +1924,7 @@ class DenonAVRDeviceInfo:
 
         Only available on Marantz devices.
         """
-        if self.is_denon_avr:
+        if self.is_denon:
             raise AvrCommandError("Illumination is only available for Marantz devices")
 
         if mode not in self._illuminations:
@@ -1946,7 +1946,7 @@ class DenonAVRDeviceInfo:
 
         Only available on Marantz devices.
         """
-        if self.is_denon_avr:
+        if self.is_denon:
             raise AvrCommandError("Auto lip sync is only available for Marantz devices")
 
         if self.telnet_available:
@@ -1964,7 +1964,7 @@ class DenonAVRDeviceInfo:
 
         Only available on Marantz devices.
         """
-        if self.is_denon_avr:
+        if self.is_denon:
             raise AvrCommandError("Auto lip sync is only available for Marantz devices")
 
         if self.telnet_available:
@@ -1982,7 +1982,7 @@ class DenonAVRDeviceInfo:
 
         Only available on Marantz devices and when using Telnet.
         """
-        if self.is_denon_avr:
+        if self.is_denon:
             raise AvrCommandError("Auto lip sync is only available for Marantz devices")
 
         if self._auto_lip_sync:
