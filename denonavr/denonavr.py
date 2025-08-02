@@ -27,6 +27,7 @@ from .const import (
     EcoModes,
     HDMIAudioDecodes,
     HDMIOutputs,
+    Illuminations,
     PanelLocks,
     RoomSizes,
     TransducerLPFs,
@@ -738,6 +739,26 @@ class DenonAVR(DenonAVRFoundation):
         """
         return self._device.headphone_eq
 
+    @property
+    def illumination(self) -> Optional[str]:
+        """
+        Return the illumination status for the device.
+
+        Only available on Marantz devices and when using Telnet.
+
+        Possible values are: "Auto", "Bright", "Dim", "Dark", "Off"
+        """
+        return self.illumination
+
+    @property
+    def auto_lip_sync(self) -> Optional[bool]:
+        """
+        Return the auto lip sync status for the device.
+
+        Only available on Marantz devices and when using Telnet.
+        """
+        return self.auto_lip_sync
+
     ##########
     # Getter #
     ##########
@@ -1210,3 +1231,43 @@ class DenonAVR(DenonAVRFoundation):
         :param quick_select_number: Quick select number to set. Valid values are 1-5.
         """
         await self._device.async_quick_select_memory(quick_select_number)
+
+    async def async_hdmi_cec_on(self) -> None:
+        """Turn on HDMI CEC on receiver via HTTP get command."""
+        await self._device.async_hdmi_cec_on()
+
+    async def async_hdmi_cec_off(self) -> None:
+        """Turn off HDMI CEC on receiver via HTTP get command."""
+        await self._device.async_hdmi_cec_off()
+
+    async def async_illumination(self, mode: Illuminations):
+        """
+        Set illumination mode on receiver via HTTP get command.
+
+        Only available for Marantz devices.
+        """
+        await self._device.async_illumination(mode)
+
+    async def async_auto_lip_sync_on(self) -> None:
+        """
+        Turn on auto lip sync on receiver via HTTP get command.
+
+        Only available on Marantz devices.
+        """
+        await self._device.async_auto_lip_sync_on()
+
+    async def async_auto_lip_sync_off(self) -> None:
+        """
+        Turn off auto lip sync on receiver via HTTP get command.
+
+        Only available on Marantz devices.
+        """
+        await self._device.async_auto_lip_sync_off()
+
+    async def async_auto_lip_sync_toggle(self) -> None:
+        """
+        Toggle auto lip sync on receiver via HTTP get command.
+
+        Only available on Marantz devices and when using Telnet.
+        """
+        await self._device.async_auto_lip_sync_toggle()
