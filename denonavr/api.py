@@ -475,6 +475,7 @@ class DenonAVRTelnetApi:
 
     host: str = attr.ib(converter=str, default="localhost")
     timeout: float = attr.ib(converter=float, default=2.0)
+    is_denon: bool = attr.ib(converter=bool, default=True)
     _connection_enabled: bool = attr.ib(default=False)
     _last_message_time: float = attr.ib(default=-1.0)
     _connect_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
@@ -550,7 +551,7 @@ class DenonAVRTelnetApi:
         self._last_message_time = time.monotonic()
         self._schedule_monitor()
         # Trigger update of all attributes
-        await self.async_send_commands(
+        commands = [
             "ZM?",
             "SI?",
             "MV?",
@@ -613,6 +614,14 @@ class DenonAVRTelnetApi:
             "PSRSTR ?",
             "PSGEQ ?",
             "PSHEQ ?",
+        ]
+        if not self.is_denon:
+            commands.append("PSMDAX ?")
+            commands.append("PSDACFIL ?")
+            commands.append("ILB ?")
+            commands.append("SSHOS ?")
+        await self.async_send_commands(
+            *commands,
             skip_confirmation=True,
         )
 
