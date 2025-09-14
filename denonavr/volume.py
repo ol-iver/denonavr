@@ -88,16 +88,14 @@ class DenonAVRVolume(DenonAVRFoundation):
         self._is_setup = True
 
     async def _async_register_volume_callbacks(self) -> None:
-        self._device.telnet_api.register_callback("MV", self._async_volume_callback)
-        self._device.telnet_api.register_callback("MU", self._async_mute_callback)
-        self._device.telnet_api.register_callback(
-            "CV", self._async_channel_volume_callback
+        self._device.telnet_api.register_sync_callback("MV", self._volume_callback)
+        self._device.telnet_api.register_sync_callback("MU", self._mute_callback)
+        self._device.telnet_api.register_sync_callback(
+            "CV", self._channel_volume_callback
         )
-        self._device.telnet_api.register_callback("PS", self._async_ps_callback)
+        self._device.telnet_api.register_sync_callback("PS", self._ps_callback)
 
-    async def _async_volume_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _volume_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a volume change event."""
         if self._device.zone != zone:
             return
@@ -109,16 +107,14 @@ class DenonAVRVolume(DenonAVRFoundation):
             fraction = 0.1 * float(parameter[2])
             self._volume = -80.0 + whole_number + fraction
 
-    async def _async_mute_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _mute_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a muting change event."""
         if self._device.zone != zone:
             return
 
         self._muted = parameter
 
-    async def _async_channel_volume_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _channel_volume_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a channel volume change event."""
         if event != "CV":
             return
@@ -166,7 +162,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         elif level in CHANNEL_VOLUME_MAP:
             self._subwoofer_levels[subwoofer] = CHANNEL_VOLUME_MAP[level]
 
-    async def _async_ps_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _ps_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a PS change event."""
         self._subwoofer_state_callback(parameter)
         self._subwoofer_levels_callback(parameter)

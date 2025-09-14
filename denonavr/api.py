@@ -503,6 +503,11 @@ class DenonAVRTelnetApi:
         default=attr.Factory(list),
         init=False,
     )
+    _sync_callbacks: Dict[str, List[Callable[[str, str, str], None]]] = attr.ib(
+        validator=attr.validators.instance_of(dict),
+        default=attr.Factory(dict),
+        init=False,
+    )
 
     def __attrs_post_init__(self) -> None:
         """Initialize special attributes."""
@@ -757,6 +762,28 @@ class DenonAVRTelnetApi:
         """Unregister a callback handler for raw telnet messages."""
         self._raw_callbacks.remove(callback)
 
+    def register_sync_callback(
+        self, event: str, callback: Callable[[str, str, str], None]
+    ) -> None:
+        """Register a synchronous callback handler for an event type."""
+        # Validate the passed in type
+        if event != ALL_TELNET_EVENTS and event not in TELNET_EVENTS:
+            raise ValueError(f"{event} is not a valid callback type.")
+
+        if event not in self._sync_callbacks.keys():
+            self._sync_callbacks[event] = []
+        elif callback in self._sync_callbacks[event]:
+            return
+        self._sync_callbacks[event].append(callback)
+
+    def unregister_sync_callback(
+        self, event: str, callback: Callable[[str, str, str], None]
+    ) -> None:
+        """Unregister a synchronous callback handler for an event type."""
+        if event not in self._sync_callbacks.keys():
+            return
+        self._sync_callbacks[event].remove(callback)
+
     def _process_event(self, message: str) -> None:
         """Process a realtime event."""
         _LOGGER.debug("Incoming Telnet message: %s", message)
@@ -818,6 +845,29 @@ class DenonAVRTelnetApi:
                     self.host,
                     err,
                 )
+
+        # Handle sync callbacks first (faster, no async overhead)
+        if event in self._sync_callbacks.keys():
+            for callback in self._sync_callbacks[event]:
+                try:
+                    callback(zone, event, parameter)  # Direct call, no await
+                except Exception as err:
+                    _LOGGER.error(
+                        "%s: Sync event callback caused an unhandled exception: %s",
+                        self.host,
+                        err,
+                    )
+
+        if ALL_TELNET_EVENTS in self._sync_callbacks.keys():
+            for callback in self._sync_callbacks[ALL_TELNET_EVENTS]:
+                try:
+                    callback(zone, event, parameter)
+                except Exception as err:
+                    _LOGGER.error(
+                        "%s: Sync ALL event callback caused an unhandled exception: %s",
+                        self.host,
+                        err,
+                    )
 
         if event in self._callbacks.keys():
             for callback in self._callbacks[event]:

@@ -207,12 +207,10 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             self._is_setup = True
 
     async def _async_register_callbacks(self) -> None:
-        self._device.telnet_api.register_callback("MS", self._async_soundmode_callback)
-        self._device.telnet_api.register_callback("PS", self._async_ps_callback)
+        self._device.telnet_api.register_sync_callback("MS", self._soundmode_callback)
+        self._device.telnet_api.register_sync_callback("PS", self._ps_callback)
 
-    async def _async_soundmode_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _soundmode_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a sound mode change event."""
         if self._device.zone != zone:
             return
@@ -223,7 +221,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         self._sound_mode_raw = parameter
 
-    async def _async_ps_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _ps_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a PS change event."""
         self._neural_x_callback(parameter)
         self._imax_callback(parameter)
