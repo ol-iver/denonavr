@@ -293,7 +293,7 @@ class DenonAVRDeviceInfo:
         else:
             self._sleep = int(parameter)
 
-    async def _async_room_size_callback(self, parameter: str) -> None:
+    def _room_size_callback(self, parameter: str) -> None:
         """Handle a room size change event."""
         if parameter[:3] != "RSZ":
             return
@@ -318,20 +318,20 @@ class DenonAVRDeviceInfo:
 
     async def _async_vs_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a VS change event."""
-        await self._async_hdmi_output_callback(event, parameter)
-        await self._async_hdmi_audio_decode_callback(event, parameter)
-        await self._async_video_processing_mode_callback(event, parameter)
+        self._hdmi_output_callback(event, parameter)
+        self._hdmi_audio_decode_callback(event, parameter)
+        self._video_processing_mode_callback(event, parameter)
 
     async def _async_ps_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a PS change event."""
-        await self._async_delay_callback(event, parameter)
-        await self._async_room_size_callback(parameter)
-        await self._async_delay_time_callback(event, parameter)
-        await self._async_audio_restorer_callback(event, parameter)
-        await self._async_graphic_eq_callback(parameter)
-        await self._async_headphone_eq_callback(parameter)
+        self._delay_callback(event, parameter)
+        self._room_size_callback(parameter)
+        self._delay_time_callback(event, parameter)
+        self._audio_restorer_callback(event, parameter)
+        self._graphic_eq_callback(parameter)
+        self._headphone_eq_callback(parameter)
 
-    async def _async_delay_callback(self, event: str, parameter: str) -> None:
+    def _delay_callback(self, event: str, parameter: str) -> None:
         """Handle a delay change event."""
         if event == "PS" and parameter[0:5] == "DELAY":
             self._delay = int(parameter[6:])
@@ -343,21 +343,17 @@ class DenonAVRDeviceInfo:
         if event == "ECO" and parameter in ECO_MODE_MAP_LABELS:
             self._eco_mode = ECO_MODE_MAP_LABELS[parameter]
 
-    async def _async_hdmi_output_callback(self, event: str, parameter: str) -> None:
+    def _hdmi_output_callback(self, event: str, parameter: str) -> None:
         """Handle a HDMI output change event."""
         if event == "VS" and parameter[0:4] == "MONI":
             self._hdmi_output = HDMI_OUTPUT_MAP_LABELS[parameter]
 
-    async def _async_hdmi_audio_decode_callback(
-        self, event: str, parameter: str
-    ) -> None:
+    def _hdmi_audio_decode_callback(self, event: str, parameter: str) -> None:
         """Handle a HDMI Audio Decode mode change event."""
         if event == "VS" and parameter[0:5] == "AUDIO":
             self._hdmi_audio_decode = parameter[6:]
 
-    async def _async_video_processing_mode_callback(
-        self, event: str, parameter: str
-    ) -> None:
+    def _video_processing_mode_callback(self, event: str, parameter: str) -> None:
         """Handle a Video Processing Mode change event."""
         if event == "VS" and parameter[0:3] == "VPM":
             self._video_processing_mode = VIDEO_PROCESSING_MODES_MAP_LABELS[
@@ -404,7 +400,7 @@ class DenonAVRDeviceInfo:
         else:
             self._bt_output_mode = BLUETOOTH_OUTPUT_MAP_LABELS[parameter[3:]]
 
-    async def _async_delay_time_callback(self, event: str, parameter: str) -> None:
+    def _delay_time_callback(self, event: str, parameter: str) -> None:
         """Handle a delay time change event."""
         # do not match "DELAY" as it's another event
         if event != "PS" or parameter[0:3] != "DEL" or parameter[0:5] == "DELAY":
@@ -412,21 +408,21 @@ class DenonAVRDeviceInfo:
 
         self._delay_time = int(parameter[4:])
 
-    async def _async_audio_restorer_callback(self, event: str, parameter: str) -> None:
+    def _audio_restorer_callback(self, event: str, parameter: str) -> None:
         """Handle an audio restorer change event."""
         if event != "PS" or parameter[0:4] != "RSTR":
             return
 
         self._audio_restorer = AUDIO_RESTORER_MAP_LABELS[parameter[5:]]
 
-    async def _async_graphic_eq_callback(self, parameter: str) -> None:
+    def _graphic_eq_callback(self, parameter: str) -> None:
         """Handle a Graphic EQ change event."""
         if parameter[0:3] != "GEQ":
             return
 
         self._graphic_eq = parameter[4:]
 
-    async def _async_headphone_eq_callback(self, parameter: str) -> None:
+    def _headphone_eq_callback(self, parameter: str) -> None:
         """Handle a Headphone EQ change event."""
         if parameter[0:3] != "HEQ":
             return
