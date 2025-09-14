@@ -423,9 +423,7 @@ class DenonAVRDeviceInfo:
 
         self._illumination = ILLUMINATION_MAP_LABELS[parameter[4:]]
 
-    async def _auto_lip_sync_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _auto_lip_sync_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a auto lip sync change event."""
         if event != "PS" or parameter[0:3] != "HOS":
             return

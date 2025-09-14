@@ -1030,7 +1030,7 @@ class DenonAVR(DenonAVRFoundation):
         """Set video processing mode on receiver via HTTP get command."""
         await self._device.async_video_processing_mode(mode)
 
-    async def async_status(self) -> str:
+    async def async_status(self) -> None:
         """
         Toggles the display of status on the device.
 
