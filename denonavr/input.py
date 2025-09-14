@@ -181,7 +181,7 @@ class DenonAVRInput(DenonAVRFoundation):
     # Status.xml interface
     status_xml_attrs = {"_input_func": "./InputFuncSelect/value"}
 
-    async def async_setup(self) -> None:
+    def setup(self) -> None:
         """Ensure that the instance is initialized."""
         # Add tags for a potential AppCommand.xml update
         # For update of input function list
@@ -192,11 +192,11 @@ class DenonAVRInput(DenonAVRFoundation):
         for tag in self.appcommand_attrs:
             self._device.api.add_appcommand_update_tag(tag)
 
-        asyncio.create_task(self._async_register_input_callbacks())
+        self._register_input_callbacks()
 
         self._is_setup = True
 
-    async def _async_register_input_callbacks(self) -> None:
+    def _register_input_callbacks(self) -> None:
         power_event = "ZM"
         if self._device.zone == ZONE2:
             power_event = "Z2"
@@ -416,7 +416,7 @@ class DenonAVRInput(DenonAVRFoundation):
         _LOGGER.debug("Starting input update")
         # Ensure instance is setup before updating
         if not self._is_setup:
-            await self.async_setup()
+            self.setup()
 
         # Update input functions
         _LOGGER.debug("Updating input functions")

@@ -346,9 +346,12 @@ class DenonAVRDeviceInfo:
                 parameter[3:]
             ]
 
-    def _tactile_transducer_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _ss_callback(self, zone: str, event: str, parameter: str) -> None:
+        """Handle a SS change event."""
+        self._tactile_transducer_callback(parameter)
+        self._auto_lip_sync_callback(zone, event, parameter)
+
+    def _tactile_transducer_callback(self, parameter: str) -> None:
         """Handle a tactile transducer change event."""
         key_value = parameter.split()
         if len(key_value) != 2 or parameter[0:3] != "TTR":
@@ -413,16 +416,14 @@ class DenonAVRDeviceInfo:
 
         self._headphone_eq = parameter[4:]
 
-    async def _async_illumination_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _illumination_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an illumination change event."""
         if event != "ILB" or parameter[0:3] != "ILL":
             return
 
         self._illumination = ILLUMINATION_MAP_LABELS[parameter[4:]]
 
-    async def _async_auto_lip_sync_callback(
+    async def _auto_lip_sync_callback(
         self, zone: str, event: str, parameter: str
     ) -> None:
         """Handle a auto lip sync change event."""
@@ -470,20 +471,12 @@ class DenonAVRDeviceInfo:
             # Add tags for a potential AppCommand.xml update
             self.api.add_appcommand_update_tag(AppCommands.GetAllZonePowerStatus)
 
-            asyncio.create_task(self._async_register_callbacks())
-
-            if not self.is_denon:
-                self.telnet_api.register_callback(
-                    "ILB", self._async_illumination_callback
-                )
-                self.telnet_api.register_callback(
-                    "SS", self._async_auto_lip_sync_callback
-                )
+            self._register_callbacks()
 
             self._is_setup = True
             _LOGGER.debug("Finished device setup")
 
-    async def _async_register_callbacks(self):
+    def _register_callbacks(self):
         power_event = "ZM"
         if self.zone == ZONE2:
             power_event = "Z2"
@@ -495,13 +488,15 @@ class DenonAVRDeviceInfo:
         self.telnet_api.register_sync_callback("DIM", self._dimmer_callback)
         self.telnet_api.register_sync_callback("ECO", self._eco_mode_callback)
         self.telnet_api.register_sync_callback("VS", self._vs_callback)
-        self.telnet_api.register_sync_callback("SS", self._tactile_transducer_callback)
+        self.telnet_api.register_sync_callback("SS", self._ss_callback)
         self.telnet_api.register_sync_callback("STBY", self._auto_standby_callback)
         self.telnet_api.register_sync_callback("SLP", self._auto_sleep_callback)
         self.telnet_api.register_sync_callback("TR", self._trigger_callback)
         self.telnet_api.register_sync_callback("SP", self._speaker_preset_callback)
         self.telnet_api.register_sync_callback("BT", self._bt_callback)
         self.telnet_api.register_sync_callback("PS", self._ps_callback)
+        if not self.is_denon:
+            self.telnet_api.register_sync_callback("ILB", self._illumination_callback)
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None

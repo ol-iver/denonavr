@@ -34,14 +34,11 @@ class DenonAVRDirac(DenonAVRFoundation):
     )
     _dirac_filters = get_args(DiracFilters)
 
-    async def async_setup(self) -> None:
+    def setup(self) -> None:
         """Ensure that the instance is initialized."""
-        asyncio.create_task(self._async_register_dirac_callbacks())
+        self._device.telnet_api.register_sync_callback("PS", self._ps_callback)
 
         self._is_setup = True
-
-    async def _async_register_dirac_callbacks(self) -> None:
-        self._device.telnet_api.register_sync_callback("PS", self._ps_callback)
 
     def _ps_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle Dirac filter change event."""

@@ -67,13 +67,10 @@ class DenonAVRToneControl(DenonAVRFoundation):
                 for tag in self.appcommand_attrs:
                     self._device.api.add_appcommand_update_tag(tag)
 
-            asyncio.create_task(self._async_register_tone_control_callbacks())
+            self._device.telnet_api.register_sync_callback("PS", self._ps_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished tone control setup")
-
-    async def _async_register_tone_control_callbacks(self) -> None:
-        self._device.telnet_api.register_sync_callback("PS", self._ps_callback)
 
     def _ps_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a PS change event."""

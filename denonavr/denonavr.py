@@ -166,12 +166,12 @@ class DenonAVR(DenonAVRFoundation):
                 self._name = self._device.friendly_name
 
             # Setup other functions
-            await self.input.async_setup()
+            self.input.setup()
             await self.soundmode.async_setup()
             await self.tonecontrol.async_setup()
-            await self.vol.async_setup()
-            await self.audyssey.async_setup()
-            await self.dirac.async_setup()
+            self.vol.setup()
+            self.audyssey.setup()
+            self.dirac.setup()
 
             for zone_name, zone_item in self._zones.items():
                 if zone_name != self.zone:

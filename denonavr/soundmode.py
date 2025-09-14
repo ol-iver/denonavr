@@ -202,13 +202,12 @@ class DenonAVRSoundMode(DenonAVRFoundation):
                 for tag in self.appcommand_attrs:
                     self._device.api.add_appcommand_update_tag(tag)
 
-            asyncio.create_task(self._async_register_callbacks())
+            self._device.telnet_api.register_sync_callback(
+                "MS", self._soundmode_callback
+            )
+            self._device.telnet_api.register_sync_callback("PS", self._ps_callback)
 
             self._is_setup = True
-
-    async def _async_register_callbacks(self) -> None:
-        self._device.telnet_api.register_sync_callback("MS", self._soundmode_callback)
-        self._device.telnet_api.register_sync_callback("PS", self._ps_callback)
 
     def _soundmode_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a sound mode change event."""

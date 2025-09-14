@@ -77,23 +77,20 @@ class DenonAVRVolume(DenonAVRFoundation):
     # Status.xml interface
     status_xml_attrs = {"_volume": "./MasterVolume/value", "_muted": "./Mute/value"}
 
-    async def async_setup(self) -> None:
+    def setup(self) -> None:
         """Ensure that the instance is initialized."""
         # Add tags for a potential AppCommand.xml update
         for tag in self.appcommand_attrs:
             self._device.api.add_appcommand_update_tag(tag)
 
-        asyncio.create_task(self._async_register_volume_callbacks())
-
-        self._is_setup = True
-
-    async def _async_register_volume_callbacks(self) -> None:
         self._device.telnet_api.register_sync_callback("MV", self._volume_callback)
         self._device.telnet_api.register_sync_callback("MU", self._mute_callback)
         self._device.telnet_api.register_sync_callback(
             "CV", self._channel_volume_callback
         )
         self._device.telnet_api.register_sync_callback("PS", self._ps_callback)
+
+        self._is_setup = True
 
     def _volume_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a volume change event."""
@@ -190,7 +187,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         _LOGGER.debug("Starting volume update")
         # Ensure instance is setup before updating
         if not self._is_setup:
-            await self.async_setup()
+            self.setup()
 
         # Update state
         await self.async_update_volume(global_update=global_update, cache_id=cache_id)
