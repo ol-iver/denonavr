@@ -204,14 +204,6 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
             asyncio.create_task(self._async_register_callbacks())
 
-            if not self._device.is_denon:
-                self._device.telnet_api.register_callback(
-                    "PS", self._async_mdax_callback
-                )
-                self._device.telnet_api.register_callback(
-                    "PS", self._async_dac_filter_callback
-                )
-
             self._is_setup = True
 
     async def _async_register_callbacks(self) -> None:
@@ -244,6 +236,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         await self._async_speaker_virtualizer_callback(parameter)
         await self._async_effect_speaker_selection_callback(parameter)
         await self._async_drc_callback(parameter)
+        if not self._device.is_denon:
+            await self._async_mdax_callback(parameter)
+            await self._async_dac_filter_callback(parameter)
 
     async def _async_neural_x_callback(self, parameter: str) -> None:
         """Handle a Neural X:change event."""
@@ -339,7 +334,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         self._drc = key_value[1]
 
-    async def _async_mdax_callback(self, zone: str, event: str, parameter: str) -> None:
+    async def _async_mdax_callback(self, parameter: str) -> None:
         """Handle a M-DAX change event."""
         key_value = parameter.split()
         if len(key_value) != 2 or key_value[0] != "MDAX":
@@ -347,9 +342,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         self._mdax = MDAX_MAP_LABELS[key_value[1]]
 
-    async def _async_dac_filter_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    async def _async_dac_filter_callback(self, parameter: str) -> None:
         """Handle a DAC Filter change event."""
         key_value = parameter.split()
         if len(key_value) != 2 or key_value[0] != "DACFIL":
