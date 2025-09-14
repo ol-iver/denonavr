@@ -82,25 +82,16 @@ class DenonAVRVolume(DenonAVRFoundation):
         for tag in self.appcommand_attrs:
             self._device.api.add_appcommand_update_tag(tag)
 
-        self._device.telnet_api.register_callback("MV", self._async_volume_callback)
-        self._device.telnet_api.register_callback("MU", self._async_mute_callback)
-        self._device.telnet_api.register_callback(
-            "CV", self._async_channel_volume_callback
+        self._device.telnet_api.register_sync_callback("MV", self._volume_callback)
+        self._device.telnet_api.register_sync_callback("MU", self._mute_callback)
+        self._device.telnet_api.register_sync_callback(
+            "CV", self._channel_volume_callback
         )
-        self._device.telnet_api.register_callback(
-            "PS", self._async_subwoofer_state_callback
-        )
-        self._device.telnet_api.register_callback(
-            "PS", self._async_subwoofer_levels_callback
-        )
-        self._device.telnet_api.register_callback("PS", self._async_lfe_callback)
-        self._device.telnet_api.register_callback("PS", self._async_bass_sync_callback)
+        self._device.telnet_api.register_sync_callback("PS", self._ps_callback)
 
         self._is_setup = True
 
-    async def _async_volume_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _volume_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a volume change event."""
         if self._device.zone != zone:
             return
@@ -112,16 +103,14 @@ class DenonAVRVolume(DenonAVRFoundation):
             fraction = 0.1 * float(parameter[2])
             self._volume = -80.0 + whole_number + fraction
 
-    async def _async_mute_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _mute_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a muting change event."""
         if self._device.zone != zone:
             return
 
         self._muted = parameter
 
-    async def _async_channel_volume_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _channel_volume_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a channel volume change event."""
         if event != "CV":
             return
@@ -141,16 +130,12 @@ class DenonAVRVolume(DenonAVRFoundation):
         volume = channel_volume[1]
         self._channel_volumes[channel] = CHANNEL_VOLUME_MAP[volume]
 
-    async def _async_subwoofer_state_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _subwoofer_state_callback(self, parameter: str) -> None:
         """Handle a subwoofer state change event."""
         if parameter[:3] == "SWR":
             self._subwoofer = parameter[4:]
 
-    async def _async_subwoofer_levels_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _subwoofer_levels_callback(self, parameter: str) -> None:
         """Handle a subwoofer levels change event."""
         if parameter[:3] != "SWL":
             return
@@ -173,16 +158,21 @@ class DenonAVRVolume(DenonAVRFoundation):
         elif level in CHANNEL_VOLUME_MAP:
             self._subwoofer_levels[subwoofer] = CHANNEL_VOLUME_MAP[level]
 
-    async def _async_lfe_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _ps_callback(self, zone: str, event: str, parameter: str) -> None:
+        """Handle a PS change event."""
+        self._subwoofer_state_callback(parameter)
+        self._subwoofer_levels_callback(parameter)
+        self._lfe_callback(parameter)
+        self._bass_sync_callback(parameter)
+
+    def _lfe_callback(self, parameter: str) -> None:
         """Handle a LFE change event."""
         if parameter[:3] != "LFE":
             return
 
         self._lfe = int(parameter[4:]) * -1
 
-    async def _async_bass_sync_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _bass_sync_callback(self, parameter: str) -> None:
         """Handle a LFE change event."""
         if parameter[:3] != "BSC":
             return

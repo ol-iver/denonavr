@@ -192,15 +192,20 @@ class DenonAVRInput(DenonAVRFoundation):
         for tag in self.appcommand_attrs:
             self._device.api.add_appcommand_update_tag(tag)
 
+        self._register_input_callbacks()
+
+        self._is_setup = True
+
+    def _register_input_callbacks(self) -> None:
         power_event = "ZM"
         if self._device.zone == ZONE2:
             power_event = "Z2"
         elif self._device.zone == ZONE3:
             power_event = "Z3"
-        self._device.telnet_api.register_callback(
-            power_event, self._async_power_callback
+        self._device.telnet_api.register_sync_callback(
+            power_event, self._power_callback
         )
-        self._device.telnet_api.register_callback("SI", self._async_input_callback)
+        self._device.telnet_api.register_sync_callback("SI", self._input_callback)
         self._device.telnet_api.register_callback("NSE", self._async_netaudio_callback)
         self._device.telnet_api.register_callback("TF", self._async_tuner_callback)
         self._device.telnet_api.register_callback("HD", self._async_hdtuner_callback)
@@ -208,11 +213,7 @@ class DenonAVRInput(DenonAVRFoundation):
             "SS", self._async_input_func_update_callback
         )
 
-        self._is_setup = True
-
-    async def _async_input_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _input_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an input change event."""
         if self._device.zone != zone:
             return
@@ -228,9 +229,7 @@ class DenonAVRInput(DenonAVRFoundation):
             self._unset_media_state()
             self._state = STATE_ON
 
-    async def _async_power_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _power_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a power change event."""
         if self._device.zone != zone:
             return
