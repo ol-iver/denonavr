@@ -7,7 +7,6 @@ This module implements the handler for volume of Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
-import asyncio
 import logging
 from collections.abc import Hashable
 from typing import Dict, Optional, Union, get_args

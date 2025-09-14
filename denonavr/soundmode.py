@@ -73,8 +73,8 @@ def sound_mode_rev_map_factory(instance: "DenonAVRSoundMode") -> Dict[str, str]:
     because that has a nicer syntax.
     """
     mode_map = list(
-        instance._sound_mode_map.items()
-    )  # pylint: disable=protected-access
+        instance._sound_mode_map.items()  # pylint: disable=protected-access
+    )
     mode_map_rev = {}
     for matched_mode, sublist in mode_map:
         for raw_mode in sublist:

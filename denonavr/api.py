@@ -846,12 +846,13 @@ class DenonAVRTelnetApi:
                     err,
                 )
 
-        # Handle sync callbacks first (faster, no async overhead)
         if event in self._sync_callbacks.keys():
             for callback in self._sync_callbacks[event]:
                 try:
-                    callback(zone, event, parameter)  # Direct call, no await
-                except Exception as err:
+                    callback(zone, event, parameter)
+                except Exception as err:  # pylint: disable=broad-except
+                    # We don't want a single bad callback to trip up the
+                    # whole system and prevent further execution
                     _LOGGER.error(
                         "%s: Sync event callback caused an unhandled exception: %s",
                         self.host,
@@ -862,7 +863,9 @@ class DenonAVRTelnetApi:
             for callback in self._sync_callbacks[ALL_TELNET_EVENTS]:
                 try:
                     callback(zone, event, parameter)
-                except Exception as err:
+                except Exception as err:  # pylint: disable=broad-except
+                    # We don't want a single bad callback to trip up the
+                    # whole system and prevent further execution
                     _LOGGER.error(
                         "%s: Sync ALL event callback caused an unhandled exception: %s",
                         self.host,

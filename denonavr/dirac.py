@@ -7,7 +7,6 @@ This module implements the Audyssey settings of Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
-import asyncio
 import logging
 from typing import Optional, get_args
 
