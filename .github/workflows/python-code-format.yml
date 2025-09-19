@@ -30,7 +30,7 @@ jobs:
         if [ -f test-requirements.txt ]; then pip install -r test-requirements.txt; fi
     - name: Analysing the code with pylint
       run: |
-        python -m pylint denonavr tests
+        PYTHONPATH=. python -m pylint denonavr
     - name: Lint with flake8
       run: |
         python -m flake8 denonavr tests --count --show-source --statistics
