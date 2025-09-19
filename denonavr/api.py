@@ -88,11 +88,21 @@ def telnet_event_map_factory() -> Dict[str, List]:
 class HTTPXAsyncClient:
     """Perform cached HTTP calls with httpx.AsyncClient."""
 
-    client_getter: Callable[[], httpx.AsyncClient] = attr.ib(
-        validator=attr.validators.is_callable(),
-        default=get_default_async_client,
+    _persistent_client: Optional[httpx.AsyncClient] = attr.ib(
+        default=None,
         init=False,
     )
+
+    def __attrs_post_init__(self) -> None:
+        """Initialize after attrs creates the instance."""
+        self._persistent_client = None
+
+    def _get_client(self) -> httpx.AsyncClient:
+        if self._persistent_client is None:
+            self._persistent_client = httpx.AsyncClient(
+                limits=httpx.Limits(max_connections=5, max_keepalive_connections=2)
+            )
+        return self._persistent_client
 
     def __hash__(self) -> int:
         """Hash the class using its ID that caching works."""
@@ -109,16 +119,9 @@ class HTTPXAsyncClient:
         cache_id: Hashable = None,
     ) -> httpx.Response:
         """Call GET endpoint of Denon AVR receiver asynchronously."""
-        client = self.client_getter()
-        try:
-            res = await client.get(
-                url, timeout=httpx.Timeout(timeout, read=read_timeout)
-            )
-            res.raise_for_status()
-        finally:
-            # Close the default AsyncClient but keep custom clients open
-            if self.is_default_async_client():
-                await client.aclose()
+        client = self._get_client()
+        res = await client.get(url, timeout=httpx.Timeout(timeout, read=read_timeout))
+        res.raise_for_status()
 
         return res
 
@@ -135,25 +138,22 @@ class HTTPXAsyncClient:
         cache_id: Hashable = None,
     ) -> httpx.Response:
         """Call GET endpoint of Denon AVR receiver asynchronously."""
-        client = self.client_getter()
-        try:
-            res = await client.post(
-                url,
-                content=content,
-                data=data,
-                timeout=httpx.Timeout(timeout, read=read_timeout),
-            )
-            res.raise_for_status()
-        finally:
-            # Close the default AsyncClient but keep custom clients open
-            if self.is_default_async_client():
-                await client.aclose()
+        client = self._get_client()
+        res = await client.post(
+            url,
+            content=content,
+            data=data,
+            timeout=httpx.Timeout(timeout, read=read_timeout),
+        )
+        res.raise_for_status()
 
         return res
 
-    def is_default_async_client(self) -> bool:
-        """Check if default httpx.AsyncClient getter is used."""
-        return self.client_getter is get_default_async_client
+    async def aclose(self):
+        """Close persistent client when done."""
+        if self._persistent_client:
+            await self._persistent_client.aclose()
+            self._persistent_client = None
 
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
@@ -817,8 +817,8 @@ class DenonAVRTelnetApi:
                 event = "SI"
             elif parameter.isdigit():
                 event = "MV"
-            elif self._get_event(parameter):
-                event = self._get_event(parameter)
+            elif nested_event := self._get_event(parameter):
+                event = nested_event
                 parameter = parameter[len(event) :]
 
         if event not in TELNET_EVENTS:

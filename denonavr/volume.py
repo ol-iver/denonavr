@@ -9,7 +9,7 @@ This module implements the handler for volume of Denon AVR receivers.
 
 import logging
 from collections.abc import Hashable
-from typing import Dict, Optional, Union, get_args
+from typing import Callable, Dict, Optional, Union, get_args
 
 import attr
 
@@ -67,6 +67,7 @@ class DenonAVRVolume(DenonAVRFoundation):
     _bass_sync: Optional[int] = attr.ib(
         converter=attr.converters.optional(int), default=None
     )
+    _ps_handlers: Dict[str, Callable[[str], None]] = attr.ib(init=False)
     # Update tags for attributes
     # AppCommand.xml interface
     appcommand_attrs = {
@@ -75,6 +76,15 @@ class DenonAVRVolume(DenonAVRFoundation):
     }
     # Status.xml interface
     status_xml_attrs = {"_volume": "./MasterVolume/value", "_muted": "./Mute/value"}
+
+    def __attrs_post_init__(self) -> None:
+        """Initialize special attributes."""
+        self._ps_handlers: Dict[str, Callable[[str], None]] = {
+            "SWR": self._subwoofer_state_callback,
+            "SWL": self._subwoofer_levels_callback,
+            "LFE.": self._lfe_callback,
+            "BSC": self._bass_sync_callback,
+        }
 
     def setup(self) -> None:
         """Ensure that the instance is initialized."""
@@ -132,14 +142,10 @@ class DenonAVRVolume(DenonAVRFoundation):
 
     def _subwoofer_state_callback(self, parameter: str) -> None:
         """Handle a subwoofer state change event."""
-        if parameter[:3] == "SWR":
-            self._subwoofer = parameter[4:]
+        self._subwoofer = parameter[4:]
 
     def _subwoofer_levels_callback(self, parameter: str) -> None:
         """Handle a subwoofer levels change event."""
-        if parameter[:3] != "SWL":
-            return
-
         subwoofer_volume = parameter.split()
         if (
             len(subwoofer_volume) != 2
@@ -160,23 +166,17 @@ class DenonAVRVolume(DenonAVRFoundation):
 
     def _ps_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a PS change event."""
-        self._subwoofer_state_callback(parameter)
-        self._subwoofer_levels_callback(parameter)
-        self._lfe_callback(parameter)
-        self._bass_sync_callback(parameter)
+        for prefix, handler in self._ps_handlers.items():
+            if parameter.startswith(prefix):
+                handler(parameter)
+                return
 
     def _lfe_callback(self, parameter: str) -> None:
         """Handle a LFE change event."""
-        if parameter[:3] != "LFE":
-            return
-
         self._lfe = int(parameter[4:]) * -1
 
     def _bass_sync_callback(self, parameter: str) -> None:
         """Handle a LFE change event."""
-        if parameter[:3] != "BSC":
-            return
-
         self._bass_sync = int(parameter[4:]) * -1
 
     async def async_update(

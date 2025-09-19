@@ -86,22 +86,24 @@ class DenonAVRAudyssey(DenonAVRFoundation):
         if self._device.zone != zone:
             return
 
-        if parameter[0:6] == "REFLEV":
-            self._reflevoffset = parameter[7:]
-        elif parameter[0:6] == "DYNVOL":
-            self._dynamicvol = parameter[7:]
-        elif parameter[0:6] == "MULTEQ":
-            self._multeq = parameter[7:]
-        elif parameter == "DYNEQ ON":
-            self._dynamiceq = "1"
-        elif parameter == "DYNEQ OFF":
-            self._dynamiceq = "0"
-        elif parameter == "LFC ON":
-            self._lfc = "1"
-        elif parameter == "LFC OFF":
-            self._lfc = "0"
-        elif parameter[:6] == "CNTAMT":
-            self._containment_amount = int(parameter[7:])
+        key_value = parameter.split()
+        if len(key_value) != 2:
+            return
+        key = key_value[0]
+        value = key_value[1]
+        match key:
+            case "REFLEV":
+                self._reflevoffset = value
+            case "DYNVOL":
+                self._dynamicvol = value
+            case "MULTEQ":
+                self._multeq = value
+            case "DYNEQ":
+                self._dynamiceq = "1" if value == "ON" else "0"
+            case "LFC":
+                self._lfc = "1" if value == "ON" else "0"
+            case "CNTAMT":
+                self._containment_amount = int(value)
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
