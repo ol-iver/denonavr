@@ -233,9 +233,9 @@ class DenonAVRDeviceInfo:
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
-    _ps_handlers: Dict[str, Callable[[str], None]] = attr.ib(init=False)
-    _ss_handlers: Dict[str, Callable[[str], None]] = attr.ib(init=False)
-    _vs_handlers: Dict[str, Callable[[str], None]] = attr.ib(init=False)
+    _ps_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
+    _ss_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
+    _vs_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
 
     def __attrs_post_init__(self) -> None:
         """Initialize special attributes and callbacks."""

@@ -67,7 +67,7 @@ class DenonAVRVolume(DenonAVRFoundation):
     _bass_sync: Optional[int] = attr.ib(
         converter=attr.converters.optional(int), default=None
     )
-    _ps_handlers: Dict[str, Callable[[str], None]] = attr.ib(init=False)
+    _ps_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
     # Update tags for attributes
     # AppCommand.xml interface
     appcommand_attrs = {

@@ -181,7 +181,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     )
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
     _appcommand_active: bool = attr.ib(converter=bool, default=True, init=False)
-    _ps_handlers: Dict[str, Callable[[str], None]] = attr.ib(init=False)
+    _ps_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
 
     # Update tags for attributes
     # AppCommand.xml interface
