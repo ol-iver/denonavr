@@ -175,8 +175,7 @@ class DenonAVR(DenonAVRFoundation):
                 if zone_name != self.zone:
                     async_tasks.append(zone_item.async_setup())
 
-            if async_tasks:
-                await asyncio.gather(*async_tasks)
+            await asyncio.gather(*async_tasks)
 
             self._is_setup = True
             _LOGGER.debug("Finished denonavr setup")
@@ -199,14 +198,18 @@ class DenonAVR(DenonAVRFoundation):
         _LOGGER.debug("Verifying update method")
         await self._device.async_verify_avr_2016_update_method(cache_id=cache_id)
 
-        # Update device
+        # Update device (component_tasks depend on the result from this one)
         await self._device.async_update(global_update=True, cache_id=cache_id)
 
         # Update other functions
-        await self.input.async_update(global_update=True, cache_id=cache_id)
-        await self.soundmode.async_update(global_update=True, cache_id=cache_id)
-        await self.tonecontrol.async_update(global_update=True, cache_id=cache_id)
-        await self.vol.async_update(global_update=True, cache_id=cache_id)
+        component_tasks = [
+            self.input.async_update(global_update=True, cache_id=cache_id),
+            self.soundmode.async_update(global_update=True, cache_id=cache_id),
+            self.tonecontrol.async_update(global_update=True, cache_id=cache_id),
+            self.vol.async_update(global_update=True, cache_id=cache_id),
+        ]
+
+        await asyncio.gather(*component_tasks)
 
         # AppCommand0300.xml interface is very slow, thus it is not included
         # into main update

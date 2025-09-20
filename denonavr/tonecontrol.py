@@ -59,7 +59,7 @@ class DenonAVRToneControl(DenonAVRFoundation):
         async with self._setup_lock:
             _LOGGER.debug("Starting tone control setup")
 
-            # The first update determines if sound mode is supported
+            # The first update determines if tone control is supported
             await self.async_update_tone_control()
 
             # Add tags for a potential AppCommand.xml update

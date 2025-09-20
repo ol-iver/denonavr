@@ -91,19 +91,37 @@ async def async_identify_denonavr_receivers() -> List[Dict]:
     # Check which responding device is a DenonAVR device and prepare output
     receivers = []
 
-    for url in urls:
-        try:
-            async with httpx.AsyncClient() as client:
-                res = await client.get(url, timeout=5.0)
-                res.raise_for_status()
-        except httpx.HTTPError:
-            continue
-        else:
-            receiver = evaluate_scpd_xml(url, res.text)
-            if receiver is not None:
-                receivers.append(receiver)
+    async with httpx.AsyncClient(
+        timeout=2.5,
+        limits=httpx.Limits(
+            # Unlikely that you'd have more than 5 receivers
+            max_connections=5
+        ),
+    ) as client:
+        tasks = []
+        for url in urls:
+            tasks.append(_evaluate_single_device(client, url))
+
+        # Process all devices concurrently but limit concurrency for embedded system
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        for result in results:
+            if isinstance(result, dict):  # Skip exceptions
+                receivers.append(result)
 
     return receivers
+
+
+async def _evaluate_single_device(
+    client: httpx.AsyncClient, url: str
+) -> Optional[Dict]:
+    """Evaluate a single device URL for compatibility."""
+    try:
+        res = await client.get(url)
+        res.raise_for_status()
+        return evaluate_scpd_xml(url, res.text)
+    except httpx.HTTPError:
+        return None
 
 
 async def async_send_ssdp_broadcast() -> Set[str]:

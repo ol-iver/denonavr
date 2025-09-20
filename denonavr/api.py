@@ -19,7 +19,6 @@ from io import BytesIO
 from typing import (
     Awaitable,
     Callable,
-    Coroutine,
     DefaultDict,
     Dict,
     List,
@@ -90,7 +89,6 @@ class HTTPXAsyncClient:
 
     _persistent_client: Optional[httpx.AsyncClient] = attr.ib(
         default=None,
-        init=False,
     )
 
     def __attrs_post_init__(self) -> None:
@@ -100,7 +98,19 @@ class HTTPXAsyncClient:
     def _get_client(self) -> httpx.AsyncClient:
         if self._persistent_client is None:
             self._persistent_client = httpx.AsyncClient(
-                limits=httpx.Limits(max_connections=5, max_keepalive_connections=2)
+                limits=httpx.Limits(
+                    max_connections=5,
+                    max_keepalive_connections=3,
+                    keepalive_expiry=30.0,
+                ),
+                timeout=httpx.Timeout(
+                    connect=1.0,
+                    read=1.0,
+                    write=1.0,
+                    pool=2.0,
+                ),
+                http2=False,
+                follow_redirects=True,
             )
         return self._persistent_client
 
@@ -493,12 +503,12 @@ class DenonAVRTelnetApi:
     )
     _send_confirmation_command: str = attr.ib(converter=str, default="")
     _send_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
-    _callbacks: Dict[str, List[Coroutine]] = attr.ib(
+    _callbacks: Dict[str, List[Callable[[str, str, str], Awaitable[None]]]] = attr.ib(
         validator=attr.validators.instance_of(dict),
         default=attr.Factory(dict),
         init=False,
     )
-    _raw_callbacks: List[Coroutine] = attr.ib(
+    _raw_callbacks: List[Callable[[str], Awaitable[None]]] = attr.ib(
         validator=attr.validators.instance_of(list),
         default=attr.Factory(list),
         init=False,

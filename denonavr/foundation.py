@@ -514,29 +514,37 @@ class DenonAVRDeviceInfo:
         # Test Deviceinfo.xml if receiver is an AVR-X with port 80 for pre 2016
         # devices and port 8080 devices 2016 and later
         # 2016 models has also some of the XML but not all, try first 2016
-        r_types = [AVR_X, AVR_X_2016]
+        r_types = [AVR_X_2016, AVR_X, AVR]
 
-        timeout_errors = 0
-        for r_type in r_types:
-            self.api.port = r_type.port
-            # This XML is needed to get the sources of the receiver
+        async def test_receiver_type(r_type):
+            """Test a single receiver type."""
+            original_timeout = self.api.timeout
             try:
+                # Use shorter timeout for faster identification
+                self.api.timeout = min(1.0, original_timeout)
+                self.api.port = r_type.port
+
+                # This XML is needed to get the sources of the receiver
                 # Deviceinfo.xml is static and can be cached for the whole time
                 xml = await self.api.async_get_xml(
                     self.urls.deviceinfo, cache_id=id(self)
                 )
+
+                # Check if this is the correct receiver type
+                if r_type != AVR:  # AVR is the fallback, always "matches"
+                    is_avr_x = self._is_avr_x(xml)
+                    if not is_avr_x:
+                        return None
+
+                return r_type
+
             except (AvrTimoutError, AvrNetworkError) as err:
                 _LOGGER.debug(
                     "Connection error on port %s when identifying receiver: %s",
                     r_type.port,
                     err,
                 )
-
-                # Raise error only when occurred at both types
-                timeout_errors += 1
-                if timeout_errors == len(r_types):
-                    raise
-
+                return None
             except AvrRequestError as err:
                 _LOGGER.debug(
                     (
@@ -547,26 +555,53 @@ class DenonAVRDeviceInfo:
                     r_type.type,
                     err,
                 )
-            else:
-                is_avr_x = self._is_avr_x(xml)
-                if is_avr_x:
-                    self.receiver = r_type
-                    _LOGGER.info(
-                        "Identified %s receiver using port %s",
-                        r_type.type,
-                        r_type.port,
-                    )
-                    # Receiver identified, return
-                    return
+                return None
+            finally:
+                self.api.timeout = original_timeout
 
-        # If check of Deviceinfo.xml was not successful, receiver is type AVR
-        self.receiver = AVR
-        self.api.port = AVR.port
-        _LOGGER.info(
-            "Identified %s receiver using port %s",
-            AVR.type,
-            AVR.port,
-        )
+        tasks = [asyncio.create_task(test_receiver_type(r_type)) for r_type in r_types]
+
+        try:  # pylint: disable=R1702
+            for completed_task in asyncio.as_completed(tasks):
+                try:
+                    result = await completed_task
+                    if result is not None:
+                        # Success! Cancel remaining tasks immediately
+                        for task in tasks:
+                            if not task.done():
+                                task.cancel()
+
+                        r_type = result
+                        self.receiver = r_type
+                        self.api.port = r_type.port
+                        _LOGGER.info(
+                            "Identified %s receiver using port %s",
+                            r_type.type,
+                            r_type.port,
+                        )
+                        return
+                except Exception as e:  # pylint: disable=W0718
+                    _LOGGER.debug("Task failed with exception: %s", e)
+                    continue
+
+            # If we get here, no tasks succeeded
+            # Fall back to AVR type
+            self.receiver = AVR
+            self.api.port = AVR.port
+            _LOGGER.info(
+                "Identified %s receiver using port %s (fallback)",
+                AVR.type,
+                AVR.port,
+            )
+
+        finally:
+            # Ensure all tasks are cancelled if we exit early
+            for task in tasks:
+                if not task.done():
+                    task.cancel()
+
+            # Wait for all cancelled tasks to complete cleanup
+            await asyncio.gather(*tasks, return_exceptions=True)
 
     @staticmethod
     def _is_avr_x(deviceinfo: ET.Element) -> bool:
