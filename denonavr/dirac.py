@@ -41,7 +41,7 @@ class DenonAVRDirac(DenonAVRFoundation):
 
     def _ps_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle Dirac filter change event."""
-        if parameter[0:5] == "DIRAC":
+        if parameter.startswith("DIRAC"):
             self._dirac_filter = DIRAC_FILTER_MAP_LABELS[parameter[6:]]
 
     ##############

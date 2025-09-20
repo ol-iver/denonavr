@@ -749,7 +749,7 @@ class DenonAVR(DenonAVRFoundation):
 
         Possible values are: "Auto", "Bright", "Dim", "Dark", "Off"
         """
-        return self.illumination
+        return self._device.illumination
 
     @property
     def auto_lip_sync(self) -> Optional[bool]:
@@ -758,7 +758,7 @@ class DenonAVR(DenonAVRFoundation):
 
         Only available on Marantz devices and when using Telnet.
         """
-        return self.auto_lip_sync
+        return self._device.auto_lip_sync
 
     ##########
     # Getter #

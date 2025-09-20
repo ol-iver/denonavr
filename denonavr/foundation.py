@@ -282,15 +282,15 @@ class DenonAVRDeviceInfo:
         """Handle a settings menu event."""
         if (
             event == "MN"
-            and parameter[0:3] == "MEN"
-            and parameter[4:] in SETTINGS_MENU_STATES
+            and parameter.startswith("MEN")
+            and (value := parameter[4:]) in SETTINGS_MENU_STATES
         ):
-            self._settings_menu = parameter[4:]
+            self._settings_menu = value
 
     def _dimmer_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a dimmer change event."""
-        if parameter[1:] in DIMMER_MODE_MAP_LABELS:
-            self._dimmer = DIMMER_MODE_MAP_LABELS[parameter[1:]]
+        if (value := parameter[1:]) in DIMMER_MODE_MAP_LABELS:
+            self._dimmer = DIMMER_MODE_MAP_LABELS[value]
 
     def _auto_standby_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an auto standby change event."""
@@ -306,9 +306,6 @@ class DenonAVRDeviceInfo:
 
     def _room_size_callback(self, parameter: str) -> None:
         """Handle a room size change event."""
-        if parameter[:3] != "RSZ":
-            return
-
         self._room_size = parameter[4:]
 
     def _trigger_callback(self, zone: str, event: str, parameter: str) -> None:
@@ -336,9 +333,9 @@ class DenonAVRDeviceInfo:
                 handler(parameter)
                 return
 
-    def _delay_callback(self, event: str, parameter: str) -> None:
+    def _delay_callback(self, parameter: str) -> None:
         """Handle a delay change event."""
-        if event == "PS" and parameter[0:5] == "DELAY":
+        if parameter.startswith("DELAY"):
             self._delay = int(parameter[6:])
 
     def _eco_mode_callback(self, zone: str, event: str, parameter: str) -> None:
@@ -385,7 +382,7 @@ class DenonAVRDeviceInfo:
 
     def _speaker_preset_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a speaker preset change event."""
-        if parameter[0:2] == "PR":
+        if parameter.startswith("PR"):
             self._speaker_preset = int(parameter[3:])
 
     def _bt_callback(self, zone: str, event: str, parameter: str) -> None:
@@ -403,47 +400,37 @@ class DenonAVRDeviceInfo:
         else:
             self._bt_output_mode = BLUETOOTH_OUTPUT_MAP_LABELS[value]
 
-    def _delay_time_callback(self, event: str, parameter: str) -> None:
+    def _delay_time_callback(self, parameter: str) -> None:
         """Handle a delay time change event."""
         # do not match "DELAY" as it's another event
-        if event != "PS" or parameter[0:3] != "DEL" or parameter[0:5] == "DELAY":
+        if parameter.startswith("DELAY"):
             return
 
         self._delay_time = int(parameter[4:])
 
-    def _audio_restorer_callback(self, event: str, parameter: str) -> None:
+    def _audio_restorer_callback(self, parameter: str) -> None:
         """Handle an audio restorer change event."""
-        if event != "PS" or parameter[0:4] != "RSTR":
-            return
-
         self._audio_restorer = AUDIO_RESTORER_MAP_LABELS[parameter[5:]]
 
     def _graphic_eq_callback(self, parameter: str) -> None:
         """Handle a Graphic EQ change event."""
-        if parameter[0:3] != "GEQ":
-            return
-
         self._graphic_eq = parameter[4:]
 
     def _headphone_eq_callback(self, parameter: str) -> None:
         """Handle a Headphone EQ change event."""
-        if parameter[0:3] != "HEQ":
-            return
-
-        self._headphone_eq = parameter[4:]
+        if parameter.startswith("HEQ"):
+            self._headphone_eq = parameter[4:]
 
     def _illumination_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an illumination change event."""
-        if parameter[0:3] != "ILL":
-            return
+        if parameter.startswith("ILL"):
+            self._illumination = ILLUMINATION_MAP_LABELS[parameter[4:]]
 
-        self._illumination = ILLUMINATION_MAP_LABELS[parameter[4:]]
-
-    def _auto_lip_sync_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _auto_lip_sync_callback(self, parameter: str) -> None:
         """Handle a auto lip sync change event."""
-        if parameter[6:] == "HOSALS":
+        if parameter.startswith("HOSALS"):
             auto_lip_sync = parameter[5:]
-        elif parameter[3:] == "HOS":
+        elif parameter.startswith("HOS"):
             auto_lip_sync = parameter[4:]
         else:
             return

@@ -248,7 +248,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
     def _neural_x_callback(self, parameter: str) -> None:
         """Handle a Neural X:change event."""
-        self._neural_x = parameter[len("NEURAL") + 1 :]
+        self._neural_x = parameter[7:]
 
     def _imax_callback(self, parameter: str) -> None:
         """Handle an IMAX change event."""

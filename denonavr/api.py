@@ -577,7 +577,7 @@ class DenonAVRTelnetApi:
             "MS?",
             "MNMEN?",
             "DIM ?",
-            "PSDELAY?",
+            "PSDELAY ?",
             "ECO?",
             "VSMONI ?",
             "PSDIRAC ?",

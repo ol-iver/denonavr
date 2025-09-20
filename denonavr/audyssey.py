@@ -86,6 +86,10 @@ class DenonAVRAudyssey(DenonAVRFoundation):
         if self._device.zone != zone:
             return
 
+        if parameter.startswith("MULTEQ:"):
+            self._multeq = parameter[7:]
+            return
+
         key_value = parameter.split()
         if len(key_value) != 2:
             return
@@ -96,8 +100,6 @@ class DenonAVRAudyssey(DenonAVRFoundation):
                 self._reflevoffset = value
             case "DYNVOL":
                 self._dynamicvol = value
-            case "MULTEQ":
-                self._multeq = value
             case "DYNEQ":
                 self._dynamiceq = "1" if value == "ON" else "0"
             case "LFC":

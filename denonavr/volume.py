@@ -82,7 +82,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         self._ps_handlers: Dict[str, Callable[[str], None]] = {
             "SWR": self._subwoofer_state_callback,
             "SWL": self._subwoofer_levels_callback,
-            "LFE.": self._lfe_callback,
+            "LFE": self._lfe_callback,
             "BSC": self._bass_sync_callback,
         }
 
@@ -122,9 +122,6 @@ class DenonAVRVolume(DenonAVRFoundation):
 
     def _channel_volume_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a channel volume change event."""
-        if event != "CV":
-            return
-
         channel_volume = parameter.split()
         if (
             len(channel_volume) != 2
