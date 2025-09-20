@@ -77,18 +77,22 @@ class DenonAVRToneControl(DenonAVRFoundation):
         if self._device.zone != zone:
             return
 
-        if parameter[0:3] == "BAS":
-            self._bass = int(parameter[4:]) - 44
-            self._bass_level = f"{int(parameter[4:]) - 50}dB"
-        elif parameter[0:3] == "TRE":
-            self._treble = int(parameter[4:]) - 44
-            self._treble_level = f"{int(parameter[4:]) - 50}dB"
-        elif parameter == "TONE CTRL OFF":
+        if parameter == "TONE CTRL OFF":
             self._tone_control_adjust = False
             self._tone_control_status = True
-        elif parameter == "TONE CTRL ON":
+            return
+        if parameter == "TONE CTRL ON":
             self._tone_control_adjust = True
             self._tone_control_status = True
+            return
+
+        key_value = parameter.split()
+        if key_value[0] == "BAS":
+            self._bass = int(key_value[1]) - 44
+            self._bass_level = f"{int(key_value[1]) - 50}dB"
+        elif key_value[0] == "TRE":
+            self._treble = int(key_value[1]) - 44
+            self._treble_level = f"{int(key_value[1]) - 50}dB"
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None

@@ -12,7 +12,7 @@ import logging
 import xml.etree.ElementTree as ET
 from collections.abc import Hashable
 from copy import deepcopy
-from typing import Dict, List, Literal, Optional, Union, get_args
+from typing import Callable, Dict, List, Literal, Optional, Union, get_args
 
 import attr
 
@@ -233,6 +233,9 @@ class DenonAVRDeviceInfo:
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
+    _ps_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
+    _ss_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
+    _vs_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
 
     def __attrs_post_init__(self) -> None:
         """Initialize special attributes and callbacks."""
@@ -249,6 +252,27 @@ class DenonAVRDeviceInfo:
         else:
             raise ValueError(f"Invalid zone {self.zone}")
 
+        self._ps_handlers: Dict[str, Callable[[str], None]] = {
+            # Note order, 'DELAY' must be before 'DEL' because of startswith check
+            "DELAY": self._delay_callback,
+            "DEL": self._delay_time_callback,
+            "RSZ": self._room_size_callback,
+            "RSTR": self._audio_restorer_callback,
+            "GEQ": self._graphic_eq_callback,
+            "HEQ": self._headphone_eq_callback,
+        }
+
+        self._ss_handlers: Dict[str, Callable[[str], None]] = {
+            "TTR": self._tactile_transducer_callback,
+            "HOS": self._auto_lip_sync_callback,
+        }
+
+        self._vs_handlers: Dict[str, Callable[[str], None]] = {
+            "MONI": self._hdmi_output_callback,
+            "AUDIO": self._hdmi_audio_decode_callback,
+            "VPM": self._video_processing_mode_callback,
+        }
+
     def _power_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a power change event."""
         if self.zone == zone and parameter in POWER_STATES:
@@ -258,26 +282,23 @@ class DenonAVRDeviceInfo:
         """Handle a settings menu event."""
         if (
             event == "MN"
-            and parameter[0:3] == "MEN"
-            and parameter[4:] in SETTINGS_MENU_STATES
+            and parameter.startswith("MEN")
+            and (value := parameter[4:]) in SETTINGS_MENU_STATES
         ):
-            self._settings_menu = parameter[4:]
+            self._settings_menu = value
 
     def _dimmer_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a dimmer change event."""
-        if event == "DIM" and parameter[1:] in DIMMER_MODE_MAP_LABELS:
-            self._dimmer = DIMMER_MODE_MAP_LABELS[parameter[1:]]
+        if (value := parameter[1:]) in DIMMER_MODE_MAP_LABELS:
+            self._dimmer = DIMMER_MODE_MAP_LABELS[value]
 
     def _auto_standby_callback(self, zone: str, event: str, parameter: str) -> None:
-        """Handle a auto standby change event."""
-        if zone == "Main" and event == "STBY":
+        """Handle an auto standby change event."""
+        if zone == "Main":
             self._auto_standby = parameter
 
     def _auto_sleep_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a sleep change event."""
-        if event != "SLP":
-            return
-
         if parameter == "OFF":
             self._sleep = parameter
         else:
@@ -285,16 +306,10 @@ class DenonAVRDeviceInfo:
 
     def _room_size_callback(self, parameter: str) -> None:
         """Handle a room size change event."""
-        if parameter[:3] != "RSZ":
-            return
-
         self._room_size = parameter[4:]
 
     def _trigger_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a trigger change event."""
-        if event != "TR":
-            return
-
         values = parameter.split()
         if len(values) != 2:
             return
@@ -306,55 +321,51 @@ class DenonAVRDeviceInfo:
 
     def _vs_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a VS change event."""
-        self._hdmi_output_callback(event, parameter)
-        self._hdmi_audio_decode_callback(event, parameter)
-        self._video_processing_mode_callback(event, parameter)
+        for prefix, handler in self._vs_handlers.items():
+            if parameter.startswith(prefix):
+                handler(parameter)
+                return
 
     def _ps_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a PS change event."""
-        self._delay_callback(event, parameter)
-        self._room_size_callback(parameter)
-        self._delay_time_callback(event, parameter)
-        self._audio_restorer_callback(event, parameter)
-        self._graphic_eq_callback(parameter)
-        self._headphone_eq_callback(parameter)
+        for prefix, handler in self._ps_handlers.items():
+            if parameter.startswith(prefix):
+                handler(parameter)
+                return
 
-    def _delay_callback(self, event: str, parameter: str) -> None:
+    def _delay_callback(self, parameter: str) -> None:
         """Handle a delay change event."""
-        if event == "PS" and parameter[0:5] == "DELAY":
+        if parameter.startswith("DELAY"):
             self._delay = int(parameter[6:])
 
     def _eco_mode_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an Eco-mode change event."""
-        if event == "ECO" and parameter in ECO_MODE_MAP_LABELS:
+        if parameter in ECO_MODE_MAP_LABELS:
             self._eco_mode = ECO_MODE_MAP_LABELS[parameter]
 
-    def _hdmi_output_callback(self, event: str, parameter: str) -> None:
+    def _hdmi_output_callback(self, parameter: str) -> None:
         """Handle a HDMI output change event."""
-        if event == "VS" and parameter[0:4] == "MONI":
-            self._hdmi_output = HDMI_OUTPUT_MAP_LABELS[parameter]
+        self._hdmi_output = HDMI_OUTPUT_MAP_LABELS[parameter]
 
-    def _hdmi_audio_decode_callback(self, event: str, parameter: str) -> None:
+    def _hdmi_audio_decode_callback(self, parameter: str) -> None:
         """Handle a HDMI Audio Decode mode change event."""
-        if event == "VS" and parameter[0:5] == "AUDIO":
-            self._hdmi_audio_decode = parameter[6:]
+        self._hdmi_audio_decode = parameter[6:]
 
-    def _video_processing_mode_callback(self, event: str, parameter: str) -> None:
+    def _video_processing_mode_callback(self, parameter: str) -> None:
         """Handle a Video Processing Mode change event."""
-        if event == "VS" and parameter[0:3] == "VPM":
-            self._video_processing_mode = VIDEO_PROCESSING_MODES_MAP_LABELS[
-                parameter[3:]
-            ]
+        self._video_processing_mode = VIDEO_PROCESSING_MODES_MAP_LABELS[parameter[3:]]
 
     def _ss_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a SS change event."""
-        self._tactile_transducer_callback(parameter)
-        self._auto_lip_sync_callback(zone, event, parameter)
+        for prefix, handler in self._ss_handlers.items():
+            if parameter.startswith(prefix):
+                handler(parameter)
+                return
 
     def _tactile_transducer_callback(self, parameter: str) -> None:
         """Handle a tactile transducer change event."""
         key_value = parameter.split()
-        if len(key_value) != 2 or parameter[0:3] != "TTR":
+        if len(key_value) != 2:
             return
 
         key = key_value[0]
@@ -371,66 +382,55 @@ class DenonAVRDeviceInfo:
 
     def _speaker_preset_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a speaker preset change event."""
-        if event != "SP":
-            return
-
-        if parameter[0:2] == "PR":
+        if parameter.startswith("PR"):
             self._speaker_preset = int(parameter[3:])
 
     def _bt_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Bluetooth change event."""
-        if event != "BT" or parameter[0:2] != "TX":
+        key_value = parameter.split()
+        if len(key_value) != 2:
             return
 
-        if parameter[3:] in ("ON", "OFF"):
-            self._bt_transmitter = parameter[3:]
-        else:
-            self._bt_output_mode = BLUETOOTH_OUTPUT_MAP_LABELS[parameter[3:]]
+        if key_value[0] != "TX":
+            return
 
-    def _delay_time_callback(self, event: str, parameter: str) -> None:
+        value = key_value[1]
+        if value in ("ON", "OFF"):
+            self._bt_transmitter = value
+        else:
+            self._bt_output_mode = BLUETOOTH_OUTPUT_MAP_LABELS[value]
+
+    def _delay_time_callback(self, parameter: str) -> None:
         """Handle a delay time change event."""
         # do not match "DELAY" as it's another event
-        if event != "PS" or parameter[0:3] != "DEL" or parameter[0:5] == "DELAY":
+        if parameter.startswith("DELAY"):
             return
 
         self._delay_time = int(parameter[4:])
 
-    def _audio_restorer_callback(self, event: str, parameter: str) -> None:
+    def _audio_restorer_callback(self, parameter: str) -> None:
         """Handle an audio restorer change event."""
-        if event != "PS" or parameter[0:4] != "RSTR":
-            return
-
         self._audio_restorer = AUDIO_RESTORER_MAP_LABELS[parameter[5:]]
 
     def _graphic_eq_callback(self, parameter: str) -> None:
         """Handle a Graphic EQ change event."""
-        if parameter[0:3] != "GEQ":
-            return
-
         self._graphic_eq = parameter[4:]
 
     def _headphone_eq_callback(self, parameter: str) -> None:
         """Handle a Headphone EQ change event."""
-        if parameter[0:3] != "HEQ":
-            return
-
-        self._headphone_eq = parameter[4:]
+        if parameter.startswith("HEQ"):
+            self._headphone_eq = parameter[4:]
 
     def _illumination_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an illumination change event."""
-        if event != "ILB" or parameter[0:3] != "ILL":
-            return
+        if parameter.startswith("ILL"):
+            self._illumination = ILLUMINATION_MAP_LABELS[parameter[4:]]
 
-        self._illumination = ILLUMINATION_MAP_LABELS[parameter[4:]]
-
-    def _auto_lip_sync_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _auto_lip_sync_callback(self, parameter: str) -> None:
         """Handle a auto lip sync change event."""
-        if event != "PS" or parameter[0:3] != "HOS":
-            return
-
-        if parameter[6:] == "HOSALS":
+        if parameter.startswith("HOSALS"):
             auto_lip_sync = parameter[5:]
-        elif parameter[3:] == "HOS":
+        elif parameter.startswith("HOS"):
             auto_lip_sync = parameter[4:]
         else:
             return

@@ -13,7 +13,6 @@ import time
 from typing import Awaitable, Callable, Dict, List, Literal, Optional, Union
 
 import attr
-import httpx
 
 from .audyssey import DenonAVRAudyssey, audyssey_factory
 from .const import (
@@ -34,7 +33,6 @@ from .const import (
     VideoProcessingModes,
 )
 from .dirac import DenonAVRDirac, dirac_factory
-from .exceptions import AvrCommandError
 from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
 from .input import DenonAVRInput, input_factory
 from .soundmode import DenonAVRSoundMode, sound_mode_factory
@@ -167,15 +165,18 @@ class DenonAVR(DenonAVRFoundation):
 
             # Setup other functions
             self.input.setup()
-            await self.soundmode.async_setup()
-            await self.tonecontrol.async_setup()
             self.vol.setup()
             self.audyssey.setup()
             self.dirac.setup()
 
+            async_tasks = [self.soundmode.async_setup(), self.tonecontrol.async_setup()]
+
             for zone_name, zone_item in self._zones.items():
                 if zone_name != self.zone:
-                    await zone_item.async_setup()
+                    async_tasks.append(zone_item.async_setup())
+
+            if async_tasks:
+                await asyncio.gather(*async_tasks)
 
             self._is_setup = True
             _LOGGER.debug("Finished denonavr setup")
@@ -748,7 +749,7 @@ class DenonAVR(DenonAVRFoundation):
 
         Possible values are: "Auto", "Bright", "Dim", "Dark", "Off"
         """
-        return self.illumination
+        return self._device.illumination
 
     @property
     def auto_lip_sync(self) -> Optional[bool]:
@@ -757,7 +758,7 @@ class DenonAVR(DenonAVRFoundation):
 
         Only available on Marantz devices and when using Telnet.
         """
-        return self.auto_lip_sync
+        return self._device.auto_lip_sync
 
     ##########
     # Getter #
@@ -776,19 +777,6 @@ class DenonAVR(DenonAVRFoundation):
     ##########
     # Setter #
     ##########
-    def set_async_client_getter(
-        self, async_client_getter: Callable[[], httpx.AsyncClient]
-    ) -> None:
-        """
-        Set a custom httpx.AsyncClient getter for this instance.
-
-        The function provided must return an instance of httpx.AsyncClient.
-        This is a non-blocking method.
-        """
-        if not callable(async_client_getter):
-            raise AvrCommandError("Provided object is not callable")
-        self._device.api.httpx_async_client.client_getter = async_client_getter
-
     async def async_dynamic_eq_off(self) -> None:
         """Turn DynamicEQ off."""
         await self.audyssey.async_dynamiceq_off()
