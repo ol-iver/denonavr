@@ -10,9 +10,9 @@ This module implements the REST and Telnet APIs to Denon AVR receivers.
 import asyncio
 import contextlib
 import logging
-import sys
 import time
 import xml.etree.ElementTree as ET
+from asyncio import timeout as asyncio_timeout
 from collections import defaultdict
 from collections.abc import Hashable
 from io import BytesIO
@@ -58,19 +58,9 @@ from .exceptions import (
     AvrTimoutError,
 )
 
-if sys.version_info[:2] < (3, 11):
-    from async_timeout import timeout as asyncio_timeout
-else:
-    from asyncio import timeout as asyncio_timeout
-
 _LOGGER = logging.getLogger(__name__)
 
 _MONITOR_INTERVAL = 30
-
-
-def get_default_async_client() -> httpx.AsyncClient:
-    """Get the default httpx.AsyncClient."""
-    return httpx.AsyncClient()
 
 
 def telnet_event_map_factory() -> Dict[str, List]:
@@ -91,6 +81,10 @@ class HTTPXAsyncClient:
         default=None,
     )
 
+    default_timeout: Optional[float] = attr.ib(
+        default=2,
+    )
+
     def __attrs_post_init__(self) -> None:
         """Initialize after attrs creates the instance."""
         self._persistent_client = None
@@ -103,12 +97,7 @@ class HTTPXAsyncClient:
                     max_keepalive_connections=3,
                     keepalive_expiry=30.0,
                 ),
-                timeout=httpx.Timeout(
-                    connect=1.0,
-                    read=1.0,
-                    write=1.0,
-                    pool=2.0,
-                ),
+                timeout=self.default_timeout,
                 http2=False,
                 follow_redirects=True,
             )
@@ -193,6 +182,10 @@ class DenonAVRApi:
         default=attr.Factory(HTTPXAsyncClient),
         init=False,
     )
+
+    def __attrs_post_init__(self) -> None:
+        """Initialize special attributes."""
+        self.httpx_async_client.timeout = self.timeout
 
     async def async_get(
         self,
