@@ -558,6 +558,11 @@ class DenonAVRTelnetApi:
         self._connection_enabled = True
         self._last_message_time = time.monotonic()
         self._schedule_monitor()
+        loop.create_task(
+            self._schedule_updates(),
+        )
+
+    async def _schedule_updates(self):
         # Trigger update of all attributes
         commands = [
             "ZM?",
@@ -628,10 +633,10 @@ class DenonAVRTelnetApi:
             commands.append("PSDACFIL ?")
             commands.append("ILB ?")
             commands.append("SSHOS ?")
-        await self.async_send_commands(
-            *commands,
-            skip_confirmation=True,
-        )
+
+        for command in commands:
+            await self.async_send_commands(command, skip_confirmation=True)
+            await asyncio.sleep(0.1)
 
     def _schedule_monitor(self) -> None:
         """Start the monitor task."""
