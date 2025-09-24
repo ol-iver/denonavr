@@ -636,7 +636,7 @@ class DenonAVRTelnetApi:
 
         for command in commands:
             await self.async_send_commands(command, skip_confirmation=True)
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.02)
 
     def _schedule_monitor(self) -> None:
         """Start the monitor task."""
