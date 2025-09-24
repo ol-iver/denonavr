@@ -562,81 +562,93 @@ class DenonAVRTelnetApi:
             self._schedule_updates(),
         )
 
-    async def _schedule_updates(self):
-        # Trigger update of all attributes
-        commands = [
-            "ZM?",
-            "SI?",
-            "MV?",
-            "MU?",
-            "Z2?",
-            "Z2MU?",
-            "Z3?",
-            "Z3MU?",
-            "PSTONE CTRL ?",
-            "PSBAS ?",
-            "PSTRE ?",
-            "PSDYNEQ ?",
-            "PSLFC ?",
-            "PSCNTAMT ?",
-            "PSMULTEQ: ?",
-            "PSREFLEV ?",
-            "PSDYNVOL ?",
-            "MS?",
-            "MNMEN?",
-            "DIM ?",
-            "PSDELAY ?",
-            "ECO?",
-            "VSMONI ?",
-            "PSDIRAC ?",
-            "CV?",
-            "PSNEURAL ?",
-            "PSIMAX ?",
-            "PSIMAXAUD ?",
-            "PSIMAXHPF ?",
-            "PSIMAXLPF ?",
-            "PSIMAXSWM ?",
-            "PSIMAXSWO ?",
-            "PSSWR ?",
-            "PSSWL ?",
-            "SSTTR ?",
-            "MSQUICK ?",
-            "MSSMART ?",
-            "STBY?",
-            "SLP?",
-            "VSAUDIO ?",
-            "PSCES ?",
-            "VSVPM ?",
-            "PSLFE ?",
-            "PSLOM ?",
-            "PSBSC ?",
-            "PSDEH ?",
-            "PSCINEMA EQ. ?",
-            "PSAUROPR ?",
-            "PSAUROST ?",
-            "PSAUROMODE ?",
-            "PSRSZ ?",
-            "TR?",
-            "SPPR ?",
-            "BTTX ?",
-            "PSDIC ?",
-            "PSSPV ?",
-            "PSSP: ?",
-            "PSDRC ?",
-            "PSDEL ?",
-            "PSRSTR ?",
-            "PSGEQ ?",
-            "PSHEQ ?",
-        ]
-        if not self.is_denon:
-            commands.append("PSMDAX ?")
-            commands.append("PSDACFIL ?")
-            commands.append("ILB ?")
-            commands.append("SSHOS ?")
+    _update_commands: List[str] = None
 
-        for command in commands:
+    async def _schedule_updates(self):
+        if not self._schedule_updates:
+            # Trigger update of all attributes
+            commands = [
+                # Critical State Info
+                "ZM?",  # Main Zone Power
+                "SI?",  # Select INPUT source
+                "MV?",  # MASTER VOLUME
+                "MU?",  # Mute
+                "Z2?",  # Z2 Zone Power
+                "Z2MU?",  # Z2 Mute
+                "Z3?",  # Z3 Zone Power
+                "Z3MU?",  # Z3 Mute
+                "MS?",  # Surround mode
+                # State Info used in Toggle Commands
+                "MNMEN?",  # Menu
+                "TR?",  # Trigger
+                "PSTONE CTRL ?",  # TONE
+                "PSDYNEQ ?",  # Dynamic EQ
+                "PSLFC ?",  # Audyssey LFC
+                "PSNEURAL ?",  # Neural:X
+                "PSIMAXAUD ?",  # IMAX Audio Settings Auto/Manual
+                "PSIMAXSWM ?",  # IMAX Subwoofer Mode
+                "PSSWR ?",  # Subwoofer
+                "SSTTR ?",  # Tactile Transducer
+                "VSAUDIO ?",  # HDMI Audio Decode
+                "PSCES ?",  # CENTER Spread
+                "PSLOM ?",  # Loudness Management
+                "PSCINEMA EQ. ?",  # CINEMA EQ
+                "BTTX ?",  # Bluetooth Transmitter
+                "PSSPV ?",  # Speaker Virtualizer
+                "PSGEQ ?",  # Graphic EQ
+                "PSHEQ ?",  # Headphone EQ
+                # Regular State Info
+                "PSBAS ?",  # BASS
+                "PSTRE ?",  # TREBLE
+                "PSCNTAMT ?",  # Containment Amount
+                "PSMULTEQ: ?",  # MultEQ
+                "PSREFLEV ?",  # Reference Level
+                "PSDYNVOL ?",  # Dynamic Vol.
+                "DIM ?",  # Dimmer
+                "PSDELAY ?",  # Audio Delay
+                "ECO?",  # ECO
+                "VSMONI ?",  # HDMI Output
+                "PSDIRAC ?",  # Dirac Live Filter
+                "CV?",  # Channel Volume
+                "PSIMAX ?",  # IMAX
+                "PSIMAXHPF ?",  # IMAX High Pass Filter
+                "PSIMAXLPF ?",  # IMAX Low Pass Filter
+                "PSIMAXSWO ?",  # Subwoofer Output LFE+Main/LFE
+                "PSSWL ?",  # Subwoofer Level
+                "STBY?",  # Auto Standby
+                "SLP?",  # Sleep
+                "VSVPM ?",  # Video Process
+                "PSLFE ?",  # LFE Level
+                "PSBSC ?",  # Bass Sync
+                "PSDEH ?",  # Dialog Enhancer
+                "PSAUROPR ?",  # Auro-Matic Preset
+                "PSAUROST ?",  # Auro-Matic Strength
+                "PSAUROMODE ?",  # AURO-3D Mode
+                "PSRSZ ?",  # ROOM SIZE
+                "SPPR ?",  # Speaker Preset
+                "PSDIC ?",  # Dialog Control
+                "PSSP: ?",  # Effect Speaker selection
+                "PSDRC ?",  # DRC
+                "PSDEL ?",  # DELAY TIME
+                "PSRSTR ?",  # AUDIO RESTORER
+            ]
+
+            index = commands.index("MNMEN?")
+            if self.is_denon:
+                commands.insert(index := index + 1, "MSQUICK ?")  # Quick Select
+            if not self.is_denon:
+                commands.insert(index + 1, "MSSMART ?")  # SMART Select
+                index = commands.index("TR?")
+                commands.insert(index := index + 1, "PSMDAX ?")  # MDAX
+                commands.insert(index := index + 1, "PSDACFIL ?")  # DAC Filter
+                commands.insert(index := index + 1, "ILB ?")  # Illumination
+                commands.insert(index + 1, "SSHOS ?")  # Auto Lip Sync
+
+            self._update_commands = commands
+
+        for command in self._update_commands:
             await self.async_send_commands(command, skip_confirmation=True)
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(0.1)
 
     def _schedule_monitor(self) -> None:
         """Start the monitor task."""
