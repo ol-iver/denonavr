@@ -565,7 +565,7 @@ class DenonAVRTelnetApi:
     _update_commands: List[str] = None
 
     async def _schedule_updates(self):
-        if not self._schedule_updates:
+        if not self._update_commands:
             # Trigger update of all attributes
             commands = [
                 # Critical State Info
