@@ -1473,9 +1473,9 @@ class DenonAVRDeviceInfo:
 
         if self.telnet_available:
             if self.is_denon:
-                command = self.telnet_commands.command_quick_select_memory
+                command = self.telnet_commands.command_quick_select_mode
             else:
-                command = self.telnet_commands.command_smart_select_memory
+                command = self.telnet_commands.command_smart_select_mode
             await self.telnet_api.async_send_commands(
                 command.format(number=quick_select_number)
             )
@@ -1497,9 +1497,9 @@ class DenonAVRDeviceInfo:
 
         if self.telnet_available:
             if self.is_denon:
-                command = self.telnet_commands.command_quick_select_mode
+                command = self.telnet_commands.command_quick_select_memory
             else:
-                command = self.telnet_commands.command_smart_select_mode
+                command = self.telnet_commands.command_smart_select_memory
             await self.telnet_api.async_send_commands(
                 command.format(number=quick_select_number)
             )
