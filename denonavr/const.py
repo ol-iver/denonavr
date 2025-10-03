@@ -114,6 +114,14 @@ ReceiverURLs = namedtuple(
         "command_panel_and_volume_lock",
         "command_graphic_eq",
         "command_headphone_eq",
+        "command_denon_hdmi_cec_on",
+        "command_denon_hdmi_cec_off",
+        "command_marantz_hdmi_cec_on",
+        "command_marantz_hdmi_cec_off",
+        "command_mdax",  # Marantz Only
+        "command_dac_filter",  # Marantz Only
+        "command_illumination",  # Marantz Only
+        "command_auto_lip_sync",  # Marantz Only
     ],
 )
 TelnetCommands = namedtuple(
@@ -209,6 +217,14 @@ TelnetCommands = namedtuple(
         "command_panel_and_volume_lock",
         "command_graphic_eq",
         "command_headphone_eq",
+        "command_denon_hdmi_cec_on",
+        "command_denon_hdmi_cec_off",
+        "command_marantz_hdmi_cec_on",
+        "command_marantz_hdmi_cec_off",
+        "command_mdax",  # Marantz Only
+        "command_dac_filter",  # Marantz Only
+        "command_illumination",  # Marantz Only
+        "command_auto_lip_sync",  # Marantz Only
     ],
 )
 
@@ -572,6 +588,16 @@ COMMAND_PANEL_LOCK = "/goform/formiPhoneAppDirect.xml?SYPANEL%20LOCK%20{mode}"
 COMMAND_PANEL_AND_VOLUME_LOCK = "/goform/formiPhoneAppDirect.xml?SYPANEL+V%20LOCK%20ON"
 COMMAND_GRAPHIC_EQ = "/goform/formiPhoneAppDirect.xml?PSGEQ%20{mode}"
 COMMAND_HEADPHONE_EQ = "/goform/formiPhoneAppDirect.xml?PSHEQ%20{mode}"
+COMMAND_DENON_HDMI_CEC_ON = "/goform/formiPhoneAppDirect.xml?RCKSK0410826"
+COMMAND_DENON_HDMI_CEC_OFF = "/goform/formiPhoneAppDirect.xml?RCKSK0410827"
+COMMAND_MARANTZ_HDMI_CEC_ON = "/goform/formiPhoneAppDirect.xml?RCRC51608408"
+COMMAND_MARANTZ_HDMI_CEC_OFF = "/goform/formiPhoneAppDirect.xml?RCRC51608409"
+COMMAND_MDAX = "/goform/formiPhoneAppDirect.xml?PSMDAX%20{mode}"  # Marantz Only
+COMMAND_DAC_FILTER = "/goform/formiPhoneAppDirect.xml?PSDACFIL%20{mode}"  # Marantz Only
+COMMAND_ILLUMINATION = "/goform/formiPhoneAppDirect.xml?ILB%20{mode}"  # Marantz Only
+COMMAND_AUTO_LIP_SYNC = (
+    "/goform/formiPhoneAppDirect.xml?SSHOSALS%20{mode}"  # Marantz Only
+)
 
 # Zone 2 URLs
 STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
@@ -690,6 +716,14 @@ DENONAVR_URLS = ReceiverURLs(
     command_panel_and_volume_lock=COMMAND_PANEL_AND_VOLUME_LOCK,
     command_graphic_eq=COMMAND_GRAPHIC_EQ,
     command_headphone_eq=COMMAND_HEADPHONE_EQ,
+    command_denon_hdmi_cec_on=COMMAND_DENON_HDMI_CEC_ON,
+    command_denon_hdmi_cec_off=COMMAND_DENON_HDMI_CEC_OFF,
+    command_marantz_hdmi_cec_on=COMMAND_MARANTZ_HDMI_CEC_ON,
+    command_marantz_hdmi_cec_off=COMMAND_MARANTZ_HDMI_CEC_OFF,
+    command_mdax=COMMAND_MDAX,  # Marantz Only
+    command_dac_filter=COMMAND_DAC_FILTER,  # Marantz Only
+    command_illumination=COMMAND_ILLUMINATION,  # Marantz Only
+    command_auto_lip_sync=COMMAND_AUTO_LIP_SYNC,  # Marantz Only
 )
 
 ZONE2_URLS = ReceiverURLs(
@@ -785,6 +819,14 @@ ZONE2_URLS = ReceiverURLs(
     command_panel_and_volume_lock=COMMAND_PANEL_AND_VOLUME_LOCK,
     command_graphic_eq=COMMAND_GRAPHIC_EQ,
     command_headphone_eq=COMMAND_HEADPHONE_EQ,
+    command_denon_hdmi_cec_on=COMMAND_DENON_HDMI_CEC_ON,
+    command_denon_hdmi_cec_off=COMMAND_DENON_HDMI_CEC_OFF,
+    command_marantz_hdmi_cec_on=COMMAND_MARANTZ_HDMI_CEC_ON,
+    command_marantz_hdmi_cec_off=COMMAND_MARANTZ_HDMI_CEC_OFF,
+    command_mdax=COMMAND_MDAX,  # Marantz Only
+    command_dac_filter=COMMAND_DAC_FILTER,  # Marantz Only
+    command_illumination=COMMAND_ILLUMINATION,  # Marantz Only
+    command_auto_lip_sync=COMMAND_AUTO_LIP_SYNC,  # Marantz Only
 )
 
 ZONE3_URLS = ReceiverURLs(
@@ -880,6 +922,14 @@ ZONE3_URLS = ReceiverURLs(
     command_panel_and_volume_lock=COMMAND_PANEL_AND_VOLUME_LOCK,
     command_graphic_eq=COMMAND_GRAPHIC_EQ,
     command_headphone_eq=COMMAND_HEADPHONE_EQ,
+    command_denon_hdmi_cec_on=COMMAND_DENON_HDMI_CEC_ON,
+    command_denon_hdmi_cec_off=COMMAND_DENON_HDMI_CEC_OFF,
+    command_marantz_hdmi_cec_on=COMMAND_MARANTZ_HDMI_CEC_ON,
+    command_marantz_hdmi_cec_off=COMMAND_MARANTZ_HDMI_CEC_OFF,
+    command_mdax=COMMAND_MDAX,  # Marantz Only
+    command_dac_filter=COMMAND_DAC_FILTER,  # Marantz Only
+    command_illumination=COMMAND_ILLUMINATION,  # Marantz Only
+    command_auto_lip_sync=COMMAND_AUTO_LIP_SYNC,  # Marantz Only
 )
 
 # Telnet Events
@@ -891,6 +941,7 @@ TELNET_EVENTS = {
     "DIM",
     "ECO",
     "HD",
+    "ILB",  # Marantz Only
     "MN",
     "MS",
     "MU",
@@ -1030,6 +1081,14 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_panel_and_volume_lock="SYPANEL+V LOCK ON",
     command_graphic_eq="PSGEQ {mode}",
     command_headphone_eq="PSHEQ {mode}",
+    command_denon_hdmi_cec_on="RCKSK0410826",
+    command_denon_hdmi_cec_off="RCKSK0410827",
+    command_marantz_hdmi_cec_on="RCRC51608408",
+    command_marantz_hdmi_cec_off="RCRC51608409",
+    command_mdax="PSMDAX {mode}",  # Marantz Only
+    command_dac_filter="PSDACFIL {mode}",  # Marantz Only
+    command_illumination="ILB {mode}",  # Marantz Only
+    command_auto_lip_sync="SSHOSALS {mode}",  # Marantz Only
 )
 
 ZONE2_TELNET_COMMANDS = TelnetCommands(
@@ -1123,6 +1182,14 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_panel_and_volume_lock="SYPANEL+V LOCK ON",
     command_graphic_eq="PSGEQ {mode}",
     command_headphone_eq="PSHEQ {mode}",
+    command_denon_hdmi_cec_on="RCKSK0410826",
+    command_denon_hdmi_cec_off="RCKSK0410827",
+    command_marantz_hdmi_cec_on="RCRC51608408",
+    command_marantz_hdmi_cec_off="RCRC51608409",
+    command_mdax="PSMDAX {mode}",  # Marantz Only
+    command_dac_filter="PSDACFIL {mode}",  # Marantz Only
+    command_illumination="ILB {mode}",  # Marantz Only
+    command_auto_lip_sync="SSHOSALS {mode}",  # Marantz Only
 )
 
 ZONE3_TELNET_COMMANDS = TelnetCommands(
@@ -1216,6 +1283,14 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_panel_and_volume_lock="SYPANEL+V LOCK ON",
     command_graphic_eq="PSGEQ {mode}",
     command_headphone_eq="PSHEQ {mode}",
+    command_denon_hdmi_cec_on="RCKSK0410826",
+    command_denon_hdmi_cec_off="RCKSK0410827",
+    command_marantz_hdmi_cec_on="RCRC51608408",
+    command_marantz_hdmi_cec_off="RCRC51608409",
+    command_mdax="PSMDAX {mode}",  # Marantz Only
+    command_dac_filter="PSDACFIL {mode}",  # Marantz Only
+    command_illumination="ILB {mode}",  # Marantz Only
+    command_auto_lip_sync="SSHOSALS {mode}",  # Marantz Only
 )
 
 # States
@@ -1624,3 +1699,37 @@ VIDEO_PROCESSING_MODES_MAP = {
 VIDEO_PROCESSING_MODES_MAP_LABELS = {
     value: key for key, value in VIDEO_PROCESSING_MODES_MAP.items()
 }
+
+MDAXs = Literal["Off", "Low", "Medium", "High"]
+"""M-DAX Modes."""
+
+MDAX_MAP = {
+    "Off": "OFF",
+    "Low": "LOW",
+    "Medium": "MED",
+    "High": "HI",
+}
+MDAX_MAP_LABELS = {value: key for key, value in MDAX_MAP.items()}
+
+DACFilters = Literal["Mode 1", "Mode 2"]
+"""DAC Filter Modes."""
+
+DAC_FILTERS_MAP = {
+    "Mode 1": "MODE1",
+    "Mode 2": "MODE2",
+}
+
+DAC_FILTERS_MAP_LABELS = {value: key for key, value in DAC_FILTERS_MAP.items()}
+
+Illuminations = Literal["Auto", "Bright", "Dim", "Dark", "Off"]
+"""Illumination Modes."""
+
+ILLUMINATION_MAP = {
+    "Auto": "AUTO",
+    "Bright": "BRI",
+    "Dim": "DIM",
+    "Dark": "DAR",
+    "Off": "OFF",
+}
+
+ILLUMINATION_MAP_LABELS = {value: key for key, value in ILLUMINATION_MAP.items()}
