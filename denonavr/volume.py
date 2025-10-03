@@ -7,6 +7,7 @@ This module implements the handler for volume of Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
+import asyncio
 import logging
 from collections.abc import Hashable
 from typing import Dict, Optional, Union, get_args
@@ -76,27 +77,23 @@ class DenonAVRVolume(DenonAVRFoundation):
     # Status.xml interface
     status_xml_attrs = {"_volume": "./MasterVolume/value", "_muted": "./Mute/value"}
 
-    def setup(self) -> None:
+    async def async_setup(self) -> None:
         """Ensure that the instance is initialized."""
         # Add tags for a potential AppCommand.xml update
         for tag in self.appcommand_attrs:
             self._device.api.add_appcommand_update_tag(tag)
 
+        asyncio.create_task(self._async_register_volume_callbacks())
+
+        self._is_setup = True
+
+    async def _async_register_volume_callbacks(self) -> None:
         self._device.telnet_api.register_callback("MV", self._async_volume_callback)
         self._device.telnet_api.register_callback("MU", self._async_mute_callback)
         self._device.telnet_api.register_callback(
             "CV", self._async_channel_volume_callback
         )
-        self._device.telnet_api.register_callback(
-            "PS", self._async_subwoofer_state_callback
-        )
-        self._device.telnet_api.register_callback(
-            "PS", self._async_subwoofer_levels_callback
-        )
-        self._device.telnet_api.register_callback("PS", self._async_lfe_callback)
-        self._device.telnet_api.register_callback("PS", self._async_bass_sync_callback)
-
-        self._is_setup = True
+        self._device.telnet_api.register_callback("PS", self._async_ps_callback)
 
     async def _async_volume_callback(
         self, zone: str, event: str, parameter: str
@@ -141,16 +138,12 @@ class DenonAVRVolume(DenonAVRFoundation):
         volume = channel_volume[1]
         self._channel_volumes[channel] = CHANNEL_VOLUME_MAP[volume]
 
-    async def _async_subwoofer_state_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    async def _async_subwoofer_state_callback(self, parameter: str) -> None:
         """Handle a subwoofer state change event."""
         if parameter[:3] == "SWR":
             self._subwoofer = parameter[4:]
 
-    async def _async_subwoofer_levels_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    async def _async_subwoofer_levels_callback(self, parameter: str) -> None:
         """Handle a subwoofer levels change event."""
         if parameter[:3] != "SWL":
             return
@@ -173,16 +166,21 @@ class DenonAVRVolume(DenonAVRFoundation):
         elif level in CHANNEL_VOLUME_MAP:
             self._subwoofer_levels[subwoofer] = CHANNEL_VOLUME_MAP[level]
 
-    async def _async_lfe_callback(self, zone: str, event: str, parameter: str) -> None:
+    async def _async_ps_callback(self, zone: str, event: str, parameter: str) -> None:
+        """Handle a PS change event."""
+        await self._async_subwoofer_state_callback(parameter)
+        await self._async_subwoofer_levels_callback(parameter)
+        await self._async_lfe_callback(parameter)
+        await self._async_bass_sync_callback(parameter)
+
+    async def _async_lfe_callback(self, parameter: str) -> None:
         """Handle a LFE change event."""
         if parameter[:3] != "LFE":
             return
 
         self._lfe = int(parameter[4:]) * -1
 
-    async def _async_bass_sync_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    async def _async_bass_sync_callback(self, parameter: str) -> None:
         """Handle a LFE change event."""
         if parameter[:3] != "BSC":
             return
@@ -196,7 +194,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         _LOGGER.debug("Starting volume update")
         # Ensure instance is setup before updating
         if not self._is_setup:
-            self.setup()
+            await self.async_setup()
 
         # Update state
         await self.async_update_volume(global_update=global_update, cache_id=cache_id)

@@ -7,6 +7,7 @@ This module implements the Audyssey settings of Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
+import asyncio
 import logging
 from collections.abc import Hashable
 from typing import List, Optional
@@ -71,21 +72,20 @@ class DenonAVRAudyssey(DenonAVRFoundation):
     # AppCommand0300.xml interface
     appcommand0300_attrs = {AppCommands.GetAudyssey: None}
 
-    def setup(self) -> None:
+    async def async_setup(self) -> None:
         """Ensure that the instance is initialized."""
         # Add tags for a potential AppCommand.xml update
         for tag in self.appcommand0300_attrs:
             self._device.api.add_appcommand0300_update_tag(tag)
 
-        self._device.telnet_api.register_callback(
-            "PS", self._async_sound_detail_callback
-        )
+        asyncio.create_task(self._async_register_audyssey_callbacks())
 
         self._is_setup = True
 
-    async def _async_sound_detail_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    async def _async_register_audyssey_callbacks(self) -> None:
+        self._device.telnet_api.register_callback("PS", self._async_ps_callback)
+
+    async def _async_ps_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a sound detail change event."""
         if self._device.zone != zone:
             return
@@ -114,7 +114,7 @@ class DenonAVRAudyssey(DenonAVRFoundation):
         _LOGGER.debug("Starting Audyssey update")
         # Ensure instance is setup before updating
         if not self._is_setup:
-            self.setup()
+            await self.async_setup()
 
         # Update state
         await self.async_update_audyssey(global_update=global_update, cache_id=cache_id)
