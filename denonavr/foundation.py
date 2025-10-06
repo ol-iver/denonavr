@@ -249,16 +249,12 @@ class DenonAVRDeviceInfo:
         else:
             raise ValueError(f"Invalid zone {self.zone}")
 
-    async def _async_power_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _power_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a power change event."""
         if self.zone == zone and parameter in POWER_STATES:
             self._power = parameter
 
-    async def _async_settings_menu_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _settings_menu_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a settings menu event."""
         if (
             event == "MN"
@@ -267,23 +263,17 @@ class DenonAVRDeviceInfo:
         ):
             self._settings_menu = parameter[4:]
 
-    async def _async_dimmer_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _dimmer_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a dimmer change event."""
         if event == "DIM" and parameter[1:] in DIMMER_MODE_MAP_LABELS:
             self._dimmer = DIMMER_MODE_MAP_LABELS[parameter[1:]]
 
-    async def _async_auto_standby_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _auto_standby_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a auto standby change event."""
         if zone == "Main" and event == "STBY":
             self._auto_standby = parameter
 
-    async def _async_auto_sleep_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _auto_sleep_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a sleep change event."""
         if event != "SLP":
             return
@@ -293,18 +283,14 @@ class DenonAVRDeviceInfo:
         else:
             self._sleep = int(parameter)
 
-    async def _async_room_size_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _room_size_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a room size change event."""
         if parameter[:3] != "RSZ":
             return
 
         self._room_size = parameter[4:]
 
-    async def _async_trigger_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _trigger_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a trigger change event."""
         if event != "TR":
             return
@@ -318,35 +304,29 @@ class DenonAVRDeviceInfo:
 
         self._triggers[int(values[0])] = values[1]
 
-    async def _async_delay_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _delay_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a delay change event."""
         if event == "PS" and parameter[0:5] == "DELAY":
             self._delay = int(parameter[6:])
 
-    async def _async_eco_mode_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _eco_mode_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an Eco-mode change event."""
         if event == "ECO" and parameter in ECO_MODE_MAP_LABELS:
             self._eco_mode = ECO_MODE_MAP_LABELS[parameter]
 
-    async def _async_hdmi_output_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _hdmi_output_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a HDMI output change event."""
         if event == "VS" and parameter[0:4] == "MONI":
             self._hdmi_output = HDMI_OUTPUT_MAP_LABELS[parameter]
 
-    async def _async_hdmi_audio_decode_callback(
+    def _hdmi_audio_decode_callback(
         self, zone: str, event: str, parameter: str
     ) -> None:
         """Handle a HDMI Audio Decode mode change event."""
         if event == "VS" and parameter[0:5] == "AUDIO":
             self._hdmi_audio_decode = parameter[6:]
 
-    async def _async_video_processing_mode_callback(
+    def _video_processing_mode_callback(
         self, zone: str, event: str, parameter: str
     ) -> None:
         """Handle a Video Processing Mode change event."""
@@ -355,7 +335,7 @@ class DenonAVRDeviceInfo:
                 parameter[3:]
             ]
 
-    async def _async_tactile_transducer_callback(
+    def _tactile_transducer_callback(
         self, zone: str, event: str, parameter: str
     ) -> None:
         """Handle a tactile transducer change event."""
@@ -375,9 +355,7 @@ class DenonAVRDeviceInfo:
         elif key == "TTRLPF":
             self._tactile_transducer_lpf = f"{int(value)} Hz"
 
-    async def _async_speaker_preset_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _speaker_preset_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a speaker preset change event."""
         if event != "SP":
             return
@@ -385,7 +363,7 @@ class DenonAVRDeviceInfo:
         if parameter[0:2] == "PR":
             self._speaker_preset = int(parameter[3:])
 
-    async def _async_bt_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _bt_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Bluetooth change event."""
         if event != "BT" or parameter[0:2] != "TX":
             return
@@ -395,9 +373,7 @@ class DenonAVRDeviceInfo:
         else:
             self._bt_output_mode = BLUETOOTH_OUTPUT_MAP_LABELS[parameter[3:]]
 
-    async def _async_delay_time_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _delay_time_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a delay time change event."""
         # do not match "DELAY" as it's another event
         if event != "PS" or parameter[0:3] != "DEL" or parameter[0:5] == "DELAY":
@@ -405,45 +381,35 @@ class DenonAVRDeviceInfo:
 
         self._delay_time = int(parameter[4:])
 
-    async def _async_audio_restorer_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _audio_restorer_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an audio restorer change event."""
         if event != "PS" or parameter[0:4] != "RSTR":
             return
 
         self._audio_restorer = AUDIO_RESTORER_MAP_LABELS[parameter[5:]]
 
-    async def _async_graphic_eq_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _graphic_eq_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Graphic EQ change event."""
         if parameter[0:3] != "GEQ":
             return
 
         self._graphic_eq = parameter[4:]
 
-    async def _async_headphone_eq_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _headphone_eq_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Headphone EQ change event."""
         if parameter[0:3] != "HEQ":
             return
 
         self._headphone_eq = parameter[4:]
 
-    async def _async_illumination_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _illumination_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an illumination change event."""
         if event != "ILB" or parameter[0:3] != "ILL":
             return
 
         self._illumination = ILLUMINATION_MAP_LABELS[parameter[4:]]
 
-    async def _async_auto_lip_sync_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _auto_lip_sync_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a auto lip sync change event."""
         if event != "PS" or parameter[0:3] != "HOS":
             return
@@ -494,40 +460,32 @@ class DenonAVRDeviceInfo:
                 power_event = "Z2"
             elif self.zone == ZONE3:
                 power_event = "Z3"
-            self.telnet_api.register_callback(power_event, self._async_power_callback)
+            self.telnet_api.register_callback(power_event, self._power_callback)
 
-            self.telnet_api.register_callback("MN", self._async_settings_menu_callback)
-            self.telnet_api.register_callback("DIM", self._async_dimmer_callback)
-            self.telnet_api.register_callback("PS", self._async_delay_callback)
-            self.telnet_api.register_callback("ECO", self._async_eco_mode_callback)
-            self.telnet_api.register_callback("VS", self._async_hdmi_output_callback)
+            self.telnet_api.register_callback("MN", self._settings_menu_callback)
+            self.telnet_api.register_callback("DIM", self._dimmer_callback)
+            self.telnet_api.register_callback("PS", self._delay_callback)
+            self.telnet_api.register_callback("ECO", self._eco_mode_callback)
+            self.telnet_api.register_callback("VS", self._hdmi_output_callback)
+            self.telnet_api.register_callback("VS", self._hdmi_audio_decode_callback)
             self.telnet_api.register_callback(
-                "VS", self._async_hdmi_audio_decode_callback
+                "VS", self._video_processing_mode_callback
             )
-            self.telnet_api.register_callback(
-                "VS", self._async_video_processing_mode_callback
-            )
-            self.telnet_api.register_callback(
-                "SS", self._async_tactile_transducer_callback
-            )
-            self.telnet_api.register_callback("STBY", self._async_auto_standby_callback)
-            self.telnet_api.register_callback("SLP", self._async_auto_sleep_callback)
-            self.telnet_api.register_callback("PS", self._async_room_size_callback)
-            self.telnet_api.register_callback("TR", self._async_trigger_callback)
-            self.telnet_api.register_callback("SP", self._async_speaker_preset_callback)
-            self.telnet_api.register_callback("BT", self._async_bt_callback)
-            self.telnet_api.register_callback("PS", self._async_delay_time_callback)
-            self.telnet_api.register_callback("PS", self._async_audio_restorer_callback)
-            self.telnet_api.register_callback("PS", self._async_graphic_eq_callback)
-            self.telnet_api.register_callback("PS", self._async_headphone_eq_callback)
+            self.telnet_api.register_callback("SS", self._tactile_transducer_callback)
+            self.telnet_api.register_callback("STBY", self._auto_standby_callback)
+            self.telnet_api.register_callback("SLP", self._auto_sleep_callback)
+            self.telnet_api.register_callback("PS", self._room_size_callback)
+            self.telnet_api.register_callback("TR", self._trigger_callback)
+            self.telnet_api.register_callback("SP", self._speaker_preset_callback)
+            self.telnet_api.register_callback("BT", self._bt_callback)
+            self.telnet_api.register_callback("PS", self._delay_time_callback)
+            self.telnet_api.register_callback("PS", self._audio_restorer_callback)
+            self.telnet_api.register_callback("PS", self._graphic_eq_callback)
+            self.telnet_api.register_callback("PS", self._headphone_eq_callback)
 
             if not self.is_denon:
-                self.telnet_api.register_callback(
-                    "ILB", self._async_illumination_callback
-                )
-                self.telnet_api.register_callback(
-                    "SS", self._async_auto_lip_sync_callback
-                )
+                self.telnet_api.register_callback("ILB", self._illumination_callback)
+                self.telnet_api.register_callback("SS", self._auto_lip_sync_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished device setup")
