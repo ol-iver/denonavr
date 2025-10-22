@@ -164,7 +164,7 @@ class DenonAVRInput(DenonAVRFoundation):
     _image_url: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
-    _image_available: Optional[str] = attr.ib(
+    _image_available: Optional[bool] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
 
@@ -174,6 +174,7 @@ class DenonAVRInput(DenonAVRFoundation):
         ),
         default=attr.Factory(set),
     )
+    _callback_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
 
     # Update tags for attributes
     # AppCommand.xml interface
@@ -197,22 +198,18 @@ class DenonAVRInput(DenonAVRFoundation):
             power_event = "Z2"
         elif self._device.zone == ZONE3:
             power_event = "Z3"
+        self._device.telnet_api.register_callback(power_event, self._power_callback)
+        self._device.telnet_api.register_callback("SI", self._input_callback)
+        self._device.telnet_api.register_callback("NSE", self._netaudio_callback)
+        self._device.telnet_api.register_callback("TF", self._tuner_callback)
+        self._device.telnet_api.register_callback("HD", self._hdtuner_callback)
         self._device.telnet_api.register_callback(
-            power_event, self._async_power_callback
-        )
-        self._device.telnet_api.register_callback("SI", self._async_input_callback)
-        self._device.telnet_api.register_callback("NSE", self._async_netaudio_callback)
-        self._device.telnet_api.register_callback("TF", self._async_tuner_callback)
-        self._device.telnet_api.register_callback("HD", self._async_hdtuner_callback)
-        self._device.telnet_api.register_callback(
-            "SS", self._async_input_func_update_callback
+            "SS", self._input_func_update_callback
         )
 
         self._is_setup = True
 
-    async def _async_input_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _input_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an input change event."""
         if self._device.zone != zone:
             return
@@ -228,9 +225,7 @@ class DenonAVRInput(DenonAVRFoundation):
             self._unset_media_state()
             self._state = STATE_ON
 
-    async def _async_power_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _power_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a power change event."""
         if self._device.zone != zone:
             return
@@ -285,9 +280,7 @@ class DenonAVRInput(DenonAVRFoundation):
         else:
             self._stop_media_update()
 
-    async def _async_netaudio_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _netaudio_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a netaudio update event."""
         if self._device.power != POWER_ON:
             return
@@ -305,12 +298,13 @@ class DenonAVRInput(DenonAVRFoundation):
         self._station = None
 
         # Refresh cover with a hash for media URL when track is changing
-        self._image_url = ALBUM_COVERS_URL.format(
-            host=self._device.api.host,
-            port=self._device.api.port,
-            hash=hash((self._title, self._artist, self._album)),
+        self._set_image_url(
+            ALBUM_COVERS_URL.format(
+                host=self._device.api.host,
+                port=self._device.api.port,
+                hash=hash((self._title, self._artist, self._album)),
+            )
         )
-        await self._async_test_image_accessible()
 
     def _schedule_tuner_update(self) -> None:
         """Schedule a tuner update task."""
@@ -330,9 +324,7 @@ class DenonAVRInput(DenonAVRFoundation):
         else:
             self._stop_media_update()
 
-    async def _async_tuner_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _tuner_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a tuner update event."""
         if self._device.power != POWER_ON:
             return
@@ -353,10 +345,11 @@ class DenonAVRInput(DenonAVRFoundation):
         self._album = None
 
         # No special cover, using a static one
-        self._image_url = STATIC_ALBUM_URL.format(
-            host=self._device.api.host, port=self._device.api.port
+        self._set_image_url(
+            STATIC_ALBUM_URL.format(
+                host=self._device.api.host, port=self._device.api.port
+            )
         )
-        await self._async_test_image_accessible()
 
     def _schedule_hdtuner_update(self) -> None:
         """Schedule a HD tuner update task."""
@@ -374,9 +367,7 @@ class DenonAVRInput(DenonAVRFoundation):
         else:
             self._stop_media_update()
 
-    async def _async_hdtuner_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _hdtuner_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an HD tuner update event."""
         if self._device.power != POWER_ON:
             return
@@ -396,19 +387,35 @@ class DenonAVRInput(DenonAVRFoundation):
         self._frequency = None
 
         # No special cover, using a static one
-        self._image_url = STATIC_ALBUM_URL.format(
-            host=self._device.api.host, port=self._device.api.port
+        self._set_image_url(
+            STATIC_ALBUM_URL.format(
+                host=self._device.api.host, port=self._device.api.port
+            )
         )
-        await self._async_test_image_accessible()
 
-    async def _async_input_func_update_callback(
+    def _input_func_update_callback(
         self, zone: str, event: str, parameter: str
     ) -> None:
         """Handle input func update events."""
         if self._input_func_update_lock.locked():
             return
-        async with self._input_func_update_lock:
-            await self.async_update_inputfuncs()
+        task = asyncio.create_task(self.async_update_inputfuncs())
+        self._callback_tasks.add(task)
+        task.add_done_callback(self._callback_tasks.discard)
+
+    def _set_image_url(self, image_url: str) -> None:
+        """Set image URL if it is accessible."""
+        if self._image_available is False:
+            return
+
+        self._image_url = image_url
+
+        if self._image_available:
+            return
+
+        task = asyncio.create_task(self._async_test_image_accessible())
+        self._callback_tasks.add(task)
+        task.add_done_callback(self._callback_tasks.discard)
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -621,16 +628,17 @@ class DenonAVRInput(DenonAVRFoundation):
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
     ) -> None:
         """Update sources list from receiver."""
-        if self._device.receiver in [AVR_X, AVR_X_2016]:
-            await self._async_update_inputfuncs_avr_x(
-                global_update=global_update, cache_id=cache_id
-            )
-        elif self._device.receiver in [AVR]:
-            await self._async_update_inputfuncs_avr(cache_id=cache_id)
-        else:
-            raise AvrProcessingError(
-                "Device is not setup correctly, receiver type not set"
-            )
+        async with self._input_func_update_lock:
+            if self._device.receiver in [AVR_X, AVR_X_2016]:
+                await self._async_update_inputfuncs_avr_x(
+                    global_update=global_update, cache_id=cache_id
+                )
+            elif self._device.receiver in [AVR]:
+                await self._async_update_inputfuncs_avr(cache_id=cache_id)
+            else:
+                raise AvrProcessingError(
+                    "Device is not setup correctly, receiver type not set"
+                )
 
     async def _async_update_inputfuncs_avr_x(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None

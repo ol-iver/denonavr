@@ -16,18 +16,7 @@ import xml.etree.ElementTree as ET
 from collections import defaultdict
 from collections.abc import Hashable
 from io import BytesIO
-from typing import (
-    Awaitable,
-    Callable,
-    Coroutine,
-    DefaultDict,
-    Dict,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    cast,
-)
+from typing import Callable, DefaultDict, Dict, List, Optional, Set, Tuple, cast
 
 import attr
 import httpx
@@ -485,7 +474,6 @@ class DenonAVRTelnetApi:
     _telnet_event_map: Dict[str, List] = attr.ib(
         default=attr.Factory(telnet_event_map_factory)
     )
-    _callback_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
     _send_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
     _send_confirmation_timeout: float = attr.ib(converter=float, default=2.0)
     _send_confirmation_event: asyncio.Event = attr.ib(
@@ -493,12 +481,12 @@ class DenonAVRTelnetApi:
     )
     _send_confirmation_command: str = attr.ib(converter=str, default="")
     _send_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
-    _callbacks: Dict[str, List[Coroutine]] = attr.ib(
+    _callbacks: Dict[str, List[Callable]] = attr.ib(
         validator=attr.validators.instance_of(dict),
         default=attr.Factory(dict),
         init=False,
     )
-    _raw_callbacks: List[Coroutine] = attr.ib(
+    _raw_callbacks: List[Callable] = attr.ib(
         validator=attr.validators.instance_of(list),
         default=attr.Factory(list),
         init=False,
@@ -506,7 +494,7 @@ class DenonAVRTelnetApi:
 
     def __attrs_post_init__(self) -> None:
         """Initialize special attributes."""
-        self._register_raw_callback(self._async_send_confirmation_callback)
+        self._register_raw_callback(self._send_confirmation_callback)
 
     async def async_connect(self) -> None:
         """Connect to the receiver asynchronously."""
@@ -722,7 +710,7 @@ class DenonAVRTelnetApi:
         self._reconnect_task = None
 
     def register_callback(
-        self, event: str, callback: Callable[[str, str, str], Awaitable[None]]
+        self, event: str, callback: Callable[[str, str, str], None]
     ) -> None:
         """Register a callback handler for an event type."""
         # Validate the passed in type
@@ -736,24 +724,20 @@ class DenonAVRTelnetApi:
         self._callbacks[event].append(callback)
 
     def unregister_callback(
-        self, event: str, callback: Callable[[str, str, str], Awaitable[None]]
+        self, event: str, callback: Callable[[str, str, str], None]
     ) -> None:
         """Unregister a callback handler for an event type."""
         if event not in self._callbacks.keys():
             return
         self._callbacks[event].remove(callback)
 
-    def _register_raw_callback(
-        self, callback: Callable[[str], Awaitable[None]]
-    ) -> None:
+    def _register_raw_callback(self, callback: Callable[[str], None]) -> None:
         """Register a callback handler for raw telnet messages."""
         if callback in self._raw_callbacks:
             return
         self._raw_callbacks.append(callback)
 
-    def _unregister_raw_callback(
-        self, callback: Callable[[str], Awaitable[None]]
-    ) -> None:
+    def _unregister_raw_callback(self, callback: Callable[[str], None]) -> None:
         """Unregister a callback handler for raw telnet messages."""
         self._raw_callbacks.remove(callback)
 
@@ -797,19 +781,15 @@ class DenonAVRTelnetApi:
         if event not in TELNET_EVENTS:
             return
 
-        task = asyncio.create_task(
-            self._async_run_callbacks(message, event, zone, parameter)
-        )
-        self._callback_tasks.add(task)
-        task.add_done_callback(self._callback_tasks.discard)
+        self._run_callbacks(message, event, zone, parameter)
 
-    async def _async_run_callbacks(
+    def _run_callbacks(
         self, message: str, event: str, zone: str, parameter: str
     ) -> None:
         """Handle triggering the registered callbacks."""
         for callback in self._raw_callbacks:
             try:
-                await callback(message)
+                callback(message)
             except Exception as err:  # pylint: disable=broad-except
                 # We don't want a single bad callback to trip up the
                 # whole system and prevent further execution
@@ -822,7 +802,7 @@ class DenonAVRTelnetApi:
         if event in self._callbacks.keys():
             for callback in self._callbacks[event]:
                 try:
-                    await callback(zone, event, parameter)
+                    callback(zone, event, parameter)
                 except Exception as err:  # pylint: disable=broad-except
                     # We don't want a single bad callback to trip up the
                     # whole system and prevent further execution
@@ -835,7 +815,7 @@ class DenonAVRTelnetApi:
         if ALL_TELNET_EVENTS in self._callbacks.keys():
             for callback in self._callbacks[ALL_TELNET_EVENTS]:
                 try:
-                    await callback(zone, event, parameter)
+                    callback(zone, event, parameter)
                 except Exception as err:  # pylint: disable=broad-except
                     # We don't want a single bad callback to trip up the
                     # whole system and prevent further execution
@@ -853,7 +833,7 @@ class DenonAVRTelnetApi:
                 return event
         return ""
 
-    async def _async_send_confirmation_callback(self, message: str) -> None:
+    def _send_confirmation_callback(self, message: str) -> None:
         """Confirm that the telnet command has been executed."""
         if len(message) < 3:
             return

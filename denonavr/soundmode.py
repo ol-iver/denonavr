@@ -202,51 +202,41 @@ class DenonAVRSoundMode(DenonAVRFoundation):
                 for tag in self.appcommand_attrs:
                     self._device.api.add_appcommand_update_tag(tag)
 
+            self._device.telnet_api.register_callback("MS", self._soundmode_callback)
+            self._device.telnet_api.register_callback("PS", self._neural_x_callback)
+            self._device.telnet_api.register_callback("PS", self._imax_callback)
+            self._device.telnet_api.register_callback("PS", self._cinema_eq_callback)
             self._device.telnet_api.register_callback(
-                "MS", self._async_soundmode_callback
+                "PS", self._center_spread_callback
             )
             self._device.telnet_api.register_callback(
-                "PS", self._async_neural_x_callback
-            )
-            self._device.telnet_api.register_callback("PS", self._async_imax_callback)
-            self._device.telnet_api.register_callback(
-                "PS", self._async_cinema_eq_callback
+                "PS", self._loudness_management_callback
             )
             self._device.telnet_api.register_callback(
-                "PS", self._async_center_spread_callback
+                "PS", self._dialog_enhancer_callback
+            )
+            self._device.telnet_api.register_callback("PS", self._auro_callback)
+            self._device.telnet_api.register_callback(
+                "PS", self._dialog_control_callback
             )
             self._device.telnet_api.register_callback(
-                "PS", self._async_loudness_management_callback
+                "PS", self._speaker_virtualizer_callback
             )
             self._device.telnet_api.register_callback(
-                "PS", self._async_dialog_enhancer_callback
+                "PS", self._effect_speaker_selection_callback
             )
-            self._device.telnet_api.register_callback("PS", self._async_auro_callback)
-            self._device.telnet_api.register_callback(
-                "PS", self._async_dialog_control_callback
-            )
-            self._device.telnet_api.register_callback(
-                "PS", self._async_speaker_virtualizer_callback
-            )
-            self._device.telnet_api.register_callback(
-                "PS", self._async_effect_speaker_selection_callback
-            )
-            self._device.telnet_api.register_callback("PS", self._async_drc_callback)
+            self._device.telnet_api.register_callback("PS", self._drc_callback)
 
             if not self._device.is_denon:
+                self._device.telnet_api.register_callback("PS", self._mdax_callback)
                 self._device.telnet_api.register_callback(
-                    "PS", self._async_mdax_callback
-                )
-                self._device.telnet_api.register_callback(
-                    "PS", self._async_dac_filter_callback
+                    "PS", self._dac_filter_callback
                 )
 
             self._is_setup = True
             _LOGGER.debug("Finished sound mode setup")
 
-    async def _async_soundmode_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _soundmode_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a sound mode change event."""
         if self._device.zone != zone:
             return
@@ -257,15 +247,13 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         self._sound_mode_raw = parameter
 
-    async def _async_neural_x_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _neural_x_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Neural X:change event."""
         parameter_name_length = len("NEURAL")
         if parameter[:parameter_name_length] == "NEURAL":
             self._neural_x = parameter[parameter_name_length + 1 :]
 
-    async def _async_imax_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _imax_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an IMAX change event."""
         key_value = parameter.split()
         if len(key_value) != 2 or key_value[0][:4] != "IMAX":
@@ -284,37 +272,31 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         elif key_value[0] == "IMAXSWO":
             self._imax_subwoofer_output = parameter[8:]
 
-    async def _async_cinema_eq_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _cinema_eq_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Cinema EQ change event."""
         if parameter[:10] == "CINEMA EQ.":
             self._cinema_eq = parameter[10:]
 
-    async def _async_center_spread_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _center_spread_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Center Spread change event."""
         if parameter[:3] == "CES":
             self._center_spread = parameter[4:]
 
-    async def _async_loudness_management_callback(
+    def _loudness_management_callback(
         self, zone: str, event: str, parameter: str
     ) -> None:
         """Handle a Loudness Management change event."""
         if parameter[:3] == "LOM":
             self._loudness_management = parameter[4:]
 
-    async def _async_dialog_enhancer_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _dialog_enhancer_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Dialog Enhancer change event."""
         if parameter[:3] == "DEH":
             self._dialog_enhancer_level = DIALOG_ENHANCER_LEVEL_MAP_LABELS[
                 parameter[4:]
             ]
 
-    async def _async_auro_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _auro_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Auro change event."""
         key_value = parameter.split()
         if len(key_value) != 2 or key_value[0][:4] != "AURO":
@@ -327,9 +309,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         elif key_value[0] == "AUROMODE":
             self._auro_3d_mode = AURO_3D_MODE_MAP_MAP_LABELS[parameter[9:]]
 
-    async def _async_dialog_control_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _dialog_control_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Dialog Control change event."""
         key_value = parameter.split()
         if len(key_value) != 2 or key_value[0] != "DIC":
@@ -337,7 +317,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         self._dialog_control = int(key_value[1])
 
-    async def _async_speaker_virtualizer_callback(
+    def _speaker_virtualizer_callback(
         self, zone: str, event: str, parameter: str
     ) -> None:
         """Handle a Speaker Virtualizer change event."""
@@ -347,7 +327,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         self._speaker_virtualizer = key_value[1]
 
-    async def _async_effect_speaker_selection_callback(
+    def _effect_speaker_selection_callback(
         self, zone: str, event: str, parameter: str
     ) -> None:
         """Handle a Effect Speaker Selection change event."""
@@ -359,7 +339,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             key_value[1]
         ]
 
-    async def _async_drc_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _drc_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a DRC change event."""
         key_value = parameter.split()
         if len(key_value) != 2 or key_value[0] != "DRC":
@@ -367,7 +347,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         self._drc = key_value[1]
 
-    async def _async_mdax_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _mdax_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a M-DAX change event."""
         key_value = parameter.split()
         if len(key_value) != 2 or key_value[0] != "MDAX":
@@ -375,9 +355,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         self._mdax = MDAX_MAP_LABELS[key_value[1]]
 
-    async def _async_dac_filter_callback(
-        self, zone: str, event: str, parameter: str
-    ) -> None:
+    def _dac_filter_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a DAC Filter change event."""
         key_value = parameter.split()
         if len(key_value) != 2 or key_value[0] != "DACFIL":
