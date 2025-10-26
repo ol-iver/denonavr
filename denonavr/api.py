@@ -491,6 +491,7 @@ class DenonAVRTelnetApi:
         default=attr.Factory(list),
         init=False,
     )
+    _update_callback_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
 
     def __attrs_post_init__(self) -> None:
         """Initialize special attributes."""
@@ -539,7 +540,13 @@ class DenonAVRTelnetApi:
         self._last_message_time = time.monotonic()
         self._schedule_monitor()
 
-        await self._async_trigger_updates()
+        # Cancel all update tasks in case they are still running and create a new one.
+        for callback_task in self._update_callback_tasks:
+            callback_task.cancel()
+
+        task = asyncio.create_task(self._async_trigger_updates())
+        self._update_callback_tasks.add(task)
+        task.add_done_callback(self._update_callback_tasks.discard)
 
     async def _async_trigger_updates(self) -> None:
         """Trigger update of all attributes."""
@@ -622,7 +629,7 @@ class DenonAVRTelnetApi:
 
         await self.async_send_commands(
             *commands,
-            skip_confirmation=True,
+            confirmation_timeout=0.2,
         )
 
     def _schedule_monitor(self) -> None:
