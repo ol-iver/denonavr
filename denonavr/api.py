@@ -889,7 +889,7 @@ class DenonAVRTelnetApi:
                         confirmation_timeout,
                     )
                 except asyncio.TimeoutError:
-                    _LOGGER.info(
+                    _LOGGER.debug(
                         "Timeout waiting for confirmation of command: %s", command
                     )
                 finally:
