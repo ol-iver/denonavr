@@ -494,6 +494,7 @@ class DenonAVRTelnetApi:
         default=attr.Factory(list),
         init=False,
     )
+    _update_callback_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
 
     def __attrs_post_init__(self) -> None:
         """Initialize special attributes."""
@@ -541,79 +542,97 @@ class DenonAVRTelnetApi:
         self._connection_enabled = True
         self._last_message_time = time.monotonic()
         self._schedule_monitor()
-        # Trigger update of all attributes
+
+        # Cancel all update tasks in case they are still running and create a new one.
+        for callback_task in self._update_callback_tasks:
+            callback_task.cancel()
+
+        task = asyncio.create_task(self._async_trigger_updates())
+        self._update_callback_tasks.add(task)
+        task.add_done_callback(self._update_callback_tasks.discard)
+
+    async def _async_trigger_updates(self) -> None:
+        """Trigger update of all attributes."""
         commands = [
-            "ZM?",
-            "SI?",
-            "MV?",
-            "MU?",
-            "Z2?",
-            "Z2MU?",
-            "Z3?",
-            "Z3MU?",
-            "PSTONE CTRL ?",
-            "PSBAS ?",
-            "PSTRE ?",
-            "PSDYNEQ ?",
-            "PSLFC ?",
-            "PSCNTAMT ?",
-            "PSMULTEQ: ?",
-            "PSREFLEV ?",
-            "PSDYNVOL ?",
-            "MS?",
-            "MNMEN?",
-            "DIM ?",
-            "PSDELAY?",
-            "ECO?",
-            "VSMONI ?",
-            "PSDIRAC ?",
-            "CV?",
-            "PSNEURAL ?",
-            "PSIMAX ?",
-            "PSIMAXAUD ?",
-            "PSIMAXHPF ?",
-            "PSIMAXLPF ?",
-            "PSIMAXSWM ?",
-            "PSIMAXSWO ?",
-            "PSSWR ?",
-            "PSSWL ?",
-            "SSTTR ?",
-            "MSQUICK ?",
-            "MSSMART ?",
-            "STBY?",
-            "SLP?",
-            "VSAUDIO ?",
-            "PSCES ?",
-            "VSVPM ?",
-            "PSLFE ?",
-            "PSLOM ?",
-            "PSBSC ?",
-            "PSDEH ?",
-            "PSCINEMA EQ. ?",
-            "PSAUROPR ?",
-            "PSAUROST ?",
-            "PSAUROMODE ?",
-            "PSRSZ ?",
-            "TR?",
-            "SPPR ?",
-            "BTTX ?",
-            "PSDIC ?",
-            "PSSPV ?",
-            "PSSP: ?",
-            "PSDRC ?",
-            "PSDEL ?",
-            "PSRSTR ?",
-            "PSGEQ ?",
-            "PSHEQ ?",
+            # Critical State Info
+            "ZM?",  # Main Zone Power
+            "SI?",  # Select INPUT source
+            "MV?",  # MASTER VOLUME
+            "MU?",  # Mute
+            "Z2?",  # Z2 Zone Power
+            "Z2MU?",  # Z2 Mute
+            "Z3?",  # Z3 Zone Power
+            "Z3MU?",  # Z3 Mute
+            "MS?",  # Surround mode
+            # State Info used in Toggle Commands
+            "MNMEN?",  # Menu
+            "TR?",  # Trigger
+            "PSTONE CTRL ?",  # TONE
+            "PSDYNEQ ?",  # Dynamic EQ
+            "PSLFC ?",  # Audyssey LFC
+            "PSNEURAL ?",  # Neural:X
+            "PSIMAXAUD ?",  # IMAX Audio Settings Auto/Manual
+            "PSIMAXSWM ?",  # IMAX Subwoofer Mode
+            "PSSWR ?",  # Subwoofer
+            "SSTTR ?",  # Tactile Transducer
+            "VSAUDIO ?",  # HDMI Audio Decode
+            "PSCES ?",  # CENTER Spread
+            "PSLOM ?",  # Loudness Management
+            "PSCINEMA EQ. ?",  # CINEMA EQ
+            "BTTX ?",  # Bluetooth Transmitter
+            "PSSPV ?",  # Speaker Virtualizer
+            "PSGEQ ?",  # Graphic EQ
+            "PSHEQ ?",  # Headphone EQ
+            # Regular State Info
+            "PSBAS ?",  # BASS
+            "PSTRE ?",  # TREBLE
+            "PSCNTAMT ?",  # Containment Amount
+            "PSMULTEQ: ?",  # MultEQ
+            "PSREFLEV ?",  # Reference Level
+            "PSDYNVOL ?",  # Dynamic Vol.
+            "DIM ?",  # Dimmer
+            "PSDELAY ?",  # Audio Delay
+            "ECO?",  # ECO
+            "VSMONI ?",  # HDMI Output
+            "PSDIRAC ?",  # Dirac Live Filter
+            "CV?",  # Channel Volume
+            "PSIMAX ?",  # IMAX
+            "PSIMAXHPF ?",  # IMAX High Pass Filter
+            "PSIMAXLPF ?",  # IMAX Low Pass Filter
+            "PSIMAXSWO ?",  # Subwoofer Output LFE+Main/LFE
+            "PSSWL ?",  # Subwoofer Level
+            "STBY?",  # Auto Standby
+            "SLP?",  # Sleep
+            "VSVPM ?",  # Video Process
+            "PSLFE ?",  # LFE Level
+            "PSBSC ?",  # Bass Sync
+            "PSDEH ?",  # Dialog Enhancer
+            "PSAUROPR ?",  # Auro-Matic Preset
+            "PSAUROST ?",  # Auro-Matic Strength
+            "PSAUROMODE ?",  # AURO-3D Mode
+            "PSRSZ ?",  # ROOM SIZE
+            "SPPR ?",  # Speaker Preset
+            "PSDIC ?",  # Dialog Control
+            "PSSP: ?",  # Effect Speaker selection
+            "PSDRC ?",  # DRC
+            "PSDEL ?",  # DELAY TIME
+            "PSRSTR ?",  # AUDIO RESTORER
         ]
+
+        index = commands.index("MNMEN?")
+        if self.is_denon:
+            commands.insert(index := index + 1, "MSQUICK ?")  # Quick Select
         if not self.is_denon:
-            commands.append("PSMDAX ?")
-            commands.append("PSDACFIL ?")
-            commands.append("ILB ?")
-            commands.append("SSHOS ?")
+            commands.insert(index + 1, "MSSMART ?")  # SMART Select
+            index = commands.index("TR?")
+            commands.insert(index := index + 1, "PSMDAX ?")  # MDAX
+            commands.insert(index := index + 1, "PSDACFIL ?")  # DAC Filter
+            commands.insert(index := index + 1, "ILB ?")  # Illumination
+            commands.insert(index + 1, "SSHOS ?")  # Auto Lip Sync
+
         await self.async_send_commands(
             *commands,
-            skip_confirmation=True,
+            confirmation_timeout=0.2,
         )
 
     def _schedule_monitor(self) -> None:
@@ -847,9 +866,15 @@ class DenonAVRTelnetApi:
             _LOGGER.debug("Command %s confirmed", command)
 
     async def _async_send_command(
-        self, command: str, skip_confirmation: bool = False
+        self,
+        command: str,
+        skip_confirmation: bool = False,
+        confirmation_timeout: Optional[float] = None,
     ) -> None:
         """Send one telnet command to the receiver."""
+        if confirmation_timeout is None:
+            confirmation_timeout = self._send_confirmation_timeout
+
         async with self._send_lock:
             if not skip_confirmation:
                 self._send_confirmation_command = command
@@ -864,26 +889,42 @@ class DenonAVRTelnetApi:
                 try:
                     await asyncio.wait_for(
                         self._send_confirmation_event.wait(),
-                        self._send_confirmation_timeout,
+                        confirmation_timeout,
                     )
                 except asyncio.TimeoutError:
-                    _LOGGER.info(
+                    _LOGGER.debug(
                         "Timeout waiting for confirmation of command: %s", command
                     )
                 finally:
                     self._send_confirmation_command = ""
 
     async def async_send_commands(
-        self, *commands: str, skip_confirmation: bool = False
+        self,
+        *commands: str,
+        skip_confirmation: bool = False,
+        confirmation_timeout: Optional[float] = None,
     ) -> None:
         """Send telnet commands to the receiver."""
         for command in commands:
-            await self._async_send_command(command, skip_confirmation=skip_confirmation)
+            await self._async_send_command(
+                command,
+                skip_confirmation=skip_confirmation,
+                confirmation_timeout=confirmation_timeout,
+            )
 
-    def send_commands(self, *commands: str, skip_confirmation: bool = False) -> None:
+    def send_commands(
+        self,
+        *commands: str,
+        skip_confirmation: bool = False,
+        confirmation_timeout: Optional[float] = None,
+    ) -> None:
         """Send telnet commands to the receiver."""
         task = asyncio.create_task(
-            self.async_send_commands(*commands, skip_confirmation=skip_confirmation)
+            self.async_send_commands(
+                *commands,
+                skip_confirmation=skip_confirmation,
+                confirmation_timeout=confirmation_timeout,
+            )
         )
         self._send_tasks.add(task)
         task.add_done_callback(self._send_tasks.discard)
