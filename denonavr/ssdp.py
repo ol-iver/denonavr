@@ -91,17 +91,18 @@ async def async_identify_denonavr_receivers() -> List[Dict]:
     # Check which responding device is a DenonAVR device and prepare output
     receivers = []
 
-    for url in urls:
-        try:
-            async with httpx.AsyncClient() as client:
-                res = await client.get(url, timeout=5.0)
-                res.raise_for_status()
-        except httpx.HTTPError:
-            continue
-        else:
-            receiver = evaluate_scpd_xml(url, res.text)
-            if receiver is not None:
-                receivers.append(receiver)
+    async with httpx.AsyncClient() as client:
+        for url in urls:
+            try:
+                async with client.stream("GET", url, timeout=5.0) as res:
+                    res.raise_for_status()
+                    await res.aread()
+            except httpx.HTTPError:
+                continue
+            else:
+                receiver = evaluate_scpd_xml(url, res.text)
+                if receiver is not None:
+                    receivers.append(receiver)
 
     return receivers
 
