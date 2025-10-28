@@ -77,7 +77,7 @@ class DenonAVRAudyssey(DenonAVRFoundation):
         for tag in self.appcommand0300_attrs:
             self._device.api.add_appcommand0300_update_tag(tag)
 
-        self._device.telnet_api.register_sync_callback("PS", self._ps_callback)
+        self._device.telnet_api.register_callback("PS", self._ps_callback)
 
         self._is_setup = True
 

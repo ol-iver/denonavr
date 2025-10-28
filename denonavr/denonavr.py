@@ -10,7 +10,7 @@ This module implements the interface to Denon AVR receivers.
 import asyncio
 import logging
 import time
-from typing import Awaitable, Callable, Dict, List, Literal, Optional, Union
+from typing import Callable, Dict, List, Literal, Optional, Union
 
 import attr
 
@@ -237,14 +237,12 @@ class DenonAVR(DenonAVRFoundation):
         """Send telnet commands to the receiver."""
         self._device.telnet_api.send_commands(*commands)
 
-    def register_callback(
-        self, event: str, callback: Callable[[str, str, str], Awaitable[None]]
-    ):
+    def register_callback(self, event: str, callback: Callable[[str, str, str], None]):
         """Register a callback for telnet events."""
         self._device.telnet_api.register_callback(event, callback=callback)
 
     def unregister_callback(
-        self, event: str, callback: Callable[[str, str, str], Awaitable[None]]
+        self, event: str, callback: Callable[[str, str, str], None]
     ):
         """Unregister a callback for telnet events."""
         self._device.telnet_api.unregister_callback(event, callback=callback)

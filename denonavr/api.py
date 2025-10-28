@@ -16,17 +16,7 @@ from asyncio import timeout as asyncio_timeout
 from collections import defaultdict
 from collections.abc import Hashable
 from io import BytesIO
-from typing import (
-    Awaitable,
-    Callable,
-    DefaultDict,
-    Dict,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    cast,
-)
+from typing import Callable, DefaultDict, Dict, List, Optional, Set, Tuple, cast
 
 import attr
 import httpx
@@ -488,7 +478,6 @@ class DenonAVRTelnetApi:
     _telnet_event_map: Dict[str, List] = attr.ib(
         default=attr.Factory(telnet_event_map_factory)
     )
-    _callback_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
     _send_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
     _send_confirmation_timeout: float = attr.ib(converter=float, default=2.0)
     _send_confirmation_event: asyncio.Event = attr.ib(
@@ -496,25 +485,20 @@ class DenonAVRTelnetApi:
     )
     _send_confirmation_command: str = attr.ib(converter=str, default="")
     _send_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
-    _callbacks: Dict[str, List[Callable[[str, str, str], Awaitable[None]]]] = attr.ib(
+    _callbacks: Dict[str, List[Callable]] = attr.ib(
         validator=attr.validators.instance_of(dict),
         default=attr.Factory(dict),
         init=False,
     )
-    _raw_callbacks: List[Callable[[str], Awaitable[None]]] = attr.ib(
+    _raw_callbacks: List[Callable] = attr.ib(
         validator=attr.validators.instance_of(list),
         default=attr.Factory(list),
-        init=False,
-    )
-    _sync_callbacks: Dict[str, List[Callable[[str, str, str], None]]] = attr.ib(
-        validator=attr.validators.instance_of(dict),
-        default=attr.Factory(dict),
         init=False,
     )
 
     def __attrs_post_init__(self) -> None:
         """Initialize special attributes."""
-        self._register_raw_callback(self._async_send_confirmation_callback)
+        self._register_raw_callback(self._send_confirmation_callback)
 
     async def async_connect(self) -> None:
         """Connect to the receiver asynchronously."""
@@ -558,95 +542,89 @@ class DenonAVRTelnetApi:
         self._connection_enabled = True
         self._last_message_time = time.monotonic()
         self._schedule_monitor()
-        loop.create_task(
-            self._schedule_updates(),
+        # Trigger update of all attributes
+        commands = [
+            # Critical State Info
+            "ZM?",  # Main Zone Power
+            "SI?",  # Select INPUT source
+            "MV?",  # MASTER VOLUME
+            "MU?",  # Mute
+            "Z2?",  # Z2 Zone Power
+            "Z2MU?",  # Z2 Mute
+            "Z3?",  # Z3 Zone Power
+            "Z3MU?",  # Z3 Mute
+            "MS?",  # Surround mode
+            # State Info used in Toggle Commands
+            "MNMEN?",  # Menu
+            "TR?",  # Trigger
+            "PSTONE CTRL ?",  # TONE
+            "PSDYNEQ ?",  # Dynamic EQ
+            "PSLFC ?",  # Audyssey LFC
+            "PSNEURAL ?",  # Neural:X
+            "PSIMAXAUD ?",  # IMAX Audio Settings Auto/Manual
+            "PSIMAXSWM ?",  # IMAX Subwoofer Mode
+            "PSSWR ?",  # Subwoofer
+            "SSTTR ?",  # Tactile Transducer
+            "VSAUDIO ?",  # HDMI Audio Decode
+            "PSCES ?",  # CENTER Spread
+            "PSLOM ?",  # Loudness Management
+            "PSCINEMA EQ. ?",  # CINEMA EQ
+            "BTTX ?",  # Bluetooth Transmitter
+            "PSSPV ?",  # Speaker Virtualizer
+            "PSGEQ ?",  # Graphic EQ
+            "PSHEQ ?",  # Headphone EQ
+            # Regular State Info
+            "PSBAS ?",  # BASS
+            "PSTRE ?",  # TREBLE
+            "PSCNTAMT ?",  # Containment Amount
+            "PSMULTEQ: ?",  # MultEQ
+            "PSREFLEV ?",  # Reference Level
+            "PSDYNVOL ?",  # Dynamic Vol.
+            "DIM ?",  # Dimmer
+            "PSDELAY ?",  # Audio Delay
+            "ECO?",  # ECO
+            "VSMONI ?",  # HDMI Output
+            "PSDIRAC ?",  # Dirac Live Filter
+            "CV?",  # Channel Volume
+            "PSIMAX ?",  # IMAX
+            "PSIMAXHPF ?",  # IMAX High Pass Filter
+            "PSIMAXLPF ?",  # IMAX Low Pass Filter
+            "PSIMAXSWO ?",  # Subwoofer Output LFE+Main/LFE
+            "PSSWL ?",  # Subwoofer Level
+            "STBY?",  # Auto Standby
+            "SLP?",  # Sleep
+            "VSVPM ?",  # Video Process
+            "PSLFE ?",  # LFE Level
+            "PSBSC ?",  # Bass Sync
+            "PSDEH ?",  # Dialog Enhancer
+            "PSAUROPR ?",  # Auro-Matic Preset
+            "PSAUROST ?",  # Auro-Matic Strength
+            "PSAUROMODE ?",  # AURO-3D Mode
+            "PSRSZ ?",  # ROOM SIZE
+            "SPPR ?",  # Speaker Preset
+            "PSDIC ?",  # Dialog Control
+            "PSSP: ?",  # Effect Speaker selection
+            "PSDRC ?",  # DRC
+            "PSDEL ?",  # DELAY TIME
+            "PSRSTR ?",  # AUDIO RESTORER
+        ]
+
+        index = commands.index("MNMEN?")
+        if self.is_denon:
+            commands.insert(index := index + 1, "MSQUICK ?")  # Quick Select
+        if not self.is_denon:
+            commands.insert(index + 1, "MSSMART ?")  # SMART Select
+            index = commands.index("TR?")
+            commands.insert(index := index + 1, "PSMDAX ?")  # MDAX
+            commands.insert(index := index + 1, "PSDACFIL ?")  # DAC Filter
+            commands.insert(index := index + 1, "ILB ?")  # Illumination
+            commands.insert(index + 1, "SSHOS ?")  # Auto Lip Sync
+        await self.async_send_commands(
+            *commands,
+            skip_confirmation=True,
         )
 
-    _update_commands: List[str] = None
-
-    async def _schedule_updates(self):
-        if not self._update_commands:
-            # Trigger update of all attributes
-            commands = [
-                # Critical State Info
-                "ZM?",  # Main Zone Power
-                "SI?",  # Select INPUT source
-                "MV?",  # MASTER VOLUME
-                "MU?",  # Mute
-                "Z2?",  # Z2 Zone Power
-                "Z2MU?",  # Z2 Mute
-                "Z3?",  # Z3 Zone Power
-                "Z3MU?",  # Z3 Mute
-                "MS?",  # Surround mode
-                # State Info used in Toggle Commands
-                "MNMEN?",  # Menu
-                "TR?",  # Trigger
-                "PSTONE CTRL ?",  # TONE
-                "PSDYNEQ ?",  # Dynamic EQ
-                "PSLFC ?",  # Audyssey LFC
-                "PSNEURAL ?",  # Neural:X
-                "PSIMAXAUD ?",  # IMAX Audio Settings Auto/Manual
-                "PSIMAXSWM ?",  # IMAX Subwoofer Mode
-                "PSSWR ?",  # Subwoofer
-                "SSTTR ?",  # Tactile Transducer
-                "VSAUDIO ?",  # HDMI Audio Decode
-                "PSCES ?",  # CENTER Spread
-                "PSLOM ?",  # Loudness Management
-                "PSCINEMA EQ. ?",  # CINEMA EQ
-                "BTTX ?",  # Bluetooth Transmitter
-                "PSSPV ?",  # Speaker Virtualizer
-                "PSGEQ ?",  # Graphic EQ
-                "PSHEQ ?",  # Headphone EQ
-                # Regular State Info
-                "PSBAS ?",  # BASS
-                "PSTRE ?",  # TREBLE
-                "PSCNTAMT ?",  # Containment Amount
-                "PSMULTEQ: ?",  # MultEQ
-                "PSREFLEV ?",  # Reference Level
-                "PSDYNVOL ?",  # Dynamic Vol.
-                "DIM ?",  # Dimmer
-                "PSDELAY ?",  # Audio Delay
-                "ECO?",  # ECO
-                "VSMONI ?",  # HDMI Output
-                "PSDIRAC ?",  # Dirac Live Filter
-                "CV?",  # Channel Volume
-                "PSIMAX ?",  # IMAX
-                "PSIMAXHPF ?",  # IMAX High Pass Filter
-                "PSIMAXLPF ?",  # IMAX Low Pass Filter
-                "PSIMAXSWO ?",  # Subwoofer Output LFE+Main/LFE
-                "PSSWL ?",  # Subwoofer Level
-                "STBY?",  # Auto Standby
-                "SLP?",  # Sleep
-                "VSVPM ?",  # Video Process
-                "PSLFE ?",  # LFE Level
-                "PSBSC ?",  # Bass Sync
-                "PSDEH ?",  # Dialog Enhancer
-                "PSAUROPR ?",  # Auro-Matic Preset
-                "PSAUROST ?",  # Auro-Matic Strength
-                "PSAUROMODE ?",  # AURO-3D Mode
-                "PSRSZ ?",  # ROOM SIZE
-                "SPPR ?",  # Speaker Preset
-                "PSDIC ?",  # Dialog Control
-                "PSSP: ?",  # Effect Speaker selection
-                "PSDRC ?",  # DRC
-                "PSDEL ?",  # DELAY TIME
-                "PSRSTR ?",  # AUDIO RESTORER
-            ]
-
-            index = commands.index("MNMEN?")
-            if self.is_denon:
-                commands.insert(index := index + 1, "MSQUICK ?")  # Quick Select
-            if not self.is_denon:
-                commands.insert(index + 1, "MSSMART ?")  # SMART Select
-                index = commands.index("TR?")
-                commands.insert(index := index + 1, "PSMDAX ?")  # MDAX
-                commands.insert(index := index + 1, "PSDACFIL ?")  # DAC Filter
-                commands.insert(index := index + 1, "ILB ?")  # Illumination
-                commands.insert(index + 1, "SSHOS ?")  # Auto Lip Sync
-
-            self._update_commands = commands
-
-        for command in self._update_commands:
+        for command in commands:
             await self.async_send_commands(command, skip_confirmation=True)
             await asyncio.sleep(0.1)
 
@@ -747,7 +725,7 @@ class DenonAVRTelnetApi:
         self._reconnect_task = None
 
     def register_callback(
-        self, event: str, callback: Callable[[str, str, str], Awaitable[None]]
+        self, event: str, callback: Callable[[str, str, str], None]
     ) -> None:
         """Register a callback handler for an event type."""
         # Validate the passed in type
@@ -761,48 +739,22 @@ class DenonAVRTelnetApi:
         self._callbacks[event].append(callback)
 
     def unregister_callback(
-        self, event: str, callback: Callable[[str, str, str], Awaitable[None]]
+        self, event: str, callback: Callable[[str, str, str], None]
     ) -> None:
         """Unregister a callback handler for an event type."""
         if event not in self._callbacks.keys():
             return
         self._callbacks[event].remove(callback)
 
-    def _register_raw_callback(
-        self, callback: Callable[[str], Awaitable[None]]
-    ) -> None:
+    def _register_raw_callback(self, callback: Callable[[str], None]) -> None:
         """Register a callback handler for raw telnet messages."""
         if callback in self._raw_callbacks:
             return
         self._raw_callbacks.append(callback)
 
-    def _unregister_raw_callback(
-        self, callback: Callable[[str], Awaitable[None]]
-    ) -> None:
+    def _unregister_raw_callback(self, callback: Callable[[str], None]) -> None:
         """Unregister a callback handler for raw telnet messages."""
         self._raw_callbacks.remove(callback)
-
-    def register_sync_callback(
-        self, event: str, callback: Callable[[str, str, str], None]
-    ) -> None:
-        """Register a synchronous callback handler for an event type."""
-        # Validate the passed in type
-        if event != ALL_TELNET_EVENTS and event not in TELNET_EVENTS:
-            raise ValueError(f"{event} is not a valid callback type.")
-
-        if event not in self._sync_callbacks.keys():
-            self._sync_callbacks[event] = []
-        elif callback in self._sync_callbacks[event]:
-            return
-        self._sync_callbacks[event].append(callback)
-
-    def unregister_sync_callback(
-        self, event: str, callback: Callable[[str, str, str], None]
-    ) -> None:
-        """Unregister a synchronous callback handler for an event type."""
-        if event not in self._sync_callbacks.keys():
-            return
-        self._sync_callbacks[event].remove(callback)
 
     def _process_event(self, message: str) -> None:
         """Process a realtime event."""
@@ -844,19 +796,15 @@ class DenonAVRTelnetApi:
         if event not in TELNET_EVENTS:
             return
 
-        task = asyncio.create_task(
-            self._async_run_callbacks(message, event, zone, parameter)
-        )
-        self._callback_tasks.add(task)
-        task.add_done_callback(self._callback_tasks.discard)
+        self._run_callbacks(message, event, zone, parameter)
 
-    async def _async_run_callbacks(
+    def _run_callbacks(
         self, message: str, event: str, zone: str, parameter: str
     ) -> None:
         """Handle triggering the registered callbacks."""
         for callback in self._raw_callbacks:
             try:
-                await callback(message)
+                callback(message)
             except Exception as err:  # pylint: disable=broad-except
                 # We don't want a single bad callback to trip up the
                 # whole system and prevent further execution
@@ -866,36 +814,10 @@ class DenonAVRTelnetApi:
                     err,
                 )
 
-        if event in self._sync_callbacks.keys():
-            for callback in self._sync_callbacks[event]:
-                try:
-                    callback(zone, event, parameter)
-                except Exception as err:  # pylint: disable=broad-except
-                    # We don't want a single bad callback to trip up the
-                    # whole system and prevent further execution
-                    _LOGGER.error(
-                        "%s: Sync event callback caused an unhandled exception: %s",
-                        self.host,
-                        err,
-                    )
-
-        if ALL_TELNET_EVENTS in self._sync_callbacks.keys():
-            for callback in self._sync_callbacks[ALL_TELNET_EVENTS]:
-                try:
-                    callback(zone, event, parameter)
-                except Exception as err:  # pylint: disable=broad-except
-                    # We don't want a single bad callback to trip up the
-                    # whole system and prevent further execution
-                    _LOGGER.error(
-                        "%s: Sync ALL event callback caused an unhandled exception: %s",
-                        self.host,
-                        err,
-                    )
-
         if event in self._callbacks.keys():
             for callback in self._callbacks[event]:
                 try:
-                    await callback(zone, event, parameter)
+                    callback(zone, event, parameter)
                 except Exception as err:  # pylint: disable=broad-except
                     # We don't want a single bad callback to trip up the
                     # whole system and prevent further execution
@@ -908,7 +830,7 @@ class DenonAVRTelnetApi:
         if ALL_TELNET_EVENTS in self._callbacks.keys():
             for callback in self._callbacks[ALL_TELNET_EVENTS]:
                 try:
-                    await callback(zone, event, parameter)
+                    callback(zone, event, parameter)
                 except Exception as err:  # pylint: disable=broad-except
                     # We don't want a single bad callback to trip up the
                     # whole system and prevent further execution
@@ -926,7 +848,7 @@ class DenonAVRTelnetApi:
                 return event
         return ""
 
-    async def _async_send_confirmation_callback(self, message: str) -> None:
+    def _send_confirmation_callback(self, message: str) -> None:
         """Confirm that the telnet command has been executed."""
         if len(message) < 3:
             return

@@ -67,7 +67,7 @@ class DenonAVRToneControl(DenonAVRFoundation):
                 for tag in self.appcommand_attrs:
                     self._device.api.add_appcommand_update_tag(tag)
 
-            self._device.telnet_api.register_sync_callback("PS", self._ps_callback)
+            self._device.telnet_api.register_callback("PS", self._ps_callback)
 
             self._is_setup = True
             _LOGGER.debug("Finished tone control setup")
