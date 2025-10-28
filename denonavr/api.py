@@ -100,10 +100,11 @@ class HTTPXAsyncClient:
         """Call GET endpoint of Denon AVR receiver asynchronously."""
         client = self.client_getter()
         try:
-            res = await client.get(
-                url, timeout=httpx.Timeout(timeout, read=read_timeout)
-            )
-            res.raise_for_status()
+            async with client.stream(
+                "GET", url, timeout=httpx.Timeout(timeout, read=read_timeout)
+            ) as res:
+                res.raise_for_status()
+                await res.aread()
         finally:
             # Close the default AsyncClient but keep custom clients open
             if self.is_default_async_client():
@@ -126,13 +127,15 @@ class HTTPXAsyncClient:
         """Call GET endpoint of Denon AVR receiver asynchronously."""
         client = self.client_getter()
         try:
-            res = await client.post(
+            async with client.stream(
+                "POST",
                 url,
                 content=content,
                 data=data,
                 timeout=httpx.Timeout(timeout, read=read_timeout),
-            )
-            res.raise_for_status()
+            ) as res:
+                res.raise_for_status()
+                await res.aread()
         finally:
             # Close the default AsyncClient but keep custom clients open
             if self.is_default_async_client():
