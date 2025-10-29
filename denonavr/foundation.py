@@ -480,21 +480,21 @@ class DenonAVRDeviceInfo:
             power_event = "Z2"
         elif self.zone == ZONE3:
             power_event = "Z3"
-        self.telnet_api.register_sync_callback(power_event, self._power_callback)
+        self.telnet_api.register_callback(power_event, self._power_callback)
 
-        self.telnet_api.register_sync_callback("MN", self._settings_menu_callback)
-        self.telnet_api.register_sync_callback("DIM", self._dimmer_callback)
-        self.telnet_api.register_sync_callback("ECO", self._eco_mode_callback)
-        self.telnet_api.register_sync_callback("VS", self._vs_callback)
-        self.telnet_api.register_sync_callback("SS", self._ss_callback)
-        self.telnet_api.register_sync_callback("STBY", self._auto_standby_callback)
-        self.telnet_api.register_sync_callback("SLP", self._auto_sleep_callback)
-        self.telnet_api.register_sync_callback("TR", self._trigger_callback)
-        self.telnet_api.register_sync_callback("SP", self._speaker_preset_callback)
-        self.telnet_api.register_sync_callback("BT", self._bt_callback)
-        self.telnet_api.register_sync_callback("PS", self._ps_callback)
+        self.telnet_api.register_callback("MN", self._settings_menu_callback)
+        self.telnet_api.register_callback("DIM", self._dimmer_callback)
+        self.telnet_api.register_callback("ECO", self._eco_mode_callback)
+        self.telnet_api.register_callback("VS", self._vs_callback)
+        self.telnet_api.register_callback("SS", self._ss_callback)
+        self.telnet_api.register_callback("STBY", self._auto_standby_callback)
+        self.telnet_api.register_callback("SLP", self._auto_sleep_callback)
+        self.telnet_api.register_callback("TR", self._trigger_callback)
+        self.telnet_api.register_callback("SP", self._speaker_preset_callback)
+        self.telnet_api.register_callback("BT", self._bt_callback)
+        self.telnet_api.register_callback("PS", self._ps_callback)
         if not self.is_denon:
-            self.telnet_api.register_sync_callback("ILB", self._illumination_callback)
+            self.telnet_api.register_callback("ILB", self._illumination_callback)
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
