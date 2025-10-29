@@ -12,7 +12,6 @@ import contextlib
 import logging
 import time
 import xml.etree.ElementTree as ET
-from asyncio import timeout as asyncio_timeout
 from collections import defaultdict
 from collections.abc import Hashable
 from io import BytesIO
@@ -109,8 +108,11 @@ class HTTPXAsyncClient:
     ) -> httpx.Response:
         """Call GET endpoint of Denon AVR receiver asynchronously."""
         client = self._get_client()
-        res = await client.get(url, timeout=httpx.Timeout(timeout, read=read_timeout))
-        res.raise_for_status()
+        async with client.stream(
+                "GET", url, timeout=httpx.Timeout(timeout, read=read_timeout)
+        ) as res:
+            res.raise_for_status()
+            await res.aread()
 
         return res
 
@@ -128,13 +130,15 @@ class HTTPXAsyncClient:
     ) -> httpx.Response:
         """Call GET endpoint of Denon AVR receiver asynchronously."""
         client = self._get_client()
-        res = await client.post(
-            url,
-            content=content,
-            data=data,
-            timeout=httpx.Timeout(timeout, read=read_timeout),
-        )
-        res.raise_for_status()
+        async with client.stream(
+                "POST",
+                url,
+                content=content,
+                data=data,
+                timeout=httpx.Timeout(timeout, read=read_timeout),
+        ) as res:
+            res.raise_for_status()
+            await res.aread()
 
         return res
 
@@ -495,6 +499,7 @@ class DenonAVRTelnetApi:
         default=attr.Factory(list),
         init=False,
     )
+    _update_callback_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
 
     def __attrs_post_init__(self) -> None:
         """Initialize special attributes."""
@@ -542,7 +547,17 @@ class DenonAVRTelnetApi:
         self._connection_enabled = True
         self._last_message_time = time.monotonic()
         self._schedule_monitor()
-        # Trigger update of all attributes
+
+        # Cancel all update tasks in case they are still running and create a new one.
+        for callback_task in self._update_callback_tasks:
+            callback_task.cancel()
+
+        task = asyncio.create_task(self._async_trigger_updates())
+        self._update_callback_tasks.add(task)
+        task.add_done_callback(self._update_callback_tasks.discard)
+
+    async def _async_trigger_updates(self) -> None:
+        """Trigger update of all attributes."""
         commands = [
             # Critical State Info
             "ZM?",  # Main Zone Power
@@ -619,14 +634,11 @@ class DenonAVRTelnetApi:
             commands.insert(index := index + 1, "PSDACFIL ?")  # DAC Filter
             commands.insert(index := index + 1, "ILB ?")  # Illumination
             commands.insert(index + 1, "SSHOS ?")  # Auto Lip Sync
+
         await self.async_send_commands(
             *commands,
-            skip_confirmation=True,
+            confirmation_timeout=0.1,
         )
-
-        for command in commands:
-            await self.async_send_commands(command, skip_confirmation=True)
-            await asyncio.sleep(0.1)
 
     def _schedule_monitor(self) -> None:
         """Start the monitor task."""
@@ -859,9 +871,15 @@ class DenonAVRTelnetApi:
             _LOGGER.debug("Command %s confirmed", command)
 
     async def _async_send_command(
-        self, command: str, skip_confirmation: bool = False
+        self,
+        command: str,
+        skip_confirmation: bool = False,
+        confirmation_timeout: Optional[float] = None,
     ) -> None:
         """Send one telnet command to the receiver."""
+        if confirmation_timeout is None:
+            confirmation_timeout = self._send_confirmation_timeout
+
         async with self._send_lock:
             if not skip_confirmation:
                 self._send_confirmation_command = command
@@ -876,26 +894,42 @@ class DenonAVRTelnetApi:
                 try:
                     await asyncio.wait_for(
                         self._send_confirmation_event.wait(),
-                        self._send_confirmation_timeout,
+                        confirmation_timeout,
                     )
                 except asyncio.TimeoutError:
-                    _LOGGER.info(
+                    _LOGGER.debug(
                         "Timeout waiting for confirmation of command: %s", command
                     )
                 finally:
                     self._send_confirmation_command = ""
 
     async def async_send_commands(
-        self, *commands: str, skip_confirmation: bool = False
+        self,
+        *commands: str,
+        skip_confirmation: bool = False,
+        confirmation_timeout: Optional[float] = None,
     ) -> None:
         """Send telnet commands to the receiver."""
         for command in commands:
-            await self._async_send_command(command, skip_confirmation=skip_confirmation)
+            await self._async_send_command(
+                command,
+                skip_confirmation=skip_confirmation,
+                confirmation_timeout=confirmation_timeout,
+            )
 
-    def send_commands(self, *commands: str, skip_confirmation: bool = False) -> None:
+    def send_commands(
+        self,
+        *commands: str,
+        skip_confirmation: bool = False,
+        confirmation_timeout: Optional[float] = None,
+    ) -> None:
         """Send telnet commands to the receiver."""
         task = asyncio.create_task(
-            self.async_send_commands(*commands, skip_confirmation=skip_confirmation)
+            self.async_send_commands(
+                *commands,
+                skip_confirmation=skip_confirmation,
+                confirmation_timeout=confirmation_timeout,
+            )
         )
         self._send_tasks.add(task)
         task.add_done_callback(self._send_tasks.discard)

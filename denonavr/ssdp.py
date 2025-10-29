@@ -117,8 +117,9 @@ async def _evaluate_single_device(
 ) -> Optional[Dict]:
     """Evaluate a single device URL for compatibility."""
     try:
-        res = await client.get(url)
-        res.raise_for_status()
+        async with client.stream("GET", url, timeout=5.0) as res:
+            res.raise_for_status()
+            await res.aread()
         return evaluate_scpd_xml(url, res.text)
     except httpx.HTTPError:
         return None
