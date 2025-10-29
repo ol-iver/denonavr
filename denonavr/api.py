@@ -52,6 +52,9 @@ _LOGGER = logging.getLogger(__name__)
 
 _MONITOR_INTERVAL = 30
 
+_denon_update_commands: List[str] | None = None
+_marantz_update_commands: List[str] | None = None
+
 
 def telnet_event_map_factory() -> Dict[str, List]:
     """Create telnet event map."""
@@ -559,87 +562,94 @@ class DenonAVRTelnetApi:
 
     async def _async_trigger_updates(self) -> None:
         """Trigger update of all attributes."""
-        commands = [
-            # Critical State Info
-            "ZM?",  # Main Zone Power
-            "SI?",  # Select INPUT source
-            "MV?",  # MASTER VOLUME
-            "MU?",  # Mute
-            "Z2?",  # Z2 Zone Power
-            "Z2MU?",  # Z2 Mute
-            "Z3?",  # Z3 Zone Power
-            "Z3MU?",  # Z3 Mute
-            "MS?",  # Surround mode
-            # State Info used in Toggle Commands
-            "MNMEN?",  # Menu
-            "TR?",  # Trigger
-            "PSTONE CTRL ?",  # TONE
-            "PSDYNEQ ?",  # Dynamic EQ
-            "PSLFC ?",  # Audyssey LFC
-            "PSNEURAL ?",  # Neural:X
-            "PSIMAXAUD ?",  # IMAX Audio Settings Auto/Manual
-            "PSIMAXSWM ?",  # IMAX Subwoofer Mode
-            "PSSWR ?",  # Subwoofer
-            "SSTTR ?",  # Tactile Transducer
-            "VSAUDIO ?",  # HDMI Audio Decode
-            "PSCES ?",  # CENTER Spread
-            "PSLOM ?",  # Loudness Management
-            "PSCINEMA EQ. ?",  # CINEMA EQ
-            "BTTX ?",  # Bluetooth Transmitter
-            "PSSPV ?",  # Speaker Virtualizer
-            "PSGEQ ?",  # Graphic EQ
-            "PSHEQ ?",  # Headphone EQ
-            # Regular State Info
-            "PSBAS ?",  # BASS
-            "PSTRE ?",  # TREBLE
-            "PSCNTAMT ?",  # Containment Amount
-            "PSMULTEQ: ?",  # MultEQ
-            "PSREFLEV ?",  # Reference Level
-            "PSDYNVOL ?",  # Dynamic Vol.
-            "DIM ?",  # Dimmer
-            "PSDELAY ?",  # Audio Delay
-            "ECO?",  # ECO
-            "VSMONI ?",  # HDMI Output
-            "PSDIRAC ?",  # Dirac Live Filter
-            "CV?",  # Channel Volume
-            "PSIMAX ?",  # IMAX
-            "PSIMAXHPF ?",  # IMAX High Pass Filter
-            "PSIMAXLPF ?",  # IMAX Low Pass Filter
-            "PSIMAXSWO ?",  # Subwoofer Output LFE+Main/LFE
-            "PSSWL ?",  # Subwoofer Level
-            "STBY?",  # Auto Standby
-            "SLP?",  # Sleep
-            "VSVPM ?",  # Video Process
-            "PSLFE ?",  # LFE Level
-            "PSBSC ?",  # Bass Sync
-            "PSDEH ?",  # Dialog Enhancer
-            "PSAUROPR ?",  # Auro-Matic Preset
-            "PSAUROST ?",  # Auro-Matic Strength
-            "PSAUROMODE ?",  # AURO-3D Mode
-            "PSRSZ ?",  # ROOM SIZE
-            "SPPR ?",  # Speaker Preset
-            "PSDIC ?",  # Dialog Control
-            "PSSP: ?",  # Effect Speaker selection
-            "PSDRC ?",  # DRC
-            "PSDEL ?",  # DELAY TIME
-            "PSRSTR ?",  # AUDIO RESTORER
-        ]
+        update_commands = (
+            _denon_update_commands if self.is_denon else _marantz_update_commands
+        )
 
-        index = commands.index("MNMEN?")
-        if self.is_denon:
-            commands.insert(index := index + 1, "MSQUICK ?")  # Quick Select
-        if not self.is_denon:
-            commands.insert(index + 1, "MSSMART ?")  # SMART Select
-            index = commands.index("TR?")
-            commands.insert(index := index + 1, "PSMDAX ?")  # MDAX
-            commands.insert(index := index + 1, "PSDACFIL ?")  # DAC Filter
-            commands.insert(index := index + 1, "ILB ?")  # Illumination
-            commands.insert(index + 1, "SSHOS ?")  # Auto Lip Sync
+        if not update_commands:
+            commands = [
+                # Critical State Info
+                "ZM?",  # Main Zone Power
+                "SI?",  # Select INPUT source
+                "MV?",  # MASTER VOLUME
+                "MU?",  # Mute
+                "Z2?",  # Z2 Zone Power
+                "Z2MU?",  # Z2 Mute
+                "Z3?",  # Z3 Zone Power
+                "Z3MU?",  # Z3 Mute
+                "MS?",  # Surround mode
+                # State Info used in Toggle Commands
+                "MNMEN?",  # Menu
+                "TR?",  # Trigger
+                "PSTONE CTRL ?",  # TONE
+                "PSDYNEQ ?",  # Dynamic EQ
+                "PSLFC ?",  # Audyssey LFC
+                "PSNEURAL ?",  # Neural:X
+                "PSIMAXAUD ?",  # IMAX Audio Settings Auto/Manual
+                "PSIMAXSWM ?",  # IMAX Subwoofer Mode
+                "PSSWR ?",  # Subwoofer
+                "SSTTR ?",  # Tactile Transducer
+                "VSAUDIO ?",  # HDMI Audio Decode
+                "PSCES ?",  # CENTER Spread
+                "PSLOM ?",  # Loudness Management
+                "PSCINEMA EQ. ?",  # CINEMA EQ
+                "BTTX ?",  # Bluetooth Transmitter
+                "PSSPV ?",  # Speaker Virtualizer
+                "PSGEQ ?",  # Graphic EQ
+                "PSHEQ ?",  # Headphone EQ
+                # Regular State Info
+                "PSBAS ?",  # BASS
+                "PSTRE ?",  # TREBLE
+                "PSCNTAMT ?",  # Containment Amount
+                "PSMULTEQ: ?",  # MultEQ
+                "PSREFLEV ?",  # Reference Level
+                "PSDYNVOL ?",  # Dynamic Vol.
+                "DIM ?",  # Dimmer
+                "PSDELAY ?",  # Audio Delay
+                "ECO?",  # ECO
+                "VSMONI ?",  # HDMI Output
+                "PSDIRAC ?",  # Dirac Live Filter
+                "CV?",  # Channel Volume
+                "PSIMAX ?",  # IMAX
+                "PSIMAXHPF ?",  # IMAX High Pass Filter
+                "PSIMAXLPF ?",  # IMAX Low Pass Filter
+                "PSIMAXSWO ?",  # Subwoofer Output LFE+Main/LFE
+                "PSSWL ?",  # Subwoofer Level
+                "STBY?",  # Auto Standby
+                "SLP?",  # Sleep
+                "VSVPM ?",  # Video Process
+                "PSLFE ?",  # LFE Level
+                "PSBSC ?",  # Bass Sync
+                "PSDEH ?",  # Dialog Enhancer
+                "PSAUROPR ?",  # Auro-Matic Preset
+                "PSAUROST ?",  # Auro-Matic Strength
+                "PSAUROMODE ?",  # AURO-3D Mode
+                "PSRSZ ?",  # ROOM SIZE
+                "SPPR ?",  # Speaker Preset
+                "PSDIC ?",  # Dialog Control
+                "PSSP: ?",  # Effect Speaker selection
+                "PSDRC ?",  # DRC
+                "PSDEL ?",  # DELAY TIME
+                "PSRSTR ?",  # AUDIO RESTORER
+            ]
 
-        for command in commands:
+            index = commands.index("MNMEN?")
+            if self.is_denon:
+                commands.insert(index := index + 1, "MSQUICK ?")  # Quick Select
+            if not self.is_denon:
+                commands.insert(index + 1, "MSSMART ?")  # SMART Select
+                index = commands.index("TR?")
+                commands.insert(index := index + 1, "PSMDAX ?")  # MDAX
+                commands.insert(index := index + 1, "PSDACFIL ?")  # DAC Filter
+                commands.insert(index := index + 1, "ILB ?")  # Illumination
+                commands.insert(index + 1, "SSHOS ?")  # Auto Lip Sync
+
+            update_commands = commands
+
+        for command in update_commands:
             await self._async_send_command(
                 command,
-                skip_confirmation=True,  # Verify is this is better than await delay
+                skip_confirmation=True,
             )
             await asyncio.sleep(0.1)
 
