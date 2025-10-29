@@ -203,13 +203,11 @@ class DenonAVRInput(DenonAVRFoundation):
             power_event = "Z2"
         elif self._device.zone == ZONE3:
             power_event = "Z3"
-        self._device.telnet_api.register_callback(
-            power_event, self._power_callback
-        )
+        self._device.telnet_api.register_callback(power_event, self._power_callback)
         self._device.telnet_api.register_callback("SI", self._input_callback)
-        self._device.telnet_api.register_callback("NSE", self._async_netaudio_callback)
-        self._device.telnet_api.register_callback("TF", self._async_tuner_callback)
-        self._device.telnet_api.register_callback("HD", self._async_hdtuner_callback)
+        self._device.telnet_api.register_callback("NSE", self._netaudio_callback)
+        self._device.telnet_api.register_callback("TF", self._tuner_callback)
+        self._device.telnet_api.register_callback("HD", self._hdtuner_callback)
         self._device.telnet_api.register_callback(
             "SS", self._input_func_update_callback
         )

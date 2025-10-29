@@ -94,9 +94,7 @@ class DenonAVRVolume(DenonAVRFoundation):
 
         self._device.telnet_api.register_callback("MV", self._volume_callback)
         self._device.telnet_api.register_callback("MU", self._mute_callback)
-        self._device.telnet_api.register_callback(
-            "CV", self._channel_volume_callback
-        )
+        self._device.telnet_api.register_callback("CV", self._channel_volume_callback)
         self._device.telnet_api.register_callback("PS", self._ps_callback)
 
         self._is_setup = True

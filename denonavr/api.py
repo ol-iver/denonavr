@@ -12,6 +12,7 @@ import contextlib
 import logging
 import time
 import xml.etree.ElementTree as ET
+from asyncio import timeout as asyncio_timeout
 from collections import defaultdict
 from collections.abc import Hashable
 from io import BytesIO
@@ -109,7 +110,7 @@ class HTTPXAsyncClient:
         """Call GET endpoint of Denon AVR receiver asynchronously."""
         client = self._get_client()
         async with client.stream(
-                "GET", url, timeout=httpx.Timeout(timeout, read=read_timeout)
+            "GET", url, timeout=httpx.Timeout(timeout, read=read_timeout)
         ) as res:
             res.raise_for_status()
             await res.aread()
@@ -131,11 +132,11 @@ class HTTPXAsyncClient:
         """Call GET endpoint of Denon AVR receiver asynchronously."""
         client = self._get_client()
         async with client.stream(
-                "POST",
-                url,
-                content=content,
-                data=data,
-                timeout=httpx.Timeout(timeout, read=read_timeout),
+            "POST",
+            url,
+            content=content,
+            data=data,
+            timeout=httpx.Timeout(timeout, read=read_timeout),
         ) as res:
             res.raise_for_status()
             await res.aread()
@@ -635,10 +636,12 @@ class DenonAVRTelnetApi:
             commands.insert(index := index + 1, "ILB ?")  # Illumination
             commands.insert(index + 1, "SSHOS ?")  # Auto Lip Sync
 
-        await self.async_send_commands(
-            *commands,
-            confirmation_timeout=0.1,
-        )
+        for command in commands:
+            await self._async_send_command(
+                command,
+                skip_confirmation=True,  # Verify is this is better than await delay
+            )
+            await asyncio.sleep(0.1)
 
     def _schedule_monitor(self) -> None:
         """Start the monitor task."""
