@@ -52,8 +52,8 @@ _LOGGER = logging.getLogger(__name__)
 
 _MONITOR_INTERVAL = 30
 
-_denon_update_commands: List[str] | None = None
-_marantz_update_commands: List[str] | None = None
+_DENON_UPDATE_COMMANDS: List[str] | None = None
+_MARANTZ_UPDATE_COMMANDS: List[str] | None = None
 
 
 def telnet_event_map_factory() -> Dict[str, List]:
@@ -563,7 +563,7 @@ class DenonAVRTelnetApi:
     async def _async_trigger_updates(self) -> None:
         """Trigger update of all attributes."""
         update_commands = (
-            _denon_update_commands if self.is_denon else _marantz_update_commands
+            _DENON_UPDATE_COMMANDS if self.is_denon else _MARANTZ_UPDATE_COMMANDS
         )
 
         if not update_commands:
