@@ -429,8 +429,9 @@ SOUND_MODE_MAPPING = {
         "DOLBY AUDIO - TRUEHD + NEURAL:X",
         "DOLBY AUDIO-DD",
         "DOLBY AUDIO-DD+ +DSUR",
-        # Added both variants as we don't know if type is intentional
+        # FY24 specification uses incorrect spelling
         "DOLBY AUDIO-DD+ +NERUAL:X",
+        # FY23 specification uses correct spelling, go figure
         "DOLBY AUDIO-DD+ +NEURAL:X",
         "DOLBY AUDIO-DD+",
         "DOLBY AUDIO-DD+DSUR",
@@ -466,6 +467,17 @@ SOUND_MODE_MAPPING = {
         "DOLBY D+ +PL2Z H",
         "DOLBY HD+EX",
         "DOLBY HD+PL2Z H",
+        "MPEG2 AAC",
+        "MPEG4 AAC",
+        "MPEG-H",
+        "AAC+DOLBY EX",
+        "AAC+PL2Z H",
+        "AAC+DSUR",
+        "MULTI CH IN",  # Exists in both DOLBY and DTS, but can't be in both
+        "MULTI CH IN 7.1",  # Exists in both DOLBY and DTS, but can't be in both
+        "M CH IN+DOLBY EX",
+        "M CH IN+PL2Z H",
+        "M CH IN+DSUR",
     ],
     "DTS SURROUND": [
         "DTS + DOLBY SURROUND",
@@ -513,6 +525,10 @@ SOUND_MODE_MAPPING = {
         "DTS EXPRESS",
         "DTS HD+PL2Z H",
         "DTS HD+NEO:6",
+        "M CH IN+NEURAL:X",
+        "M CH IN+VIRTUAL:X",
+        "AAC+NEURAL:X",
+        "AAC+VIRTUAL:X",
     ],
     "AURO3D": ["AURO-3D", "AURO3D"],
     "AURO2DSURR": ["AURO-2D SURROUND", "AURO2DSURR"],
@@ -521,29 +537,8 @@ SOUND_MODE_MAPPING = {
         "MULTI CH STEREO",
         "MULTI_CH_STEREO",
     ],
-    "MCH": [
-        "MULTI CH IN",
-        "MULTI CH IN 7.1",
-        "M CH IN+DOLBY EX",
-        "M CH IN+PL2Z H",
-        "M CH IN+DSUR",
-        "M CH IN+NEURAL:X",
-        "M CH IN+VIRTUAL:X",
-    ],
     "STEREO": ["STEREO"],
     ALL_ZONE_STEREO: ["ALL ZONE STEREO"],
-    "MPEG": [
-        "MPEG2 AAC",
-        "MPEG4 AAC",
-        "MPEG-H",
-    ],
-    "AAC": [
-        "AAC+DOLBY EX",
-        "AAC+PL2Z H",
-        "AAC+DSUR",
-        "AAC+NEURAL:X",
-        "AAC+VIRTUAL:X",
-    ],
 }
 
 # Receiver sources
