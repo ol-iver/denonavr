@@ -174,7 +174,7 @@ class DenonAVRInput(DenonAVRFoundation):
         ),
         default=attr.Factory(set),
     )
-    _callback_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
+    _callback_tasks: Set[asyncio.Task] = attr.ib(default=attr.Factory(set))
 
     # Update tags for attributes
     # AppCommand.xml interface
@@ -532,7 +532,7 @@ class DenonAVRInput(DenonAVRFoundation):
 
         self._replace_duplicate_sources(renamed_sources)
 
-        return (renamed_sources, deleted_sources)
+        return renamed_sources, deleted_sources
 
     async def async_get_changed_sources_status_xml(
         self, cache_id: Optional[Hashable] = None
@@ -622,7 +622,7 @@ class DenonAVRInput(DenonAVRFoundation):
 
         self._replace_duplicate_sources(renamed_sources)
 
-        return (renamed_sources, deleted_sources)
+        return renamed_sources, deleted_sources
 
     async def async_update_inputfuncs(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None

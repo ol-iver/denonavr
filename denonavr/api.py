@@ -16,7 +16,7 @@ import xml.etree.ElementTree as ET
 from collections import defaultdict
 from collections.abc import Hashable
 from io import BytesIO
-from typing import Callable, DefaultDict, Dict, List, Optional, Set, Tuple, cast
+from typing import Callable, DefaultDict, Dict, List, Optional, Set, Tuple
 
 import attr
 import httpx
@@ -483,7 +483,7 @@ class DenonAVRTelnetApi:
         default=attr.Factory(asyncio.Event)
     )
     _send_confirmation_command: str = attr.ib(converter=str, default="")
-    _send_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
+    _send_tasks: Set[asyncio.Task] = attr.ib(default=attr.Factory(set))
     _callbacks: Dict[str, List[Callable]] = attr.ib(
         validator=attr.validators.instance_of(dict),
         default=attr.Factory(dict),
@@ -494,7 +494,7 @@ class DenonAVRTelnetApi:
         default=attr.Factory(list),
         init=False,
     )
-    _update_callback_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
+    _update_callback_tasks: Set[asyncio.Task] = attr.ib(default=attr.Factory(set))
 
     def __attrs_post_init__(self) -> None:
         """Initialize special attributes."""
@@ -537,7 +537,7 @@ class DenonAVRTelnetApi:
                 "%s: Connection failed on telnet reconnect: %s", self.host, err
             )
             raise AvrNetworkError(f"OSError: {err}", "telnet connect") from err
-        self._protocol = cast(DenonAVRTelnetProtocol, transport_protocol[1])
+        self._protocol = transport_protocol[1]
         _LOGGER.debug("%s: telnet connection established", self.host)
         self._connection_enabled = True
         self._last_message_time = time.monotonic()

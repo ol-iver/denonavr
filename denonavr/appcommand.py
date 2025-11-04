@@ -73,7 +73,7 @@ class AppCommands:
     """Collect known AppCommand.xml tags."""
 
     GetAllZoneMuteStatus = AppCommandCmd(
-        cmd_id=1,
+        cmd_id="1",
         cmd_text="GetAllZoneMuteStatus",
         response_pattern=(
             AppCommandResponsePattern(
@@ -82,7 +82,7 @@ class AppCommands:
         ),
     )
     GetAllZonePowerStatus = AppCommandCmd(
-        cmd_id=1,
+        cmd_id="1",
         cmd_text="GetAllZonePowerStatus",
         response_pattern=(
             AppCommandResponsePattern(
@@ -91,7 +91,7 @@ class AppCommands:
         ),
     )
     GetAllZoneSource = AppCommandCmd(
-        cmd_id=1,
+        cmd_id="1",
         cmd_text="GetAllZoneSource",
         response_pattern=(
             AppCommandResponsePattern(
@@ -100,7 +100,7 @@ class AppCommands:
         ),
     )
     GetAllZoneVolume = AppCommandCmd(
-        cmd_id=1,
+        cmd_id="1",
         cmd_text="GetAllZoneVolume",
         response_pattern=(
             AppCommandResponsePattern(
@@ -110,7 +110,7 @@ class AppCommands:
     )
 
     GetSurroundModeStatus = AppCommandCmd(
-        cmd_id=1,
+        cmd_id="1",
         cmd_text="GetSurroundModeStatus",
         response_pattern=(
             AppCommandResponsePattern(
@@ -120,7 +120,7 @@ class AppCommands:
     )
 
     GetToneControl = AppCommandCmd(
-        cmd_id=1,
+        cmd_id="1",
         cmd_text="GetToneControl",
         response_pattern=(
             AppCommandResponsePattern(
@@ -149,7 +149,7 @@ class AppCommands:
     )
     # Replace set command with a real command using attr.evolve
     SetToneControl = AppCommandCmd(
-        cmd_id=1,
+        cmd_id="1",
         cmd_text="SetToneControl",
         set_command=AppCommandCmdParam(name="REPLACE", text="REPLACE"),
     )
@@ -160,7 +160,7 @@ class AppCommands:
     GetFriendlyName = AppCommandCmd(cmd_id=1, cmd_text="GetFriendlyName")
 
     GetAudyssey = AppCommandCmd(
-        cmd_id=3,
+        cmd_id="3",
         name="GetAudyssey",
         param_list=(
             AppCommandCmdParam(name="dynamiceq"),
@@ -216,22 +216,22 @@ class AppCommands:
         ),
     )
     SetAudysseyDynamicEQ = AppCommandCmd(
-        cmd_id=3,
+        cmd_id="3",
         name="SetAudyssey",
         param_list=(AppCommandCmdParam(name="dynamiceq", text="REPLACE"),),
     )
     SetAudysseyMultiEQ = AppCommandCmd(
-        cmd_id=3,
+        cmd_id="3",
         name="SetAudyssey",
         param_list=(AppCommandCmdParam(name="multieq", text="REPLACE"),),
     )
     SetAudysseyReflevoffset = AppCommandCmd(
-        cmd_id=3,
+        cmd_id="3",
         name="SetAudyssey",
         param_list=(AppCommandCmdParam(name="reflevoffset", text="REPLACE"),),
     )
     SetAudysseyDynamicvol = AppCommandCmd(
-        cmd_id=3,
+        cmd_id="3",
         name="SetAudyssey",
         param_list=(AppCommandCmdParam(name="dynamicvol", text="REPLACE"),),
     )
