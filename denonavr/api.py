@@ -16,7 +16,7 @@ import xml.etree.ElementTree as ET
 from collections import defaultdict
 from collections.abc import Hashable
 from io import BytesIO
-from typing import Callable, DefaultDict, Dict, List, Optional, Set, Tuple, cast
+from typing import Callable, DefaultDict, Dict, List, Optional, Set, Tuple
 
 import attr
 import httpx
