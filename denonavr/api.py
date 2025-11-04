@@ -465,8 +465,6 @@ class DenonAVRTelnetProtocol(asyncio.Protocol):
 class DenonAVRTelnetApi:
     """Handle Telnet responses from the Denon AVR Telnet interface."""
 
-    _send_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
-    _update_callback_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
     host: str = attr.ib(converter=str, default="localhost")
     timeout: float = attr.ib(converter=float, default=2.0)
     is_denon: bool = attr.ib(converter=bool, default=True)
@@ -485,6 +483,7 @@ class DenonAVRTelnetApi:
         default=attr.Factory(asyncio.Event)
     )
     _send_confirmation_command: str = attr.ib(converter=str, default="")
+    _send_tasks: Set[asyncio.Task] = attr.ib(default=attr.Factory(set))
     _callbacks: Dict[str, List[Callable]] = attr.ib(
         validator=attr.validators.instance_of(dict),
         default=attr.Factory(dict),
@@ -495,6 +494,7 @@ class DenonAVRTelnetApi:
         default=attr.Factory(list),
         init=False,
     )
+    _update_callback_tasks: Set[asyncio.Task] = attr.ib(default=attr.Factory(set))
 
     def __attrs_post_init__(self) -> None:
         """Initialize special attributes."""

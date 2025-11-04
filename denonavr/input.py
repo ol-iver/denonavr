@@ -94,7 +94,6 @@ def set_input_func(
 class DenonAVRInput(DenonAVRFoundation):
     """This class implements input functions of Denon AVR receiver."""
 
-    _callback_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
     _show_all_inputs: bool = attr.ib(converter=bool, default=False)
     _input_func_map: Dict[str, str] = attr.ib(
         validator=attr.validators.deep_mapping(
@@ -175,6 +174,7 @@ class DenonAVRInput(DenonAVRFoundation):
         ),
         default=attr.Factory(set),
     )
+    _callback_tasks: Set[asyncio.Task] = attr.ib(default=attr.Factory(set))
 
     # Update tags for attributes
     # AppCommand.xml interface
@@ -622,7 +622,7 @@ class DenonAVRInput(DenonAVRFoundation):
 
         self._replace_duplicate_sources(renamed_sources)
 
-        return (renamed_sources, deleted_sources)
+        return renamed_sources, deleted_sources
 
     async def async_update_inputfuncs(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None

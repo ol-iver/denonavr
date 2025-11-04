@@ -85,7 +85,7 @@ class DenonAVR(DenonAVRFoundation):
     _timeout: float = attr.ib(
         converter=float, on_setattr=[*DENON_ATTR_SETATTR, set_api_timeout], default=2.0
     )
-    _zones: Dict[str, DenonAVRFoundation] = attr.ib(
+    _zones: Dict[str, "DenonAVR"] = attr.ib(
         validator=attr.validators.deep_mapping(
             attr.validators.in_(VALID_ZONES),
             attr.validators.instance_of(DenonAVRFoundation),
@@ -175,7 +175,7 @@ class DenonAVR(DenonAVRFoundation):
 
             for zone_name, zone_item in self._zones.items():
                 if zone_name != self.zone:
-                    await zone_item.async_setup()  # TODO: This method doesn't seem to exist in DenonAVRFoundation?
+                    await zone_item.async_setup()
 
             self._is_setup = True
             _LOGGER.debug("Finished denonavr setup")
