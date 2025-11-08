@@ -52,6 +52,7 @@ ReceiverURLs = namedtuple(
         "command_set_all_zone_stereo",
         "command_pause",
         "command_play",
+        "command_stop",
         "command_cusor_up",
         "command_cusor_down",
         "command_cusor_left",
@@ -148,6 +149,7 @@ TelnetCommands = namedtuple(
         "command_set_all_zone_stereo",
         "command_pause",
         "command_play",
+        "command_stop",
         "command_multieq",
         "command_dynamiceq",
         "command_reflevoffset",
@@ -580,6 +582,7 @@ HDTUNERSTATUS_URL = "/goform/formTuner_HdXml.xml"
 COMMAND_NETAUDIO_POST_URL = "/NetAudio/index.put.asp"
 COMMAND_PAUSE = "/goform/formiPhoneAppDirect.xml?NS9B"
 COMMAND_PLAY = "/goform/formiPhoneAppDirect.xml?NS9A"
+COMMAND_STOP = "/goform/formiPhoneAppDirect.xml?NS9C"
 COMMAND_ECO_MODE = "/goform/formiPhoneAppDirect.xml?ECO{mode}"
 
 
@@ -736,6 +739,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
     command_play=COMMAND_PLAY,
+    command_stop=COMMAND_STOP,
     command_cusor_up=COMMAND_CURSOR_UP,
     command_cusor_down=COMMAND_CURSOR_DOWN,
     command_cusor_left=COMMAND_CURSOR_LEFT,
@@ -839,6 +843,7 @@ ZONE2_URLS = ReceiverURLs(
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
     command_play=COMMAND_PLAY,
+    command_stop=COMMAND_STOP,
     command_cusor_up=COMMAND_CURSOR_UP,
     command_cusor_down=COMMAND_CURSOR_DOWN,
     command_cusor_left=COMMAND_CURSOR_LEFT,
@@ -942,6 +947,7 @@ ZONE3_URLS = ReceiverURLs(
     command_set_all_zone_stereo=COMMAND_SET_ZST_URL,
     command_pause=COMMAND_PAUSE,
     command_play=COMMAND_PLAY,
+    command_stop=COMMAND_STOP,
     command_cusor_up=COMMAND_CURSOR_UP,
     command_cusor_down=COMMAND_CURSOR_DOWN,
     command_cusor_left=COMMAND_CURSOR_LEFT,
@@ -1094,6 +1100,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_set_all_zone_stereo="MN",
     command_pause="NS9B",
     command_play="NS9A",
+    command_stop="NS9C",
     command_multieq="PSMULTEQ:",
     command_dynamiceq="PSDYNEQ ",
     command_reflevoffset="PSREFLEV ",
@@ -1195,6 +1202,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_set_all_zone_stereo="MN",
     command_pause="NS9B",
     command_play="NS9A",
+    command_stop="NS9C",
     command_multieq="PSMULTEQ:",
     command_dynamiceq="PSDYNEQ ",
     command_reflevoffset="PSREFLEV ",
@@ -1296,6 +1304,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_set_all_zone_stereo="MN",
     command_pause="NS9B",
     command_play="NS9A",
+    command_stop="NS9C",
     command_multieq="PSMULTEQ:",
     command_dynamiceq="PSDYNEQ ",
     command_reflevoffset="PSREFLEV ",
@@ -1384,6 +1393,7 @@ STATE_ON = "on"
 STATE_OFF = "off"
 STATE_PLAYING = "playing"
 STATE_PAUSED = "paused"
+STATE_STOPPED = "stopped"
 SETTINGS_MENU_ON = "ON"
 SETTINGS_MENU_OFF = "OFF"
 SETTINGS_MENU_STATES = {SETTINGS_MENU_ON, SETTINGS_MENU_OFF}
