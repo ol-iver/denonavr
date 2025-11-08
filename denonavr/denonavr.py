@@ -841,6 +841,10 @@ class DenonAVR(DenonAVRFoundation):
         """Send pause command to receiver command via HTTP post."""
         await self.input.async_pause()
 
+    async def async_stop(self) -> None:
+        """Send stop command to receiver command via HTTP post."""
+        await self.input.async_stop()
+
     async def async_previous_track(self) -> None:
         """Send previous track command to receiver command via HTTP post."""
         await self.input.async_previous_track()

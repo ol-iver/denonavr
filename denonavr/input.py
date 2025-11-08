@@ -36,6 +36,7 @@ from .const import (
     STATE_ON,
     STATE_PAUSED,
     STATE_PLAYING,
+    STATE_STOPPED,
     STATIC_ALBUM_URL,
     TELNET_MAPPING,
     TUNER_SOURCES,
@@ -1099,13 +1100,25 @@ class DenonAVRInput(DenonAVRFoundation):
         if self._input_func in self._netaudio_func_list:
             if self._device.telnet_available:
                 await self._device.telnet_api.async_send_commands(
-                    self._device.telnet_commands.command_play
+                    self._device.telnet_commands.command_pause
                 )
             else:
                 await self._device.api.async_get_command(
                     self._device.urls.command_pause
                 )
             self._state = STATE_PAUSED
+
+    async def async_stop(self) -> None:
+        """Send stop command to receiver command via HTTP post."""
+        # Use stop command only for sources which support NETAUDIO
+        if self._input_func in self._netaudio_func_list:
+            if self._device.telnet_available:
+                await self._device.telnet_api.async_send_commands(
+                    self._device.telnet_commands.command_stop
+                )
+            else:
+                await self._device.api.async_get_command(self._device.urls.command_stop)
+            self._state = STATE_STOPPED
 
     async def async_previous_track(self) -> None:
         """Send previous track command to receiver command via HTTP post."""
