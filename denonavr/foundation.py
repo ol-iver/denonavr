@@ -38,7 +38,7 @@ from .const import (
     DIMMER_MODE_MAP,
     DIMMER_MODE_MAP_LABELS,
     ECO_MODE_MAP,
-    ECO_MODE_MAP_LABELS,
+    ECO_MODE_MAP_LABELS_TELNET,
     HDMI_OUTPUT_MAP,
     HDMI_OUTPUT_MAP_LABELS,
     ILLUMINATION_MAP,
@@ -169,7 +169,7 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(int), default=None
     )
     _eco_mode: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(ECO_MODE_MAP.get), default=None
     )
     _eco_modes = get_args(EcoModes)
     _hdmi_output: Optional[str] = attr.ib(
@@ -312,8 +312,8 @@ class DenonAVRDeviceInfo:
 
     def _eco_mode_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an Eco-mode change event."""
-        if event == "ECO" and parameter in ECO_MODE_MAP_LABELS:
-            self._eco_mode = ECO_MODE_MAP_LABELS[parameter]
+        if event == "ECO" and parameter in ECO_MODE_MAP_LABELS_TELNET:
+            self._eco_mode = parameter
 
     def _hdmi_output_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a HDMI output change event."""
@@ -455,6 +455,7 @@ class DenonAVRDeviceInfo:
 
             # Add tags for a potential AppCommand.xml update
             self.api.add_appcommand_update_tag(AppCommands.GetAllZonePowerStatus)
+            self.api.add_appcommand_update_tag(AppCommands.GetECO)
 
             power_event = "ZM"
             if self.zone == ZONE2:
@@ -761,7 +762,8 @@ class DenonAVRDeviceInfo:
     ) -> None:
         """Update status from AppCommand.xml."""
         power_appcommand = AppCommands.GetAllZonePowerStatus
-        appcommands = tuple(power_appcommand)
+        eco_appcommand = AppCommands.GetECO
+        appcommands = (power_appcommand, eco_appcommand)
 
         try:
             if global_update:
@@ -808,6 +810,7 @@ class DenonAVRDeviceInfo:
         # about zone status attributes.
         attribute_searchstrings = {
             "_power": ["./ZonePower/value", "./Power/value"],
+            "_eco_mode": ["./ECOMode/value"],
         }
 
         for url in urls:
@@ -1503,7 +1506,7 @@ class DenonAVRDeviceInfo:
         if mode not in self._eco_modes:
             raise AvrCommandError("Invalid Eco mode")
 
-        mapped_mode = ECO_MODE_MAP[mode]
+        mapped_mode = ECO_MODE_MAP_LABELS_TELNET[mode]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_eco_mode.format(mode=mapped_mode)
