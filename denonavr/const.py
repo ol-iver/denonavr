@@ -1683,12 +1683,19 @@ DIRAC_FILTER_MAP_REVERSE = {value: key for key, value in DIRAC_FILTER_MAP.items(
 DiracFilters = Literal["Slot 1", "Slot 2", "Slot 3", "Off"]
 """Dirac Filters."""
 
-ECO_MODE_MAP = {
+ECO_MODE_MAP_APPCOMMAND = {
+    "0": "Off",
+    "1": "On",
+    "2": "Auto",
+}
+ECO_MODE_MAP_TELNET = {
     "ON": "On",
     "AUTO": "Auto",
     "OFF": "Off",
 }
-ECO_MODE_MAP_REVERSE = {value: key for key, value in ECO_MODE_MAP.items()}
+ECO_MODE_MAP = {**ECO_MODE_MAP_APPCOMMAND, **ECO_MODE_MAP_TELNET}
+# Telnet literals are correct for telnet and HTTP setters
+ECO_MODE_MAP_REVERSE = {value: key for key, value in ECO_MODE_MAP_TELNET.items()}
 
 EcoModes = Literal["On", "Auto", "Off"]
 """Eco Modes."""

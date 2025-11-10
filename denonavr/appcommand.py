@@ -111,6 +111,16 @@ class AppCommands:
         ),
     )
 
+    GetECO = AppCommandCmd(
+        cmd_id="1",
+        cmd_text="GetECO",
+        response_pattern=(
+            AppCommandResponsePattern(
+                update_attribute="_eco_mode", add_zone=False, suffix="/mode"
+            ),
+        ),
+    )
+
     GetSurroundModeStatus = AppCommandCmd(
         cmd_id="1",
         cmd_text="GetSurroundModeStatus",

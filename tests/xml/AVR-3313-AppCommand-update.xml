@@ -5,6 +5,7 @@
 <zone2>OFF</zone2>
 <zone3>OFF</zone3>
 </cmd>
+<error>2</error>
 <cmd>
 <zone1>
 <source>SAT/CBL</source>

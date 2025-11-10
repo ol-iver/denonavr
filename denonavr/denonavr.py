@@ -586,8 +586,6 @@ class DenonAVR(DenonAVRFoundation):
         """
         Returns the eco-mode for the device.
 
-        Only available if using Telnet.
-
         Possible values are: "Off", "On", "Auto"
         """
         return self._device.eco_mode
