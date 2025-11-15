@@ -1294,6 +1294,23 @@ class DenonAVRSoundMode(DenonAVRFoundation):
                 self._device.urls.command_dac_filter.format(mode=local_mode)
             )
 
+    async def async_dolby_atmos_toggle(self):
+        """Toggle Dolby Atmos sound mode."""
+        if self._device.telnet_available:
+            command = (
+                self._device.telnet_commands.command_dolby_atmos_toggle_denon
+                if self._device.is_denon
+                else self._device.urls.command_dolby_atmos_toggle_marantz
+            )
+            await self._device.telnet_api.async_send_commands(command)
+        else:
+            command = (
+                self._device.urls.command_dolby_atmos_toggle_denon
+                if self._device.is_denon
+                else self._device.urls.command_dolby_atmos_toggle_marantz
+            )
+            await self._device.api.async_get_command(command)
+
 
 def sound_mode_factory(instance: DenonAVRFoundation) -> DenonAVRSoundMode:
     """Create DenonAVRSoundMode at receiver instances."""
