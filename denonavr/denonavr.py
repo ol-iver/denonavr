@@ -83,7 +83,7 @@ class DenonAVR(DenonAVRFoundation):
     _timeout: float = attr.ib(
         converter=float, on_setattr=[*DENON_ATTR_SETATTR, set_api_timeout], default=2.0
     )
-    _zones: Dict[str, DenonAVRFoundation] = attr.ib(
+    _zones: Dict[str, "DenonAVR"] = attr.ib(
         validator=attr.validators.deep_mapping(
             attr.validators.in_(VALID_ZONES),
             attr.validators.instance_of(DenonAVRFoundation),
@@ -324,7 +324,7 @@ class DenonAVR(DenonAVRFoundation):
         return self.input.state
 
     @property
-    def muted(self) -> bool:
+    def muted(self) -> Optional[bool]:
         """
         Boolean if volume is currently muted.
 
@@ -333,7 +333,7 @@ class DenonAVR(DenonAVRFoundation):
         return self.vol.muted
 
     @property
-    def volume(self) -> float:
+    def volume(self) -> Optional[float]:
         """
         Return volume of Denon AVR as float.
 
@@ -436,7 +436,7 @@ class DenonAVR(DenonAVRFoundation):
         return self.input.playing_func_list
 
     @property
-    def receiver_port(self) -> int:
+    def receiver_port(self) -> Optional[int]:
         """Return the receiver's port."""
         if self._device.receiver is None:
             return None
@@ -626,7 +626,7 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.video_processing_mode
 
     @property
-    def tactile_transducer(self) -> Optional[bool]:
+    def tactile_transducer(self) -> Optional[str]:
         """
         Return the tactile transducer state of the device.
 
@@ -831,6 +831,10 @@ class DenonAVR(DenonAVRFoundation):
     async def async_pause(self) -> None:
         """Send pause command to receiver command via HTTP post."""
         await self.input.async_pause()
+
+    async def async_stop(self) -> None:
+        """Send stop command to receiver command via HTTP post."""
+        await self.input.async_stop()
 
     async def async_previous_track(self) -> None:
         """Send previous track command to receiver command via HTTP post."""

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "denonavr"
-version = "1.2.1-dev"
+version = "1.3.0-dev"
 authors = [{name = "Oliver Goetz", email = "scarface@mywoh.de"}]
 license = {text = "MIT"}
 description = "Automation Library for Denon AVR receivers"

@@ -1018,7 +1018,7 @@ class DenonAVRDeviceInfo:
         return self._room_size
 
     @property
-    def triggers(self) -> Dict[int, str]:
+    def triggers(self) -> Optional[Dict[int, str]]:
         """
         Return the triggers and their statuses for the device.
 
@@ -1123,6 +1123,8 @@ class DenonAVRDeviceInfo:
     @property
     def is_denon(self) -> bool:
         """Return true if the receiver is a Denon device."""
+        if not self.manufacturer:
+            return True  # Fallback to Denon
         return "denon" in self.manufacturer.lower()
 
     ##########
@@ -2200,7 +2202,7 @@ def set_api_timeout(
     return value
 
 
-def convert_string_int_bool(value: Union[str, bool]) -> bool:
+def convert_string_int_bool(value: Union[str, bool]) -> Optional[bool]:
     """Convert an integer from string format to bool."""
     if value is None:
         return None

@@ -227,7 +227,7 @@ class DenonAVRAudyssey(DenonAVRFoundation):
             return
         cmd = attr.evolve(
             AppCommands.SetAudysseyDynamicEQ,
-            param_list=(AppCommandCmdParam(name="dynamiceq", text=0),),
+            param_list=(AppCommandCmdParam(name="dynamiceq", text="0"),),
         )
         await self._async_set_audyssey(cmd)
 
@@ -239,7 +239,7 @@ class DenonAVRAudyssey(DenonAVRFoundation):
             return
         cmd = attr.evolve(
             AppCommands.SetAudysseyDynamicEQ,
-            param_list=(AppCommandCmdParam(name="dynamiceq", text=1),),
+            param_list=(AppCommandCmdParam(name="dynamiceq", text="1"),),
         )
         await self._async_set_audyssey(cmd)
 

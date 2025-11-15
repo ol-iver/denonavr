@@ -28,6 +28,7 @@ from .const import (
     DENON_ATTR_SETATTR,
     HDTUNER_SOURCES,
     MAIN_ZONE,
+    NETAUDIO_PLAYING,
     NETAUDIO_SOURCES,
     PLAYING_SOURCES,
     POWER_ON,
@@ -36,6 +37,7 @@ from .const import (
     STATE_ON,
     STATE_PAUSED,
     STATE_PLAYING,
+    STATE_STOPPED,
     STATIC_ALBUM_URL,
     TELNET_MAPPING,
     TUNER_SOURCES,
@@ -174,7 +176,8 @@ class DenonAVRInput(DenonAVRFoundation):
         ),
         default=attr.Factory(set),
     )
-    _callback_tasks: Set[asyncio.Task] = attr.ib(attr.Factory(set))
+    _callback_tasks: Set[asyncio.Task] = attr.ib(default=attr.Factory(set))
+    _netaudio_state: str = attr.ib(converter=fix_string, default="")
 
     # Update tags for attributes
     # AppCommand.xml interface
@@ -238,7 +241,7 @@ class DenonAVRInput(DenonAVRFoundation):
             self._unset_media_state()
             self._state = STATE_OFF
         elif self._schedule_media_updates():
-            self._state = STATE_PLAYING
+            self._state = STATE_ON
         else:
             self._unset_media_state()
             self._state = STATE_ON
@@ -290,7 +293,17 @@ class DenonAVRInput(DenonAVRFoundation):
         if self._input_func not in self._netaudio_func_list:
             return
 
-        if parameter.startswith("1"):
+        if parameter.startswith("0"):
+            if parameter[1:].startswith(NETAUDIO_PLAYING):
+                # It is not possible to see if the device is playing or paused.
+                # We assume it is playing first.
+                # Then, the state might be changed by async_play and async_pause.
+                if self._state not in {STATE_PLAYING, STATE_PAUSED}:
+                    self._state = STATE_PLAYING
+            else:
+                self._state = STATE_STOPPED
+            self._netaudio_state = parameter[1:]
+        elif parameter.startswith("1"):
             self._title = parameter[1:]
         elif parameter.startswith("2"):
             self._artist = parameter[1:]
@@ -535,7 +548,7 @@ class DenonAVRInput(DenonAVRFoundation):
 
         self._replace_duplicate_sources(renamed_sources)
 
-        return (renamed_sources, deleted_sources)
+        return renamed_sources, deleted_sources
 
     async def async_get_changed_sources_status_xml(
         self, cache_id: Optional[Hashable] = None
@@ -625,7 +638,7 @@ class DenonAVRInput(DenonAVRFoundation):
 
         self._replace_duplicate_sources(renamed_sources)
 
-        return (renamed_sources, deleted_sources)
+        return renamed_sources, deleted_sources
 
     async def async_update_inputfuncs(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -824,6 +837,7 @@ class DenonAVRInput(DenonAVRFoundation):
                 "_title": "./szLine/value[2]",
                 "_artist": "./szLine/value[3]",
                 "_album": "./szLine/value[5]",
+                "_netaudio_state": "./szLine/value[1]",
             }
             self._band = None
             self._frequency = None
@@ -873,8 +887,15 @@ class DenonAVRInput(DenonAVRFoundation):
                 port=self._device.api.port,
                 hash=hash((self._title, self._artist, self._album)),
             )
-            # On track change assume device is PLAYING
-            self._state = STATE_PLAYING
+
+        if self._netaudio_state.startswith(NETAUDIO_PLAYING):
+            # It is not possible to see if the device is playing or paused.
+            # We assume it is playing first.
+            # Then, the state might be changed by async_play and async_pause.
+            if self._state not in {STATE_PLAYING, STATE_PAUSED}:
+                self._state = STATE_PLAYING
+        else:
+            self._state = STATE_STOPPED
 
         await self._async_test_image_accessible()
 
@@ -1078,10 +1099,6 @@ class DenonAVRInput(DenonAVRFoundation):
         """Send play command to receiver command via HTTP post."""
         # Use pause command only for sources which support NETAUDIO
         if self._input_func in self._netaudio_func_list:
-            # In fact play command is a play/pause toggle. Thus checking state
-            if self._state == STATE_PLAYING:
-                _LOGGER.info("Already playing, play command not sent")
-                return
             if self._device.telnet_available:
                 await self._device.telnet_api.async_send_commands(
                     self._device.telnet_commands.command_play
@@ -1096,13 +1113,25 @@ class DenonAVRInput(DenonAVRFoundation):
         if self._input_func in self._netaudio_func_list:
             if self._device.telnet_available:
                 await self._device.telnet_api.async_send_commands(
-                    self._device.telnet_commands.command_play
+                    self._device.telnet_commands.command_pause
                 )
             else:
                 await self._device.api.async_get_command(
                     self._device.urls.command_pause
                 )
             self._state = STATE_PAUSED
+
+    async def async_stop(self) -> None:
+        """Send stop command to receiver command via HTTP post."""
+        # Use stop command only for sources which support NETAUDIO
+        if self._input_func in self._netaudio_func_list:
+            if self._device.telnet_available:
+                await self._device.telnet_api.async_send_commands(
+                    self._device.telnet_commands.command_stop
+                )
+            else:
+                await self._device.api.async_get_command(self._device.urls.command_stop)
+            self._state = STATE_STOPPED
 
     async def async_previous_track(self) -> None:
         """Send previous track command to receiver command via HTTP post."""
