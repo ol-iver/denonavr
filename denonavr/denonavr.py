@@ -27,6 +27,7 @@ from .const import (
     HDMIAudioDecodes,
     HDMIOutputs,
     Illuminations,
+    InputModes,
     PanelLocks,
     RoomSizes,
     TransducerLPFs,
@@ -664,7 +665,7 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.room_size
 
     @property
-    def triggers(self) -> Dict[int, str]:
+    def triggers(self) -> Optional[Dict[int, str]]:
         """
         Return the triggers and their statuses for the device.
 
@@ -1264,3 +1265,15 @@ class DenonAVR(DenonAVRFoundation):
         Only available on Marantz devices and when using Telnet.
         """
         await self._device.async_auto_lip_sync_toggle()
+
+    async def async_page_up(self) -> None:
+        """Page Up on receiver via HTTP get command."""
+        await self._device.async_page_up()
+
+    async def async_page_down(self) -> None:
+        """Page Down on receiver via HTTP get command."""
+        await self._device.async_page_down()
+
+    async def async_input_mode(self, mode: InputModes):
+        """Set input mode on receiver via HTTP get command."""
+        await self._device.async_input_mode(mode)

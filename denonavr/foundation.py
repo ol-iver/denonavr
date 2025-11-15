@@ -64,6 +64,7 @@ from .const import (
     HDMIAudioDecodes,
     HDMIOutputs,
     Illuminations,
+    InputModes,
     PanelLocks,
     ReceiverType,
     ReceiverURLs,
@@ -230,6 +231,7 @@ class DenonAVRDeviceInfo:
     _auto_lip_sync: Optional[bool] = attr.ib(
         converter=attr.converters.optional(convert_on_off_bool), default=None
     )
+    _input_modes = get_args(InputModes)
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
@@ -1990,6 +1992,121 @@ class DenonAVRDeviceInfo:
             await self.async_auto_lip_sync_off()
         else:
             await self.async_auto_lip_sync_on()
+
+    async def async_page_up(self) -> None:
+        """Page Up on receiver via HTTP get command."""
+        if self.telnet_available:
+            command = (
+                self.telnet_commands.command_page_up_denon
+                if self.is_denon
+                else self.telnet_commands.command_page_up_marantz
+            )
+            await self.telnet_api.async_send_commands(command)
+        else:
+            command = (
+                self.urls.command_page_up_denon
+                if self.is_denon
+                else self.urls.command_page_up_marantz
+            )
+            await self.api.async_get_command(command)
+
+    async def async_page_down(self) -> None:
+        """Page Down on receiver via HTTP get command."""
+        if self.telnet_available:
+            command = (
+                self.telnet_commands.command_page_down_denon
+                if self.is_denon
+                else self.telnet_commands.command_page_down_marantz
+            )
+            await self.telnet_api.async_send_commands(command)
+        else:
+            command = (
+                self.urls.command_page_down_denon
+                if self.is_denon
+                else self.urls.command_page_down_marantz
+            )
+            await self.api.async_get_command(command)
+
+    async def async_input_mode(self, mode: InputModes):
+        """Set input mode on receiver via HTTP get command."""
+        if mode not in self._input_modes:
+            raise AvrCommandError("Invalid input mode")
+
+        if mode == "Select":
+            command = (
+                self.telnet_commands.command_input_mode_select_denon
+                if self.telnet_available
+                else (
+                    self.urls.command_input_mode_select_denon
+                    if self.is_denon
+                    else (
+                        self.telnet_commands.command_input_mode_select_marantz
+                        if self.telnet_available
+                        else self.urls.command_input_mode_select_marantz
+                    )
+                )
+            )
+        elif mode == "Auto":
+            command = (
+                self.telnet_commands.command_input_mode_auto_denon
+                if self.telnet_available
+                else (
+                    self.urls.command_input_mode_auto_denon
+                    if self.is_denon
+                    else (
+                        self.telnet_commands.command_input_mode_auto_marantz
+                        if self.telnet_available
+                        else self.urls.command_input_mode_auto_marantz
+                    )
+                )
+            )
+        elif mode == "HDMI":
+            command = (
+                self.telnet_commands.command_input_mode_hdmi_denon
+                if self.telnet_available
+                else (
+                    self.urls.command_input_mode_hdmi_denon
+                    if self.is_denon
+                    else (
+                        self.telnet_commands.command_input_mode_hdmi_marantz
+                        if self.telnet_available
+                        else self.urls.command_input_mode_hdmi_marantz
+                    )
+                )
+            )
+        elif mode == "Digital":
+            command = (
+                self.telnet_commands.command_input_mode_digital_denon
+                if self.telnet_available
+                else (
+                    self.urls.command_input_mode_digital_denon
+                    if self.is_denon
+                    else (
+                        self.telnet_commands.command_input_mode_digital_marantz
+                        if self.telnet_available
+                        else self.urls.command_input_mode_digital_marantz
+                    )
+                )
+            )
+        else:
+            command = (
+                self.telnet_commands.command_input_mode_analog_denon
+                if self.telnet_available
+                else (
+                    self.urls.command_input_mode_analog_denon
+                    if self.is_denon
+                    else (
+                        self.telnet_commands.command_input_mode_analog_marantz
+                        if self.telnet_available
+                        else self.urls.command_input_mode_analog_marantz
+                    )
+                )
+            )
+
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(command)
+        else:
+            await self.api.async_get_command(command)
 
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
