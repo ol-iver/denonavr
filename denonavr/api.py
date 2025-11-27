@@ -238,9 +238,8 @@ class DenonAVRApi:
                     skip_rate_limiter=skip_rate_limiter,
                 )
             )
-            task.add_done_callback(
-                self._http_callback_tasks.discard
-            )  # Prevent garbage collection
+            self._http_callback_tasks.add(task)  # Prevent garbage collection
+            task.add_done_callback(lambda t: self._http_callback_tasks.discard(t))
             return httpx.Response(200, text="")
 
         return await self.httpx_async_client.async_get(

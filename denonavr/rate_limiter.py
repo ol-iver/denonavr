@@ -101,7 +101,7 @@ class AdaptiveLimiter:
     def _target_rate(self, avg_rtt: float) -> float:
         if avg_rtt <= 0:
             return self._max_rate
-        target = self._k / avg_rtt if avg_rtt > 0 else self._max_rate
+        target = self._k / avg_rtt
         return max(self._min_rate, min(self._max_rate, target))
 
     async def _ensure_key(self, key: str) -> None:
@@ -139,11 +139,15 @@ class AdaptiveLimiter:
         await limiter.acquire()
 
     def record_latency(self, destination: str, start: float) -> None:
-        """Record RTT after a call. Safe to call even if key doesn't exist yet."""
+        """
+        Record RTT after a call.
+
+        Safe to call even if key doesn't exist yet; if the key is not present, the call is silently ignored and no action is taken.
+        """
         seconds = time.monotonic() - start
         # Only record if destination already initialized
-        if destination := self._latencies.get(destination):
-            destination.update(seconds)
+        if latency_obj := self._latencies.get(destination):
+            latency_obj.update(seconds)
 
     async def aclose(self) -> None:
         """Clean up background tasks."""
