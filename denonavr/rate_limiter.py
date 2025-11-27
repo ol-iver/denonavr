@@ -31,8 +31,7 @@ class EWMALatency:
             self._value = sample
         else:
             self._value = self.alpha * sample + (1 - self.alpha) * self._value
-        val = self._value if self._value is not None else 0.0
-        return float(val)
+        return self._value if self._value is not None else 0.0
 
     @property
     def value(self) -> float:
