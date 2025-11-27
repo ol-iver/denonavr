@@ -239,7 +239,7 @@ class DenonAVRApi:
                 )
             )
             self._http_callback_tasks.add(task)  # Prevent garbage collection
-            task.add_done_callback(lambda t: self._http_callback_tasks.discard(t))
+            task.add_done_callback(self._http_callback_tasks.discard)
             return httpx.Response(200, text="")
 
         return await self.httpx_async_client.async_get(
@@ -954,10 +954,10 @@ class DenonAVRTelnetApi:
             self._send_confirmation_event.set()
             _LOGGER.debug("Command %s confirmed", command)
 
-    # pylint: disable=too-many-positional-arguments
     async def _async_send_command(
         self,
         command: str,
+        *,
         skip_confirmation: bool = False,
         confirmation_timeout: Optional[float] = None,
         record_latency: bool = True,

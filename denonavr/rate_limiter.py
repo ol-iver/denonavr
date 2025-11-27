@@ -25,8 +25,8 @@ class EWMALatency:
 
     def update(self, sample: float) -> float:
         """Update EWMA with new sample and return current value."""
-        if sample <= 0:
-            return float(self.value)
+        if sample < 0:
+            raise ValueError("Latency sample must be non-negative")
         if self._value is None:
             self._value = sample
         else:
@@ -96,10 +96,11 @@ class AdaptiveLimiter:
         self._locks: Dict[str, asyncio.Lock] = {}
         self._tasks: Dict[str, asyncio.Task] = {}
         self._init_lock = asyncio.Lock()
+        self._shutdown_event = asyncio.Event()
 
     def _target_rate(self, avg_rtt: float) -> float:
         if avg_rtt <= 0:
-            return self._max_rate
+            return self._initial_rate
         target = self._k / avg_rtt
         return max(self._min_rate, min(self._max_rate, target))
 
@@ -120,8 +121,15 @@ class AdaptiveLimiter:
                 self._tasks[key] = asyncio.create_task(self._adjust_loop(key))
 
     async def _adjust_loop(self, key: str) -> None:
-        while True:
-            await asyncio.sleep(self._adjust_interval)
+        while not self._shutdown_event.is_set():
+            try:
+                await asyncio.wait_for(
+                    self._shutdown_event.wait(), timeout=self._adjust_interval
+                )
+            except asyncio.TimeoutError:
+                pass  # Timeout means it's time to adjust
+            if self._shutdown_event.is_set():
+                break
             avg = self._latencies[key].value
             new_rate = self._target_rate(avg)
             # AsyncLimiter does not expose direct rate mutation;
@@ -141,7 +149,8 @@ class AdaptiveLimiter:
         """
         Record RTT after a call.
 
-        Safe to call even if key doesn't exist yet; if the key is not present, the call is silently ignored and no action is taken.
+        Safe to call even if key doesn't exist yet; if the key is not present,
+        the call is silently ignored and no action is taken.
         """
         seconds = time.monotonic() - start
         # Only record if destination already initialized
@@ -151,6 +160,7 @@ class AdaptiveLimiter:
     async def aclose(self) -> None:
         """Clean up background tasks."""
         # Cancel background tasks
+        self._shutdown_event.set()
         for task in list(self._tasks.values()):
             task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
