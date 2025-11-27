@@ -905,8 +905,10 @@ class DenonAVRInput(DenonAVRFoundation):
             try:
                 res = await self._device.api.httpx_async_client.async_get(
                     self._image_url,
+                    self._device.api.host,
                     self._device.api.timeout,
                     self._device.api.read_timeout,
+                    record_latency=False,
                 )
                 res.raise_for_status()
             except httpx.TimeoutException:
