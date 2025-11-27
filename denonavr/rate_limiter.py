@@ -154,8 +154,8 @@ class AdaptiveLimiter:
         """
         seconds = time.monotonic() - start
         # Only record if destination already initialized
-        if latency_obj := self._latencies.get(destination):
-            latency_obj.update(seconds)
+        if latency_tracker := self._latencies.get(destination):
+            latency_tracker.update(seconds)
 
     async def aclose(self) -> None:
         """Clean up background tasks."""
