@@ -261,7 +261,11 @@ class DenonAVRApi:
         port: Optional[int] = None,
         cache_id: Hashable = None,
     ) -> httpx.Response:
-        """Call POST endpoint of Denon AVR receiver asynchronously."""
+        """
+        Call POST endpoint of Denon AVR receiver asynchronously.
+
+        Skips rate limiter and does not record latency.
+        """
         # Use default port of the receiver if no different port is specified
         port = port if port is not None else self.port
 

@@ -121,21 +121,19 @@ class AdaptiveLimiter:
                 self._tasks[key] = asyncio.create_task(self._adjust_loop(key))
 
     async def _adjust_loop(self, key: str) -> None:
-        while not self._shutdown_event.is_set():
-            try:
-                await asyncio.wait_for(
-                    self._shutdown_event.wait(), timeout=self._adjust_interval
-                )
-            except asyncio.TimeoutError:
-                pass  # Timeout means it's time to adjust
-            if self._shutdown_event.is_set():
-                break
-            avg = self._latencies[key].value
-            new_rate = self._target_rate(avg)
-            # AsyncLimiter does not expose direct rate mutation;
-            # recreate it atomically under a lock to avoid races.
-            async with self._locks[key]:
-                self._limiters[key] = AsyncLimiter(new_rate, time_period=1)
+        try:
+            while not self._shutdown_event.is_set():
+                await asyncio.sleep(self._adjust_interval)
+                if self._shutdown_event.is_set():
+                    break
+                avg = self._latencies[key].value
+                new_rate = self._target_rate(avg)
+                # AsyncLimiter does not expose direct rate mutation;
+                # recreate it atomically under a lock to avoid races.
+                async with self._locks[key]:
+                    self._limiters[key] = AsyncLimiter(new_rate, time_period=1)
+        except asyncio.CancelledError:
+            pass
 
     async def acquire(self, destination: str) -> None:
         """Acquire a token for the given destination."""
