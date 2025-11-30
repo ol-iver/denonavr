@@ -60,8 +60,8 @@ class AdaptiveLimiter:
     def __init__(
         self,
         *,
-        initial_wait_ms: float = 20.0,
-        min_wait_ms: float = 10.0,
+        initial_wait_ms: float = 100.0,
+        min_wait_ms: float = 100.0,
         max_wait_ms: float = 200.0,
         k: float = 2.0,
         adjust_interval: float = 2.0,
