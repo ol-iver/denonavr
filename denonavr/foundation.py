@@ -752,7 +752,9 @@ class DenonAVRDeviceInfo:
 
         device_info = None
         try:
-            res = await self.api.async_get(command, port=port)
+            res = await self.api.async_get(
+                command, port=port, record_latency=False, skip_rate_limiter=True
+            )
         except AvrTimoutError as err:
             _LOGGER.debug("Timeout when getting device info: %s", err)
             raise

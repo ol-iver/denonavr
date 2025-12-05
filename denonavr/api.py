@@ -47,6 +47,7 @@ from .exceptions import (
     AvrProcessingError,
     AvrTimoutError,
 )
+from .rate_limiter import AdaptiveLimiter
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,6 +79,11 @@ class HTTPXAsyncClient:
         default=2,
     )
 
+    rate_limiter: AdaptiveLimiter = attr.ib(
+        validator=attr.validators.instance_of(AdaptiveLimiter),
+        default=attr.Factory(AdaptiveLimiter),
+    )
+
     def __attrs_post_init__(self) -> None:
         """Initialize after attrs creates the instance."""
         self._persistent_client = None
@@ -105,19 +111,27 @@ class HTTPXAsyncClient:
     async def async_get(
         self,
         url: str,
+        rate_limit_key: str,
         timeout: float,
         read_timeout: float,
         *,
         cache_id: Hashable = None,
+        record_latency: bool = True,
+        skip_rate_limiter: bool = False,
     ) -> httpx.Response:
         """Call GET endpoint of Denon AVR receiver asynchronously."""
         client = self._get_client()
+        start = time.monotonic()
+        if not skip_rate_limiter:
+            await self.rate_limiter.acquire(rate_limit_key)
         async with client.stream(
             "GET", url, timeout=httpx.Timeout(timeout, read=read_timeout)
         ) as res:
             res.raise_for_status()
             await res.aread()
 
+        if record_latency:
+            self.rate_limiter.record_latency(rate_limit_key, start)
         return res
 
     @cache_result
@@ -125,15 +139,21 @@ class HTTPXAsyncClient:
     async def async_post(
         self,
         url: str,
+        rate_limit_key: str,
         timeout: float,
         read_timeout: float,
         *,
         content: Optional[bytes] = None,
         data: Optional[Dict] = None,
         cache_id: Hashable = None,
+        record_latency: bool = True,
+        skip_rate_limiter: bool = False,
     ) -> httpx.Response:
         """Call GET endpoint of Denon AVR receiver asynchronously."""
         client = self._get_client()
+        start = time.monotonic()
+        if not skip_rate_limiter:
+            await self.rate_limiter.acquire(rate_limit_key)
         async with client.stream(
             "POST",
             url,
@@ -144,6 +164,8 @@ class HTTPXAsyncClient:
             res.raise_for_status()
             await res.aread()
 
+        if record_latency:
+            self.rate_limiter.record_latency(rate_limit_key, start)
         return res
 
     async def aclose(self):
@@ -151,6 +173,8 @@ class HTTPXAsyncClient:
         if self._persistent_client:
             await self._persistent_client.aclose()
             self._persistent_client = None
+        # Close limiter tasks
+        await self.rate_limiter.aclose()
 
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
@@ -191,6 +215,8 @@ class DenonAVRApi:
         *,
         port: Optional[int] = None,
         cache_id: Hashable = None,
+        record_latency: bool = True,
+        skip_rate_limiter: bool = False,
     ) -> httpx.Response:
         """Call GET endpoint of Denon AVR receiver asynchronously."""
         # Use default port of the receiver if no different port is specified
@@ -199,7 +225,13 @@ class DenonAVRApi:
         endpoint = f"http://{self.host}:{port}{request}"
 
         return await self.httpx_async_client.async_get(
-            endpoint, self.timeout, self.read_timeout, cache_id=cache_id
+            endpoint,
+            self.host,
+            self.timeout,
+            self.read_timeout,
+            cache_id=cache_id,
+            record_latency=record_latency,
+            skip_rate_limiter=skip_rate_limiter,
         )
 
     async def async_post(
@@ -211,7 +243,11 @@ class DenonAVRApi:
         port: Optional[int] = None,
         cache_id: Hashable = None,
     ) -> httpx.Response:
-        """Call POST endpoint of Denon AVR receiver asynchronously."""
+        """
+        Call POST endpoint of Denon AVR receiver asynchronously.
+
+        Skips rate limiter and does not record latency.
+        """
         # Use default port of the receiver if no different port is specified
         port = port if port is not None else self.port
 
@@ -219,17 +255,27 @@ class DenonAVRApi:
 
         return await self.httpx_async_client.async_post(
             endpoint,
+            self.host,
             self.timeout,
             self.read_timeout,
             content=content,
             data=data,
             cache_id=cache_id,
+            record_latency=False,
+            skip_rate_limiter=True,
         )
 
-    async def async_get_command(self, request: str) -> str:
+    async def async_get_command(
+        self,
+        request: str,
+        skip_rate_limiter: bool = False,
+    ) -> str:
         """Send HTTP GET command to Denon AVR receiver asynchronously."""
         # HTTP GET to endpoint
-        res = await self.async_get(request)
+        res = await self.async_get(
+            request,
+            skip_rate_limiter=skip_rate_limiter,
+        )
         # Return text
         return res.text
 
@@ -238,7 +284,9 @@ class DenonAVRApi:
     ) -> ET.Element:
         """Return XML data from HTTP GET endpoint asynchronously."""
         # HTTP GET to endpoint
-        res = await self.async_get(request, cache_id=cache_id)
+        res = await self.async_get(
+            request, cache_id=cache_id, record_latency=False, skip_rate_limiter=True
+        )
         # create ElementTree
         try:
             xml_root = fromstring(res.text)
@@ -503,6 +551,11 @@ class DenonAVRTelnetApi:
         default=attr.Factory(list),
         init=False,
     )
+    _rate_limiter: AdaptiveLimiter = attr.ib(
+        validator=attr.validators.instance_of(AdaptiveLimiter),
+        default=attr.Factory(AdaptiveLimiter),
+        init=False,
+    )
     _update_callback_tasks: Set[asyncio.Task] = attr.ib(default=attr.Factory(set))
 
     def __attrs_post_init__(self) -> None:
@@ -650,6 +703,8 @@ class DenonAVRTelnetApi:
             await self._async_send_command(
                 command,
                 skip_confirmation=True,
+                skip_rate_limiter=True,
+                record_latency=False,
             )
             await asyncio.sleep(0.1)
 
@@ -886,8 +941,11 @@ class DenonAVRTelnetApi:
     async def _async_send_command(
         self,
         command: str,
+        *,
         skip_confirmation: bool = False,
         confirmation_timeout: Optional[float] = None,
+        record_latency: bool = True,
+        skip_rate_limiter: bool = False,
     ) -> None:
         """Send one telnet command to the receiver."""
         if confirmation_timeout is None:
@@ -902,6 +960,9 @@ class DenonAVRTelnetApi:
                     f"Error sending command {command}. Telnet connected: "
                     f"{self.connected}, Connection healthy: {self.healthy}"
                 )
+            start = time.monotonic()
+            if not skip_rate_limiter:
+                await self._rate_limiter.acquire(self.host)
             self._protocol.write(f"{command}\r")
             if not skip_confirmation:
                 try:
@@ -914,6 +975,8 @@ class DenonAVRTelnetApi:
                         "Timeout waiting for confirmation of command: %s", command
                     )
                 finally:
+                    if record_latency:
+                        self._rate_limiter.record_latency(self.host, start)
                     self._send_confirmation_command = ""
 
     async def async_send_commands(
