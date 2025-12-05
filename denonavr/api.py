@@ -204,7 +204,6 @@ class DenonAVRApi:
         default=attr.Factory(HTTPXAsyncClient),
         init=False,
     )
-    _http_callback_tasks: Set[asyncio.Task] = attr.ib(default=attr.Factory(set))
 
     def __attrs_post_init__(self) -> None:
         """Initialize special attributes."""
@@ -216,7 +215,6 @@ class DenonAVRApi:
         *,
         port: Optional[int] = None,
         cache_id: Hashable = None,
-        skip_confirmation: bool = False,
         record_latency: bool = True,
         skip_rate_limiter: bool = False,
     ) -> httpx.Response:
@@ -225,22 +223,6 @@ class DenonAVRApi:
         port = port if port is not None else self.port
 
         endpoint = f"http://{self.host}:{port}{request}"
-
-        if skip_confirmation:
-            task = asyncio.create_task(
-                self.httpx_async_client.async_get(
-                    endpoint,
-                    self.host,
-                    self.timeout,
-                    self.read_timeout,
-                    cache_id=cache_id,
-                    record_latency=False,
-                    skip_rate_limiter=skip_rate_limiter,
-                )
-            )
-            self._http_callback_tasks.add(task)  # Prevent garbage collection
-            task.add_done_callback(self._http_callback_tasks.discard)
-            return httpx.Response(200, text="")
 
         return await self.httpx_async_client.async_get(
             endpoint,
@@ -286,14 +268,12 @@ class DenonAVRApi:
     async def async_get_command(
         self,
         request: str,
-        skip_confirmation: bool = False,
         skip_rate_limiter: bool = False,
     ) -> str:
         """Send HTTP GET command to Denon AVR receiver asynchronously."""
         # HTTP GET to endpoint
         res = await self.async_get(
             request,
-            skip_confirmation=skip_confirmation,
             skip_rate_limiter=skip_rate_limiter,
         )
         # Return text
