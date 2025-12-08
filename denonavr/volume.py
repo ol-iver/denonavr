@@ -308,6 +308,10 @@ class DenonAVRVolume(DenonAVRFoundation):
     ##########
     async def async_volume_up(self) -> None:
         """Volume up receiver via HTTP get command."""
+        if self._volume and self._volume >= 18:
+            _LOGGER.debug("Volume already at max value, skipping.")
+            return
+
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_volume_up, skip_confirmation=True
@@ -319,6 +323,10 @@ class DenonAVRVolume(DenonAVRFoundation):
 
     async def async_volume_down(self) -> None:
         """Volume down receiver via HTTP get command."""
+        if self._volume and self._volume <= -80:
+            _LOGGER.debug("Volume already at min value, skipping.")
+            return
+
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_volume_down, skip_confirmation=True
@@ -336,7 +344,8 @@ class DenonAVRVolume(DenonAVRFoundation):
         Minimum is -80.0, maximum at 18.0
         """
         if volume < -80 or volume > 18:
-            raise AvrCommandError(f"Invalid volume: {volume}")
+            _LOGGER.debug("Volume out of range, skipping.")
+            return
 
         # Round volume because only values which are a multi of 0.5 are working
         volume = round(volume * 2) / 2.0
