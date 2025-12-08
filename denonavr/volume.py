@@ -349,6 +349,10 @@ class DenonAVRVolume(DenonAVRFoundation):
 
         # Round volume because only values which are a multi of 0.5 are working
         volume = round(volume * 2) / 2.0
+        if self._volume == volume:
+            _LOGGER.debug("Volume already at requested value, skipping.")
+            return
+
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_set_volume.format(
