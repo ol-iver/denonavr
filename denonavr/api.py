@@ -855,7 +855,7 @@ class DenonAVRTelnetApi:
                 return
             self._max_volume = parameter
             if parameter[0:3] == "MAX":
-                event = "MAXMV"
+                event = "CUST_MAX_VOL"
 
         # Determine zone
         zone = MAIN_ZONE

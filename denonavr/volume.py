@@ -96,7 +96,9 @@ class DenonAVRVolume(DenonAVRFoundation):
             self._device.api.add_appcommand_update_tag(tag)
 
         self._device.telnet_api.register_callback("MV", self._volume_callback)
-        self._device.telnet_api.register_callback("MAXMV", self._max_volume_callback)
+        self._device.telnet_api.register_callback(
+            "CUST_MAX_VOL", self._max_volume_callback
+        )
         self._device.telnet_api.register_callback("MU", self._mute_callback)
         self._device.telnet_api.register_callback("CV", self._channel_volume_callback)
         self._device.telnet_api.register_callback("PS", self._ps_callback)
