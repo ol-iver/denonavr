@@ -124,16 +124,21 @@ class DenonAVRVolume(DenonAVRFoundation):
             parameter,
         )
         if self._device.zone != zone:
+            _LOGGER.info("Zone mismatch: expected %s, got %s", self._device.zone, zone)
             return
 
         if parameter.startswith("MAX"):
             volume = parameter[3:].strip()
             if len(volume) < 3:
+                _LOGGER.info("Setting max volume - before: %s", self._max_volume)
                 self._max_volume = -80.0 + float(volume)
+                _LOGGER.info("Setting max volume - after: %s", self._max_volume)
             else:
                 whole_number = float(volume[0:2])
                 fraction = 0.1 * float(volume[2])
+                _LOGGER.info("Setting max volume - before: %s", self._max_volume)
                 self._max_volume = -80.0 + whole_number + fraction
+                _LOGGER.info("Setting max volume - after: %s", self._max_volume)
 
     def _mute_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a muting change event."""
