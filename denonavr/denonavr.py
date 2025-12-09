@@ -344,7 +344,7 @@ class DenonAVR(DenonAVRFoundation):
         return self.vol.volume
 
     @property
-    def max_volume(self) -> Optional[float]:
+    def max_volume(self) -> float:
         """
         Return maximum allowed volume of Denon AVR as float.
 
