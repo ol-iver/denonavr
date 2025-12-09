@@ -851,10 +851,10 @@ class DenonAVRTelnetApi:
 
         if event == "MV":
             # Event happens on each volume change, ignore if max volume hasn't changed
-            if self._max_volume == parameter:
-                return
-            self._max_volume = parameter
             if parameter[0:3] == "MAX":
+                if self._max_volume == parameter:
+                    return
+                self._max_volume = parameter
                 event = "CUST_MAX_VOL"
 
         # Determine zone
