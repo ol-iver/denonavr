@@ -96,6 +96,7 @@ class DenonAVRVolume(DenonAVRFoundation):
             self._device.api.add_appcommand_update_tag(tag)
 
         self._device.telnet_api.register_callback("MV", self._volume_callback)
+        self._device.telnet_api.register_callback("MAXMV", self._max_volume_callback)
         self._device.telnet_api.register_callback("MU", self._mute_callback)
         self._device.telnet_api.register_callback("CV", self._channel_volume_callback)
         self._device.telnet_api.register_callback("PS", self._ps_callback)
@@ -107,16 +108,26 @@ class DenonAVRVolume(DenonAVRFoundation):
         if self._device.zone != zone:
             return
 
-        if parameter[0:3] == "MAX":
-            self._max_volume = float(parameter[3:].strip())
-            return
-
         if len(parameter) < 3:
             self._volume = -80.0 + float(parameter)
         else:
             whole_number = float(parameter[0:2])
             fraction = 0.1 * float(parameter[2])
             self._volume = -80.0 + whole_number + fraction
+
+    def _max_volume_callback(self, zone: str, event: str, parameter: str) -> None:
+        """Handle a max volume change event."""
+        if self._device.zone != zone:
+            return
+
+        if parameter.startswith("MAX"):
+            volume = parameter[3:]
+            if len(volume) < 3:
+                self._max_volume = -80.0 + float(volume)
+            else:
+                whole_number = float(volume[0:2])
+                fraction = 0.1 * float(volume[2])
+                self._max_volume = -80.0 + whole_number + fraction
 
     def _mute_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a muting change event."""
@@ -244,7 +255,7 @@ class DenonAVRVolume(DenonAVRFoundation):
 
         Volume is sent in a format like -50.0.
         """
-        return self._volume
+        return self._max_volume
 
     @property
     def channel_volumes(self) -> Optional[Dict[Channels, float]]:

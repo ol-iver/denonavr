@@ -1126,6 +1126,7 @@ TELNET_EVENTS = {
     "ECO",
     "HD",
     "ILB",  # Marantz Only
+    "MAXMV", # Custom event for separating volume from max volume
     "MN",
     "MS",
     "MU",

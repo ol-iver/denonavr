@@ -848,6 +848,10 @@ class DenonAVRTelnetApi:
         # Parameter is the remaining characters
         parameter = message[len(event) :]
 
+        if event == "MV":
+            if parameter[0:3] == "MAX":
+                event = "MAXMV"
+
         # Determine zone
         zone = MAIN_ZONE
         if event in ALL_ZONE_TELNET_EVENTS:
