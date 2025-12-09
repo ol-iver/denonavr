@@ -853,7 +853,9 @@ class DenonAVRTelnetApi:
             # Event happens on each volume change, ignore if max volume hasn't changed
             if parameter[0:3] == "MAX":
                 if self._max_volume == parameter:
-                    _LOGGER.info("Ignoring duplicate max volume event. Value: %s", parameter)
+                    _LOGGER.info(
+                        "Ignoring duplicate max volume event. Value: %s", parameter
+                    )
                     return
                 self._max_volume = parameter
                 event = "CUST_MAX_VOL"
