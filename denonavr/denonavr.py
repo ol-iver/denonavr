@@ -338,10 +338,19 @@ class DenonAVR(DenonAVRFoundation):
         """
         Return volume of Denon AVR as float.
 
-        Volume is send in a format like -50.0.
+        Volume is sent in a format like -50.0.
         Minimum is -80.0, maximum at 18.0
         """
         return self.vol.volume
+
+    @property
+    def max_volume(self) -> Optional[float]:
+        """
+        Return maximum allowed volume of Denon AVR as float.
+
+        Volume is sent in a format like -50.0.
+        """
+        return self.vol.max_volume
 
     @property
     def input_func(self) -> Optional[str]:

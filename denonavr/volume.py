@@ -52,6 +52,9 @@ class DenonAVRVolume(DenonAVRFoundation):
     _volume: Optional[float] = attr.ib(
         converter=attr.converters.optional(convert_volume), default=None
     )
+    _max_volume: Optional[float] = attr.ib(
+        converter=attr.converters.optional(convert_volume), default=None
+    )
     _muted: Optional[bool] = attr.ib(
         converter=attr.converters.optional(convert_muted), default=None
     )
@@ -102,6 +105,10 @@ class DenonAVRVolume(DenonAVRFoundation):
     def _volume_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a volume change event."""
         if self._device.zone != zone:
+            return
+
+        if parameter[0:3] == "MAX":
+            self._max_volume = float(parameter[3:].strip())
             return
 
         if len(parameter) < 3:
@@ -225,8 +232,17 @@ class DenonAVRVolume(DenonAVRFoundation):
         """
         Return volume of Denon AVR as float.
 
-        Volume is send in a format like -50.0.
+        Volume is sent in a format like -50.0.
         Minimum is -80.0, maximum at 18.0
+        """
+        return self._volume
+
+    @property
+    def max_volume(self) -> Optional[float]:
+        """
+        Return maximum allowed volume of Denon AVR as float.
+
+        Volume is sent in a format like -50.0.
         """
         return self._volume
 
@@ -308,7 +324,11 @@ class DenonAVRVolume(DenonAVRFoundation):
     ##########
     async def async_volume_up(self) -> None:
         """Volume up receiver via HTTP get command."""
-        if self._volume and self._volume >= 18:
+        if (
+            self._volume
+            and self._volume >= 18
+            or (self._max_volume and self._volume and self._volume >= self._max_volume)
+        ):
             _LOGGER.debug("Volume already at max value, skipping.")
             return
 
@@ -340,10 +360,14 @@ class DenonAVRVolume(DenonAVRFoundation):
         """
         Set receiver volume via HTTP get command.
 
-        Volume is send in a format like -50.0.
+        Volume is sent in a format like -50.0.
         Minimum is -80.0, maximum at 18.0
         """
-        if volume < -80 or volume > 18:
+        if (
+            volume < -80
+            or volume > 18
+            or (self._max_volume and volume > self._max_volume)
+        ):
             _LOGGER.debug("Volume out of range, skipping.")
             return
 

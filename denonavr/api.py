@@ -848,13 +848,6 @@ class DenonAVRTelnetApi:
         # Parameter is the remaining characters
         parameter = message[len(event) :]
 
-        if event == "MV":
-            # This seems undocumented by Denon and appears to basically be a
-            # noop that goes along with volume changes. This is here to prevent
-            # duplicate callback calls.
-            if parameter[0:3] == "MAX":
-                return
-
         # Determine zone
         zone = MAIN_ZONE
         if event in ALL_ZONE_TELNET_EVENTS:
