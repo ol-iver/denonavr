@@ -49,7 +49,7 @@ def convert_volume(value: Union[float, str]) -> float:
 class DenonAVRVolume(DenonAVRFoundation):
     """This class implements volume functions of Denon AVR receiver."""
 
-    _max_volume: Optional[float]
+    _max_volume: Optional[float] = None
     _volume: Optional[float] = attr.ib(
         converter=attr.converters.optional(convert_volume), default=None
     )
@@ -117,6 +117,12 @@ class DenonAVRVolume(DenonAVRFoundation):
 
     def _max_volume_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a max volume change event."""
+        _LOGGER.info(
+            "Max volume callback received: Zone=%s, Event=%s, Parameter=%s",
+            zone,
+            event,
+            parameter,
+        )
         if self._device.zone != zone:
             return
 
