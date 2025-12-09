@@ -123,7 +123,7 @@ class DenonAVRVolume(DenonAVRFoundation):
             return
 
         if parameter.startswith("MAX"):
-            volume = parameter[3:]
+            volume = parameter[3:].strip()
             if len(volume) < 3:
                 self._max_volume = -80.0 + float(volume)
             else:
