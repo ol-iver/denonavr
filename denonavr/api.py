@@ -556,7 +556,6 @@ class DenonAVRTelnetApi:
         default=attr.Factory(AdaptiveLimiter),
         init=False,
     )
-    _max_volume: str = attr.ib(converter=str, default="")
     _update_callback_tasks: Set[asyncio.Task] = attr.ib(default=attr.Factory(set))
 
     def __attrs_post_init__(self) -> None:
@@ -852,11 +851,6 @@ class DenonAVRTelnetApi:
         if event == "MV":
             # Event happens on each volume change, ignore if max volume hasn't changed
             if parameter[0:3] == "MAX":
-                if self._max_volume == parameter:
-                    _LOGGER.info(
-                        "Ignoring duplicate max volume event. Value: %s", parameter
-                    )
-                    return
                 self._max_volume = parameter
                 event = "CUST_MAX_VOL"
 

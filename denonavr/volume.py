@@ -383,7 +383,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         if (
             volume < -80
             or volume > 18
-            or (self._max_volume and volume > self._max_volume)
+            or (self._max_volume and volume >= self._max_volume)
         ):
             _LOGGER.debug("Volume out of range, skipping.")
             return
