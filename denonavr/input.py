@@ -75,14 +75,13 @@ def set_input_func(
     if value is None:
         return value
     # Map from input_func_map
-    # AirPlay and Internet Radio are not always listed in available sources
-    if value in ["AirPlay", "Internet Radio"]:
-        if value not in instance._input_func_map:
-            instance._additional_input_funcs.add(value)
-            instance._input_func_map[value] = value
-            instance._input_func_map_rev[value] = value
-            instance._netaudio_func_list.append(value)
-            instance._playing_func_list.append(value)
+    # Some inputs are not always listed in available sources
+    if value in {"AirPlay", "Internet Radio", "Media Server", "NET"} and value not in instance._input_func_map:
+        instance._additional_input_funcs.add(value)
+        instance._input_func_map[value] = value
+        instance._input_func_map_rev[value] = value
+        instance._netaudio_func_list.append(value)
+        instance._playing_func_list.append(value)
     try:
         input_func = instance._input_func_map_rev[value]
     except KeyError:
