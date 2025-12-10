@@ -849,7 +849,8 @@ class DenonAVRTelnetApi:
         parameter = message[len(event) :]
 
         if event == "MV":
-            # Event happens on each volume change, ignore if max volume hasn't changed
+            # Handle undocumented max volume event:
+            # propagate as a custom event for DenonAVRVolume
             if parameter[0:3] == "MAX":
                 event = "CUST_MAX_VOL"
 
