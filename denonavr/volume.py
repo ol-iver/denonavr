@@ -117,28 +117,26 @@ class DenonAVRVolume(DenonAVRFoundation):
 
     def _max_volume_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a max volume change event."""
-        _LOGGER.info(
-            "Max volume callback received: Zone=%s, Event=%s, Parameter=%s",
-            zone,
-            event,
-            parameter,
-        )
         if self._device.zone != zone:
-            _LOGGER.info("Zone mismatch: expected %s, got %s", self._device.zone, zone)
+            _LOGGER.info(
+                "Max volume zone mismatch: expected %s, got %s", self._device.zone, zone
+            )
             return
 
-        if parameter.startswith("MAX"):
-            volume = parameter[3:].strip()
-            if len(volume) < 3:
-                _LOGGER.info("Setting max volume - before: %s", self._max_volume)
-                self._max_volume = -80.0 + float(volume)
-                _LOGGER.info("Setting max volume - after: %s", self._max_volume)
-            else:
-                whole_number = float(volume[0:2])
-                fraction = 0.1 * float(volume[2])
-                _LOGGER.info("Setting max volume - before: %s", self._max_volume)
-                self._max_volume = -80.0 + whole_number + fraction
-                _LOGGER.info("Setting max volume - after: %s", self._max_volume)
+        if not parameter.startswith("MAX"):
+            _LOGGER.info("Ignoring invalid max volume parameter: %s", parameter)
+            return
+
+        volume = parameter[3:].strip()
+        if len(volume) < 3:
+            max_volume = -80.0 + float(volume)
+        else:
+            whole_number = float(volume[0:2])
+            fraction = 0.1 * float(volume[2])
+            max_volume = -80.0 + whole_number + fraction
+        if self._max_volume != max_volume:
+            self._max_volume = max_volume
+            _LOGGER.info("Set max volume: %s", self._max_volume)
 
     def _mute_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a muting change event."""
