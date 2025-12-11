@@ -27,6 +27,7 @@ ZONE3 = {"Zone3": None}
 ZONE2_ZONE3 = {"Zone2": None, "Zone3": None}
 
 TESTING_RECEIVERS = {
+    "DRA-N4": (NO_ZONES, denonavr.const.AVR_X),
     "AVR-X4100W": (NO_ZONES, denonavr.const.AVR_X),
     "AVR-2312CI": (NO_ZONES, denonavr.const.AVR),
     "AVR-1912": (NO_ZONES, denonavr.const.AVR),

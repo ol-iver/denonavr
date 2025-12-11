@@ -1,0 +1,142 @@
+<rx>
+<cmd>
+<zone1>ON</zone1>
+</cmd>
+<cmd>
+<zone1>
+<source>Internet Radio</source>
+</zone1>
+</cmd>
+<cmd>
+<functionrename>
+<list>
+<name>Favorites</name>
+<rename>Favorites</rename>
+</list>
+<list>
+<name>Internet Radio</name>
+<rename>Internet Radio</rename>
+</list>
+<list>
+<name>Music Server</name>
+<rename>Music Server</rename>
+</list>
+<list>
+<name>BLUETOOTH</name>
+<rename>Bluetooth</rename>
+</list>
+<list>
+<name>Pandora</name>
+<rename>Pandora</rename>
+</list>
+<list>
+<name>SiriusXM</name>
+<rename>SiriusXM</rename>
+</list>
+<list>
+<name>SpotifyConnect</name>
+<rename>Spotify</rename>
+</list>
+<list>
+<name>QPlay</name>
+<rename>QPlay</rename>
+</list>
+<list>
+<name>USB</name>
+<rename>iPod/USB</rename>
+</list>
+<list>
+<name>DIGITALIN1</name>
+<rename>AUX:Digital In</rename>
+</list>
+<list>
+<name>ANALOGIN</name>
+<rename>AUX:Analog In</rename>
+</list>
+</functionrename>
+</cmd>
+<cmd>
+<functiondelete>
+<list>
+<name>Favorites</name>
+<FuncName>Favorites</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>Internet Radio</name>
+<FuncName>Internet Radio</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>Music Server</name>
+<FuncName>Music Server</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>Bluetooth</name>
+<FuncName>BLUETOOTH</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>Pandora</name>
+<FuncName>Pandora</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>SiriusXM</name>
+<FuncName>SiriusXM</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>Spotify</name>
+<FuncName>SpotifyConnect</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>QPlay</name>
+<FuncName>QPlay</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>iPod/USB</name>
+<FuncName>USB</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>AUX:Digital In</name>
+<FuncName>DIGITALIN1</FuncName>
+<use>1</use>
+</list>
+<list>
+<name>AUX:Analog In</name>
+<FuncName>ANALOGIN</FuncName>
+<use>1</use>
+</list>
+</functiondelete>
+</cmd>
+<cmd>
+<surround></surround>
+</cmd>
+<cmd>
+<status>1</status>
+<adjust>1</adjust>
+<basslevel>0dB</basslevel>
+<bassvalue>5</bassvalue>
+<treblelevel>+6dB</treblelevel>
+<treblevalue>8</treblevalue>
+<balancelevel>0</balancelevel>
+<balancevalue>0</balancevalue>
+<bassboost>1</bassboost>
+<sourcedirect>0</sourcedirect>
+</cmd>
+<cmd>
+<zone1>
+<volume>-77.0</volume>
+<disptype>RELATIVE</disptype>
+<dispvalue>-77.0dB</dispvalue>
+</zone1>
+</cmd>
+<cmd>
+<zone1>off</zone1>
+</cmd>
+</rx>

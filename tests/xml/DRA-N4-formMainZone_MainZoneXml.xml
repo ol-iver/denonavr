@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<FriendlyName><value>Denon CEOL piccolo</value></FriendlyName>
+<Power><value>ON</value></Power>
+<ZonePower><value></value></ZonePower>
+<Filter><value></value></Filter>
+<NoiseShaper><value></value></NoiseShaper>
+<DCFilter><value></value></DCFilter>
+<TopMenuLink><value></value></TopMenuLink>
+<ModelId><value>27</value></ModelId>
+<SalesArea><value>1</value></SalesArea>
+<InputFuncSelect><value>NET</value></InputFuncSelect>
+<NetFuncSelect><value>IRADIO</value></NetFuncSelect>
+</item>

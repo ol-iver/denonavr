@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<Zone><value></value></Zone>
+<Power><value></value></Power>
+<InputFuncList>
+<value>TUNER</value>
+<value>CD</value>
+<value>NETWORK</value>
+<value>DVD</value>
+<value>Blu-ray</value>
+<value>TV AUDIO</value>
+<value>CBL/SAT</value>
+<value>GAME</value>
+<value>AUX</value>
+<value>Media Player</value>
+<value>iPod/USB</value>
+</InputFuncList>
+<RenameSource>
+<value><value>Tuner</value></value>
+<value><value></value></value>
+<value><value></value></value>
+<value><value></value></value>
+<value><value></value></value>
+<value><value></value></value>
+<value><value></value></value>
+<value><value></value></value>
+<value><value></value></value>
+<value><value></value></value>
+<value><value>USB</value></value>
+</RenameSource>
+<SourceDelete>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+</SourceDelete>
+<InputFuncSelect><value></value></InputFuncSelect>
+<VolumeDisplay><value>Relative</value></VolumeDisplay>
+<MasterVolume><value>  0</value></MasterVolume>
+<Mute><value></value></Mute>
+</item>
