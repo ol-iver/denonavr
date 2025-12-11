@@ -6,8 +6,6 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
-  schedule:
-    - cron: "0 5 * * *"
   workflow_dispatch:
 
 
@@ -17,22 +15,20 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.11"]
 
-    name: Testing Python ${{ matrix.python-version }}
+    name: Testing Python
     steps:
     - uses: actions/checkout@v5
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: "3.11"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         if [ -f test-requirements.txt ]; then pip install -r test-requirements.txt; fi
+        pip install -e .
     - name: Integration test with pytest
       run: |
         python -m pytest tests --timeout=60 --durations=10
