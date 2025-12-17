@@ -107,6 +107,15 @@ def convert_on_off_bool_str(value: str) -> Optional[Union[bool, str]]:
     return value
 
 
+def convert_string_int(value: Union[str, bool]) -> Optional[int | str]:
+    """Convert an integer or string to itself."""
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return value
+    return int(value)
+
+
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
 class DenonAVRDeviceInfo:
     """Implements a class with device information of the receiver."""
@@ -164,7 +173,7 @@ class DenonAVRDeviceInfo:
     )
     _auto_standbys = get_args(AutoStandbys)
     _sleep: Optional[Union[str, int]] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(convert_string_int), default=None
     )
     _delay: Optional[int] = attr.ib(
         converter=attr.converters.optional(int), default=None
