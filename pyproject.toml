@@ -19,13 +19,13 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-    "asyncstdlib>=3.10.2",
-    "attrs>=21.2.0",
+    "asyncstdlib>=3.13.1",
+    "attrs>=25.4.0",
     "defusedxml>=0.7.1",
-    "ftfy>=6.1.1",
-    "httpx>=0.23.1",
+    "ftfy>=6.3.1",
+    "httpx>=0.28.1",
     "netifaces>=0.11.0",
-    'async-timeout>=4.0.2; python_version < "3.11"',
+    "aiolimiter>=1.2.1",
 ]
 
 [project.readme]
