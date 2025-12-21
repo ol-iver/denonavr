@@ -210,7 +210,7 @@ class DenonAVRDeviceInfo:
     _room_sizes = get_args(RoomSizes)
     _triggers: Optional[Dict[int, str]] = attr.ib(default=None)
     _speaker_preset: Optional[int] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(int), default=None
     )
     _bt_transmitter: Optional[bool] = attr.ib(
         converter=attr.converters.optional(convert_on_off_bool), default=None
@@ -284,12 +284,12 @@ class DenonAVRDeviceInfo:
             "VPM": self._video_processing_mode_callback,
         }
 
-    def _power_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _power_callback(self, zone: str, _event: str, parameter: str) -> None:
         """Handle a power change event."""
         if self.zone == zone and parameter in POWER_STATES:
             self._power = parameter
 
-    def _settings_menu_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _settings_menu_callback(self, _zone: str, event: str, parameter: str) -> None:
         """Handle a settings menu event."""
         if (
             event == "MN"
@@ -298,17 +298,17 @@ class DenonAVRDeviceInfo:
         ):
             self._settings_menu = value
 
-    def _dimmer_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _dimmer_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle a dimmer change event."""
         if (value := parameter[1:]) in DIMMER_MODE_MAP_LABELS:
             self._dimmer = DIMMER_MODE_MAP_LABELS[value]
 
-    def _auto_standby_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _auto_standby_callback(self, zone: str, _event: str, parameter: str) -> None:
         """Handle an auto standby change event."""
         if zone == "Main":
             self._auto_standby = parameter
 
-    def _auto_sleep_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _auto_sleep_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle a sleep change event."""
         if parameter == "OFF":
             self._sleep = parameter
@@ -319,7 +319,7 @@ class DenonAVRDeviceInfo:
         """Handle a room size change event."""
         self._room_size = parameter[4:]
 
-    def _trigger_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _trigger_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle a trigger change event."""
         values = parameter.split()
         if len(values) != 2:
@@ -330,14 +330,14 @@ class DenonAVRDeviceInfo:
 
         self._triggers[int(values[0])] = values[1]
 
-    def _vs_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _vs_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle a VS change event."""
         for prefix, handler in self._vs_handlers.items():
             if parameter.startswith(prefix):
                 handler(parameter)
                 return
 
-    def _ps_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _ps_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle a PS change event."""
         for prefix, handler in self._ps_handlers.items():
             if parameter.startswith(prefix):
@@ -349,7 +349,7 @@ class DenonAVRDeviceInfo:
         if parameter.startswith("DELAY"):
             self._delay = int(parameter[6:])
 
-    def _eco_mode_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _eco_mode_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle an Eco-mode change event."""
         if parameter in ECO_MODE_MAP_LABELS:
             self._eco_mode = ECO_MODE_MAP_LABELS[parameter]
@@ -366,7 +366,7 @@ class DenonAVRDeviceInfo:
         """Handle a Video Processing Mode change event."""
         self._video_processing_mode = VIDEO_PROCESSING_MODES_MAP_LABELS[parameter[3:]]
 
-    def _ss_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _ss_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle a SS change event."""
         for prefix, handler in self._ss_handlers.items():
             if parameter.startswith(prefix):
@@ -391,12 +391,12 @@ class DenonAVRDeviceInfo:
         elif key == "TTRLPF":
             self._tactile_transducer_lpf = f"{int(value)} Hz"
 
-    def _speaker_preset_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _speaker_preset_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle a speaker preset change event."""
         if parameter.startswith("PR"):
             self._speaker_preset = int(parameter[3:])
 
-    def _bt_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _bt_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle a Bluetooth change event."""
         key_value = parameter.split()
         if len(key_value) != 2:
@@ -440,13 +440,9 @@ class DenonAVRDeviceInfo:
     def _auto_lip_sync_callback(self, parameter: str) -> None:
         """Handle a auto lip sync change event."""
         if parameter.startswith("HOSALS"):
-            auto_lip_sync = parameter[5:]
+            self._auto_lip_sync = parameter[5:]
         elif parameter.startswith("HOS"):
-            auto_lip_sync = parameter[4:]
-        else:
-            return
-
-        self._auto_lip_sync = auto_lip_sync
+            self._auto_lip_sync = parameter[4:]
 
     def get_own_zone(self) -> str:
         """
@@ -1165,6 +1161,9 @@ class DenonAVRDeviceInfo:
 
     async def async_power_on(self) -> None:
         """Turn on receiver via HTTP get command."""
+        if self._power == "ON":
+            return
+
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_power_on
@@ -1174,6 +1173,9 @@ class DenonAVRDeviceInfo:
 
     async def async_power_off(self) -> None:
         """Turn off receiver via HTTP get command."""
+        if self._power == "OFF":
+            return
+
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_power_standby
@@ -1301,17 +1303,6 @@ class DenonAVRDeviceInfo:
                 self.urls.command_dimmer_set.format(mode=mapped_mode)
             )
 
-    async def async_tactile_transducer_on(self) -> None:
-        """Turn on tactile transducer on receiver via HTTP get command."""
-        if self.telnet_available:
-            await self.telnet_api.async_send_commands(
-                self.telnet_commands.command_tactile_transducer.format(mode="ON")
-            )
-        else:
-            await self.api.async_get_command(
-                self.urls.command_tactile_transducer.format(mode="ON")
-            )
-
     async def async_auto_standby(self, auto_standby: AutoStandbys) -> None:
         """Set auto standby on receiver via HTTP get command."""
         if auto_standby not in self._auto_standbys:
@@ -1334,6 +1325,9 @@ class DenonAVRDeviceInfo:
         if sleep != "OFF" and sleep not in range(1, 120):
             raise AvrCommandError("Invalid sleep value")
 
+        if self._sleep == sleep:
+            return
+
         local_sleep = f"{sleep:03}" if isinstance(sleep, int) else sleep
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
@@ -1344,8 +1338,25 @@ class DenonAVRDeviceInfo:
                 self.urls.command_sleep.format(value=local_sleep)
             )
 
+    async def async_tactile_transducer_on(self) -> None:
+        """Turn on tactile transducer on receiver via HTTP get command."""
+        if self._tactile_transducer == "ON":
+            return
+
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_tactile_transducer.format(mode="ON")
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_tactile_transducer.format(mode="ON")
+            )
+
     async def async_tactile_transducer_off(self) -> None:
         """Turn on tactile transducer on receiver via HTTP get command."""
+        if self._tactile_transducer == "OFF":
+            return
+
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_tactile_transducer.format(mode="OFF")
@@ -1414,6 +1425,9 @@ class DenonAVRDeviceInfo:
         if room_size not in self._room_sizes:
             raise AvrCommandError("Invalid room size")
 
+        if self._room_size == room_size:
+            return
+
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_room_size.format(size=room_size)
@@ -1432,6 +1446,9 @@ class DenonAVRDeviceInfo:
         if trigger < 1 or trigger > 3:
             raise AvrCommandError("Trigger number must be between 1 and 3")
 
+        if self._triggers.get(trigger, None) == "ON":
+            return
+
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_trigger.format(number=trigger, mode="ON")
@@ -1449,6 +1466,9 @@ class DenonAVRDeviceInfo:
         """
         if trigger < 1 or trigger > 3:
             raise AvrCommandError("Trigger number must be between 1 and 3")
+
+        if self._triggers.get(trigger, None) == "OFF":
+            return
 
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
@@ -1526,6 +1546,9 @@ class DenonAVRDeviceInfo:
 
     async def async_delay_up(self) -> None:
         """Delay up on receiver via HTTP get command."""
+        if self._delay == 500:
+            return
+
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_delay_up
@@ -1535,6 +1558,9 @@ class DenonAVRDeviceInfo:
 
     async def async_delay_down(self) -> None:
         """Delay down on receiver via HTTP get command."""
+        if self._delay == 0:
+            return
+
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_delay_down
@@ -1542,10 +1568,34 @@ class DenonAVRDeviceInfo:
         else:
             await self.api.async_get_command(self.urls.command_delay_down)
 
+    async def async_delay(self, delay: int) -> None:
+        """
+        Set delay on receiver via HTTP get command.
+
+        :param delay: Delay time in ms. Valid values are 0-500.
+        """
+        if delay < 0 or delay > 500:
+            raise AvrCommandError("Invalid delay value")
+
+        if self._delay == delay:
+            return
+
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_delay.format(delay=delay)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_delay.format(delay=delay)
+            )
+
     async def async_eco_mode(self, mode: EcoModes) -> None:
         """Set Eco mode."""
         if mode not in self._eco_modes:
             raise AvrCommandError("Invalid Eco mode")
+
+        if self._eco_mode == mode:
+            return
 
         mapped_mode = ECO_MODE_MAP[mode]
         if self.telnet_available:
@@ -1562,6 +1612,9 @@ class DenonAVRDeviceInfo:
         if output not in self._hdmi_outputs:
             raise AvrCommandError("Invalid HDMI output mode")
 
+        if self._hdmi_output == output:
+            return
+
         mapped_output = HDMI_OUTPUT_MAP[output]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
@@ -1577,6 +1630,9 @@ class DenonAVRDeviceInfo:
         if mode not in self._hdmi_audio_decodes:
             raise AvrCommandError("Invalid HDMI Audio Decode mode")
 
+        if self._hdmi_audio_decode == mode:
+            return
+
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_hdmi_audio_decode.format(mode=mode)
@@ -1590,6 +1646,10 @@ class DenonAVRDeviceInfo:
         """Set video processing mode on receiver via HTTP get command."""
         if mode not in self._video_processing_modes:
             raise AvrCommandError("Invalid video processing mode")
+
+        if self._video_processing_mode == mode:
+            return
+
         processing_mode = VIDEO_PROCESSING_MODES_MAP[mode]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
@@ -1641,6 +1701,9 @@ class DenonAVRDeviceInfo:
         if preset < 1 or preset > 2:
             raise AvrCommandError("Speaker preset number must be 1 or 2")
 
+        if self._speaker_preset == preset:
+            return
+
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_speaker_preset.format(number=preset)
@@ -1663,6 +1726,9 @@ class DenonAVRDeviceInfo:
         self,
     ) -> None:
         """Turn on Bluetooth transmitter on receiver via HTTP get command."""
+        if self._bt_transmitter:
+            return
+
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_bluetooth_transmitter.format(mode="ON")
@@ -1676,6 +1742,9 @@ class DenonAVRDeviceInfo:
         self,
     ) -> None:
         """Turn off Bluetooth transmitter on receiver via HTTP get command."""
+        if self._bt_transmitter is False:
+            return
+
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_bluetooth_transmitter.format(mode="OFF")
@@ -1700,6 +1769,9 @@ class DenonAVRDeviceInfo:
         """Set Bluetooth transmitter mode on receiver via HTTP get command."""
         if mode not in self._bt_output_modes:
             raise AvrCommandError("Invalid Bluetooth output mode")
+
+        if self._bt_output_mode == mode:
+            return
 
         mapped_mode = BLUETOOTH_OUTPUT_MODES_MAP[mode]
         if self.telnet_available:
@@ -1726,6 +1798,9 @@ class DenonAVRDeviceInfo:
 
     async def async_delay_time_up(self) -> None:
         """Delay time up on receiver via HTTP get command."""
+        if self._delay_time == 300:
+            return
+
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_delay_time.format(value="UP")
@@ -1736,7 +1811,10 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_delay_time_down(self) -> None:
-        """Delay time up on receiver via HTTP get command."""
+        """Delay time down on receiver via HTTP get command."""
+        if self._delay_time == 0:
+            return
+
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_delay_time.format(value="DOWN")
@@ -1750,10 +1828,13 @@ class DenonAVRDeviceInfo:
         """
         Set delay time on receiver via HTTP get command.
 
-        :param delay_time: Delay time in ms. Valid values are 0-999.
+        :param delay_time: Delay time in ms. Valid values are 0-300.
         """
-        if delay_time < 0 or delay_time > 999:
+        if delay_time < 0 or delay_time > 300:
             raise AvrCommandError("Invalid delay time value")
+
+        if self._delay_time == delay_time:
+            return
 
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
@@ -1768,6 +1849,9 @@ class DenonAVRDeviceInfo:
         """Set audio restorer on receiver via HTTP get command."""
         if mode not in self._audio_restorers:
             raise AvrCommandError("Invalid audio restorer mode")
+
+        if self._audio_restorer == mode:
+            return
 
         mapped_mode = AUDIO_RESTORER_MAP[mode]
         if self.telnet_available:
@@ -1838,6 +1922,9 @@ class DenonAVRDeviceInfo:
 
     async def async_graphic_eq_on(self) -> None:
         """Turn on Graphic EQ on receiver via HTTP get command."""
+        if self._graphic_eq:
+            return
+
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_graphic_eq.format(mode="ON")
@@ -1849,6 +1936,9 @@ class DenonAVRDeviceInfo:
 
     async def async_graphic_eq_off(self) -> None:
         """Turn off Graphic EQ on receiver via HTTP get command."""
+        if self._graphic_eq is False:
+            return
+
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_graphic_eq.format(mode="OFF")
@@ -1871,6 +1961,9 @@ class DenonAVRDeviceInfo:
 
     async def async_headphone_eq_on(self) -> None:
         """Turn on Headphone EQ on receiver via HTTP get command."""
+        if self._headphone_eq:
+            return
+
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_headphone_eq.format(mode="ON")
@@ -1882,6 +1975,9 @@ class DenonAVRDeviceInfo:
 
     async def async_headphone_eq_off(self) -> None:
         """Turn off Headphone EQ on receiver via HTTP get command."""
+        if self._headphone_eq is False:
+            return
+
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_headphone_eq.format(mode="OFF")
@@ -1944,6 +2040,9 @@ class DenonAVRDeviceInfo:
         if mode not in self._illuminations:
             raise AvrCommandError("Invalid illumination mode")
 
+        if self._illumination == mode:
+            return
+
         mapped_mode = ILLUMINATION_MAP[mode]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
@@ -1963,6 +2062,9 @@ class DenonAVRDeviceInfo:
         if self.is_denon:
             raise AvrCommandError("Auto lip sync is only available for Marantz devices")
 
+        if self._auto_lip_sync:
+            return
+
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_auto_lip_sync.format(mode="ON")
@@ -1980,6 +2082,9 @@ class DenonAVRDeviceInfo:
         """
         if self.is_denon:
             raise AvrCommandError("Auto lip sync is only available for Marantz devices")
+
+        if self._auto_lip_sync is False:
+            return
 
         if self.telnet_available:
             await self.telnet_api.async_send_commands(

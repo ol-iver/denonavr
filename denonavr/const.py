@@ -75,6 +75,7 @@ ReceiverURLs = namedtuple(
         "command_tactile_transducer",
         "command_tactile_transducer_level",
         "command_tactile_transducer_lpf",
+        "command_delay",
         "command_delay_up",
         "command_delay_down",
         "command_auromatic_3d_preset",
@@ -195,6 +196,7 @@ TelnetCommands = namedtuple(
         "command_tactile_transducer",
         "command_tactile_transducer_level",
         "command_tactile_transducer_lpf",
+        "command_delay",
         "command_delay_up",
         "command_delay_down",
         "command_auromatic_3d_preset",
@@ -664,6 +666,7 @@ COMMAND_TACTILE_TRANSDUCER_LEVEL = "/goform/formiPhoneAppDirect.xml?SSTTRLEV%20{
 COMMAND_TACTILE_TRANSDUCER_LPF = (
     "/goform/formiPhoneAppDirect.xml?SSTTRLPF%20{frequency}"
 )
+COMMAND_DELAY = "/goform/formiPhoneAppDirect.xml?PSDELAY%20{delay}"
 COMMAND_DELAY_UP = "/goform/formiPhoneAppDirect.xml?PSDELAY%20UP"
 COMMAND_DELAY_DOWN = "/goform/formiPhoneAppDirect.xml?PSDELAY%20DOWN"
 COMMAND_AUROMATIC_3D_PRESET = "/goform/formiPhoneAppDirect.xml?PSAUROPR%20{preset}"
@@ -810,6 +813,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_tactile_transducer=COMMAND_TACTILE_TRANSDUCER,
     command_tactile_transducer_level=COMMAND_TACTILE_TRANSDUCER_LEVEL,
     command_tactile_transducer_lpf=COMMAND_TACTILE_TRANSDUCER_LPF,
+    command_delay=COMMAND_DELAY,
     command_delay_up=COMMAND_DELAY_UP,
     command_delay_down=COMMAND_DELAY_DOWN,
     command_auromatic_3d_preset=COMMAND_AUROMATIC_3D_PRESET,
@@ -930,6 +934,7 @@ ZONE2_URLS = ReceiverURLs(
     command_tactile_transducer=COMMAND_TACTILE_TRANSDUCER,
     command_tactile_transducer_level=COMMAND_TACTILE_TRANSDUCER_LEVEL,
     command_tactile_transducer_lpf=COMMAND_TACTILE_TRANSDUCER_LPF,
+    command_delay=COMMAND_DELAY,
     command_delay_up=COMMAND_DELAY_UP,
     command_delay_down=COMMAND_DELAY_DOWN,
     command_auromatic_3d_preset=COMMAND_AUROMATIC_3D_PRESET,
@@ -1050,6 +1055,7 @@ ZONE3_URLS = ReceiverURLs(
     command_tactile_transducer=COMMAND_TACTILE_TRANSDUCER,
     command_tactile_transducer_level=COMMAND_TACTILE_TRANSDUCER_LEVEL,
     command_tactile_transducer_lpf=COMMAND_TACTILE_TRANSDUCER_LPF,
+    command_delay=COMMAND_DELAY,
     command_delay_up=COMMAND_DELAY_UP,
     command_delay_down=COMMAND_DELAY_DOWN,
     command_auromatic_3d_preset=COMMAND_AUROMATIC_3D_PRESET,
@@ -1227,6 +1233,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_tactile_transducer="SSTTR {mode}",
     command_tactile_transducer_level="SSTTRLEV {mode}",
     command_tactile_transducer_lpf="SSTTRLPF {frequency}",
+    command_delay="PSDELAY {delay}",
     command_delay_up="PSDELAY UP",
     command_delay_down="PSDELAY DOWN",
     command_auromatic_3d_preset="PSAUROPR {preset}",
@@ -1345,6 +1352,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_tactile_transducer="SSTTR {mode}",
     command_tactile_transducer_level="SSTTRLEV {mode}",
     command_tactile_transducer_lpf="SSTTRLPF {frequency}",
+    command_delay="PSDELAY {delay}",
     command_delay_up="PSDELAY UP",
     command_delay_down="PSDELAY DOWN",
     command_auromatic_3d_preset="PSAUROPR {preset}",
@@ -1463,6 +1471,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_tactile_transducer="SSTTR {mode}",
     command_tactile_transducer_level="SSTTRLEV {mode}",
     command_tactile_transducer_lpf="SSTTRLPF {frequency}",
+    command_delay="PSDELAY {delay}",
     command_delay_up="PSDELAY UP",
     command_delay_down="PSDELAY DOWN",
     command_auromatic_3d_preset="PSAUROPR {preset}",
@@ -1904,12 +1913,10 @@ TransducerLPFs = Literal[
 ]
 """Tactile Transducer Low Pass Frequencies."""
 
-IMAXHPFs = Literal[
-    "40", "60", "80", "90", "100", "110", "120", "150", "180", "200", "250"
-]
+IMAXHPFs = Literal[40, 60, 80, 90, 100, 110, 120, 150, 180, 200, 250]
 """IMAX High Pass Frequencies."""
 
-IMAXLPFs = Literal["80", "90", "100", "110", "120", "150", "180", "200", "250"]
+IMAXLPFs = Literal[80, 90, 100, 110, 120, 150, 180, 200, 250]
 """IMAX Low Pass Frequencies."""
 
 PanelLocks = Literal["Panel", "Panel + Master Volume"]

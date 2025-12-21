@@ -215,7 +215,7 @@ class DenonAVRInput(DenonAVRFoundation):
             "SS", self._input_func_update_callback
         )
 
-    def _input_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _input_callback(self, zone: str, _event: str, parameter: str) -> None:
         """Handle an input change event."""
         if self._device.zone != zone:
             return
@@ -231,7 +231,7 @@ class DenonAVRInput(DenonAVRFoundation):
             self._unset_media_state()
             self._state = STATE_ON
 
-    def _power_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _power_callback(self, zone: str, _event: str, parameter: str) -> None:
         """Handle a power change event."""
         if self._device.zone != zone:
             return
@@ -286,7 +286,7 @@ class DenonAVRInput(DenonAVRFoundation):
         else:
             self._stop_media_update()
 
-    def _netaudio_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _netaudio_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle a netaudio update event."""
         if self._device.power != POWER_ON:
             return
@@ -340,7 +340,7 @@ class DenonAVRInput(DenonAVRFoundation):
         else:
             self._stop_media_update()
 
-    def _tuner_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _tuner_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle a tuner update event."""
         if self._device.power != POWER_ON:
             return
@@ -410,7 +410,7 @@ class DenonAVRInput(DenonAVRFoundation):
         )
 
     def _input_func_update_callback(
-        self, zone: str, event: str, parameter: str
+        self, _zone: str, _event: str, _parameter: str
     ) -> None:
         """Handle input func update events."""
         if self._input_func_update_lock.locked():
@@ -1074,6 +1074,10 @@ class DenonAVRInput(DenonAVRFoundation):
                 raise AvrCommandError(
                     f"No mapping for input source {input_func}"
                 ) from err
+
+        if self._input_func == input_func:
+            return
+
         # Create command URL and send command via HTTP GET
         if linp in self._favorite_func_list:
             command_url = self._device.urls.command_fav_src + linp

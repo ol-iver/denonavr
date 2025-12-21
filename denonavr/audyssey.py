@@ -81,7 +81,7 @@ class DenonAVRAudyssey(DenonAVRFoundation):
 
         self._is_setup = True
 
-    def _ps_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _ps_callback(self, zone: str, _event: str, parameter: str) -> None:
         """Handle a sound detail change event."""
         if self._device.zone != zone:
             return
@@ -221,6 +221,9 @@ class DenonAVRAudyssey(DenonAVRFoundation):
     ##########
     async def async_dynamiceq_off(self) -> None:
         """Turn DynamicEQ off."""
+        if self._dynamiceq is False:
+            return
+
         if self._device.telnet_available:
             telnet_command = self._device.telnet_commands.command_dynamiceq + "OFF"
             await self._device.telnet_api.async_send_commands(telnet_command)
@@ -233,6 +236,9 @@ class DenonAVRAudyssey(DenonAVRFoundation):
 
     async def async_dynamiceq_on(self) -> None:
         """Turn DynamicEQ on."""
+        if self._dynamiceq:
+            return
+
         if self._device.telnet_available:
             telnet_command = self._device.telnet_commands.command_dynamiceq + "ON"
             await self._device.telnet_api.async_send_commands(telnet_command)
@@ -245,6 +251,9 @@ class DenonAVRAudyssey(DenonAVRFoundation):
 
     async def async_set_multieq(self, value: str) -> None:
         """Set MultiEQ mode."""
+        if self._multeq == value:
+            return
+
         if self._device.telnet_available:
             setting = MULTI_EQ_MAP_LABELS_TELNET.get(value)
             if setting is None:
@@ -269,6 +278,10 @@ class DenonAVRAudyssey(DenonAVRFoundation):
             raise AvrCommandError(
                 "Reference level could only be set when DynamicEQ is active"
             )
+
+        if self._reflevoffset == value:
+            return
+
         if self._device.telnet_available:
             setting = REF_LVL_OFFSET_MAP_LABELS_TELNET.get(value)
             if setting is None:
@@ -290,6 +303,9 @@ class DenonAVRAudyssey(DenonAVRFoundation):
 
     async def async_set_dynamicvol(self, value: str) -> None:
         """Set Dynamic Volume."""
+        if self._dynamicvol == value:
+            return
+
         if self._device.telnet_available:
             setting = DYNAMIC_VOLUME_MAP_LABELS_TELNET.get(value)
             if setting is None:
@@ -316,6 +332,9 @@ class DenonAVRAudyssey(DenonAVRFoundation):
 
     async def async_lfc_on(self):
         """Turn LFC on."""
+        if self._lfc:
+            return
+
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_lfc.format(mode="ON")
@@ -327,6 +346,9 @@ class DenonAVRAudyssey(DenonAVRFoundation):
 
     async def async_lfc_off(self):
         """Turn LFC off."""
+        if self._lfc is False:
+            return
+
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_lfc.format(mode="OFF")
@@ -351,6 +373,10 @@ class DenonAVRAudyssey(DenonAVRFoundation):
         """
         if amount < 1 or amount > 7:
             raise AvrCommandError("Containment amount must be between 1 and 7")
+
+        if self._containment_amount == amount:
+            return
+
         local_amount = f"{amount:02}"
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
@@ -365,6 +391,9 @@ class DenonAVRAudyssey(DenonAVRFoundation):
 
     async def async_containment_amount_up(self) -> None:
         """Increase Containment Amount."""
+        if self._containment_amount == 7:
+            return
+
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_containment_amount.format(
@@ -378,6 +407,9 @@ class DenonAVRAudyssey(DenonAVRFoundation):
 
     async def async_containment_amount_down(self) -> None:
         """Decrease Containment Amount."""
+        if self._containment_amount == 1:
+            return
+
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_containment_amount.format(

@@ -39,7 +39,7 @@ class DenonAVRDirac(DenonAVRFoundation):
 
         self._is_setup = True
 
-    def _ps_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _ps_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle Dirac filter change event."""
         if parameter.startswith("DIRAC"):
             self._dirac_filter = DIRAC_FILTER_MAP_LABELS[parameter[6:]]
@@ -66,6 +66,9 @@ class DenonAVRDirac(DenonAVRFoundation):
         """Set Dirac filter."""
         if dirac_filter not in self._dirac_filters:
             raise AvrCommandError("Invalid Dirac filter")
+
+        if self._dirac_filter == dirac_filter:
+            return
 
         mapped_filter = DIRAC_FILTER_MAP[dirac_filter]
         if self._device.telnet_available:
