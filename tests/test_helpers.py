@@ -72,3 +72,16 @@ class DeviceTestFixture:
             + self._mock_post.call_count
             + self._mock_telnet.call_count
         ) > 0
+
+    def assert_called_match_ends(self, request_endswith: str):
+        """Assert a mock was called with an argument ending with the given string."""
+        for mock in [self._mock_get, self._mock_post, self._mock_telnet]:
+            for call in mock.call_args_list:
+                args = call[0]
+                if (
+                    args
+                    and isinstance(args[0], str)
+                    and args[0].endswith(request_endswith)
+                ):
+                    return
+        assert False, f"No call argument ends with '{request_endswith}'"

@@ -10,10 +10,7 @@ This module covers some basic automated tests of audyssey.
 import pytest
 
 from denonavr.audyssey import AvrCommandError, DenonAVRAudyssey
-from denonavr.const import REF_LVL_OFFSET_MAP_LABELS_TELNET
 from tests.test_helpers import DeviceTestFixture
-
-VALID_REFLEV = next(iter(REF_LVL_OFFSET_MAP_LABELS_TELNET.keys()))
 
 
 class TestDenonAVRAudyssey:
@@ -62,7 +59,7 @@ class TestDenonAVRAudyssey:
         device = DenonAVRAudyssey(device=fixture.device_info)
         device._ps_callback("Main", "", "DYNEQ OFF")
         with pytest.raises(AvrCommandError):
-            await fixture.async_execute(device.async_set_reflevoffset(VALID_REFLEV))
+            await fixture.async_execute(device.async_set_reflevoffset("0dB"))
 
     @pytest.mark.asyncio
     async def test_async_set_reflevoffset_returns_early_when_matches(self):
@@ -70,10 +67,8 @@ class TestDenonAVRAudyssey:
         fixture = DeviceTestFixture(True)
         device = DenonAVRAudyssey(device=fixture.device_info)
         device._ps_callback("Main", "", "DYNEQ ON")
-        mapped_value = list(REF_LVL_OFFSET_MAP_LABELS_TELNET.values())[0]
-        test_key = list(REF_LVL_OFFSET_MAP_LABELS_TELNET.keys())[0]
-        device._ps_callback("Main", "", f"REFLEV {mapped_value}")
-        await fixture.async_execute(device.async_set_reflevoffset(test_key))
+        device._ps_callback("Main", "", "REFLEV 0")
+        await fixture.async_execute(device.async_set_reflevoffset("0dB"))
         fixture.assert_not_called()
 
     @pytest.mark.asyncio
@@ -82,11 +77,8 @@ class TestDenonAVRAudyssey:
         fixture = DeviceTestFixture(True)
         device = DenonAVRAudyssey(device=fixture.device_info)
         device._ps_callback("Main", "", "DYNEQ ON")
-        all_keys = list(REF_LVL_OFFSET_MAP_LABELS_TELNET.keys())
-        all_values = list(REF_LVL_OFFSET_MAP_LABELS_TELNET.values())
-        test_val = all_keys[1] if len(all_keys) > 1 else all_keys[0]
-        device._ps_callback("Main", "", f"REFLEV {all_values[0]}")
-        await fixture.async_execute(device.async_set_reflevoffset(test_val))
+        device._ps_callback("Main", "", "REFLEV 0")
+        await fixture.async_execute(device.async_set_reflevoffset("+5dB"))
         fixture.assert_called()
 
     @pytest.mark.asyncio
@@ -158,12 +150,8 @@ class TestDenonAVRAudyssey:
         """Test that no command is sent when MultiEQ setting matches."""
         fixture = DeviceTestFixture(True)
         device = DenonAVRAudyssey(device=fixture.device_info)
-        from denonavr.const import MULTI_EQ_MAP_LABELS_TELNET
-
-        valid_key = next(iter(MULTI_EQ_MAP_LABELS_TELNET.keys()))
-        valid_value = MULTI_EQ_MAP_LABELS_TELNET[valid_key]
-        device._ps_callback("Main", "", f"MULTEQ:{valid_value}")
-        await fixture.async_execute(device.async_set_multieq(valid_key))
+        device._ps_callback("Main", "", "MULTEQ:OFF")
+        await fixture.async_execute(device.async_set_multieq("Off"))
         fixture.assert_not_called()
 
     @pytest.mark.asyncio
@@ -171,13 +159,8 @@ class TestDenonAVRAudyssey:
         """Test that command is sent when MultiEQ setting differs."""
         fixture = DeviceTestFixture(True)
         device = DenonAVRAudyssey(device=fixture.device_info)
-        from denonavr.const import MULTI_EQ_MAP_LABELS_TELNET
-
-        all_keys = list(MULTI_EQ_MAP_LABELS_TELNET.keys())
-        all_values = list(MULTI_EQ_MAP_LABELS_TELNET.values())
-        test_key = all_keys[1] if len(all_keys) > 1 else all_keys[0]
-        device._ps_callback("Main", "", f"MULTEQ:{all_values[0]}")
-        await fixture.async_execute(device.async_set_multieq(test_key))
+        device._ps_callback("Main", "", "MULTEQ:OFF")
+        await fixture.async_execute(device.async_set_multieq("Flat"))
         fixture.assert_called()
 
     @pytest.mark.asyncio
@@ -193,12 +176,8 @@ class TestDenonAVRAudyssey:
         """Test that no command is sent when Dynamic Volume setting matches."""
         fixture = DeviceTestFixture(True)
         device = DenonAVRAudyssey(device=fixture.device_info)
-        from denonavr.const import DYNAMIC_VOLUME_MAP_LABELS_TELNET
-
-        valid_key = next(iter(DYNAMIC_VOLUME_MAP_LABELS_TELNET.keys()))
-        valid_value = DYNAMIC_VOLUME_MAP_LABELS_TELNET[valid_key]
-        device._ps_callback("Main", "", f"DYNVOL {valid_value}")
-        await fixture.async_execute(device.async_set_dynamicvol(valid_key))
+        device._ps_callback("Main", "", "DYNVOL OFF")
+        await fixture.async_execute(device.async_set_dynamicvol("Off"))
         fixture.assert_not_called()
 
     @pytest.mark.asyncio
@@ -206,13 +185,8 @@ class TestDenonAVRAudyssey:
         """Test that command is sent when Dynamic Volume setting differs."""
         fixture = DeviceTestFixture(True)
         device = DenonAVRAudyssey(device=fixture.device_info)
-        from denonavr.const import DYNAMIC_VOLUME_MAP_LABELS_TELNET
-
-        all_keys = list(DYNAMIC_VOLUME_MAP_LABELS_TELNET.keys())
-        all_values = list(DYNAMIC_VOLUME_MAP_LABELS_TELNET.values())
-        test_key = all_keys[1] if len(all_keys) > 1 else all_keys[0]
-        device._ps_callback("Main", "", f"DYNVOL {all_values[0]}")
-        await fixture.async_execute(device.async_set_dynamicvol(test_key))
+        device._ps_callback("Main", "", "DYNVOL OFF")
+        await fixture.async_execute(device.async_set_dynamicvol("Light"))
         fixture.assert_called()
 
     @pytest.mark.asyncio

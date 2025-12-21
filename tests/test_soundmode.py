@@ -4,12 +4,6 @@
 
 import pytest
 
-from denonavr.const import (
-    AURO_MATIC_3D_PRESET_MAP_LABELS,
-    DAC_FILTERS_MAP_LABELS,
-    DIALOG_ENHANCER_LEVEL_MAP_LABELS,
-    MDAX_MAP_LABELS,
-)
 from denonavr.soundmode import DenonAVRSoundMode
 from tests.test_helpers import DeviceTestFixture
 
@@ -220,11 +214,8 @@ class TestDenonAVRSoundMode:
         """Test that async_dialog_enhancer returns early when already matches."""
         fixture = DeviceTestFixture(True)
         device = DenonAVRSoundMode(device=fixture.device_info)
-        # Use a valid dialog enhancer level from the mapping
-        level = next(iter(DIALOG_ENHANCER_LEVEL_MAP_LABELS.keys()))
-        mapped = DIALOG_ENHANCER_LEVEL_MAP_LABELS[level]
-        device._ps_callback("Main", "", f"DEH {level}")
-        await fixture.async_execute(device.async_dialog_enhancer(mapped))
+        device._ps_callback("Main", "", "DEH OFF")
+        await fixture.async_execute(device.async_dialog_enhancer("Off"))
         fixture.assert_not_called()
 
     @pytest.mark.asyncio
@@ -232,14 +223,8 @@ class TestDenonAVRSoundMode:
         """Test that async_dialog_enhancer sends command when differs."""
         fixture = DeviceTestFixture(True)
         device = DenonAVRSoundMode(device=fixture.device_info)
-        # Use two valid dialog enhancer levels from the mapping
-        levels = list(DIALOG_ENHANCER_LEVEL_MAP_LABELS.keys())
-        mapped1 = DIALOG_ENHANCER_LEVEL_MAP_LABELS[levels[0]]
-        mapped2 = (
-            DIALOG_ENHANCER_LEVEL_MAP_LABELS[levels[1]] if len(levels) > 1 else mapped1
-        )
-        device._ps_callback("Main", "", f"DEH {levels[0]}")
-        await fixture.async_execute(device.async_dialog_enhancer(mapped2))
+        device._ps_callback("Main", "", "DEH OFF")
+        await fixture.async_execute(device.async_dialog_enhancer("High"))
         fixture.assert_called_once()
 
     @pytest.mark.asyncio
@@ -247,11 +232,8 @@ class TestDenonAVRSoundMode:
         """Test that async_auromatic_3d_preset returns early when already matches."""
         fixture = DeviceTestFixture(True)
         device = DenonAVRSoundMode(device=fixture.device_info)
-        # Use a valid preset from the mapping
-        preset = next(iter(AURO_MATIC_3D_PRESET_MAP_LABELS.keys()))
-        mapped = AURO_MATIC_3D_PRESET_MAP_LABELS[preset]
-        device._ps_callback("Main", "", f"AUROPR {preset}")
-        await fixture.async_execute(device.async_auromatic_3d_preset(mapped))
+        device._ps_callback("Main", "", "AUROPR SMA")
+        await fixture.async_execute(device.async_auromatic_3d_preset("Small"))
         fixture.assert_not_called()
 
     @pytest.mark.asyncio
@@ -259,13 +241,8 @@ class TestDenonAVRSoundMode:
         """Test that async_auromatic_3d_preset sends command when differs."""
         fixture = DeviceTestFixture(True)
         device = DenonAVRSoundMode(device=fixture.device_info)
-        presets = list(AURO_MATIC_3D_PRESET_MAP_LABELS.keys())
-        mapped1 = AURO_MATIC_3D_PRESET_MAP_LABELS[presets[0]]
-        mapped2 = (
-            AURO_MATIC_3D_PRESET_MAP_LABELS[presets[1]] if len(presets) > 1 else mapped1
-        )
-        device._ps_callback("Main", "", f"AUROPR {presets[0]}")
-        await fixture.async_execute(device.async_auromatic_3d_preset(mapped2))
+        device._ps_callback("Main", "", "AUROPR SMA")
+        await fixture.async_execute(device.async_auromatic_3d_preset("Large"))
         fixture.assert_called_once()
 
     @pytest.mark.asyncio
@@ -274,10 +251,8 @@ class TestDenonAVRSoundMode:
         fixture = DeviceTestFixture(False)
         device = DenonAVRSoundMode(device=fixture.device_info)
         device._device.manufacturer = "Marantz"
-        mdax = next(iter(MDAX_MAP_LABELS.keys()))
-        mapped = MDAX_MAP_LABELS[mdax]
-        device._ps_callback("Main", "", f"MDAX {mdax}")
-        await fixture.async_execute(device.async_mdax(mapped))
+        device._ps_callback("Main", "", "MDAX OFF")
+        await fixture.async_execute(device.async_mdax("Off"))
         fixture.assert_not_called()
 
     @pytest.mark.asyncio
@@ -285,11 +260,8 @@ class TestDenonAVRSoundMode:
         """Test that async_mdax sends command when differs."""
         fixture = DeviceTestFixture(False)
         device = DenonAVRSoundMode(device=fixture.device_info)
-        mdaxs = list(MDAX_MAP_LABELS.keys())
-        mapped1 = MDAX_MAP_LABELS[mdaxs[0]]
-        mapped2 = MDAX_MAP_LABELS[mdaxs[1]] if len(mdaxs) > 1 else mapped1
-        device._ps_callback("Main", "", f"MDAX {mdaxs[0]}")
-        await fixture.async_execute(device.async_mdax(mapped2))
+        device._ps_callback("Main", "", "MDAX OFF")
+        await fixture.async_execute(device.async_mdax("High"))
         fixture.assert_called_once()
 
     @pytest.mark.asyncio
@@ -297,10 +269,8 @@ class TestDenonAVRSoundMode:
         """Test that async_dac_filter returns early when already matches."""
         fixture = DeviceTestFixture(False)
         device = DenonAVRSoundMode(device=fixture.device_info)
-        dac = next(iter(DAC_FILTERS_MAP_LABELS.keys()))
-        mapped = DAC_FILTERS_MAP_LABELS[dac]
-        device._ps_callback("Main", "", f"DACFIL {dac}")
-        await fixture.async_execute(device.async_dac_filter(mapped))
+        device._ps_callback("Main", "", "DACFIL MODE1")
+        await fixture.async_execute(device.async_dac_filter("Mode 1"))
         fixture.assert_not_called()
 
     @pytest.mark.asyncio
@@ -308,8 +278,6 @@ class TestDenonAVRSoundMode:
         """Test that async_dac_filter sends command when differs."""
         fixture = DeviceTestFixture(False)
         device = DenonAVRSoundMode(device=fixture.device_info)
-        dacs = list(DAC_FILTERS_MAP_LABELS.keys())
-        mapped1 = DAC_FILTERS_MAP_LABELS[dacs[0]]
-        mapped2 = DAC_FILTERS_MAP_LABELS[dacs[1]] if len(dacs) > 1 else mapped1
-        await fixture.async_execute(device.async_dac_filter(mapped2))
+        device._ps_callback("Main", "", "DACFIL MODE1")
+        await fixture.async_execute(device.async_dac_filter("Mode 2"))
         fixture.assert_called_once()

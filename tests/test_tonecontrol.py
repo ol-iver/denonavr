@@ -45,7 +45,7 @@ class TestDenonAVRToneControl:
         fixture = DeviceTestFixture(True)
         device = DenonAVRToneControl(device=fixture.device_info)
         device._ps_callback("Main", "", "TONE CTRL ON")
-        device._ps_callback("Main", "", "BAS 56")  # 12+44
+        device._ps_callback("Main", "", "BAS 56")
         await fixture.async_execute(device.async_bass_up())
         fixture.assert_not_called()
 
@@ -55,7 +55,7 @@ class TestDenonAVRToneControl:
         fixture = DeviceTestFixture(True)
         device = DenonAVRToneControl(device=fixture.device_info)
         device._ps_callback("Main", "", "TONE CTRL ON")
-        device._ps_callback("Main", "", "BAS 50")  # 6+44
+        device._ps_callback("Main", "", "BAS 50")
         await fixture.async_execute(device.async_bass_up())
         fixture.assert_called_once()
 
@@ -65,7 +65,7 @@ class TestDenonAVRToneControl:
         fixture = DeviceTestFixture(True)
         device = DenonAVRToneControl(device=fixture.device_info)
         device._ps_callback("Main", "", "TONE CTRL ON")
-        device._ps_callback("Main", "", "BAS 44")  # 0+44
+        device._ps_callback("Main", "", "BAS 44")
         await fixture.async_execute(device.async_bass_down())
         fixture.assert_not_called()
 
@@ -75,7 +75,7 @@ class TestDenonAVRToneControl:
         fixture = DeviceTestFixture(True)
         device = DenonAVRToneControl(device=fixture.device_info)
         device._ps_callback("Main", "", "TONE CTRL ON")
-        device._ps_callback("Main", "", "BAS 50")  # 6+44
+        device._ps_callback("Main", "", "BAS 50")
         await fixture.async_execute(device.async_bass_down())
         fixture.assert_called_once()
 
@@ -107,7 +107,7 @@ class TestDenonAVRToneControl:
         fixture = DeviceTestFixture(True)
         device = DenonAVRToneControl(device=fixture.device_info)
         device._ps_callback("Main", "", "TONE CTRL ON")
-        device._ps_callback("Main", "", "TRE 56")  # 12+44
+        device._ps_callback("Main", "", "TRE 56")
         await fixture.async_execute(device.async_treble_up())
         fixture.assert_not_called()
 
@@ -117,7 +117,7 @@ class TestDenonAVRToneControl:
         fixture = DeviceTestFixture(True)
         device = DenonAVRToneControl(device=fixture.device_info)
         device._ps_callback("Main", "", "TONE CTRL ON")
-        device._ps_callback("Main", "", "TRE 50")  # 6+44
+        device._ps_callback("Main", "", "TRE 50")
         await fixture.async_execute(device.async_treble_up())
         fixture.assert_called_once()
 
@@ -127,7 +127,7 @@ class TestDenonAVRToneControl:
         fixture = DeviceTestFixture(True)
         device = DenonAVRToneControl(device=fixture.device_info)
         device._ps_callback("Main", "", "TONE CTRL ON")
-        device._ps_callback("Main", "", "TRE 44")  # 0+44
+        device._ps_callback("Main", "", "TRE 44")
         await fixture.async_execute(device.async_treble_down())
         fixture.assert_not_called()
 
@@ -137,6 +137,6 @@ class TestDenonAVRToneControl:
         fixture = DeviceTestFixture(True)
         device = DenonAVRToneControl(device=fixture.device_info)
         device._ps_callback("Main", "", "TONE CTRL ON")
-        device._ps_callback("Main", "", "TRE 50")  # 6+44
+        device._ps_callback("Main", "", "TRE 50")
         await fixture.async_execute(device.async_treble_down())
         fixture.assert_called_once()

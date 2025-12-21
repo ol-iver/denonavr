@@ -38,18 +38,28 @@ def convert_muted(value: str) -> bool:
     return bool(value.lower() == STATE_ON)
 
 
-def convert_volume(value: Union[float, str]) -> float:
+def convert_volume(value: str | float) -> float:
     """Convert volume to float."""
+    if isinstance(value, (int, float)):
+        return float(value)
+
+    value = value.strip()
     if value == "--":
         return -80.0
-    return float(value)
+
+    if len(value) < 3:
+        return -80.0 + float(value)
+
+    whole_number = float(value[0:2])
+    fraction = 0.1 * float(value[2])
+    return -80.0 + whole_number + fraction
 
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
 class DenonAVRVolume(DenonAVRFoundation):
     """This class implements volume functions of Denon AVR receiver."""
 
-    _max_volume: Optional[float] = None
+    _max_volume: Optional[float] = attr.ib(default=None)
     _volume: Optional[float] = attr.ib(
         converter=attr.converters.optional(convert_volume), default=None
     )
@@ -108,12 +118,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         if self._device.zone != zone:
             return
 
-        if len(parameter) < 3:
-            self._volume = -80.0 + float(parameter)
-        else:
-            whole_number = float(parameter[0:2])
-            fraction = 0.1 * float(parameter[2])
-            self._volume = -80.0 + whole_number + fraction
+        self._volume = parameter
 
     def _max_volume_callback(self, zone: str, _event: str, parameter: str) -> None:
         """Handle a max volume change event."""
@@ -127,16 +132,10 @@ class DenonAVRVolume(DenonAVRFoundation):
             _LOGGER.info("Ignoring invalid max volume parameter: %s", parameter)
             return
 
-        volume = parameter[3:].strip()
-        if len(volume) < 3:
-            max_volume = -80.0 + float(volume)
-        else:
-            whole_number = float(volume[0:2])
-            fraction = 0.1 * float(volume[2])
-            max_volume = -80.0 + whole_number + fraction
-        if self._max_volume != max_volume:
-            self._max_volume = max_volume
-            _LOGGER.info("Set max volume: %s", self._max_volume)
+        volume = convert_volume(parameter[3:])
+        if self._max_volume != volume:
+            self._max_volume = volume
+            _LOGGER.debug("Set max volume: %s", self._max_volume)
 
     def _mute_callback(self, zone: str, _event: str, parameter: str) -> None:
         """Handle a muting change event."""
@@ -383,11 +382,15 @@ class DenonAVRVolume(DenonAVRFoundation):
         Volume is sent in a format like -50.0.
         Minimum is -80.0, maximum at 18.0
         """
-        if (
-            volume < -80
-            or volume > 18
-            or (self._max_volume and volume > self._max_volume)
-        ):
+        if self._max_volume and volume > self._max_volume:
+            _LOGGER.debug(
+                "Volume %s exceeds custom max volume %s. Setting volume to max allowed",
+                volume,
+                self._max_volume,
+            )
+            volume = self._max_volume
+
+        if volume < -80 or volume > 18:
             _LOGGER.debug("Volume out of range, skipping.")
             return
 
