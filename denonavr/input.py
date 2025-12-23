@@ -44,7 +44,15 @@ from .const import (
     ZONE2,
     ZONE3,
 )
-from .exceptions import AvrCommandError, AvrProcessingError, AvrRequestError
+from .exceptions import (
+    AvrCommandError,
+    AvrForbiddenError,
+    AvrNetworkError,
+    AvrProcessingError,
+    AvrRequestError,
+    AvrTimoutError,
+    DenonAvrError,
+)
 from .foundation import DenonAVRFoundation
 
 _LOGGER = logging.getLogger(__name__)
@@ -417,7 +425,19 @@ class DenonAVRInput(DenonAVRFoundation):
             return
         task = asyncio.create_task(self.async_update_inputfuncs())
         self._callback_tasks.add(task)
-        task.add_done_callback(self._callback_tasks.discard)
+        task.add_done_callback(self._handle_inputfuncs_task_done)
+
+    def _handle_inputfuncs_task_done(self, task: asyncio.Task) -> None:
+        """Handle the result of the input functions update task."""
+        self._callback_tasks.discard(task)
+        try:
+            task.result()
+        except asyncio.CancelledError:
+            pass
+        except DenonAvrError as err:
+            _LOGGER.warning("AVR error during input functions update: %s", err)
+        except Exception as err:  # pylint: disable=broad-except
+            _LOGGER.exception("Unexpected error during input functions update: %s", err)
 
     def _set_image_url(self, image_url: str) -> None:
         """Set image URL if it is accessible."""
@@ -911,14 +931,21 @@ class DenonAVRInput(DenonAVRFoundation):
                     record_latency=False,
                 )
                 res.raise_for_status()
-            except httpx.TimeoutException:
+            except (httpx.TimeoutException, AvrTimoutError):
                 # No result set image URL to None
                 self._image_url = None
-            except httpx.HTTPStatusError:
+            except AvrNetworkError:
+                self._image_available = False
+                self._image_url = None
+            except (httpx.HTTPStatusError, AvrForbiddenError, AvrRequestError):
                 _LOGGER.info("No album art available for your receiver")
                 # No image available. Save this status.
                 self._image_available = False
                 #  Set image URL to None.
+                self._image_url = None
+            except Exception as exc:  # pylint: disable=broad-except
+                _LOGGER.exception("Error when testing image URL accessibility: %s", exc)
+                self._image_available = False
                 self._image_url = None
             else:
                 self._image_available = True

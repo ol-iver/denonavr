@@ -46,6 +46,7 @@ from .exceptions import (
     AvrNetworkError,
     AvrProcessingError,
     AvrTimoutError,
+    DenonAvrError,
 )
 from .rate_limiter import AdaptiveLimiter
 
@@ -611,7 +612,19 @@ class DenonAVRTelnetApi:
 
         task = asyncio.create_task(self._async_trigger_updates())
         self._update_callback_tasks.add(task)
-        task.add_done_callback(self._update_callback_tasks.discard)
+        task.add_done_callback(self._handle_trigger_updates_task_done)
+
+    def _handle_trigger_updates_task_done(self, task: asyncio.Task) -> None:
+        """Handle completion of the trigger updates task."""
+        self._update_callback_tasks.discard(task)
+        try:
+            task.result()
+        except asyncio.CancelledError:
+            pass
+        except DenonAvrError as err:
+            _LOGGER.warning("AVR error during trigger updates: %s", err)
+        except Exception as err:  # pylint: disable=broad-except
+            _LOGGER.exception("Unexpected error during trigger updates: %s", err)
 
     async def _async_trigger_updates(self) -> None:
         """Trigger update of all attributes."""
