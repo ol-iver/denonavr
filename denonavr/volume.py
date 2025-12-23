@@ -38,21 +38,33 @@ def convert_muted(value: str) -> bool:
     return bool(value.lower() == STATE_ON)
 
 
-def convert_volume(value: str | float) -> float:
-    """Convert volume to float."""
-    if isinstance(value, (int, float)):
-        return float(value)
-
-    value = value.strip()
-    if value == "--":
+def convert_volume(value: str) -> float:
+    """Convert absolute volume string to dB float."""
+    if value is None:
+        _LOGGER.warning("Volume value is None, defaulting to -80.0 dB")
         return -80.0
+    if not value.isdigit():
+        _LOGGER.warning(
+            "Volume value is not a digit: %s, defaulting to -80.0 dB", value
+        )
+        return -80.0
+    if len(value) > 3:
+        _LOGGER.warning(
+            "Volume value length is invalid: %s, defaulting to -80.0 dB", value
+        )
+        return -80.0
+    if len(value) == 2:
+        db_val = float(value) - 80.0
+    else:
+        db_val = float(value[:2] + "." + value[2]) - 80.0
 
-    if len(value) < 3:
-        return -80.0 + float(value)
-
-    whole_number = float(value[0:2])
-    fraction = 0.1 * float(value[2])
-    return -80.0 + whole_number + fraction
+    if db_val < -80.0 or db_val > 18.0:
+        _LOGGER.warning(
+            "Volume %s converted to %s is out of range. Will use clamping.",
+            value,
+            db_val,
+        )
+    return max(min(db_val, 18.0), -80.0)
 
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)

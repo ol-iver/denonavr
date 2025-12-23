@@ -8,7 +8,7 @@ Unit tests for DenonAVRVolume (volume logic).
 """
 import pytest
 
-from denonavr.volume import DenonAVRVolume
+from denonavr.volume import DenonAVRVolume, convert_volume
 from tests.test_helpers import DeviceTestFixture
 
 
@@ -48,7 +48,7 @@ class TestDenonAVRVolume:
         """Test that async_volume_down returns early if volume is at min."""
         fixture = DeviceTestFixture(True)
         device = DenonAVRVolume(device=fixture.device_info)
-        device._volume_callback("Main", "", "0")
+        device._volume_callback("Main", "", "00")
         await fixture.async_execute(device.async_volume_down())
         fixture.assert_not_called()
 
@@ -67,7 +67,7 @@ class TestDenonAVRVolume:
         """Test that async_set_volume returns early if value matches current volume."""
         fixture = DeviceTestFixture(True)
         device = DenonAVRVolume(device=fixture.device_info)
-        device._volume_callback("Main", "", str(int(from_val + 80)))
+        device._volume_callback("Main", "", str(int(from_val + 80)).zfill(2))
         await fixture.async_execute(device.async_set_volume(from_val))
         fixture.assert_not_called()
 
@@ -77,7 +77,7 @@ class TestDenonAVRVolume:
         """Test that async_set_volume sends command if value differs."""
         fixture = DeviceTestFixture(True)
         device = DenonAVRVolume(device=fixture.device_info)
-        device._volume_callback("Main", "", str(int(from_val + 80)))
+        device._volume_callback("Main", "", str(int(from_val + 80)).zfill(2))
         await fixture.async_execute(device.async_set_volume(to_val))
         fixture.assert_called_once()
 
@@ -338,3 +338,27 @@ class TestDenonAVRVolume:
         device._bass_sync_callback(f"BSC {from_val}")
         await fixture.async_execute(device.async_bass_sync(to_val))
         fixture.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    "input_str,expected",
+    [
+        ("00", -80.0),
+        ("80", 0.0),
+        ("98", 18.0),
+        ("805", 0.5),
+        ("005", -79.5),
+        ("955", 15.5),
+        ("180", -62.0),
+        ("120", -68.0),
+        ("999", 18.0),  # Should clamp to max
+        ("-10", -80.0),  # Invalid, should clamp to min
+        ("123", -67.7),  # Should be handled as 12.3 - 80
+        ("ab23", -80.0),  # Invalid, should clamp to min
+        ("1000", -80.0),  # Invalid, should clamp to min
+        (None, -80.0),  # Invalid, should clamp to min
+    ],
+)
+def test_convert_volume(input_str, expected):
+    """Test convert_volume function with various inputs."""
+    assert convert_volume(input_str) == expected
