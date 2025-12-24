@@ -8,7 +8,7 @@ Unit tests for DenonAVRVolume (volume logic).
 """
 import pytest
 
-from denonavr.volume import DenonAVRVolume, convert_volume
+from denonavr.volume import DenonAVRVolume, parse_volume
 from tests.test_helpers import DeviceTestFixture
 
 
@@ -29,7 +29,7 @@ class TestDenonAVRVolume:
         """Test that async_volume_up returns early if volume is at custom max."""
         fixture = DeviceTestFixture(True)
         device = DenonAVRVolume(device=fixture.device_info)
-        device._max_volume_callback("Main", "", "MAX30")
+        device._max_volume_callback("Main", "", "MAX 30")
         device._volume_callback("Main", "", "30")
         await fixture.async_execute(device.async_volume_up())
         fixture.assert_not_called()
@@ -87,7 +87,7 @@ class TestDenonAVRVolume:
         """Test async_set_volume sets custom max when value exceeds custom max."""
         fixture = DeviceTestFixture(True)
         device = DenonAVRVolume(device=fixture.device_info)
-        device._max_volume_callback("Main", "", "MAX30")
+        device._max_volume_callback("Main", "", "MAX 30")
         # add 80 to map to Denon scale
         # subtract 10 to not exceed custom max of 30 (-50)
         device._volume_callback("Main", "", str(int(from_val + 80 - 10)))
@@ -351,6 +351,7 @@ class TestDenonAVRVolume:
         ("955", 15.5),
         ("180", -62.0),
         ("120", -68.0),
+        (" 90 ", 10.0),
         ("999", 18.0),  # Should clamp to max
         ("-10", -80.0),  # Invalid, should clamp to min
         ("123", -67.7),  # Should be handled as 12.3 - 80
@@ -361,4 +362,4 @@ class TestDenonAVRVolume:
 )
 def test_convert_volume(input_str, expected):
     """Test convert_volume function with various inputs."""
-    assert convert_volume(input_str) == expected
+    assert parse_volume(input_str) == expected
