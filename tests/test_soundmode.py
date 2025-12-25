@@ -7,6 +7,8 @@ import pytest
 from denonavr.soundmode import DenonAVRSoundMode
 from tests.test_helpers import DeviceTestFixture
 
+# pylint: disable=protected-access
+
 
 class TestDenonAVRSoundMode:
     """Test cases for DenonAVRSoundMode."""

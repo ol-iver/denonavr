@@ -13,6 +13,8 @@ from denonavr.dirac import DenonAVRDirac
 from denonavr.exceptions import AvrCommandError
 from tests.test_helpers import DeviceTestFixture
 
+# pylint: disable=protected-access
+
 
 class TestDenonAVRDirac:
     """Test cases for DenonAVRDirac."""

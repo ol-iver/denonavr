@@ -12,6 +12,8 @@ import pytest
 from denonavr.audyssey import AvrCommandError, DenonAVRAudyssey
 from tests.test_helpers import DeviceTestFixture
 
+# pylint: disable=protected-access
+
 
 class TestDenonAVRAudyssey:
     """Test cases for DenonAVRAudyssey."""

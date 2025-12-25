@@ -11,6 +11,8 @@ import pytest
 from denonavr.volume import DenonAVRVolume, parse_volume
 from tests.test_helpers import DeviceTestFixture
 
+# pylint: disable=protected-access
+
 
 class TestDenonAVRVolume:
     """Test cases for DenonAVRVolume."""

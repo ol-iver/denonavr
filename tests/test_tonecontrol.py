@@ -12,6 +12,8 @@ import pytest
 from denonavr.tonecontrol import DenonAVRToneControl
 from tests.test_helpers import DeviceTestFixture
 
+# pylint: disable=protected-access
+
 
 class TestDenonAVRToneControl:
     """Test cases for DenonAVRToneControl."""

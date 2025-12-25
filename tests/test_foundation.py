@@ -12,6 +12,8 @@ import pytest
 from denonavr.foundation import AvrCommandError
 from tests.test_helpers import DeviceTestFixture
 
+# pylint: disable=protected-access
+
 
 class TestDenonAVRDeviceInfo:
     """Test cases for DenonAVRDeviceInfo."""

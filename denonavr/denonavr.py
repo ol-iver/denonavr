@@ -166,17 +166,16 @@ class DenonAVR(DenonAVRFoundation):
 
             # Setup other functions
             self.input.setup()
-            self.vol.setup()
-            self.audyssey.setup()
-            self.dirac.setup()
-
             async_tasks = [self.soundmode.async_setup(), self.tonecontrol.async_setup()]
-
             for zone_name, zone_item in self._zones.items():
                 if zone_name != self.zone:
                     async_tasks.append(zone_item.async_setup())
 
             await asyncio.gather(*async_tasks)
+
+            self.vol.setup()
+            self.audyssey.setup()
+            self.dirac.setup()
 
             self._is_setup = True
             _LOGGER.debug("Finished denonavr setup")
