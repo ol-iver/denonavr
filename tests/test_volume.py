@@ -8,7 +8,7 @@ Unit tests for DenonAVRVolume (volume logic).
 """
 import pytest
 
-from denonavr.volume import DenonAVRVolume, parse_volume
+from denonavr.volume import DenonAVRVolume, convert_volume
 from tests.test_helpers import DeviceTestFixture
 
 # pylint: disable=protected-access
@@ -345,6 +345,7 @@ class TestDenonAVRVolume:
 @pytest.mark.parametrize(
     "input_str,expected",
     [
+        ("--", -80.0),  # -- means lowest volume, -80.0
         ("00", -80.0),
         ("80", 0.0),
         ("98", 18.0),
@@ -364,4 +365,4 @@ class TestDenonAVRVolume:
 )
 def test_convert_volume(input_str, expected):
     """Test convert_volume function with various inputs."""
-    assert parse_volume(input_str) == expected
+    assert convert_volume(input_str) == expected

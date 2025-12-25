@@ -38,36 +38,27 @@ def convert_muted(value: str) -> bool:
     return bool(value.lower() == STATE_ON)
 
 
-def convert_volume(value: float | str) -> float:
+def convert_volume(value: str) -> float:
     """Convert volume to float."""
-    if isinstance(value, float):
-        return value
-    if value == "--":
-        return -80.0
-    return float(value)
-
-
-def parse_volume(parameter: str) -> float:
-    """Parse volume parameter from Denon AVR."""
-    if parameter is None:
+    if value is None or value == "--":
         return -80.0
 
-    parameter = parameter.strip()
-    if len(parameter) > 3:
+    value = value.strip()
+    if len(value) > 3:
         _LOGGER.warning(
-            "Volume value length is invalid: %s, defaulting to -80.0 dB", parameter
+            "Volume value length is invalid: %s, defaulting to -80.0 dB", value
         )
         return -80.0
 
-    if len(parameter) < 3:
-        value = -80.0 + float(parameter)
+    if len(value) < 3:
+        value = -80.0 + float(value)
     else:
-        value = float(parameter[:2] + "." + parameter[2]) - 80.0
+        value = float(value[:2] + "." + value[2]) - 80.0
 
     if value < -80.0 or value > 18.0:
         _LOGGER.warning(
             "Volume %s converted to %s is out of range. Will use clamping.",
-            parameter,
+            value,
             value,
         )
     return max(min(value, 18.0), -80.0)
@@ -136,7 +127,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         if self._device.zone != zone:
             return
 
-        self._volume = parse_volume(parameter)
+        self._volume = parameter
 
     def _max_volume_callback(self, zone: str, _event: str, parameter: str) -> None:
         """Handle a max volume change event."""
@@ -150,7 +141,12 @@ class DenonAVRVolume(DenonAVRFoundation):
             _LOGGER.info("Ignoring invalid max volume parameter: %s", parameter)
             return
 
-        volume = parse_volume(parameter[4:])
+        volume = convert_volume(parameter[4:])
+        if volume == -80.0:
+            # -80.0 indicates error with parsing max volume, minimum allowed is -40.0
+            # Set a reasonable default
+            volume = -20.0
+
         if self._max_volume != volume:
             self._max_volume = volume
             _LOGGER.debug("Set max volume: %s", self._max_volume)
