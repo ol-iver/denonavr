@@ -606,7 +606,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Returns the HDMI-output for the device.
 
-        Only available if using Telnet.
+        Only available if using Telnet or use_avr_2016_update is True.
 
         Possible values are: "Auto", "HDMI1", "HDMI2"
         """
@@ -769,6 +769,78 @@ class DenonAVR(DenonAVRFoundation):
         Only available on Marantz devices and when using Telnet.
         """
         return self._device.auto_lip_sync
+
+    @property
+    def audio_input_mode(self) -> Optional[str]:
+        """
+        Return the audio input mode for the device.
+
+        Only available when use_avr_2016_update is True.
+        """
+        return self._device.audio_input_mode
+
+    @property
+    def audio_output(self) -> Optional[str]:
+        """
+        Return the audio output for the device.
+
+        Only available when use_avr_2016_update is True.
+        """
+        return self._device.audio_output
+
+    @property
+    def audio_signal(self) -> Optional[str]:
+        """
+        Return the audio signal for the device.
+
+        Only available when use_avr_2016_update is True.
+        """
+        return self._device.audio_signal
+
+    @property
+    def audio_sound(self) -> Optional[str]:
+        """
+        Return the audio sound for the device.
+
+        Only available when use_avr_2016_update is True.
+        """
+        return self._device.audio_sound
+
+    @property
+    def audio_sampling_rate(self) -> Optional[str]:
+        """
+        Return the audio sampling rate for the device.
+
+        Only available when use_avr_2016_update is True.
+        """
+        return self._device.audio_sampling_rate
+
+    @property
+    def video_output(self) -> Optional[str]:
+        """
+        Return the video output for the device.
+
+        Only available when use_avr_2016_update is True.
+        """
+        return self._device.video_output
+
+    @property
+    def video_hdmi_signal_in(self) -> Optional[str]:
+        """
+        Return the video HDMI signal input for the device.
+
+        Only available when use_avr_2016_update is True.
+        """
+        return self._device.video_hdmi_signal_in
+
+    @property
+    def video_hdmi_signal_out(self) -> Optional[str]:
+        """
+        Return the video HDMI signal output for the device.
+
+        Only available when use_avr_2016_update is True.
+        """
+        return self._device.video_hdmi_signal_out
 
     ##########
     # Getter #

@@ -45,7 +45,7 @@ class AppCommandCmd:
         converter=attr.converters.optional(str), default=None
     )
     name: Optional[str] = attr.ib(converter=attr.converters.optional(str), default=None)
-    param_list: Optional[Tuple[AppCommandCmdParam]] = attr.ib(
+    param_list: Optional[Tuple[AppCommandCmdParam, ...]] = attr.ib(
         validator=attr.validators.optional(
             attr.validators.deep_iterable(
                 attr.validators.instance_of(AppCommandCmdParam),
@@ -60,11 +60,7 @@ class AppCommandCmd:
         ),
         default=None,
     )
-    response_pattern: Tuple[AppCommandResponsePattern] = attr.ib(
-        validator=attr.validators.deep_iterable(
-            attr.validators.instance_of(AppCommandResponsePattern),
-            attr.validators.instance_of(tuple),
-        ),
+    response_pattern: Tuple[AppCommandResponsePattern, ...] = attr.ib(
         default=attr.Factory(tuple),
     )
 
@@ -154,10 +150,76 @@ class AppCommands:
         set_command=AppCommandCmdParam(name="REPLACE", text="REPLACE"),
     )
 
-    GetRenameSource = AppCommandCmd(cmd_id=1, cmd_text="GetRenameSource")
-    GetDeletedSource = AppCommandCmd(cmd_id=1, cmd_text="GetDeletedSource")
+    GetRenameSource = AppCommandCmd(cmd_id="1", cmd_text="GetRenameSource")
+    GetDeletedSource = AppCommandCmd(cmd_id="1", cmd_text="GetDeletedSource")
 
-    GetFriendlyName = AppCommandCmd(cmd_id=1, cmd_text="GetFriendlyName")
+    GetFriendlyName = AppCommandCmd(cmd_id="1", cmd_text="GetFriendlyName")
+
+    GetVideoInfo = AppCommandCmd(
+        cmd_id="3",
+        name="GetVideoInfo",
+        param_list=(
+            AppCommandCmdParam(name="videooutput"),
+            AppCommandCmdParam(name="hdmisigin"),
+            AppCommandCmdParam(name="hdmisigout"),
+        ),
+        response_pattern=(
+            AppCommandResponsePattern(
+                update_attribute="_video_output",
+                add_zone=False,
+                suffix="/list/param[@name='videooutput']",
+            ),
+            AppCommandResponsePattern(
+                update_attribute="_video_hdmi_signal_in",
+                add_zone=False,
+                suffix="/list/param[@name='hdmisigin']",
+            ),
+            AppCommandResponsePattern(
+                update_attribute="_video_hdmi_signal_out",
+                add_zone=False,
+                suffix="/list/param[@name='hdmisigout']",
+            ),
+        ),
+    )
+
+    GetAudioInfo = AppCommandCmd(
+        cmd_id="3",
+        name="GetAudioInfo",
+        param_list=(
+            AppCommandCmdParam(name="inputmode"),
+            AppCommandCmdParam(name="output"),
+            AppCommandCmdParam(name="signal"),
+            AppCommandCmdParam(name="sound"),
+            AppCommandCmdParam(name="fs"),
+        ),
+        response_pattern=(
+            AppCommandResponsePattern(
+                update_attribute="_audio_input_mode",
+                add_zone=False,
+                suffix="/list/param[@name='inputmode']",
+            ),
+            AppCommandResponsePattern(
+                update_attribute="_audio_output",
+                add_zone=False,
+                suffix="/list/param[@name='output']",
+            ),
+            AppCommandResponsePattern(
+                update_attribute="_audio_signal",
+                add_zone=False,
+                suffix="/list/param[@name='signal']",
+            ),
+            AppCommandResponsePattern(
+                update_attribute="_audio_sound",
+                add_zone=False,
+                suffix="/list/param[@name='sound']",
+            ),
+            AppCommandResponsePattern(
+                update_attribute="_audio_sampling_rate",
+                add_zone=False,
+                suffix="/list/param[@name='fs']",
+            ),
+        ),
+    )
 
     GetAudyssey = AppCommandCmd(
         cmd_id="3",
