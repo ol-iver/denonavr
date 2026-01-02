@@ -606,7 +606,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Returns the HDMI-output for the device.
 
-        Only available if using Telnet or use_avr_2016_update is True.
+        Only available if using Telnet.
 
         Possible values are: "Auto", "HDMI1", "HDMI2"
         """
