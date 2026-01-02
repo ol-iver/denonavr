@@ -150,7 +150,7 @@ class HTTPXAsyncClient:
         record_latency: bool = True,
         skip_rate_limiter: bool = False,
     ) -> httpx.Response:
-        """Call GET endpoint of Denon AVR receiver asynchronously."""
+        """Call POST endpoint of Denon AVR receiver asynchronously."""
         client = self._get_client()
         start = time.monotonic()
         if not skip_rate_limiter:
