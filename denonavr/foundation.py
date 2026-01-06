@@ -136,15 +136,6 @@ def convert_audio_sampling_rate(value: str | None) -> Optional[str]:
     return value.strip()
 
 
-def convert_video_output(value: str | None) -> Optional[str]:
-    """Convert a video output string."""
-    if value is None:
-        return None
-    if value == "Auto(Dual)":
-        return "Auto"
-    return value.strip()
-
-
 def convert_video_signal_in(value: str | None) -> Optional[str]:
     """Convert a HDMI signal in string."""
     if value is None:
@@ -279,12 +270,6 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(convert_on_off_bool), default=None
     )
     _input_modes = get_args(InputModes)
-    _audio_input_mode: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
-    )
-    _audio_output: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
-    )
     _audio_signal: Optional[str] = attr.ib(
         converter=attr.converters.optional(convert_audio_signal), default=None
     )
@@ -293,9 +278,6 @@ class DenonAVRDeviceInfo:
     )
     _audio_sampling_rate: Optional[str] = attr.ib(
         converter=attr.converters.optional(convert_audio_sampling_rate), default=None
-    )
-    _video_output: Optional[str] = attr.ib(
-        converter=attr.converters.optional(convert_video_output), default=None
     )
     _video_hdmi_signal_in: Optional[str] = attr.ib(
         converter=attr.converters.optional(convert_video_signal_in), default=None
@@ -308,14 +290,8 @@ class DenonAVRDeviceInfo:
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
     _ps_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
     _ss_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
+    _sy_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
     _vs_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
-
-    # Update tags for attributes
-    # AppCommand0300.xml interface
-    appcommand0300_attrs = {
-        AppCommands.GetAudioInfo: None,
-        AppCommands.GetVideoInfo: None,
-    }
 
     def __attrs_post_init__(self) -> None:
         """Initialize special attributes and callbacks."""
@@ -345,6 +321,13 @@ class DenonAVRDeviceInfo:
         self._ss_handlers: Dict[str, Callable[[str], None]] = {
             "TTR": self._tactile_transducer_callback,
             "HOS": self._auto_lip_sync_callback,
+            "INFSIGRES": self._video_signal_callback,
+            "INFAISFSV": self._audio_sampling_rate_callback,
+        }
+
+        self._sy_handlers: Dict[str, Callable[[str], None]] = {
+            "SDA": self._audio_signal_callback,
+            "SMI": self._audio_sound_callback,
         }
 
         self._vs_handlers: Dict[str, Callable[[str], None]] = {
@@ -442,6 +425,13 @@ class DenonAVRDeviceInfo:
                 handler(parameter)
                 return
 
+    def _sy_callback(self, _zone: str, _event: str, parameter: str) -> None:
+        """Handle a SY change event."""
+        for prefix, handler in self._sy_handlers.items():
+            if parameter.startswith(prefix):
+                handler(parameter)
+                return
+
     def _tactile_transducer_callback(self, parameter: str) -> None:
         """Handle a tactile transducer change event."""
         key_value = parameter.split()
@@ -513,6 +503,29 @@ class DenonAVRDeviceInfo:
         elif parameter.startswith("HOS"):
             self._auto_lip_sync = parameter[4:]
 
+    def _video_signal_callback(self, parameter: str) -> None:
+        """Handle a video signal change event."""
+        if parameter.startswith("INFSIGRES I"):
+            self._video_hdmi_signal_in = parameter[11:]
+        elif parameter.startswith("INFSIGRES O"):
+            self._video_hdmi_signal_out = parameter[11:]
+
+    def _audio_sampling_rate_callback(self, parameter: str) -> None:
+        """Handle a audio sampling rate change event."""
+        self._audio_sampling_rate = parameter[10:].replace("K", " kHz")
+
+    def _audio_signal_callback(self, parameter: str) -> None:
+        """Handle a audio in encoding change event."""
+        key_value = parameter.split()
+        if len(key_value) == 2:
+            self._audio_signal = key_value[1]
+
+    def _audio_sound_callback(self, parameter: str) -> None:
+        """Handle a audio out encoding change event."""
+        key_value = parameter.split()
+        if len(key_value) == 2:
+            self._audio_sound = key_value[1]
+
     def get_own_zone(self) -> str:
         """
         Get zone from actual instance.
@@ -544,9 +557,6 @@ class DenonAVRDeviceInfo:
 
             # Add tags for a potential AppCommand.xml update
             self.api.add_appcommand_update_tag(AppCommands.GetAllZonePowerStatus)
-            if self.use_avr_2016_update:
-                for tag in self.appcommand0300_attrs:
-                    self.api.add_appcommand0300_update_tag(tag)
 
             self._register_callbacks()
 
@@ -566,6 +576,7 @@ class DenonAVRDeviceInfo:
         self.telnet_api.register_callback("ECO", self._eco_mode_callback)
         self.telnet_api.register_callback("VS", self._vs_callback)
         self.telnet_api.register_callback("SS", self._ss_callback)
+        self.telnet_api.register_callback("SY", self._sy_callback)
         self.telnet_api.register_callback("STBY", self._auto_standby_callback)
         self.telnet_api.register_callback("SLP", self._auto_sleep_callback)
         self.telnet_api.register_callback("TR", self._trigger_callback)
@@ -586,19 +597,6 @@ class DenonAVRDeviceInfo:
 
         # Update power status
         await self.async_update_power(global_update=global_update, cache_id=cache_id)
-
-        if self.use_avr_2016_update:
-            try:
-                await self.async_update_attrs_appcommand(
-                    self.appcommand0300_attrs,
-                    self,
-                    appcommand0300=True,
-                    global_update=global_update,
-                    cache_id=cache_id,
-                )
-            except AvrProcessingError as err:
-                # Don't raise an error here, because not all devices support it
-                _LOGGER.debug("Updating AVR Device Info failed: %s", err)
 
         _LOGGER.debug("Finished device update")
 
@@ -885,121 +883,6 @@ class DenonAVRDeviceInfo:
         self.telnet_api.is_denon = self.is_denon
         self.model_name = device_info["modelName"]
         self.serial_number = device_info["serialNumber"]
-
-    async def async_update_attrs_appcommand(
-        self,
-        update_attrs: Dict[AppCommandCmd, None],
-        target_instance: object,
-        *,
-        appcommand0300: bool = False,
-        global_update: bool = False,
-        cache_id: Optional[Hashable] = None,
-    ):
-        """Update attributes from AppCommand.xml."""
-        # Copy that we do not accidently change the wrong dict
-        update_attrs = deepcopy(update_attrs)
-        # Collect tags for AppCommand.xml call
-        tags = tuple(i for i in update_attrs.keys())
-        # Execute call
-        try:
-            if global_update:
-                xml = await self.api.async_get_global_appcommand(
-                    appcommand0300=appcommand0300, cache_id=cache_id
-                )
-            else:
-                # Determine endpoint
-                if appcommand0300:
-                    url = self.urls.appcommand0300
-                else:
-                    url = self.urls.appcommand
-                xml = await self.api.async_post_appcommand(url, tags, cache_id=cache_id)
-        except AvrRequestError as err:
-            _LOGGER.debug("Error when getting status update: %s", err)
-            raise
-
-        # Extract relevant information
-        zone = self.get_own_zone()
-
-        attrs = deepcopy(update_attrs)
-        for app_command in attrs.keys():
-            search_strings = self.create_appcommand_search_strings(app_command, zone)
-            start = 0
-            success = 0
-            for i, pattern in enumerate(app_command.response_pattern):
-                try:
-                    start += 1
-                    # Check if attribute exists
-                    if hasattr(target_instance, pattern.update_attribute):
-                        # Set new value either from XML attribute or text
-                        if pattern.get_xml_attribute is not None:
-                            set_value = xml.find(search_strings[i]).get(
-                                pattern.get_xml_attribute
-                            )
-                        else:
-                            set_value = xml.find(search_strings[i]).text
-
-                        setattr(target_instance, pattern.update_attribute, set_value)
-                        success += 1
-
-                        _LOGGER.debug(
-                            "Changing variable %s to value %s",
-                            pattern.update_attribute,
-                            set_value,
-                        )
-                    else:
-                        _LOGGER.debug(
-                            "Attribute %s not found for zone %s",
-                            pattern.update_attribute,
-                            self.zone,
-                        )
-
-                except (AttributeError, IndexError) as err:
-                    _LOGGER.debug(
-                        "Failed updating attribute %s for zone %s: %s",
-                        pattern.update_attribute,
-                        self.zone,
-                        err,
-                    )
-
-            if start == success:
-                # Done
-                update_attrs.pop(app_command, None)
-
-        # Check if each attribute was updated
-        if update_attrs:
-            raise AvrProcessingError(
-                f"Some attributes of zone {self.zone} not found on update:"
-                f" {update_attrs}"
-            )
-
-    @staticmethod
-    def create_appcommand_search_strings(
-        app_command_cmd: AppCommandCmd, zone: str
-    ) -> List[str]:
-        """Create search pattern for AppCommand(0300).xml response."""
-        result = []
-
-        for resp in app_command_cmd.response_pattern:
-            string = "./cmd"
-            # Text of cmd tag in query was added as attribute to response
-            if app_command_cmd.cmd_text:
-                string = (
-                    string + f"[@{APPCOMMAND_CMD_TEXT}='{app_command_cmd.cmd_text}']"
-                )
-            # Text of name tag in query was added as attribute to response
-            if app_command_cmd.name:
-                string = string + f"[@{APPCOMMAND_NAME}='{app_command_cmd.name}']"
-            # Some results include a zone tag
-            if resp.add_zone:
-                string = string + f"/{zone}"
-            # Suffix like /status, /volume
-            string = string + resp.suffix
-
-            # A complete search string with all attributes set looks like
-            # ./cmd[@cmd_text={cmd_text}][@name={name}]/zone1/volume
-            result.append(string)
-
-        return result
 
     async def async_update_power(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -1326,29 +1209,11 @@ class DenonAVRDeviceInfo:
         return self._auto_lip_sync
 
     @property
-    def audio_input_mode(self) -> Optional[str]:
-        """
-        Return the audio input mode for the device.
-
-        Only available when use_avr_2016_update is True.
-        """
-        return self._audio_input_mode
-
-    @property
-    def audio_output(self) -> Optional[str]:
-        """
-        Return the audio output for the device.
-
-        Only available when use_avr_2016_update is True.
-        """
-        return self._audio_output
-
-    @property
     def audio_signal(self) -> Optional[str]:
         """
         Return the audio signal for the device.
 
-        Only available when use_avr_2016_update is True.
+        Only available if using Telnet.
         """
         return self._audio_signal
 
@@ -1357,7 +1222,7 @@ class DenonAVRDeviceInfo:
         """
         Return the audio sound for the device.
 
-        Only available when use_avr_2016_update is True.
+        Only available if using Telnet.
         """
         return self._audio_sound
 
@@ -1366,25 +1231,16 @@ class DenonAVRDeviceInfo:
         """
         Return the audio sampling rate for the device.
 
-        Only available when use_avr_2016_update is True.
+        Only available if using Telnet.
         """
         return self._audio_sampling_rate
-
-    @property
-    def video_output(self) -> Optional[str]:
-        """
-        Return the video output for the device.
-
-        Only available when use_avr_2016_update is True.
-        """
-        return self._video_output
 
     @property
     def video_hdmi_signal_in(self) -> Optional[str]:
         """
         Return the video HDMI signal input for the device.
 
-        Only available when use_avr_2016_update is True.
+        Only available if using Telnet.
         """
         return self._video_hdmi_signal_in
 
@@ -1393,7 +1249,7 @@ class DenonAVRDeviceInfo:
         """
         Return the video HDMI signal output for the device.
 
-        Only available when use_avr_2016_update is True.
+        Only available if using Telnet.
         """
         return self._video_hdmi_signal_out
 
@@ -2522,13 +2378,77 @@ class DenonAVRFoundation:
         cache_id: Optional[Hashable] = None,
     ):
         """Update attributes from AppCommand.xml."""
-        return await self._device.async_update_attrs_appcommand(
-            update_attrs,
-            self,
-            appcommand0300=appcommand0300,
-            global_update=global_update,
-            cache_id=cache_id,
-        )
+        # Copy that we do not accidently change the wrong dict
+        update_attrs = deepcopy(update_attrs)
+        # Collect tags for AppCommand.xml call
+        tags = tuple(i for i in update_attrs.keys())
+        # Execute call
+        try:
+            if global_update:
+                xml = await self._device.api.async_get_global_appcommand(
+                    appcommand0300=appcommand0300, cache_id=cache_id
+                )
+            else:
+                # Determine endpoint
+                if appcommand0300:
+                    url = self._device.urls.appcommand0300
+                else:
+                    url = self._device.urls.appcommand
+                xml = await self._device.api.async_post_appcommand(
+                    url, tags, cache_id=cache_id
+                )
+        except AvrRequestError as err:
+            _LOGGER.debug("Error when getting status update: %s", err)
+            raise
+
+        # Extract relevant information
+        zone = self._device.get_own_zone()
+
+        attrs = deepcopy(update_attrs)
+        for app_command in attrs.keys():
+            search_strings = self.create_appcommand_search_strings(app_command, zone)
+            start = 0
+            success = 0
+            for i, pattern in enumerate(app_command.response_pattern):
+                try:
+                    start += 1
+                    # Check if attribute exists
+                    getattr(self, pattern.update_attribute)
+                    # Set new value either from XML attribute or text
+                    if pattern.get_xml_attribute is not None:
+                        set_value = xml.find(search_strings[i]).get(
+                            pattern.get_xml_attribute
+                        )
+                    else:
+                        set_value = xml.find(search_strings[i]).text
+
+                    setattr(self, pattern.update_attribute, set_value)
+                    success += 1
+
+                    _LOGGER.debug(
+                        "Changing variable %s to value %s",
+                        pattern.update_attribute,
+                        set_value,
+                    )
+
+                except (AttributeError, IndexError) as err:
+                    _LOGGER.debug(
+                        "Failed updating attribute %s for zone %s: %s",
+                        pattern.update_attribute,
+                        self._device.zone,
+                        err,
+                    )
+
+            if start == success:
+                # Done
+                update_attrs.pop(app_command, None)
+
+        # Check if each attribute was updated
+        if update_attrs:
+            raise AvrProcessingError(
+                f"Some attributes of zone {self._device.zone} not found on update:"
+                f" {update_attrs}"
+            )
 
     async def async_update_attrs_status_xml(
         self,
@@ -2589,6 +2509,35 @@ class DenonAVRFoundation:
                 f"Some attributes of zone {self._device.zone} not found on update:"
                 f" {update_attrs}"
             )
+
+    @staticmethod
+    def create_appcommand_search_strings(
+        app_command_cmd: AppCommandCmd, zone: str
+    ) -> List[str]:
+        """Create search pattern for AppCommand(0300).xml response."""
+        result = []
+
+        for resp in app_command_cmd.response_pattern:
+            string = "./cmd"
+            # Text of cmd tag in query was added as attribute to response
+            if app_command_cmd.cmd_text:
+                string = (
+                    string + f"[@{APPCOMMAND_CMD_TEXT}='{app_command_cmd.cmd_text}']"
+                )
+            # Text of name tag in query was added as attribute to response
+            if app_command_cmd.name:
+                string = string + f"[@{APPCOMMAND_NAME}='{app_command_cmd.name}']"
+            # Some results include a zone tag
+            if resp.add_zone:
+                string = string + f"/{zone}"
+            # Suffix like /status, /volume
+            string = string + resp.suffix
+
+            # A complete search string with all strributes set looks like
+            # ./cmd[@cmd_text={cmd_text}][@name={name}]/zone1/volume
+            result.append(string)
+
+        return result
 
 
 def set_api_host(
