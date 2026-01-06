@@ -2378,7 +2378,7 @@ class DenonAVRFoundation:
         cache_id: Optional[Hashable] = None,
     ):
         """Update attributes from AppCommand.xml."""
-        # Copy that we do not accidently change the wrong dict
+        # Copy that we do not accidentally change the wrong dict
         update_attrs = deepcopy(update_attrs)
         # Collect tags for AppCommand.xml call
         tags = tuple(i for i in update_attrs.keys())
