@@ -389,8 +389,6 @@ class DenonAVR(DenonAVRFoundation):
     @property
     def sound_mode_raw(self) -> Optional[str]:
         """Return the current sound mode as string as received from the AVR."""
-        if self.soundmode.sound_mode_raw is None:
-            return self._device.audio_sound
         return self.soundmode.sound_mode_raw
 
     @property
@@ -798,6 +796,15 @@ class DenonAVR(DenonAVRFoundation):
         Only available when use_avr_2016_update is True.
         """
         return self._device.audio_signal
+
+    @property
+    def audio_sound(self) -> Optional[str]:
+        """
+        Return the audio sound for the device.
+
+        Only available when use_avr_2016_update is True.
+        """
+        return self._device.audio_sound
 
     @property
     def audio_sampling_rate(self) -> Optional[str]:
