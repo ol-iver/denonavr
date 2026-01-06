@@ -511,17 +511,17 @@ class DenonAVRDeviceInfo:
             self._video_hdmi_signal_out = parameter[11:]
 
     def _audio_sampling_rate_callback(self, parameter: str) -> None:
-        """Handle a audio sampling rate change event."""
+        """Handle an audio sampling rate change event."""
         self._audio_sampling_rate = parameter[10:].replace("K", " kHz")
 
     def _audio_signal_callback(self, parameter: str) -> None:
-        """Handle a audio in encoding change event."""
+        """Handle an audio in encoding change event."""
         key_value = parameter.split()
         if len(key_value) == 2:
             self._audio_signal = key_value[1]
 
     def _audio_sound_callback(self, parameter: str) -> None:
-        """Handle a audio out encoding change event."""
+        """Handle an audio out encoding change event."""
         key_value = parameter.split()
         if len(key_value) == 2:
             self._audio_sound = key_value[1]
