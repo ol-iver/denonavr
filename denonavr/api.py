@@ -697,6 +697,10 @@ class DenonAVRTelnetApi:
                 "PSDRC ?",  # DRC
                 "PSDEL ?",  # DELAY TIME
                 "PSRSTR ?",  # AUDIO RESTORER
+                "SSINFSIGRES ?",  # Video Signal
+                "SSINFAISFSV ?",  # Audio Sampling Rate
+                "SYSDA ?",  # Audio Signal
+                "SYSMI ?",  # Audio Sound
             ]
 
             index = commands.index("MNMEN?")

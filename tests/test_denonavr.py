@@ -57,7 +57,6 @@ TESTING_RECEIVERS = {
 }
 
 APPCOMMAND_URL = "/goform/AppCommand.xml"
-APPCOMMAND0300_URL = "/goform/AppCommand0300.xml"
 STATUS_URL = "/goform/formMainZone_MainZoneXmlStatus.xml"
 STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
 STATUS_Z3_URL = "/goform/formZone3_Zone3XmlStatus.xml"
@@ -82,7 +81,6 @@ class TestMainFunctions:
     testing_receiver = None
     denon = None
     future = None
-    receiver_type = None
 
     def custom_matcher(self, request: httpx.Request, *args, **kwargs):
         """Match URLs to sample files."""
@@ -138,11 +136,6 @@ class TestMainFunctions:
                 content = get_sample_content(
                     f"{self.testing_receiver}-AppCommand{ep_suffix}{port_suffix}.xml"
                 )
-            elif (
-                request.url.path == APPCOMMAND0300_URL
-                and self.receiver_type != denonavr.const.AVR
-            ):
-                content = get_sample_content("AVC-A10H-AppCommand0300-8080.xml")
             elif request.url.path in [DESCRIPTION_URL1, DESCRIPTION_URL2]:
                 content = get_sample_content("AVR-X1600H_upnp.xml")
             else:
@@ -169,7 +162,6 @@ class TestMainFunctions:
             print(f"Receiver: {receiver}")
             # Switch receiver and update to load new sample files
             self.testing_receiver = receiver
-            self.receiver_type = spec[1].type
             self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
             await self.denon.async_setup()
             assert self.denon.receiver_type == spec[1].type, (
@@ -189,7 +181,6 @@ class TestMainFunctions:
         for receiver, spec in TESTING_RECEIVERS.items():
             # Switch receiver and update to load new sample files
             self.testing_receiver = receiver
-            self.receiver_type = spec[1].type
             self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
             # Switch through all functions and check if successful
             for name, zone in self.denon.zones.items():
@@ -208,7 +199,6 @@ class TestMainFunctions:
             print(f"Receiver: {receiver}")
             # Switch receiver and update to load new sample files
             self.testing_receiver = receiver
-            self.receiver_type = spec[1].type
             self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
             await self.denon.async_setup()
             assert self.denon.name is not None, f"Name is None for receiver {receiver}"
@@ -231,7 +221,6 @@ class TestMainFunctions:
         for receiver, spec in TESTING_RECEIVERS.items():
             # Switch receiver and update to load new sample files
             self.testing_receiver = receiver
-            self.receiver_type = spec[1].type
             self.denon = denonavr.DenonAVR(FAKE_IP, add_zones=spec[0])
             # Switch through all functions and check if successful
             for name in self.denon.zones:
