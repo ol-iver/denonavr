@@ -44,6 +44,9 @@ def convert_volume(value: str) -> float:
         return -80.0
 
     value = value.strip()
+    if value.startswith("-"):
+        return float(value)
+
     if len(value) > 3:
         _LOGGER.warning(
             "Volume value length is invalid: %s, defaulting to -80.0 dB", value
