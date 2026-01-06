@@ -2533,7 +2533,7 @@ class DenonAVRFoundation:
             # Suffix like /status, /volume
             string = string + resp.suffix
 
-            # A complete search string with all strributes set looks like
+            # A complete search string with all attributes set looks like
             # ./cmd[@cmd_text={cmd_text}][@name={name}]/zone1/volume
             result.append(string)
 
