@@ -130,8 +130,9 @@ def convert_audio_sampling_rate(value: str | None) -> Optional[str]:
     """Convert an audio sampling rate string."""
     if value is None:
         return None
-    if value == "":
-        return "-"
+
+    if value in ("", "NON"):
+        return None
 
     return value.strip()
 
