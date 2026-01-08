@@ -5,3 +5,4 @@ ftfy>=6.3.1
 httpx>=0.28.1
 netifaces>=0.11.0
 aiolimiter>=1.2.1
+zeroconf>=0.148.0

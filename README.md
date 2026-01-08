@@ -1,8 +1,7 @@
 # denonavr
-[![Release](https://img.shields.io/github/v/release/ol-iver/denonavr?sort=semver)](https://github.com/ol-iver/denonavr/releases/latest)
-[![Build Status](https://github.com/ol-iver/denonavr/actions/workflows/python-tests.yml/badge.svg)](https://github.com/ol-iver/denonavr/actions/workflows/python-tests.yml)
-[![PyPi](https://img.shields.io/pypi/v/denonavr.svg)](https://pypi.org/project/denonavr)
-[![License](https://img.shields.io/github/license/ol-iver/denonavr.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/henrikwidlund/denonavr?sort=semver)](https://github.com/henrikwidlund/denonavr/releases/latest)
+[![Build Status](https://github.com/henrikwidlund/denonavr/actions/workflows/python-tests.yml/badge.svg)](https://github.com/henrikwidlund/denonavr/actions/workflows/python-tests.yml)
+[![License](https://img.shields.io/github/license/henrikwidlund/denonavr.svg)](LICENSE)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 Automation Library for Denon AVR receivers
@@ -27,10 +26,10 @@ The `asyncio` library should automatically be imported in the REPL.  Import the 
 
 ```
 >>> import asyncio
->>> import denonavr
->>> d = denonavr.DenonAVR("192.168.1.119")
->>> await d.async_setup()
->>> await d.async_update()
+import denonavr
+d = denonavr.DenonAVR("10.0.60.6")
+await d.async_setup()
+await d.async_update()
 >>> print(d.volume)
 -36.5
 ```
@@ -41,11 +40,11 @@ This provides instant updates via a callback when the device status changes. Rec
 
 ```
 >>> import asyncio
->>> import denonavr
->>> d = denonavr.DenonAVR("192.168.1.119")
->>> await d.async_setup()
->>> await d.async_telnet_connect()
->>> await d.async_update()
+import denonavr
+d = denonavr.DenonAVR("10.0.60.6")
+await d.async_setup()
+await d.async_update()
+await d.async_telnet_connect()
 >>> async def update_callback(zone, event, parameter):
 >>>>>> print("Zone: " + zone + " Event: " + event + " Parameter: " + parameter)
 >>> d.register_callback("ALL", update_callback)

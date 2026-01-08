@@ -4,6 +4,9 @@
 Adaptive, protocol-agnostic per-destination rate limiter built on aiolimiter.
 
 Single-process only. Excludes fire-and-forget calls (skip_confirmation) from RTT stats.
+
+:copyright: (c) 2025 by Henrik Widlund.
+:license: MIT, see LICENSE for more details.
 """
 from __future__ import annotations
 

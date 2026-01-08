@@ -26,6 +26,7 @@ dependencies = [
     "httpx>=0.28.1",
     "netifaces>=0.11.0",
     "aiolimiter>=1.2.1",
+    "zeroconf>=0.148.0",
 ]
 
 [project.readme]
@@ -33,9 +34,9 @@ file = "README.md"
 content-type = "text/markdown; charset=UTF-8"
 
 [project.urls]
-Homepage = "https://github.com/ol-iver/denonavr"
-Source = "https://github.com/ol-iver/denonavr"
-Tracker = "https://github.com/ol-iver/denonavr/issues"
+Homepage = "https://github.com/henrikwidlund/denonavr"
+Source = "https://github.com/henrikwidlund/denonavr"
+Tracker = "https://github.com/henrikwidlund/denonavr/issues"
 
 [project.optional-dependencies]
 testing = [
