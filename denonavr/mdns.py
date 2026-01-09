@@ -10,9 +10,13 @@ import asyncio
 import logging
 import threading
 from dataclasses import dataclass
+from xml.etree import ElementTree
 
+import httpx
 from zeroconf import IPVersion, ServiceBrowser, ServiceInfo, ServiceListener, Zeroconf
 from zeroconf.asyncio import AsyncZeroconf
+
+from .const import DEVICEINFO_URL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -82,7 +86,7 @@ class MDNSListener(ServiceListener):
             _LOGGER.debug("Address: %s, Port: %s", info.parsed_addresses(), info.port)
 
 
-async def async_query_receivers(timeout: float = 5) -> list[FoundReceiver] | None:
+async def async_query_receivers(timeout: float = 2.5) -> list[FoundReceiver] | None:
     """
     Query for Denon/Marantz receivers using mDNS.
 
@@ -117,10 +121,13 @@ async def async_query_receivers(timeout: float = 5) -> list[FoundReceiver] | Non
                         service.type,
                     )
                     continue
+                ip = ip_addresses[0]
+                if not await _async_is_av_receiver(ip):
+                    continue
                 services.append(
                     FoundReceiver(
                         name=service.name,
-                        ip_address=ip_addresses[0],
+                        ip_address=ip,
                         model=service.info.decoded_properties.get("model", "Unknown"),
                         network_id=service.info.decoded_properties.get(
                             "networkid", "Unknown"
@@ -129,3 +136,31 @@ async def async_query_receivers(timeout: float = 5) -> list[FoundReceiver] | Non
                     )
                 )
             return services or None
+
+
+async def _async_is_av_receiver(ip: str) -> bool:
+    async with httpx.AsyncClient(timeout=2.5) as client:
+        tasks = [_async_single_receiver(client, ip, port) for port in [80, 8080]]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        return any(results)
+
+
+async def _async_single_receiver(
+    client: httpx.AsyncClient, ip: str, port: int
+) -> bool | None:
+    url = f"http://{ip}:{port}{DEVICEINFO_URL}"
+    try:
+        resp = await client.get(url)
+        if resp.status_code != 200:
+            return None
+        text = resp.text
+        try:
+            root = ElementTree.fromstring(text)
+            category = root.findtext("CategoryName")
+            if category:
+                return category.strip() == "AV RECEIVER"
+        except ElementTree.ParseError:
+            return None
+    except Exception:  # pylint: disable=broad-exception-caught
+        return None
+    return None
