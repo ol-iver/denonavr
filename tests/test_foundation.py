@@ -9,7 +9,7 @@ This module covers some basic automated tests of foundation.
 
 import pytest
 
-from denonavr.foundation import AvrCommandError
+from denonavr.foundation import AvrCommandError, channel_status_to_str
 from tests.test_helpers import DeviceTestFixture
 
 # pylint: disable=protected-access
@@ -674,3 +674,31 @@ class TestDenonAVRDeviceInfo:
         device._audio_restorer_callback("RSTR OFF")
         with pytest.raises(AvrCommandError):
             await device.async_audio_restorer("Max")
+
+
+@pytest.mark.parametrize(
+    "channel_status,expected",
+    [
+        ("00200000".ljust(32, "0"), "1.0"),
+        ("22000000".ljust(32, "0"), "2.0"),
+        ("22020000".ljust(32, "0"), "2.1"),
+        ("22200000".ljust(32, "0"), "3.0"),
+        ("20222000".ljust(32, "0"), "3.1"),
+        ("22002200".ljust(32, "0"), "4.0"),
+        ("22022200".ljust(32, "0"), "4.1"),
+        ("22202200".ljust(32, "0"), "5.0"),
+        ("22222200".ljust(32, "0"), "5.1"),
+        ("22202220".ljust(32, "0"), "6.0"),
+        ("22222220".ljust(32, "0"), "6.1"),
+        ("22202222".ljust(32, "0"), "7.0"),
+        ("22222222".ljust(32, "0"), "7.1"),
+        ("2222220022".ljust(32, "0"), "5.1.2"),
+        ("222222002222".ljust(32, "0"), "5.1.4"),
+        ("2222222222".ljust(32, "0"), "7.1.2"),
+        ("222222222222".ljust(32, "0"), "7.1.4"),
+        ("22222222222222".ljust(32, "0"), "7.1.6"),
+    ],
+)
+def test_channel_status_to_str(channel_status, expected):
+    """Test channel_status_to_str function."""
+    assert channel_status_to_str(channel_status) == expected

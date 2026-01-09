@@ -701,6 +701,8 @@ class DenonAVRTelnetApi:
                 "SSINFAISFSV ?",  # Audio Sampling Rate
                 "SYSDA ?",  # Audio Signal
                 "SYSMI ?",  # Audio Sound
+                "OPINFASP ?",  # Output Channels
+                "OPINFINS ?",  # Input Channels
             ]
 
             index = commands.index("MNMEN?")

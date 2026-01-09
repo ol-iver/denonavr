@@ -146,6 +146,40 @@ def convert_video_signal_in(value: str | None) -> Optional[str]:
     return value.strip()
 
 
+def channel_status_to_str(channel_statuses: str) -> str:
+    """
+    Convert channel status string to industry standard string (e.g. '2.1', '5.1.2').
+
+    Args:
+        channel_statuses: String of digits (0, 1, 2) for each channel.
+    Returns:
+        String representing channel layout.
+    """
+    base_channel_count = 0
+    lfe_count = 0
+    immersive_channel_count = 0
+    index = 0
+    for channel_status in channel_statuses:
+        if channel_status != "2":
+            index += 1
+            continue
+
+        if index < 3:
+            base_channel_count += 1
+        elif index == 3:
+            lfe_count += 1
+        elif index < 8:
+            base_channel_count += 1
+        else:
+            immersive_channel_count += 1
+        index += 1
+
+    result = f"{base_channel_count}.{lfe_count}"
+    if immersive_channel_count:
+        result += f".{immersive_channel_count}"
+    return result
+
+
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
 class DenonAVRDeviceInfo:
     """Implements a class with device information of the receiver."""
@@ -286,9 +320,16 @@ class DenonAVRDeviceInfo:
     _video_hdmi_signal_out: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _input_channels: Optional[str] = attr.ib(
+        converter=attr.converters.optional(channel_status_to_str), default=None
+    )
+    _output_channels: Optional[str] = attr.ib(
+        converter=attr.converters.optional(channel_status_to_str), default=None
+    )
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
+    _op_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
     _ps_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
     _ss_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
     _sy_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
@@ -308,6 +349,11 @@ class DenonAVRDeviceInfo:
             self.urls = ZONE3_URLS
         else:
             raise ValueError(f"Invalid zone {self.zone}")
+
+        self._op_handlers: Dict[str, Callable[[str], None]] = {
+            "INFASP": self._output_channels_callback,
+            "INFINS": self._input_channel_callback,
+        }
 
         self._ps_handlers: Dict[str, Callable[[str], None]] = {
             # Note order, 'DELAY' must be before 'DEL' because of startswith check
@@ -393,6 +439,13 @@ class DenonAVRDeviceInfo:
     def _ps_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle a PS change event."""
         for prefix, handler in self._ps_handlers.items():
+            if parameter.startswith(prefix):
+                handler(parameter)
+                return
+
+    def _op_callback(self, _zone: str, _event: str, parameter: str) -> None:
+        """Handle an OP change event."""
+        for prefix, handler in self._op_handlers.items():
             if parameter.startswith(prefix):
                 handler(parameter)
                 return
@@ -523,6 +576,18 @@ class DenonAVRDeviceInfo:
         """Handle an audio out encoding change event."""
         self._audio_sound = parameter[4:]
 
+    def _input_channel_callback(self, parameter: str) -> None:
+        """Handle an input channel change event."""
+        key_value = parameter.split()
+        if len(key_value) == 2:
+            self._input_channels = key_value[1]
+
+    def _output_channels_callback(self, parameter: str) -> None:
+        """Handle an output channel change event."""
+        key_value = parameter.split()
+        if len(key_value) == 2:
+            self._output_channels = key_value[1]
+
     def get_own_zone(self) -> str:
         """
         Get zone from actual instance.
@@ -574,6 +639,7 @@ class DenonAVRDeviceInfo:
         self.telnet_api.register_callback("VS", self._vs_callback)
         self.telnet_api.register_callback("SS", self._ss_callback)
         self.telnet_api.register_callback("SY", self._sy_callback)
+        self.telnet_api.register_callback("OP", self._op_callback)
         self.telnet_api.register_callback("STBY", self._auto_standby_callback)
         self.telnet_api.register_callback("SLP", self._auto_sleep_callback)
         self.telnet_api.register_callback("TR", self._trigger_callback)
@@ -1248,6 +1314,24 @@ class DenonAVRDeviceInfo:
         Only available if using Telnet.
         """
         return self._video_hdmi_signal_out
+
+    @property
+    def input_channels(self) -> Optional[str]:
+        """
+        Return the input channels for the device.
+
+        Only available if using Telnet.
+        """
+        return self._input_channels
+
+    @property
+    def output_channels(self) -> Optional[str]:
+        """
+        Return the output channels for the device.
+
+        Only available if using Telnet.
+        """
+        return self._output_channels
 
     @property
     def telnet_available(self) -> bool:

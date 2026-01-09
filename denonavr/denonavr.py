@@ -815,6 +815,24 @@ class DenonAVR(DenonAVRFoundation):
         """
         return self._device.video_hdmi_signal_out
 
+    @property
+    def input_channels(self) -> Optional[str]:
+        """
+        Return the input channels for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.input_channels
+
+    @property
+    def output_channels(self) -> Optional[str]:
+        """
+        Return the output channels for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.output_channels
+
     ##########
     # Getter #
     ##########
