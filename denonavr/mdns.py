@@ -33,6 +33,8 @@ class FoundReceiver:
     name: str
     ip_address: str
     model: str
+    network_id: str
+    did: str
 
 
 class MDNSListener(ServiceListener):
@@ -100,7 +102,7 @@ async def async_query_receivers(timeout: float = 5) -> list[FoundReceiver] | Non
 
             services: list[FoundReceiver] = []
             for service in listener.services:
-                if not service.info or service.info.properties is None:
+                if not service.info or service.info.decoded_properties is None:
                     continue
 
                 ip_addresses = service.info.parsed_addresses(version=IPVersion.V4Only)
@@ -119,9 +121,11 @@ async def async_query_receivers(timeout: float = 5) -> list[FoundReceiver] | Non
                     FoundReceiver(
                         name=service.name,
                         ip_address=ip_addresses[0],
-                        model=service.info.properties.get(b"model", b"Unknown").decode(
-                            "utf-8"
+                        model=service.info.decoded_properties.get("model", "Unknown"),
+                        network_id=service.info.decoded_properties.get(
+                            "networkid", "Unknown"
                         ),
+                        did=service.info.decoded_properties.get("did", "Unknown"),
                     )
                 )
             return services or None

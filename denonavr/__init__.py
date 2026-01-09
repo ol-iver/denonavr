@@ -44,6 +44,7 @@ async def async_discover(timeout: float = 5):
                 "modelName": receiver.model,
                 "friendlyName": receiver.name,
                 "presentationURL": None,
+                "serialNumber": receiver.did,
             }
             for receiver in (receivers or [])
         ]
