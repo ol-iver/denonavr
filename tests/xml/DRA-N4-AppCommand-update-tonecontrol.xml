@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rx>
+<cmd>
+<status>1</status>
+<adjust>1</adjust>
+<basslevel>0dB</basslevel>
+<bassvalue>5</bassvalue>
+<treblelevel>+6dB</treblelevel>
+<treblevalue>8</treblevalue>
+<balancelevel>0</balancelevel>
+<balancevalue>0</balancevalue>
+<bassboost>1</bassboost>
+<sourcedirect>0</sourcedirect>
+</cmd>
+</rx>

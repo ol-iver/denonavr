@@ -124,7 +124,7 @@ class HTTPXAsyncClient:
         data: Optional[Dict] = None,
         cache_id: Hashable = None,
     ) -> httpx.Response:
-        """Call GET endpoint of Denon AVR receiver asynchronously."""
+        """Call POST endpoint of Denon AVR receiver asynchronously."""
         client = self.client_getter()
         try:
             async with client.stream(
