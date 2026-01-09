@@ -76,7 +76,10 @@ def set_input_func(
         return value
     # Map from input_func_map
     # Some inputs are not always listed in available sources
-    if value in {"AirPlay", "Internet Radio", "Media Server", "NET"} and value not in instance._input_func_map:
+    if (
+        value in {"AirPlay", "Internet Radio", "Media Server", "NET"}
+        and value not in instance._input_func_map
+    ):
         instance._additional_input_funcs.add(value)
         instance._input_func_map[value] = value
         instance._input_func_map_rev[value] = value

@@ -112,6 +112,7 @@ class HTTPXAsyncClient:
 
         return res
 
+    @cache_result
     @async_handle_receiver_exceptions
     async def async_post(
         self,
