@@ -598,7 +598,6 @@ class DenonAVRDeviceInfo:
 
         # Update power status
         await self.async_update_power(global_update=global_update, cache_id=cache_id)
-
         _LOGGER.debug("Finished device update")
 
     async def async_identify_receiver(self) -> None:

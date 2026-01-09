@@ -9,7 +9,6 @@ This module implements the REST API to Denon AVR receivers.
 
 import inspect
 import logging
-import time
 from functools import wraps
 from typing import Callable, TypeVar
 
@@ -64,7 +63,7 @@ def cache_result(func: Callable[..., AnyT]) -> Callable[..., AnyT]:
     """
     Decorate a function to cache its results with an lru_cache of maxsize 32.
 
-    This decorator also sets an "cache_id" keyword argument if it is not set yet.
+    The cache is only used if the "cache_id" keyword argument is set.
     """
     if inspect.signature(func).parameters.get("cache_id") is None:
         raise AttributeError(
@@ -77,7 +76,7 @@ def cache_result(func: Callable[..., AnyT]) -> Callable[..., AnyT]:
     @wraps(func)
     async def wrapper(*args, **kwargs):
         if kwargs.get("cache_id") is None:
-            kwargs["cache_id"] = time.time()
+            return await func(*args, **kwargs)
 
         return await cached_func(*args, **kwargs)
 

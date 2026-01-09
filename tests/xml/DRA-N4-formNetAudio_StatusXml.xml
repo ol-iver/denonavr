@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<item>
+<chFlag>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+<value>0</value>
+</chFlag>
+<szLine>
+<value>Now Playing</value>
+<value>St. Vincent - Violent Times</value>
+<value>Radio Paradise</value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+<value></value>
+</szLine>
+<NetworkNewTop><value>0</value></NetworkNewTop>
+<iPodRemoteDirect><value>0</value></iPodRemoteDirect>
+<Art>
+<value>2</value>
+</Art>
+<Slideshow><value></value></Slideshow>
+<SlideshowLists>
+<value index='OFF'  table='OFF' param=''/>
+<value index='05'  table='05' param=''/>
+<value index='10'  table='10' param=''/>
+<value index='15'  table='15' param=''/>
+<value index='20'  table='20' param=''/>
+<value index='30'  table='30' param=''/>
+<value index='60'  table='60' param=''/>
+</SlideshowLists>
+<iRadio><value>0</value></iRadio>
+<iRadioSearch><value>0</value></iRadioSearch>
+<Flickr><value>0</value></Flickr>
+<FlickrSearch><value>0</value></FlickrSearch>
+<AddFlickrContact><value>0</value></AddFlickrContact>
+<ExitPopup><value>0</value></ExitPopup>
+<ExitPopupSPO><value>0</value></ExitPopupSPO>
+<HomeBtnClck><value>0</value></HomeBtnClck>
+<GetFavoriteList><value>0</value></GetFavoriteList>
+<FavoriteListPage><value>0</value></FavoriteListPage>
+<ModelId><value>27</value></ModelId>
+<SalesArea><value>1</value></SalesArea>
+<InputFuncSelect><value>NET</value></InputFuncSelect>
+<NetFuncSelect><value>IRADIO</value></NetFuncSelect>
+</item>
