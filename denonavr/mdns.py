@@ -13,10 +13,12 @@ from dataclasses import dataclass
 from xml.etree import ElementTree
 
 import httpx
+from httpx import AsyncClient
 from zeroconf import IPVersion, ServiceBrowser, ServiceInfo, ServiceListener, Zeroconf
 from zeroconf.asyncio import AsyncZeroconf
 
-from .const import DEVICEINFO_URL
+from .const import DESCRIPTION_TYPES, DEVICEINFO_URL, DescriptionType
+from .ssdp import evaluate_scpd_xml
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -39,6 +41,7 @@ class FoundReceiver:
     model: str
     network_id: str
     did: str
+    serial_number: str | None
 
 
 class MDNSListener(ServiceListener):
@@ -122,8 +125,11 @@ async def async_query_receivers(timeout: float = 2.5) -> list[FoundReceiver] | N
                     )
                     continue
                 ip = ip_addresses[0]
-                if not await _async_is_av_receiver(ip):
-                    continue
+                async with httpx.AsyncClient() as client:
+                    if not await _async_is_av_receiver(ip, client):
+                        continue
+                    serial_number = await _async_get_serial_number(ip, client)
+
                 services.append(
                     FoundReceiver(
                         name=service.name,
@@ -133,34 +139,55 @@ async def async_query_receivers(timeout: float = 2.5) -> list[FoundReceiver] | N
                             "networkid", "Unknown"
                         ),
                         did=service.info.decoded_properties.get("did", "Unknown"),
+                        serial_number=serial_number,
                     )
                 )
             return services or None
 
 
-async def _async_is_av_receiver(ip: str) -> bool:
-    async with httpx.AsyncClient(timeout=2.5) as client:
-        tasks = [_async_single_receiver(client, ip, port) for port in [80, 8080]]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        return any(results)
-
-
-async def _async_single_receiver(
-    client: httpx.AsyncClient, ip: str, port: int
-) -> bool | None:
-    url = f"http://{ip}:{port}{DEVICEINFO_URL}"
-    try:
-        resp = await client.get(url)
-        if resp.status_code != 200:
-            return None
-        text = resp.text
+async def _async_is_av_receiver(ip: str, client: AsyncClient) -> bool:
+    async def _async_check_is_avr(port: int) -> bool | None:
+        url = f"http://{ip}:{port}{DEVICEINFO_URL}"
         try:
-            root = ElementTree.fromstring(text)
-            category = root.findtext("CategoryName")
-            if category:
-                return category.strip() == "AV RECEIVER"
-        except ElementTree.ParseError:
+            resp = await client.get(url)
+            if resp.status_code != 200:
+                return None
+            text = resp.text
+            try:
+                root = ElementTree.fromstring(text)
+                category = root.findtext("CategoryName")
+                if category:
+                    return category.strip() == "AV RECEIVER"
+            except ElementTree.ParseError:
+                return None
+        except Exception:  # pylint: disable=broad-exception-caught
             return None
-    except Exception:  # pylint: disable=broad-exception-caught
         return None
+
+    tasks = [_async_check_is_avr(port) for port in [80, 8080]]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    return any(results)
+
+
+async def _async_get_serial_number(ip: str, client: AsyncClient) -> str | None:
+    async def _async_get_serial_number_inner(
+        description: DescriptionType,
+    ) -> str | None:
+        url = f"http://{ip}:{description.port}{description.url}"
+        try:
+            res = await client.get(url)
+            if res.status_code != 200:
+                return None
+            device_info = evaluate_scpd_xml(url, res.text)
+            if device_info is None or "serialNumber" not in device_info:
+                return None
+            return device_info["serialNumber"]
+        except Exception:  # pylint: disable=broad-exception-caught
+            return None
+
+    # Try all description types and return the first serial number found
+    for desc in DESCRIPTION_TYPES.values():
+        serial = await _async_get_serial_number_inner(desc)
+        if serial:
+            return serial
     return None
