@@ -517,15 +517,11 @@ class DenonAVRDeviceInfo:
 
     def _audio_signal_callback(self, parameter: str) -> None:
         """Handle an audio in encoding change event."""
-        key_value = parameter.split()
-        if len(key_value) == 2:
-            self._audio_signal = key_value[1]
+        self._audio_signal = parameter[4:]
 
     def _audio_sound_callback(self, parameter: str) -> None:
         """Handle an audio out encoding change event."""
-        key_value = parameter.split()
-        if len(key_value) == 2:
-            self._audio_sound = key_value[1]
+        self._audio_sound = parameter[4:]
 
     def get_own_zone(self) -> str:
         """
