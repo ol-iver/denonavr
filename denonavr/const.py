@@ -123,6 +123,22 @@ ReceiverURLs = namedtuple(
         "command_dac_filter",  # Marantz Only
         "command_illumination",  # Marantz Only
         "command_auto_lip_sync",  # Marantz Only
+        "command_dolby_atmos_toggle_denon",
+        "command_dolby_atmos_toggle_marantz",
+        "command_page_up_denon",
+        "command_page_down_denon",
+        "command_page_up_marantz",
+        "command_page_down_marantz",
+        "command_input_mode_select_denon",
+        "command_input_mode_auto_denon",
+        "command_input_mode_hdmi_denon",
+        "command_input_mode_digital_denon",
+        "command_input_mode_analog_denon",
+        "command_input_mode_select_marantz",
+        "command_input_mode_auto_marantz",
+        "command_input_mode_hdmi_marantz",
+        "command_input_mode_digital_marantz",
+        "command_input_mode_analog_marantz",
     ],
 )
 TelnetCommands = namedtuple(
@@ -227,6 +243,22 @@ TelnetCommands = namedtuple(
         "command_dac_filter",  # Marantz Only
         "command_illumination",  # Marantz Only
         "command_auto_lip_sync",  # Marantz Only
+        "command_dolby_atmos_toggle_denon",
+        "command_dolby_atmos_toggle_marantz",
+        "command_page_up_denon",
+        "command_page_down_denon",
+        "command_page_up_marantz",
+        "command_page_down_marantz",
+        "command_input_mode_select_denon",
+        "command_input_mode_auto_denon",
+        "command_input_mode_hdmi_denon",
+        "command_input_mode_digital_denon",
+        "command_input_mode_analog_denon",
+        "command_input_mode_select_marantz",
+        "command_input_mode_auto_marantz",
+        "command_input_mode_hdmi_marantz",
+        "command_input_mode_digital_marantz",
+        "command_input_mode_analog_marantz",
     ],
 )
 
@@ -683,6 +715,22 @@ COMMAND_ILLUMINATION = "/goform/formiPhoneAppDirect.xml?ILB%20{mode}"  # Marantz
 COMMAND_AUTO_LIP_SYNC = (
     "/goform/formiPhoneAppDirect.xml?SSHOSALS%20{mode}"  # Marantz Only
 )
+COMMAND_DOLBY_ATMOS_TOGGLE_DENON = "/goform/formiPhoneAppDirect.xml?RCKSK0410348"
+COMMAND_DOLBY_ATMOS_TOGGLE_MARANTZ = "/goform/formiPhoneAppDirect.xml?RCRC51606425"
+COMMAND_PAGE_UP_DENON = "/goform/formiPhoneAppDirect.xml?RCKSK0410945"
+COMMAND_PAGE_DOWN_DENON = "/goform/formiPhoneAppDirect.xml?RCKSK0410946"
+COMMAND_PAGE_UP_MARANTZ = "/goform/formiPhoneAppDirect.xml?RCRC52708105"
+COMMAND_PAGE_DOWN_MARANTZ = "/goform/formiPhoneAppDirect.xml?RCRC52708005"
+COMMAND_INPUT_MODE_SELECT_DENON = "/goform/formiPhoneAppDirect.xml?RCKSK0410352"
+COMMAND_INPUT_MODE_AUTO_DENON = "/goform/formiPhoneAppDirect.xml?RCKSK0410358"
+COMMAND_INPUT_MODE_HDMI_DENON = "/goform/formiPhoneAppDirect.xml?RCKSK0410357"
+COMMAND_INPUT_MODE_DIGITAL_DENON = "/goform/formiPhoneAppDirect.xml?RCKSK0410359"
+COMMAND_INPUT_MODE_ANALOG_DENON = "/goform/formiPhoneAppDirect.xml?RCKSK0410353"
+COMMAND_INPUT_MODE_SELECT_MARANTZ = "/goform/formiPhoneAppDirect.xml?RCRC51600101"
+COMMAND_INPUT_MODE_AUTO_MARANTZ = "/goform/formiPhoneAppDirect.xml?RCRC51600115"
+COMMAND_INPUT_MODE_HDMI_MARANTZ = "/goform/formiPhoneAppDirect.xml?RCRC51600116"
+COMMAND_INPUT_MODE_DIGITAL_MARANTZ = "/goform/formiPhoneAppDirect.xml?RCRC51600117"
+COMMAND_INPUT_MODE_ANALOG_MARANTZ = "/goform/formiPhoneAppDirect.xml?RCRC51600118"
 
 # Zone 2 URLs
 STATUS_Z2_URL = "/goform/formZone2_Zone2XmlStatus.xml"
@@ -810,6 +858,22 @@ DENONAVR_URLS = ReceiverURLs(
     command_dac_filter=COMMAND_DAC_FILTER,  # Marantz Only
     command_illumination=COMMAND_ILLUMINATION,  # Marantz Only
     command_auto_lip_sync=COMMAND_AUTO_LIP_SYNC,  # Marantz Only
+    command_dolby_atmos_toggle_denon=COMMAND_DOLBY_ATMOS_TOGGLE_DENON,
+    command_dolby_atmos_toggle_marantz=COMMAND_DOLBY_ATMOS_TOGGLE_MARANTZ,
+    command_page_up_denon=COMMAND_PAGE_UP_DENON,
+    command_page_down_denon=COMMAND_PAGE_DOWN_DENON,
+    command_page_up_marantz=COMMAND_PAGE_UP_MARANTZ,
+    command_page_down_marantz=COMMAND_PAGE_DOWN_MARANTZ,
+    command_input_mode_select_denon=COMMAND_INPUT_MODE_SELECT_DENON,
+    command_input_mode_auto_denon=COMMAND_INPUT_MODE_AUTO_DENON,
+    command_input_mode_hdmi_denon=COMMAND_INPUT_MODE_HDMI_DENON,
+    command_input_mode_digital_denon=COMMAND_INPUT_MODE_DIGITAL_DENON,
+    command_input_mode_analog_denon=COMMAND_INPUT_MODE_ANALOG_DENON,
+    command_input_mode_select_marantz=COMMAND_INPUT_MODE_SELECT_MARANTZ,
+    command_input_mode_auto_marantz=COMMAND_INPUT_MODE_AUTO_MARANTZ,
+    command_input_mode_hdmi_marantz=COMMAND_INPUT_MODE_HDMI_MARANTZ,
+    command_input_mode_digital_marantz=COMMAND_INPUT_MODE_DIGITAL_MARANTZ,
+    command_input_mode_analog_marantz=COMMAND_INPUT_MODE_ANALOG_MARANTZ,
 )
 
 ZONE2_URLS = ReceiverURLs(
@@ -914,6 +978,22 @@ ZONE2_URLS = ReceiverURLs(
     command_dac_filter=COMMAND_DAC_FILTER,  # Marantz Only
     command_illumination=COMMAND_ILLUMINATION,  # Marantz Only
     command_auto_lip_sync=COMMAND_AUTO_LIP_SYNC,  # Marantz Only
+    command_dolby_atmos_toggle_denon=COMMAND_DOLBY_ATMOS_TOGGLE_DENON,
+    command_dolby_atmos_toggle_marantz=COMMAND_DOLBY_ATMOS_TOGGLE_MARANTZ,
+    command_page_up_denon=COMMAND_PAGE_UP_DENON,
+    command_page_down_denon=COMMAND_PAGE_DOWN_DENON,
+    command_page_up_marantz=COMMAND_PAGE_UP_MARANTZ,
+    command_page_down_marantz=COMMAND_PAGE_DOWN_MARANTZ,
+    command_input_mode_select_denon=COMMAND_INPUT_MODE_SELECT_DENON,
+    command_input_mode_auto_denon=COMMAND_INPUT_MODE_AUTO_DENON,
+    command_input_mode_hdmi_denon=COMMAND_INPUT_MODE_HDMI_DENON,
+    command_input_mode_digital_denon=COMMAND_INPUT_MODE_DIGITAL_DENON,
+    command_input_mode_analog_denon=COMMAND_INPUT_MODE_ANALOG_DENON,
+    command_input_mode_select_marantz=COMMAND_INPUT_MODE_SELECT_MARANTZ,
+    command_input_mode_auto_marantz=COMMAND_INPUT_MODE_AUTO_MARANTZ,
+    command_input_mode_hdmi_marantz=COMMAND_INPUT_MODE_HDMI_MARANTZ,
+    command_input_mode_digital_marantz=COMMAND_INPUT_MODE_DIGITAL_MARANTZ,
+    command_input_mode_analog_marantz=COMMAND_INPUT_MODE_ANALOG_MARANTZ,
 )
 
 ZONE3_URLS = ReceiverURLs(
@@ -1018,6 +1098,22 @@ ZONE3_URLS = ReceiverURLs(
     command_dac_filter=COMMAND_DAC_FILTER,  # Marantz Only
     command_illumination=COMMAND_ILLUMINATION,  # Marantz Only
     command_auto_lip_sync=COMMAND_AUTO_LIP_SYNC,  # Marantz Only
+    command_dolby_atmos_toggle_denon=COMMAND_DOLBY_ATMOS_TOGGLE_DENON,
+    command_dolby_atmos_toggle_marantz=COMMAND_DOLBY_ATMOS_TOGGLE_MARANTZ,
+    command_page_up_denon=COMMAND_PAGE_UP_DENON,
+    command_page_down_denon=COMMAND_PAGE_DOWN_DENON,
+    command_page_up_marantz=COMMAND_PAGE_UP_MARANTZ,
+    command_page_down_marantz=COMMAND_PAGE_DOWN_MARANTZ,
+    command_input_mode_select_denon=COMMAND_INPUT_MODE_SELECT_DENON,
+    command_input_mode_auto_denon=COMMAND_INPUT_MODE_AUTO_DENON,
+    command_input_mode_hdmi_denon=COMMAND_INPUT_MODE_HDMI_DENON,
+    command_input_mode_digital_denon=COMMAND_INPUT_MODE_DIGITAL_DENON,
+    command_input_mode_analog_denon=COMMAND_INPUT_MODE_ANALOG_DENON,
+    command_input_mode_select_marantz=COMMAND_INPUT_MODE_SELECT_MARANTZ,
+    command_input_mode_auto_marantz=COMMAND_INPUT_MODE_AUTO_MARANTZ,
+    command_input_mode_hdmi_marantz=COMMAND_INPUT_MODE_HDMI_MARANTZ,
+    command_input_mode_digital_marantz=COMMAND_INPUT_MODE_DIGITAL_MARANTZ,
+    command_input_mode_analog_marantz=COMMAND_INPUT_MODE_ANALOG_MARANTZ,
 )
 
 # Telnet Events
@@ -1178,6 +1274,22 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_dac_filter="PSDACFIL {mode}",  # Marantz Only
     command_illumination="ILB {mode}",  # Marantz Only
     command_auto_lip_sync="SSHOSALS {mode}",  # Marantz Only
+    command_dolby_atmos_toggle_denon=COMMAND_DOLBY_ATMOS_TOGGLE_DENON,
+    command_dolby_atmos_toggle_marantz=COMMAND_DOLBY_ATMOS_TOGGLE_MARANTZ,
+    command_page_up_denon=COMMAND_PAGE_UP_DENON,
+    command_page_down_denon=COMMAND_PAGE_DOWN_DENON,
+    command_page_up_marantz=COMMAND_PAGE_UP_MARANTZ,
+    command_page_down_marantz=COMMAND_PAGE_DOWN_MARANTZ,
+    command_input_mode_select_denon=COMMAND_INPUT_MODE_SELECT_DENON,
+    command_input_mode_auto_denon=COMMAND_INPUT_MODE_AUTO_DENON,
+    command_input_mode_hdmi_denon=COMMAND_INPUT_MODE_HDMI_DENON,
+    command_input_mode_digital_denon=COMMAND_INPUT_MODE_DIGITAL_DENON,
+    command_input_mode_analog_denon=COMMAND_INPUT_MODE_ANALOG_DENON,
+    command_input_mode_select_marantz=COMMAND_INPUT_MODE_SELECT_MARANTZ,
+    command_input_mode_auto_marantz=COMMAND_INPUT_MODE_AUTO_MARANTZ,
+    command_input_mode_hdmi_marantz=COMMAND_INPUT_MODE_HDMI_MARANTZ,
+    command_input_mode_digital_marantz=COMMAND_INPUT_MODE_DIGITAL_MARANTZ,
+    command_input_mode_analog_marantz=COMMAND_INPUT_MODE_ANALOG_MARANTZ,
 )
 
 ZONE2_TELNET_COMMANDS = TelnetCommands(
@@ -1280,6 +1392,22 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_dac_filter="PSDACFIL {mode}",  # Marantz Only
     command_illumination="ILB {mode}",  # Marantz Only
     command_auto_lip_sync="SSHOSALS {mode}",  # Marantz Only
+    command_dolby_atmos_toggle_denon=COMMAND_DOLBY_ATMOS_TOGGLE_DENON,
+    command_dolby_atmos_toggle_marantz=COMMAND_DOLBY_ATMOS_TOGGLE_MARANTZ,
+    command_page_up_denon=COMMAND_PAGE_UP_DENON,
+    command_page_down_denon=COMMAND_PAGE_DOWN_DENON,
+    command_page_up_marantz=COMMAND_PAGE_UP_MARANTZ,
+    command_page_down_marantz=COMMAND_PAGE_DOWN_MARANTZ,
+    command_input_mode_select_denon=COMMAND_INPUT_MODE_SELECT_DENON,
+    command_input_mode_auto_denon=COMMAND_INPUT_MODE_AUTO_DENON,
+    command_input_mode_hdmi_denon=COMMAND_INPUT_MODE_HDMI_DENON,
+    command_input_mode_digital_denon=COMMAND_INPUT_MODE_DIGITAL_DENON,
+    command_input_mode_analog_denon=COMMAND_INPUT_MODE_ANALOG_DENON,
+    command_input_mode_select_marantz=COMMAND_INPUT_MODE_SELECT_MARANTZ,
+    command_input_mode_auto_marantz=COMMAND_INPUT_MODE_AUTO_MARANTZ,
+    command_input_mode_hdmi_marantz=COMMAND_INPUT_MODE_HDMI_MARANTZ,
+    command_input_mode_digital_marantz=COMMAND_INPUT_MODE_DIGITAL_MARANTZ,
+    command_input_mode_analog_marantz=COMMAND_INPUT_MODE_ANALOG_MARANTZ,
 )
 
 ZONE3_TELNET_COMMANDS = TelnetCommands(
@@ -1382,6 +1510,22 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_dac_filter="PSDACFIL {mode}",  # Marantz Only
     command_illumination="ILB {mode}",  # Marantz Only
     command_auto_lip_sync="SSHOSALS {mode}",  # Marantz Only
+    command_dolby_atmos_toggle_denon=COMMAND_DOLBY_ATMOS_TOGGLE_DENON,
+    command_dolby_atmos_toggle_marantz=COMMAND_DOLBY_ATMOS_TOGGLE_MARANTZ,
+    command_page_up_denon=COMMAND_PAGE_UP_DENON,
+    command_page_down_denon=COMMAND_PAGE_DOWN_DENON,
+    command_page_up_marantz=COMMAND_PAGE_UP_MARANTZ,
+    command_page_down_marantz=COMMAND_PAGE_DOWN_MARANTZ,
+    command_input_mode_select_denon=COMMAND_INPUT_MODE_SELECT_DENON,
+    command_input_mode_auto_denon=COMMAND_INPUT_MODE_AUTO_DENON,
+    command_input_mode_hdmi_denon=COMMAND_INPUT_MODE_HDMI_DENON,
+    command_input_mode_digital_denon=COMMAND_INPUT_MODE_DIGITAL_DENON,
+    command_input_mode_analog_denon=COMMAND_INPUT_MODE_ANALOG_DENON,
+    command_input_mode_select_marantz=COMMAND_INPUT_MODE_SELECT_MARANTZ,
+    command_input_mode_auto_marantz=COMMAND_INPUT_MODE_AUTO_MARANTZ,
+    command_input_mode_hdmi_marantz=COMMAND_INPUT_MODE_HDMI_MARANTZ,
+    command_input_mode_digital_marantz=COMMAND_INPUT_MODE_DIGITAL_MARANTZ,
+    command_input_mode_analog_marantz=COMMAND_INPUT_MODE_ANALOG_MARANTZ,
 )
 
 # States
@@ -1826,3 +1970,6 @@ ILLUMINATION_MAP = {
 }
 
 ILLUMINATION_MAP_LABELS = {value: key for key, value in ILLUMINATION_MAP.items()}
+
+InputModes = Literal["Select", "Auto", "HDMI", "Digital", "Analog"]
+"""Input Mode Selection."""
