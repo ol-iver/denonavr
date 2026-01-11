@@ -11,6 +11,7 @@ import asyncio
 import logging
 import re
 import socket
+import urllib.parse
 import xml.etree.ElementTree as ET
 from typing import Dict, List, Optional, Set, Tuple
 from urllib.parse import urlparse
@@ -19,6 +20,8 @@ import httpx
 import netifaces
 from defusedxml import DefusedXmlException
 from defusedxml.ElementTree import ParseError, fromstring
+
+from denonavr.const import DEVICEINFO_URL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -117,6 +120,10 @@ async def _evaluate_single_device(
 ) -> Optional[Dict]:
     """Evaluate a single device URL for compatibility."""
     try:
+        if not await async_is_av_receiver(
+            urllib.parse.urlparse(url).hostname, client, timeout=2.5
+        ):
+            return None
         async with client.stream("GET", url, timeout=5.0) as res:
             res.raise_for_status()
             await res.aread()
@@ -235,6 +242,34 @@ def evaluate_scpd_xml(url: str, body: str) -> Optional[Dict]:
             "Error occurred during evaluation of SCPD XML from URI %s: %s", url, err
         )
         return None
+
+
+async def async_is_av_receiver(
+    ip: str, client: httpx.AsyncClient, timeout: float
+) -> bool:
+    """Check if device at given IP is an AV receiver."""
+
+    async def _async_check_is_avr(port: int) -> bool | None:
+        url = f"http://{ip}:{port}{DEVICEINFO_URL}"
+        try:
+            async with client.stream("GET", url, timeout=timeout) as res:
+                if res.status_code != 200:
+                    return None
+                await res.aread()
+                text = res.text
+                try:
+                    root = fromstring(text)
+                    category = root.findtext("CategoryName")
+                    if category:
+                        return category.strip() == "AV RECEIVER"
+                except ParseError:
+                    return None
+        except Exception:  # pylint: disable=broad-exception-caught
+            return None
+
+    tasks = [_async_check_is_avr(port) for port in [80, 8080]]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    return any(r is True for r in results)
 
 
 class DenonAVRSSDP(asyncio.DatagramProtocol):

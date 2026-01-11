@@ -10,15 +10,14 @@ import asyncio
 import logging
 import threading
 from dataclasses import dataclass
-from xml.etree import ElementTree
 
 import httpx
 from httpx import AsyncClient
 from zeroconf import IPVersion, ServiceBrowser, ServiceInfo, ServiceListener, Zeroconf
 from zeroconf.asyncio import AsyncZeroconf
 
-from .const import DESCRIPTION_TYPES, DEVICEINFO_URL, DescriptionType
-from .ssdp import evaluate_scpd_xml
+from .const import DESCRIPTION_TYPES, DescriptionType
+from .ssdp import async_is_av_receiver, evaluate_scpd_xml
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -107,81 +106,65 @@ async def async_query_receivers(timeout: float = 2.5) -> list[FoundReceiver] | N
             if not listener.services:
                 return None
 
-            services: list[FoundReceiver] = []
-            for service in listener.services:
-                if not service.info or service.info.decoded_properties is None:
-                    continue
-
-                ip_addresses = service.info.parsed_addresses(version=IPVersion.V4Only)
-                if not ip_addresses:
-                    ip_addresses = service.info.parsed_addresses(
-                        version=IPVersion.V6Only
-                    )
-                if not ip_addresses:
-                    _LOGGER.info(
-                        "No IP address found for service %s (%s)",
-                        service.name,
-                        service.type,
-                    )
-                    continue
-                ip = ip_addresses[0]
-                async with httpx.AsyncClient() as client:
-                    if not await _async_is_av_receiver(ip, client):
+            async with httpx.AsyncClient() as client:
+                services: list[FoundReceiver] = []
+                for service in listener.services:
+                    if not service.info or service.info.decoded_properties is None:
                         continue
-                    serial_number = await _async_get_serial_number(ip, client)
 
-                services.append(
-                    FoundReceiver(
-                        name=service.name,
-                        ip_address=ip,
-                        model=service.info.decoded_properties.get("model", "Unknown"),
-                        network_id=service.info.decoded_properties.get(
-                            "networkid", "Unknown"
-                        ),
-                        did=service.info.decoded_properties.get("did", "Unknown"),
-                        serial_number=serial_number,
+                    ip_addresses = service.info.parsed_addresses(
+                        version=IPVersion.V4Only
                     )
-                )
-            return services or None
+                    if not ip_addresses:
+                        ip_addresses = service.info.parsed_addresses(
+                            version=IPVersion.V6Only
+                        )
+                    if not ip_addresses:
+                        _LOGGER.info(
+                            "No IP address found for service %s (%s)",
+                            service.name,
+                            service.type,
+                        )
+                        continue
+                    ip = ip_addresses[0]
+                    if not await async_is_av_receiver(ip, client, timeout):
+                        continue
+                    serial_number = await _async_get_serial_number(ip, client, timeout)
+
+                    services.append(
+                        FoundReceiver(
+                            name=service.name,
+                            ip_address=ip,
+                            model=service.info.decoded_properties.get(
+                                "model", "Unknown"
+                            ),
+                            network_id=service.info.decoded_properties.get(
+                                "networkid", "Unknown"
+                            ),
+                            did=service.info.decoded_properties.get("did", "Unknown"),
+                            serial_number=serial_number,
+                        )
+                    )
+                return services or None
 
 
-async def _async_is_av_receiver(ip: str, client: AsyncClient) -> bool:
-    async def _async_check_is_avr(port: int) -> bool | None:
-        url = f"http://{ip}:{port}{DEVICEINFO_URL}"
-        try:
-            resp = await client.get(url)
-            if resp.status_code != 200:
-                return None
-            text = resp.text
-            try:
-                root = ElementTree.fromstring(text)
-                category = root.findtext("CategoryName")
-                if category:
-                    return category.strip() == "AV RECEIVER"
-            except ElementTree.ParseError:
-                return None
-        except Exception:  # pylint: disable=broad-exception-caught
-            return None
-        return None
-
-    tasks = [_async_check_is_avr(port) for port in [80, 8080]]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-    return any(results)
-
-
-async def _async_get_serial_number(ip: str, client: AsyncClient) -> str | None:
+async def _async_get_serial_number(
+    ip: str, client: AsyncClient, timeout: float
+) -> str | None:
     async def _async_get_serial_number_inner(
         description: DescriptionType,
     ) -> str | None:
         url = f"http://{ip}:{description.port}{description.url}"
         try:
-            res = await client.get(url)
-            if res.status_code != 200:
-                return None
-            device_info = evaluate_scpd_xml(url, res.text)
-            if device_info is None or "serialNumber" not in device_info:
-                return None
-            return device_info["serialNumber"]
+            async with client.stream("GET", url, timeout=timeout) as res:
+                if res.status_code != 200:
+                    return None
+                await res.aread()
+
+                device_info = evaluate_scpd_xml(url, res.text)
+                if device_info is None or "serialNumber" not in device_info:
+                    return None
+                return device_info["serialNumber"]
         except Exception:  # pylint: disable=broad-exception-caught
             return None
 
