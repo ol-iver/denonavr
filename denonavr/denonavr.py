@@ -833,6 +833,15 @@ class DenonAVR(DenonAVRFoundation):
         """
         return self._device.output_channels
 
+    @property
+    def max_resolution(self) -> Optional[str]:
+        """
+        Return the max resolution for the current signal for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.max_resolution
+
     ##########
     # Getter #
     ##########

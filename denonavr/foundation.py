@@ -360,6 +360,9 @@ class DenonAVRDeviceInfo:
     _output_channels: Optional[str] = attr.ib(
         converter=attr.converters.optional(channel_status_to_str), default=None
     )
+    _max_resolution: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
@@ -409,6 +412,7 @@ class DenonAVRDeviceInfo:
         self._sy_handlers: Dict[str, Callable[[str], None]] = {
             "SDA": self._audio_signal_callback,
             "SMI": self._audio_sound_callback,
+            "HDMIDIAGMAXRES": self._max_resolution_callback,
         }
 
         self._vs_handlers: Dict[str, Callable[[str], None]] = {
@@ -601,6 +605,15 @@ class DenonAVRDeviceInfo:
     def _audio_sampling_rate_callback(self, parameter: str) -> None:
         """Handle an audio sampling rate change event."""
         self._audio_sampling_rate = parameter[10:].replace("K", " kHz")
+
+    def _max_resolution_callback(self, parameter: str) -> None:
+        """Handle a max resolution change event."""
+        key_value = parameter.split()
+        if len(key_value) == 2:
+            value = key_value[1]
+            if value.endswith("G"):
+                value = value.replace("G", "Gbps")
+            self._max_resolution = value
 
     def _audio_signal_callback(self, parameter: str) -> None:
         """Handle an audio in encoding change event."""
@@ -1380,6 +1393,15 @@ class DenonAVRDeviceInfo:
         Only available if using Telnet.
         """
         return self._output_channels
+
+    @property
+    def max_resolution(self) -> Optional[str]:
+        """
+        Return the max resolution for the current signal for the device.
+
+        Only available if using Telnet.
+        """
+        return self._max_resolution
 
     @property
     def telnet_available(self) -> bool:

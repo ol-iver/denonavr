@@ -703,6 +703,7 @@ class DenonAVRTelnetApi:
                 "SYSMI ?",  # Audio Sound
                 "OPINFASP ?",  # Output Channels
                 "OPINFINS ?",  # Input Channels
+                "SYHDMIDIAGMAXRES ?",  # HDMI Max Resolution
             ]
 
             index = commands.index("MNMEN?")
