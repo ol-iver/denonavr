@@ -139,12 +139,12 @@ def convert_audio_sampling_rate(value: str | None) -> Optional[str]:
     return value.strip()
 
 
-def convert_video_signal_in(value: str | None) -> Optional[str]:
-    """Convert a HDMI signal in string."""
+def convert_video_signal(value: str | None) -> Optional[str]:
+    """Convert a video signal string."""
     if value is None:
         return None
     if value == "--- ":
-        return "-"
+        return None
     return value.strip()
 
 
@@ -351,10 +351,10 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(convert_audio_sampling_rate), default=None
     )
     _video_hdmi_signal_in: Optional[str] = attr.ib(
-        converter=attr.converters.optional(convert_video_signal_in), default=None
+        converter=attr.converters.optional(convert_video_signal), default=None
     )
     _video_hdmi_signal_out: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(convert_video_signal), default=None
     )
     _input_channels: Optional[str] = attr.ib(
         converter=attr.converters.optional(channel_status_to_str), default=None
@@ -363,10 +363,10 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(channel_status_to_str), default=None
     )
     _hdr_input: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(convert_video_signal), default=None
     )
     _hdr_output: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(convert_video_signal), default=None
     )
     _pixel_depth_input: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
@@ -375,10 +375,10 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(str), default=None
     )
     _max_frl_input: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(convert_video_signal), default=None
     )
     _max_frl_output: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(convert_video_signal), default=None
     )
     _max_resolution: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
@@ -657,6 +657,8 @@ class DenonAVRDeviceInfo:
         """Handle a pixel depth change event."""
 
         def get_pixel_depth(value: str) -> str | None:
+            if value == "0":
+                return None
             if value == "1":
                 return "8-bit"
             if value == "2":
