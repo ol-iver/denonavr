@@ -143,9 +143,10 @@ def convert_video_signal(value: str | None) -> Optional[str]:
     """Convert a video signal string."""
     if value is None:
         return None
-    if value == "--- ":
+    value = value.strip()
+    if value == "---":
         return None
-    return value.strip()
+    return value
 
 
 BED_CHANNELS = {
@@ -182,7 +183,7 @@ IMMERSIVE_CHANNELS = {
 }
 
 
-def channel_status_to_str(channel_statuses: str) -> str:
+def channel_status_to_str(channel_statuses: str) -> str | None:
     """
     Convert channel status string to industry standard string (e.g. '2.1', '5.1.2').
 
@@ -213,6 +214,8 @@ def channel_status_to_str(channel_statuses: str) -> str:
     result = f"{base_channel_count}.{lfe_count}"
     if immersive_channel_count:
         result += f".{immersive_channel_count}"
+    if result == "0.0":
+        return None
     return result
 
 
