@@ -155,6 +155,12 @@ class AppCommands:
 
     GetFriendlyName = AppCommandCmd(cmd_id="1", cmd_text="GetFriendlyName")
 
+    GetAudioInfo = AppCommandCmd(
+        cmd_id="3",
+        name="GetAudioInfo",
+        param_list=(AppCommandCmdParam(name="fs"),),
+    )
+
     GetVideoInfo = AppCommandCmd(
         cmd_id="3",
         name="GetVideoInfo",

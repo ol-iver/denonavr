@@ -375,6 +375,7 @@ class DenonAVRDeviceInfo:
     # Update tags for attributes
     # AppCommand0300.xml interface
     appcommand0300_attrs = {
+        AppCommands.GetAudioInfo: None,
         AppCommands.GetVideoInfo: None,
     }
 
@@ -419,6 +420,7 @@ class DenonAVRDeviceInfo:
             "SDA": self._audio_signal_callback,
             "SMI": self._audio_sound_callback,
             "HDMIDIAGMAXRES": self._max_resolution_callback,
+            "INFSIGRES": self._video_signal_callback,
         }
 
         self._vs_handlers: Dict[str, Callable[[str], None]] = {
@@ -607,6 +609,10 @@ class DenonAVRDeviceInfo:
             self._video_hdmi_signal_in = parameter[11:]
         elif parameter.startswith("INFSIGRES O"):
             self._video_hdmi_signal_out = parameter[11:]
+        elif parameter.startswith("SDVIN "):
+            self._video_hdmi_signal_in = parameter[6:]
+        elif parameter.startswith("SDVOUT "):
+            self._video_hdmi_signal_out = parameter[7:]
 
     def _audio_sampling_rate_callback(self, parameter: str) -> None:
         """Handle an audio sampling rate change event."""
