@@ -1,19 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <tx>
     <cmd id="3">
-        <name>GetAudioInfo</name>
-        <list>
-            <param name="inputmode"/>
-            <param name="output"/>
-            <param name="signal"/>
-            <param name="sound"/>
-            <param name="fs"/>
-        </list>
-    </cmd>
-    <cmd id="3">
         <name>GetVideoInfo</name>
         <list>
-            <param name="videooutput"/>
             <param name="hdmisigin"/>
             <param name="hdmisigout"/>
         </list>

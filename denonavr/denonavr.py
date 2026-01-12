@@ -811,7 +811,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Return the video HDMI signal output for the device.
 
-        Only available if using Telnet.
+        Only available if using Telnet and use_avr_2016_update is True.
         """
         return self._device.video_hdmi_signal_out
 
@@ -820,7 +820,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Return the input channels for the device.
 
-        Only available if using Telnet.
+        Only available if using Telnet and use_avr_2016_update is True.
         """
         return self._device.input_channels
 
