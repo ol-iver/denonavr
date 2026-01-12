@@ -645,7 +645,7 @@ class DenonAVRDeviceInfo:
             if self._output_channels != previous_value:
                 _LOGGER.info(
                     "Output channels changed to %s with raw value %s",
-                    self._input_channels,
+                    self._output_channels,
                     key_value[1],
                 )
 
