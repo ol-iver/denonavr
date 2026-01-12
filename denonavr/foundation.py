@@ -394,8 +394,11 @@ class DenonAVRDeviceInfo:
     _ss_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
     _sy_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
     _vs_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
-    _last_config12_time: float | None = attr.ib(default=None, init=False)
-    _config12_task: Task[None] | None = attr.ib(default=None, init=False)
+    _last_advanced_video_info_time: float | None = attr.ib(default=None, init=False)
+    _config_advanced_video_info_task: Task[None] | None = attr.ib(
+        default=None, init=False
+    )
+    _advanced_video_info_supported: bool = attr.ib(default=False, init=False)
 
     # Update tags for attributes
     # AppCommand0300.xml interface
@@ -456,9 +459,6 @@ class DenonAVRDeviceInfo:
             "AUDIO": self._hdmi_audio_decode_callback,
             "VPM": self._video_processing_mode_callback,
         }
-
-        self._last_config12_time = None
-        self._config12_task = None
 
     def _power_callback(self, zone: str, _event: str, parameter: str) -> None:
         """Handle a power change event."""
@@ -760,6 +760,9 @@ class DenonAVRDeviceInfo:
                 for tag in self.appcommand0300_attrs:
                     self.api.add_appcommand0300_update_tag(tag)
 
+            self._advanced_video_info_supported = (
+                await self._async_check_video_info_supported()
+            )
             self._register_callbacks()
 
             self._is_setup = True
@@ -809,14 +812,32 @@ class DenonAVRDeviceInfo:
                     global_update=global_update,
                     cache_id=cache_id,
                 )
-                self._trigger_config12_update()
+                if self._advanced_video_info_supported:
+                    self._trigger_advanced_video_info_update()
             except AvrProcessingError as err:
                 # Don't raise an error here, because not all devices support it
                 _LOGGER.debug("Updating AVR Device Info failed: %s", err)
 
         _LOGGER.debug("Finished device update")
 
-    def _trigger_config12_update(self) -> None:
+    async def _async_check_video_info_supported(self) -> bool:
+        url = f"http://{self.api.host}:11080/ajax/general/get_config?type=12"
+        try:
+            response = self.api.httpx_async_client.async_get(
+                url,
+                rate_limit_key="check_config_type_12",
+                timeout=self.api.timeout,
+                read_timeout=5.0,
+                record_latency=False,
+                skip_rate_limiter=True,
+            )
+            if response.status_code == 200:
+                return True
+            return False
+        except Exception:  # pylint: disable=broad-exception-caught
+            return False
+
+    def _trigger_advanced_video_info_update(self) -> None:
         async def _async_request_config12():
             url = f"http://{self.api.host}:11080/ajax/general/get_config?type=12"
             try:
@@ -832,26 +853,31 @@ class DenonAVRDeviceInfo:
             except asyncio.CancelledError:
                 # Task was canceled; allow immediate retry by clearing last timestamp
                 _LOGGER.debug("Config12 update task was cancelled")
-                self._last_config12_time = None
+                self._last_advanced_video_info_time = None
                 raise
             except Exception as err:  # pylint: disable=broad-exception-caught
                 # Request failed; clear last timestamp to allow a retry
                 _LOGGER.debug("Config12 update request failed: %s", err)
-                self._last_config12_time = None
+                self._last_advanced_video_info_time = None
             finally:
                 # Ensure the task reference is cleared when done
-                self._config12_task = None
+                self._config_advanced_video_info_task = None
 
         now = time.monotonic()
         # Only allow to run every 10 seconds, endpoint is slow
         # We do not want to use the rate limiter here, because it would block
         # other important requests while waiting
-        if self._last_config12_time is None or (
-            now - self._last_config12_time >= 10
-            and (self._config12_task is None or self._config12_task.done())
+        if self._last_advanced_video_info_time is None or (
+            now - self._last_advanced_video_info_time >= 10
+            and (
+                self._config_advanced_video_info_task is None
+                or self._config_advanced_video_info_task.done()
+            )
         ):
-            self._last_config12_time = now
-            self._config12_task = asyncio.create_task(_async_request_config12())
+            self._last_advanced_video_info_time = now
+            self._config_advanced_video_info_task = asyncio.create_task(
+                _async_request_config12()
+            )
 
     async def async_identify_receiver(self) -> None:
         """Identify receiver asynchronously."""
@@ -1713,6 +1739,11 @@ class DenonAVRDeviceInfo:
         if not self.manufacturer:
             return True  # Fallback to Denon
         return "denon" in self.manufacturer.lower()
+
+    @property
+    def advanced_video_info_supported(self) -> bool | None:
+        """Return true if advanced video info is supported."""
+        return self._advanced_video_info_supported
 
     ##########
     # Getter #

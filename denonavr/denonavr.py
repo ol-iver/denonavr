@@ -896,6 +896,11 @@ class DenonAVR(DenonAVRFoundation):
         """
         return self._device.max_resolution
 
+    @property
+    def advanced_video_info_supported(self) -> bool | None:
+        """Return true if advanced video info is supported."""
+        return self._device.advanced_video_info_supported
+
     ##########
     # Getter #
     ##########
