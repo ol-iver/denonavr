@@ -823,7 +823,7 @@ class DenonAVRDeviceInfo:
     async def _async_check_video_info_supported(self) -> bool:
         url = f"http://{self.api.host}:11080/ajax/general/get_config?type=1"
         try:
-            response = self.api.httpx_async_client.async_get(
+            response = await self.api.httpx_async_client.async_get(
                 url,
                 rate_limit_key="check_config_type_12",
                 timeout=self.api.timeout,
@@ -845,7 +845,7 @@ class DenonAVRDeviceInfo:
                 await self.api.httpx_async_client.async_get(
                     url,
                     rate_limit_key="get_config_type_12",
-                    timeout=5.0,
+                    timeout=self.api.timeout,
                     read_timeout=5.0,
                     record_latency=False,
                     skip_rate_limiter=True,
