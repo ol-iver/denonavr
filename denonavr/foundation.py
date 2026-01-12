@@ -826,7 +826,7 @@ class DenonAVRDeviceInfo:
             response = await self.api.httpx_async_client.async_get(
                 url,
                 rate_limit_key="check_config_type_12",
-                timeout=self.api.timeout,
+                timeout=0.2,
                 read_timeout=5.0,
                 record_latency=False,
                 skip_rate_limiter=True,
