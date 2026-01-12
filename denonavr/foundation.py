@@ -398,7 +398,7 @@ class DenonAVRDeviceInfo:
     _config_advanced_video_info_task: Task[None] | None = attr.ib(
         default=None, init=False
     )
-    _advanced_video_info_supported: bool = attr.ib(default=False, init=False)
+    _advanced_video_info_supported: bool = attr.ib(default=None, init=False)
 
     # Update tags for attributes
     # AppCommand0300.xml interface
@@ -760,9 +760,10 @@ class DenonAVRDeviceInfo:
                 for tag in self.appcommand0300_attrs:
                     self.api.add_appcommand0300_update_tag(tag)
 
-            self._advanced_video_info_supported = (
-                await self._async_check_video_info_supported()
-            )
+            if self._advanced_video_info_supported is None:
+                self._advanced_video_info_supported = (
+                    await self._async_check_video_info_supported()
+                )
             self._register_callbacks()
 
             self._is_setup = True
@@ -826,7 +827,7 @@ class DenonAVRDeviceInfo:
             response = await self.api.httpx_async_client.async_get(
                 url,
                 rate_limit_key="check_config_type_12",
-                timeout=0.2,
+                timeout=self.api.timeout,
                 read_timeout=5.0,
                 record_latency=False,
                 skip_rate_limiter=True,
@@ -1767,6 +1768,12 @@ class DenonAVRDeviceInfo:
     ##########
     # Setter #
     ##########
+
+    def set_advanced_video_info_supported(
+        self, advanced_video_info_supported: bool
+    ) -> None:
+        """Set if advanced video info is supported."""
+        self._advanced_video_info_supported = advanced_video_info_supported
 
     async def async_power_on(self) -> None:
         """Turn on receiver via HTTP get command."""
