@@ -834,6 +834,60 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.output_channels
 
     @property
+    def hdr_input(self) -> Optional[str]:
+        """
+        Return the HDR input format for the device.
+
+        Only available if using Telnet and use_avr_2016_update is True.
+        """
+        return self._device.hdr_input
+
+    @property
+    def hdr_output(self) -> Optional[str]:
+        """
+        Return the HDR output format for the device.
+
+        Only available if using Telnet and use_avr_2016_update is True.
+        """
+        return self._device.hdr_output
+
+    @property
+    def pixel_depth_input(self) -> Optional[str]:
+        """
+        Return the pixel depth input for the device.
+
+        Only available if using Telnet and use_avr_2016_update is True.
+        """
+        return self._device.pixel_depth_input
+
+    @property
+    def pixel_depth_output(self) -> Optional[str]:
+        """
+        Return the pixel depth output for the device.
+
+        Only available if using Telnet and use_avr_2016_update is True.
+        """
+        return self._device.pixel_depth_output
+
+    @property
+    def max_frl_input(self) -> Optional[str]:
+        """
+        Return the max FRL input for the device.
+
+        Only available if using Telnet and use_avr_2016_update is True.
+        """
+        return self._device.max_frl_input
+
+    @property
+    def max_frl_output(self) -> Optional[str]:
+        """
+        Return the max FRL output for the device.
+
+        Only available if using Telnet and use_avr_2016_update is True.
+        """
+        return self._device.max_frl_output
+
+    @property
     def max_resolution(self) -> Optional[str]:
         """
         Return the max resolution for the current signal for the device.

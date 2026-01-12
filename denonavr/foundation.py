@@ -9,7 +9,9 @@ This module implements the foundation classes for Denon AVR receivers.
 
 import asyncio
 import logging
+import time
 import xml.etree.ElementTree as ET
+from asyncio import Task
 from collections.abc import Hashable
 from copy import deepcopy
 from typing import Callable, Dict, List, Literal, Optional, Union, get_args
@@ -360,6 +362,24 @@ class DenonAVRDeviceInfo:
     _output_channels: Optional[str] = attr.ib(
         converter=attr.converters.optional(channel_status_to_str), default=None
     )
+    _hdr_input: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _hdr_output: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _pixel_depth_input: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _pixel_depth_output: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _max_frl_input: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _max_frl_output: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
     _max_resolution: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
@@ -371,6 +391,8 @@ class DenonAVRDeviceInfo:
     _ss_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
     _sy_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
     _vs_handlers: Dict[str, Callable[[str], None]] = attr.ib(factory=dict, init=False)
+    _last_config12_time: float | None = attr.ib(default=None, init=False)
+    _config12_task: Task[None] | None = attr.ib(default=None, init=False)
 
     # Update tags for attributes
     # AppCommand0300.xml interface
@@ -414,6 +436,9 @@ class DenonAVRDeviceInfo:
             "HOS": self._auto_lip_sync_callback,
             "INFSIGRES": self._video_signal_callback,
             "INFAISFSV": self._audio_sampling_rate_callback,
+            "INFSIGHDR": self._hdr_callback,
+            "INFSIGPIX": self._pixel_depth_callback,
+            "INFSIGFRL": self._max_frl_callback,
         }
 
         self._sy_handlers: Dict[str, Callable[[str], None]] = {
@@ -428,6 +453,9 @@ class DenonAVRDeviceInfo:
             "AUDIO": self._hdmi_audio_decode_callback,
             "VPM": self._video_processing_mode_callback,
         }
+
+        self._last_config12_time = None
+        self._config12_task = None
 
     def _power_callback(self, zone: str, _event: str, parameter: str) -> None:
         """Handle a power change event."""
@@ -618,6 +646,37 @@ class DenonAVRDeviceInfo:
         """Handle an audio sampling rate change event."""
         self._audio_sampling_rate = parameter[10:].replace("K", " kHz")
 
+    def _hdr_callback(self, parameter: str) -> None:
+        """Handle an HDR change event."""
+        if parameter.startswith("INFSIGHDR I"):
+            self._hdr_input = parameter[11:]
+        elif parameter.startswith("INFSIGHDR O"):
+            self._hdr_output = parameter[11:]
+
+    def _pixel_depth_callback(self, parameter: str) -> None:
+        """Handle a pixel depth change event."""
+
+        def get_pixel_depth(value: str) -> str | None:
+            if value == "1":
+                return "8-bit"
+            if value == "2":
+                return "10-bit"
+            if value == "3":
+                return "12-bit"
+            return None
+
+        key_value = parameter.split()
+        if len(key_value) == 2 and len(key_value[1]) == 2:
+            self._pixel_depth_input = get_pixel_depth(key_value[1][0])
+            self._pixel_depth_output = get_pixel_depth(key_value[1][1])
+
+    def _max_frl_callback(self, parameter: str) -> None:
+        """Handle a max FRL change event."""
+        if parameter.startswith("INFSIGFRL I"):
+            self._max_frl_input = parameter[12:]
+        elif parameter.startswith("INFSIGFRL O"):
+            self._max_frl_output = parameter[12:]
+
     def _max_resolution_callback(self, parameter: str) -> None:
         """Handle a max resolution change event."""
         key_value = parameter.split()
@@ -745,11 +804,49 @@ class DenonAVRDeviceInfo:
                     global_update=global_update,
                     cache_id=cache_id,
                 )
+                self._trigger_config12_update()
             except AvrProcessingError as err:
                 # Don't raise an error here, because not all devices support it
                 _LOGGER.debug("Updating AVR Device Info failed: %s", err)
 
         _LOGGER.debug("Finished device update")
+
+    def _trigger_config12_update(self) -> None:
+        async def _async_request_config12():
+            url = f"http://{self.api.host}:11080/ajax/general/get_config?type=12"
+            try:
+                # This triggers telnet callbacks, response body is not interesting
+                await self.api.httpx_async_client.async_get(
+                    url,
+                    rate_limit_key="get_config_type_12",
+                    timeout=self.api.timeout,
+                    read_timeout=5.0,
+                    record_latency=False,
+                    skip_rate_limiter=True,
+                )
+            except asyncio.CancelledError:
+                # Task was canceled; allow immediate retry by clearing last timestamp
+                _LOGGER.debug("Config12 update task was cancelled")
+                self._last_config12_time = None
+                raise
+            except Exception as err:  # pylint: disable=broad-exception-caught
+                # Request failed; clear last timestamp to allow a retry
+                _LOGGER.debug("Config12 update request failed: %s", err)
+                self._last_config12_time = None
+            finally:
+                # Ensure the task reference is cleared when done
+                self._config12_task = None
+
+        now = time.monotonic()
+        # Only allow to run every 10 seconds, endpoint is slow
+        # We do not want to use the rate limiter here, because it would block
+        # other important requests while waiting
+        if self._last_config12_time is None or (
+            now - self._last_config12_time >= 10
+            and (self._config12_task is None or self._config12_task.done())
+        ):
+            self._last_config12_time = now
+            self._config12_task = asyncio.create_task(_async_request_config12())
 
     async def async_identify_receiver(self) -> None:
         """Identify receiver asynchronously."""
@@ -1536,6 +1633,60 @@ class DenonAVRDeviceInfo:
         Only available if using Telnet.
         """
         return self._output_channels
+
+    @property
+    def hdr_input(self) -> Optional[str]:
+        """
+        Return the HDR input format for the device.
+
+        Only available if using Telnet and use_avr_2016_update is True.
+        """
+        return self._hdr_input
+
+    @property
+    def hdr_output(self) -> Optional[str]:
+        """
+        Return the HDR output format for the device.
+
+        Only available if using Telnet and use_avr_2016_update is True.
+        """
+        return self._hdr_output
+
+    @property
+    def pixel_depth_input(self) -> Optional[str]:
+        """
+        Return the pixel depth input for the device.
+
+        Only available if using Telnet and use_avr_2016_update is True.
+        """
+        return self._pixel_depth_input
+
+    @property
+    def pixel_depth_output(self) -> Optional[str]:
+        """
+        Return the pixel depth output for the device.
+
+        Only available if using Telnet and use_avr_2016_update is True.
+        """
+        return self._pixel_depth_output
+
+    @property
+    def max_frl_input(self) -> Optional[str]:
+        """
+        Return the max FRL input for the device.
+
+        Only available if using Telnet and use_avr_2016_update is True.
+        """
+        return self._max_frl_input
+
+    @property
+    def max_frl_output(self) -> Optional[str]:
+        """
+        Return the max FRL output for the device.
+
+        Only available if using Telnet and use_avr_2016_update is True.
+        """
+        return self._max_frl_output
 
     @property
     def max_resolution(self) -> Optional[str]:

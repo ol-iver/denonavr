@@ -707,6 +707,9 @@ class DenonAVRTelnetApi:
                 "SYSDVIN ?",  # Video Signal Input
                 "SYSDVOUT ?",  # Video Signal Output
                 "SYHDMIDIAGMAXRES ?",  # HDMI Max Resolution
+                "SSINFSIGHDR ?",  # Video HDR Format
+                "SSINFSIGPIX ?",  # Video Pixel Depth
+                "SSINFSIGFRL ?",  # Video Max FRL
             ]
 
             index = commands.index("MNMEN?")
