@@ -803,8 +803,13 @@ class DenonAVRDeviceInfo:
                 "SSINFSIGFRL ?",
             ]
             for command in commands:
-                await self.telnet_api.async_send_commands(command)
-                await asyncio.sleep(0.1)
+                try:
+                    await self.telnet_api.async_send_commands(command)
+                    await asyncio.sleep(0.1)
+                except Exception:  # pylint: disable=broad-except
+                    _LOGGER.debug(
+                        "Failed to send advanced video info command: %s.", command
+                    )
 
         if self.telnet_available:
             asyncio.create_task(_trigger_inner())
