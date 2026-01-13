@@ -155,21 +155,6 @@ class AppCommands:
 
     GetFriendlyName = AppCommandCmd(cmd_id="1", cmd_text="GetFriendlyName")
 
-    GetAudioInfo = AppCommandCmd(
-        cmd_id="3",
-        name="GetAudioInfo",
-        param_list=(AppCommandCmdParam(name="fs"),),
-    )
-
-    GetVideoInfo = AppCommandCmd(
-        cmd_id="3",
-        name="GetVideoInfo",
-        param_list=(
-            AppCommandCmdParam(name="hdmisigin"),
-            AppCommandCmdParam(name="hdmisigout"),
-        ),
-    )
-
     GetAudyssey = AppCommandCmd(
         cmd_id="3",
         name="GetAudyssey",

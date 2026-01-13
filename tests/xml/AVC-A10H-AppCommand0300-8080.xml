@@ -1,16 +1,33 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <tx>
     <cmd id="3">
-        <name>GetAudioInfo</name>
+        <name>GetInputSignal</name>
         <list>
-            <param name="fs"/>
+            <param name="inputsigall"></param>
+        </list>
+    </cmd>
+    <cmd id="3">
+        <name>GetActiveSpeaker</name>
+        <list>
+            <param name="activespall"></param>
         </list>
     </cmd>
     <cmd id="3">
         <name>GetVideoInfo</name>
         <list>
-            <param name="hdmisigin"/>
-            <param name="hdmisigout"/>
+            <param name="videooutput"></param>
+            <param name="hdmisigin"></param>
+            <param name="hdmisigout"></param>
+        </list>
+    </cmd>
+    <cmd id="3">
+        <name>GetAudioInfo</name>
+        <list>
+            <param name="inputmode"></param>
+            <param name="output"></param>
+            <param name="signal"></param>
+            <param name="sound"></param>
+            <param name="fs"></param>
         </list>
     </cmd>
     <cmd id="3">

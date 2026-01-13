@@ -217,6 +217,14 @@ class DenonAVR(DenonAVRFoundation):
         #     global_update=True, cache_id=cache_id)
         _LOGGER.debug("Finished denonavr update")
 
+    async def async_trigger_advanced_video_info_update(self) -> None:
+        """
+        Trigger an advanced video info update.
+
+        Only available if using Telnet.
+        """
+        return await self._device.trigger_advanced_video_info_update()
+
     async def async_update_tonecontrol(self):
         """Get Tonecontrol settings."""
         await self.tonecontrol.async_update()
@@ -811,7 +819,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Return the video HDMI signal output for the device.
 
-        Only available if using Telnet and use_avr_2016_update is True.
+        Only available if using Telnet.
         """
         return self._device.video_hdmi_signal_out
 
@@ -820,7 +828,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Return the input channels for the device.
 
-        Only available if using Telnet and use_avr_2016_update is True.
+        Only available if using Telnet.
         """
         return self._device.input_channels
 
@@ -838,7 +846,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Return the HDR input format for the device.
 
-        Only available if using Telnet and use_avr_2016_update is True.
+        Only available if using Telnet.
         """
         return self._device.hdr_input
 
@@ -847,7 +855,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Return the HDR output format for the device.
 
-        Only available if using Telnet and use_avr_2016_update is True.
+        Only available if using Telnet.
         """
         return self._device.hdr_output
 
@@ -856,7 +864,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Return the pixel depth input for the device.
 
-        Only available if using Telnet and use_avr_2016_update is True.
+        Only available if using Telnet.
         """
         return self._device.pixel_depth_input
 
@@ -865,7 +873,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Return the pixel depth output for the device.
 
-        Only available if using Telnet and use_avr_2016_update is True.
+        Only available if using Telnet.
         """
         return self._device.pixel_depth_output
 
@@ -874,7 +882,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Return the max FRL input for the device.
 
-        Only available if using Telnet and use_avr_2016_update is True.
+        Only available if using Telnet.
         """
         return self._device.max_frl_input
 
@@ -883,7 +891,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Return the max FRL output for the device.
 
-        Only available if using Telnet and use_avr_2016_update is True.
+        Only available if using Telnet.
         """
         return self._device.max_frl_output
 
@@ -895,11 +903,6 @@ class DenonAVR(DenonAVRFoundation):
         Only available if using Telnet.
         """
         return self._device.max_resolution
-
-    @property
-    def advanced_video_info_supported(self) -> bool | None:
-        """Return true if advanced video info is supported."""
-        return self._device.advanced_video_info_supported
 
     ##########
     # Getter #

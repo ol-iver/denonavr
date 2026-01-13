@@ -703,7 +703,6 @@ class DenonAVRTelnetApi:
                 "SYSMI ?",  # Audio Sound
                 "OPINFASP ?",  # Output Channels
                 "OPINFINS ?",  # Input Channels
-                "SYSDV ?",  # Video Signal General
                 "SYSDVIN ?",  # Video Signal Input
                 "SYSDVOUT ?",  # Video Signal Output
                 "SYHDMIDIAGMAXRES ?",  # HDMI Max Resolution
