@@ -783,36 +783,35 @@ class DenonAVRDeviceInfo:
 
         # Update power status
         await self.async_update_power(global_update=global_update, cache_id=cache_id)
+        await self.async_trigger_advanced_video_info_update()
         _LOGGER.debug("Finished device update")
 
-    def trigger_advanced_video_info_update(self) -> None:
+    async def async_trigger_advanced_video_info_update(self) -> None:
         """
         Trigger an advanced video info update.
 
         Only available if using Telnet.
         """
+        if not self.telnet_available:
+            return
 
-        async def _trigger_inner():
-            commands = [
-                "SSINFSIGRES ?",
-                "SYSDVIN ?",
-                "SYSDVOUT ?",
-                "SYHDMIDIAGMAXRES ?",
-                "SSINFSIGHDR ?",
-                "SSINFSIGPIX ?",
-                "SSINFSIGFRL ?",
-            ]
-            for command in commands:
-                try:
-                    await self.telnet_api.async_send_commands(command)
-                    await asyncio.sleep(0.1)
-                except Exception:  # pylint: disable=broad-except
-                    _LOGGER.debug(
-                        "Failed to send advanced video info command: %s.", command
-                    )
-
-        if self.telnet_available:
-            asyncio.create_task(_trigger_inner())
+        commands = [
+            "SSINFSIGRES ?",
+            "SYSDVIN ?",
+            "SYSDVOUT ?",
+            "SYHDMIDIAGMAXRES ?",
+            "SSINFSIGHDR ?",
+            "SSINFSIGPIX ?",
+            "SSINFSIGFRL ?",
+        ]
+        for command in commands:
+            try:
+                await self.telnet_api.async_send_commands(command)
+                await asyncio.sleep(0.02)
+            except Exception:  # pylint: disable=broad-except
+                _LOGGER.debug(
+                    "Failed to send advanced video info command: %s.", command
+                )
 
     async def async_identify_receiver(self) -> None:
         """Identify receiver asynchronously."""
