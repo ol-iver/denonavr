@@ -647,7 +647,7 @@ class DenonAVRDeviceInfo:
 
         def get_pixel_depth(value: str) -> str | None:
             if value == "0":
-                return None
+                return "Unknown"
             if value == "1":
                 return "8-bit"
             if value == "2":
