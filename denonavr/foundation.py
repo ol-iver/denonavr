@@ -136,14 +136,14 @@ def convert_audio_sampling_rate(value: str | None) -> Optional[str]:
 
     stripped_value = value.strip()
     if stripped_value == "441":
-        return "44.1 kHz"
+        return "44.1"
     if stripped_value == "176":
-        return "176.4 kHz"
+        return "176.4"
     if stripped_value == "192":
-        return "192 kHz"
+        return "192"
 
     if stripped_value.endswith("K"):
-        return stripped_value.replace("K", " kHz")
+        return stripped_value.replace("K", "")
 
     return stripped_value
 

@@ -6,6 +6,7 @@ This module implements a discovery function for Denon AVR receivers via mDNS.
 :copyright: (c) 2025 by Henrik Widlund.
 :license: MIT, see LICENSE for more details.
 """
+
 import asyncio
 import logging
 import threading

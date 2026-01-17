@@ -6,6 +6,7 @@ This module contains helper functions for tests.
 :copyright: (c) 2016 by Oliver Goetz.
 :license: MIT, see LICENSE for more details.
 """
+
 from typing import Any, Awaitable
 from unittest.mock import AsyncMock, PropertyMock, patch
 

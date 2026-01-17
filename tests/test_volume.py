@@ -6,6 +6,7 @@ Unit tests for DenonAVRVolume (volume logic).
 :copyright: (c) 2021 by Oliver Goetz.
 :license: MIT, see LICENSE for more details.
 """
+
 import pytest
 
 from denonavr.volume import DenonAVRVolume, convert_volume

@@ -8,6 +8,7 @@ Single-process only. Excludes fire-and-forget calls (skip_confirmation) from RTT
 :copyright: (c) 2025 by Henrik Widlund.
 :license: MIT, see LICENSE for more details.
 """
+
 from __future__ import annotations
 
 import asyncio
