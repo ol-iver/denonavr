@@ -134,7 +134,18 @@ def convert_audio_sampling_rate(value: str | None) -> Optional[str]:
     if value in ("", "NON"):
         return None
 
-    return value.strip()
+    stripped_value = value.strip()
+    if stripped_value == "441":
+        return "44.1 kHz"
+    if stripped_value == "176":
+        return "176.4 kHz"
+    if stripped_value == "192":
+        return "192 kHz"
+
+    if stripped_value.endswith("K"):
+        return stripped_value.replace("K", " kHz")
+
+    return stripped_value
 
 
 def convert_video_signal(value: str | None) -> Optional[str]:
@@ -633,7 +644,7 @@ class DenonAVRDeviceInfo:
 
     def _audio_sampling_rate_callback(self, parameter: str) -> None:
         """Handle an audio sampling rate change event."""
-        self._audio_sampling_rate = parameter[10:].replace("K", " kHz")
+        self._audio_sampling_rate = parameter[10:]
 
     def _hdr_callback(self, parameter: str) -> None:
         """Handle an HDR change event."""
