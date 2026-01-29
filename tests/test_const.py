@@ -14,7 +14,7 @@ from denonavr.const import (
     CHANNEL_MAP,
     DIMMER_MODE_MAP_LABELS,
     DIRAC_FILTER_MAP_LABELS,
-    ECO_MODE_MAP,
+    ECO_MODE_MAP_LABELS,
     HDMI_OUTPUT_MAP,
     Channels,
     DimmerModes,
@@ -35,7 +35,7 @@ class TestMappings(unittest.TestCase):
     def test_eco_modes_mappings(self):
         """Test that all eco-modes are in the mapping."""
         for mode in get_args(EcoModes):
-            self.assertIn(mode, ECO_MODE_MAP)
+            self.assertIn(mode, ECO_MODE_MAP_LABELS)
 
     def test_hdmi_outputs_mappings(self):
         """Test that all hdmi outputs are in the mapping."""

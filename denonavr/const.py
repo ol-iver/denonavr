@@ -1673,9 +1673,9 @@ DiracFilters = Literal["Slot 1", "Slot 2", "Slot 3", "Off"]
 """Dirac Filters."""
 
 ECO_MODE_MAP = {
-    "On": "ON",
-    "Auto": "AUTO",
-    "Off": "OFF",
+    "ON": "On",
+    "AUTO": "Auto",
+    "OFF": "Off",
 }
 ECO_MODE_MAP_LABELS = {value: key for key, value in ECO_MODE_MAP.items()}
 

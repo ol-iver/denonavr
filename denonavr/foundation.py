@@ -313,8 +313,8 @@ class DenonAVRDeviceInfo:
 
     def _eco_mode_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an Eco-mode change event."""
-        if event == "ECO" and parameter in ECO_MODE_MAP_LABELS:
-            self._eco_mode = ECO_MODE_MAP_LABELS[parameter]
+        if event == "ECO" and parameter in ECO_MODE_MAP:
+            self._eco_mode = ECO_MODE_MAP[parameter]
 
     def _hdmi_output_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a HDMI output change event."""
@@ -1495,7 +1495,7 @@ class DenonAVRDeviceInfo:
         if mode not in self._eco_modes:
             raise AvrCommandError("Invalid Eco mode")
 
-        mapped_mode = ECO_MODE_MAP[mode]
+        mapped_mode = ECO_MODE_MAP_LABELS[mode]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_eco_mode.format(mode=mapped_mode)
