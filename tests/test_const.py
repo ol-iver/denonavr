@@ -12,7 +12,7 @@ from typing import get_args
 
 from denonavr.const import (
     CHANNEL_MAP,
-    DIMMER_MODE_MAP,
+    DIMMER_MODE_MAP_LABELS,
     DIRAC_FILTER_MAP,
     ECO_MODE_MAP,
     HDMI_OUTPUT_MAP,
@@ -30,7 +30,7 @@ class TestMappings(unittest.TestCase):
     def test_dimmer_modes_mappings(self):
         """Test that all dimmer modes are in the mapping."""
         for mode in get_args(DimmerModes):
-            self.assertIn(mode, DIMMER_MODE_MAP)
+            self.assertIn(mode, DIMMER_MODE_MAP_LABELS)
 
     def test_eco_modes_mappings(self):
         """Test that all eco-modes are in the mapping."""

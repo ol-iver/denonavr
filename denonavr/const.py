@@ -1656,10 +1656,10 @@ BLUETOOTH_OUTPUT_MODES_MAP_LABELS = {
 }
 
 DIMMER_MODE_MAP = {
-    "Off": DIMER_OFF,
-    "Dark": DIMER_DARK,
-    "Dim": DIMER_DIM,
-    "Bright": DIMER_BRIGHT,
+    DIMER_OFF: "Off",
+    DIMER_DARK: "Dark",
+    DIMER_DIM: "Dim",
+    DIMER_BRIGHT: "Bright",
 }
 DIMMER_MODE_MAP_LABELS = {value: key for key, value in DIMMER_MODE_MAP.items()}
 

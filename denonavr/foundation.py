@@ -267,8 +267,8 @@ class DenonAVRDeviceInfo:
 
     def _dimmer_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a dimmer change event."""
-        if event == "DIM" and parameter[1:] in DIMMER_MODE_MAP_LABELS:
-            self._dimmer = DIMMER_MODE_MAP_LABELS[parameter[1:]]
+        if event == "DIM" and parameter[1:] in DIMMER_MODE_MAP:
+            self._dimmer = DIMMER_MODE_MAP[parameter[1:]]
 
     def _auto_standby_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a auto standby change event."""
@@ -1239,7 +1239,7 @@ class DenonAVRDeviceInfo:
         if mode not in self._dimmer_modes:
             raise AvrCommandError("Invalid dimmer mode")
 
-        mapped_mode = DIMMER_MODE_MAP[mode]
+        mapped_mode = DIMMER_MODE_MAP_LABELS[mode]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_dimmer_set.format(mode=mapped_mode)
