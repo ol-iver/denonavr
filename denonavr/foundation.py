@@ -407,7 +407,7 @@ class DenonAVRDeviceInfo:
         if event != "ILB" or parameter[0:3] != "ILL":
             return
 
-        self._illumination = ILLUMINATION_MAP_LABELS[parameter[4:]]
+        self._illumination = ILLUMINATION_MAP[parameter[4:]]
 
     def _auto_lip_sync_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a auto lip sync change event."""
@@ -1890,7 +1890,7 @@ class DenonAVRDeviceInfo:
         if mode not in self._illuminations:
             raise AvrCommandError("Invalid illumination mode")
 
-        mapped_mode = ILLUMINATION_MAP[mode]
+        mapped_mode = ILLUMINATION_MAP_LABELS[mode]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_illumination.format(mode=mapped_mode)

@@ -1961,11 +1961,11 @@ Illuminations = Literal["Auto", "Bright", "Dim", "Dark", "Off"]
 """Illumination Modes."""
 
 ILLUMINATION_MAP = {
-    "Auto": "AUTO",
-    "Bright": "BRI",
-    "Dim": "DIM",
-    "Dark": "DAR",
-    "Off": "OFF",
+    "AUTO": "Auto",
+    "BRI": "Bright",
+    "DIM": "Dim",
+    "DAR": "Dark",
+    "OFF": "Off",
 }
 
 ILLUMINATION_MAP_LABELS = {value: key for key, value in ILLUMINATION_MAP.items()}
