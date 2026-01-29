@@ -292,9 +292,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     def _dialog_enhancer_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Dialog Enhancer change event."""
         if parameter[:3] == "DEH":
-            self._dialog_enhancer_level = DIALOG_ENHANCER_LEVEL_MAP_LABELS[
-                parameter[4:]
-            ]
+            self._dialog_enhancer_level = DIALOG_ENHANCER_LEVEL_MAP[parameter[4:]]
 
     def _auro_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Auro change event."""
@@ -1055,7 +1053,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if level not in self._dialog_enhancer_levels:
             raise AvrCommandError(f"{level} is not a valid dialog enhancer level")
 
-        level_mapped = DIALOG_ENHANCER_LEVEL_MAP[level]
+        level_mapped = DIALOG_ENHANCER_LEVEL_MAP_LABELS[level]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_dialog_enhancer.format(

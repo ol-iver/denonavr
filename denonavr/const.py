@@ -1877,10 +1877,10 @@ DialogEnhancerLevels = Literal["Off", "Low", "Medium", "High"]
 """Dialog Enhancer Levels."""
 
 DIALOG_ENHANCER_LEVEL_MAP = {
-    "Off": "OFF",
-    "Low": "LOW",
-    "Medium": "MED",
-    "High": "HIGH",
+    "OFF": "Off",
+    "LOW": "Low",
+    "MED": "Medium",
+    "HIGH": "High",
 }
 
 DIALOG_ENHANCER_LEVEL_MAP_LABELS = {
