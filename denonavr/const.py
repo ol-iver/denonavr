@@ -1714,14 +1714,14 @@ DRCs = Literal["AUTO", "LOW", "MID", "HI", "OFF"]
 """Dynamic Range Control (DRC) Settings."""
 
 HDMI_OUTPUT_MAP = {
-    "Auto": "AUTO",
-    "HDMI1": "1",
-    "HDMI2": "2",
-}
-HDMI_OUTPUT_MAP_LABELS = {
     "MONIAUTO": "Auto",
     "MONI1": "HDMI1",
     "MONI2": "HDMI2",
+}
+HDMI_OUTPUT_MAP_LABELS = {
+    "Auto": "AUTO",
+    "HDMI1": "1",
+    "HDMI2": "2",
 }
 
 HDMIOutputs = Literal["Auto", "HDMI1", "HDMI2"]

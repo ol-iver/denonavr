@@ -319,7 +319,7 @@ class DenonAVRDeviceInfo:
     def _hdmi_output_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a HDMI output change event."""
         if event == "VS" and parameter[0:4] == "MONI":
-            self._hdmi_output = HDMI_OUTPUT_MAP_LABELS[parameter]
+            self._hdmi_output = HDMI_OUTPUT_MAP[parameter]
 
     def _hdmi_audio_decode_callback(
         self, zone: str, event: str, parameter: str
@@ -1510,7 +1510,7 @@ class DenonAVRDeviceInfo:
         if output not in self._hdmi_outputs:
             raise AvrCommandError("Invalid HDMI output mode")
 
-        mapped_output = HDMI_OUTPUT_MAP[output]
+        mapped_output = HDMI_OUTPUT_MAP_LABELS[output]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_hdmi_output.format(output=mapped_output)
