@@ -13,7 +13,7 @@ from typing import get_args
 from denonavr.const import (
     CHANNEL_MAP,
     DIMMER_MODE_MAP_LABELS,
-    DIRAC_FILTER_MAP,
+    DIRAC_FILTER_MAP_LABELS,
     ECO_MODE_MAP,
     HDMI_OUTPUT_MAP,
     Channels,
@@ -50,7 +50,7 @@ class TestMappings(unittest.TestCase):
     def test_dirac_filter_mappings(self):
         """Test that dirac filters are in the mapping."""
         for dirac_filter in get_args(DiracFilters):
-            self.assertIn(dirac_filter, DIRAC_FILTER_MAP)
+            self.assertIn(dirac_filter, DIRAC_FILTER_MAP_LABELS)
 
 
 if __name__ == "__main__":

@@ -1666,7 +1666,7 @@ DIMMER_MODE_MAP_LABELS = {value: key for key, value in DIMMER_MODE_MAP.items()}
 DimmerModes = Literal["Off", "Dark", "Dim", "Bright"]
 """Dimmer Modes."""
 
-DIRAC_FILTER_MAP = {"Off": "OFF", "Slot 1": "1", "Slot 2": "2", "Slot 3": "3"}
+DIRAC_FILTER_MAP = {"OFF": "Off", "1": "Slot 1", "2": "Slot 2", "3": "Slot 3"}
 DIRAC_FILTER_MAP_LABELS = {value: key for key, value in DIRAC_FILTER_MAP.items()}
 
 DiracFilters = Literal["Slot 1", "Slot 2", "Slot 3", "Off"]
