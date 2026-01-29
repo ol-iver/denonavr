@@ -19,7 +19,7 @@ from .appcommand import AppCommands
 from .const import (
     ALL_ZONE_STEREO,
     AURO_3D_MODE_MAP,
-    AURO_3D_MODE_MAP_MAP_LABELS,
+    AURO_3D_MODE_MAP_LABELS,
     AURO_MATIC_3D_PRESET_MAP,
     AURO_MATIC_3D_PRESET_MAP_LABELS,
     DAC_FILTERS_MAP,
@@ -303,11 +303,11 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             return
 
         if key_value[0] == "AUROPR":
-            self._auromatic_3d_preset = AURO_MATIC_3D_PRESET_MAP_LABELS[parameter[7:]]
+            self._auromatic_3d_preset = AURO_MATIC_3D_PRESET_MAP[parameter[7:]]
         elif key_value[0] == "AUROST":
             self._auromatic_3d_strength = int(parameter[7:])
         elif key_value[0] == "AUROMODE":
-            self._auro_3d_mode = AURO_3D_MODE_MAP_MAP_LABELS[parameter[9:]]
+            self._auro_3d_mode = AURO_3D_MODE_MAP[parameter[9:]]
 
     def _dialog_control_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Dialog Control change event."""
@@ -1074,7 +1074,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if preset not in self._auromatic_3d_presets:
             raise AvrCommandError(f"{preset} is not a valid Auro-Matic 3D Preset")
 
-        local_preset = AURO_MATIC_3D_PRESET_MAP[preset]
+        local_preset = AURO_MATIC_3D_PRESET_MAP_LABELS[preset]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_auromatic_3d_preset.format(
@@ -1142,7 +1142,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if mode not in self._auro_3d_modes:
             raise AvrCommandError(f"{mode} is not a valid Auro 3D Mode")
 
-        local_mode = AURO_3D_MODE_MAP[mode]
+        local_mode = AURO_3D_MODE_MAP_LABELS[mode]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_auro_3d_mode.format(

@@ -1626,11 +1626,11 @@ AuroMatic3DPresets = Literal[
 """Auro-Matic 3D Presets."""
 
 AURO_MATIC_3D_PRESET_MAP = {
-    "Small": "SMA",
-    "Medium": "MED",
-    "Large": "LAR",
-    "Speech": "SPE",
-    "Movie": "MOV",
+    "SMA": "Small",
+    "MED": "Medium",
+    "LAR": "Large",
+    "SPE": "Speech",
+    "MOV": "Movie",
 }
 AURO_MATIC_3D_PRESET_MAP_LABELS = {
     value: key for key, value in AURO_MATIC_3D_PRESET_MAP.items()
@@ -1639,8 +1639,8 @@ AURO_MATIC_3D_PRESET_MAP_LABELS = {
 Auro3DModes = Literal["Direct", "Channel Expansion"]
 """Auro 3D Modes."""
 
-AURO_3D_MODE_MAP = {"Direct": "DRCT", "Channel Expansion": "EXP"}
-AURO_3D_MODE_MAP_MAP_LABELS = {value: key for key, value in AURO_3D_MODE_MAP.items()}
+AURO_3D_MODE_MAP = {"DRCT": "Direct", "EXP": "Channel Expansion"}
+AURO_3D_MODE_MAP_LABELS = {value: key for key, value in AURO_3D_MODE_MAP.items()}
 
 AutoStandbys = Literal["OFF", "15M", "30M", "60M"]
 
