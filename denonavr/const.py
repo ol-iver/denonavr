@@ -1940,10 +1940,10 @@ MDAXs = Literal["Off", "Low", "Medium", "High"]
 """M-DAX Modes."""
 
 MDAX_MAP = {
-    "Off": "OFF",
-    "Low": "LOW",
-    "Medium": "MED",
-    "High": "HI",
+    "OFF": "Off",
+    "LOW": "Low",
+    "MED": "Medium",
+    "HI": "High",
 }
 MDAX_MAP_LABELS = {value: key for key, value in MDAX_MAP.items()}
 

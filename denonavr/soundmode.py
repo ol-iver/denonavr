@@ -349,7 +349,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if len(key_value) != 2 or key_value[0] != "MDAX":
             return
 
-        self._mdax = MDAX_MAP_LABELS[key_value[1]]
+        self._mdax = MDAX_MAP[key_value[1]]
 
     def _dac_filter_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a DAC Filter change event."""
@@ -1275,7 +1275,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if mode not in self._mdaxs:
             raise AvrCommandError(f"{mode} is not a valid M-DAX mode")
 
-        local_mode = MDAX_MAP[mode]
+        local_mode = MDAX_MAP_LABELS[mode]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_mdax.format(mode=local_mode)
