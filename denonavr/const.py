@@ -1696,15 +1696,15 @@ EffectSpeakers = Literal[
 """Effect Speakers."""
 
 EFFECT_SPEAKER_SELECTION_MAP = {
-    "Floor": "FL",
-    "Front": "FR",
-    "Front Height": "FH",
-    "Front Wide": "FW",
-    "Front Height + Front Wide": "HW",
-    "Height + Floor": "HF",
-    "Surround Back": "SB",
-    "Surround Back + Front Height": "BH",
-    "Surround Back + Front Wide": "BW",
+    "FL": "Floor",
+    "FR": "Front",
+    "FH": "Front Height",
+    "FW": "Front Wide",
+    "HW": "Front Height + Front Wide",
+    "HF": "Height + Floor",
+    "SB": "Surround Back",
+    "BH": "Surround Back + Front Height",
+    "BW": "Surround Back + Front Wide",
 }
 EFFECT_SPEAKER_SELECTION_MAP_LABELS = {
     value: key for key, value in EFFECT_SPEAKER_SELECTION_MAP.items()

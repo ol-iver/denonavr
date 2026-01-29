@@ -335,9 +335,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if len(key_value) != 2 or key_value[0] != "SP":
             return
 
-        self._effect_speaker_selection = EFFECT_SPEAKER_SELECTION_MAP_LABELS[
-            key_value[1]
-        ]
+        self._effect_speaker_selection = EFFECT_SPEAKER_SELECTION_MAP[key_value[1]]
 
     def _drc_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a DRC change event."""
@@ -1239,7 +1237,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if mode not in self._effect_speakers:
             raise AvrCommandError(f"{mode} is not a valid effect speaker selection")
 
-        local_mode = EFFECT_SPEAKER_SELECTION_MAP[mode]
+        local_mode = EFFECT_SPEAKER_SELECTION_MAP_LABELS[mode]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_effect_speaker_selection.format(
