@@ -19,18 +19,18 @@ from .appcommand import AppCommands
 from .const import (
     ALL_ZONE_STEREO,
     AURO_3D_MODE_MAP,
-    AURO_3D_MODE_MAP_LABELS,
+    AURO_3D_MODE_MAP_REVERSE,
     AURO_MATIC_3D_PRESET_MAP,
-    AURO_MATIC_3D_PRESET_MAP_LABELS,
+    AURO_MATIC_3D_PRESET_MAP_REVERSE,
     DAC_FILTERS_MAP,
-    DAC_FILTERS_MAP_LABELS,
+    DAC_FILTERS_MAP_REVERSE,
     DENON_ATTR_SETATTR,
     DIALOG_ENHANCER_LEVEL_MAP,
-    DIALOG_ENHANCER_LEVEL_MAP_LABELS,
+    DIALOG_ENHANCER_LEVEL_MAP_REVERSE,
     EFFECT_SPEAKER_SELECTION_MAP,
-    EFFECT_SPEAKER_SELECTION_MAP_LABELS,
+    EFFECT_SPEAKER_SELECTION_MAP_REVERSE,
     MDAX_MAP,
-    MDAX_MAP_LABELS,
+    MDAX_MAP_REVERSE,
     SOUND_MODE_MAPPING,
     Auro3DModes,
     AuroMatic3DPresets,
@@ -1053,7 +1053,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if level not in self._dialog_enhancer_levels:
             raise AvrCommandError(f"{level} is not a valid dialog enhancer level")
 
-        level_mapped = DIALOG_ENHANCER_LEVEL_MAP_LABELS[level]
+        level_mapped = DIALOG_ENHANCER_LEVEL_MAP_REVERSE[level]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_dialog_enhancer.format(
@@ -1070,7 +1070,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if preset not in self._auromatic_3d_presets:
             raise AvrCommandError(f"{preset} is not a valid Auro-Matic 3D Preset")
 
-        local_preset = AURO_MATIC_3D_PRESET_MAP_LABELS[preset]
+        local_preset = AURO_MATIC_3D_PRESET_MAP_REVERSE[preset]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_auromatic_3d_preset.format(
@@ -1138,7 +1138,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if mode not in self._auro_3d_modes:
             raise AvrCommandError(f"{mode} is not a valid Auro 3D Mode")
 
-        local_mode = AURO_3D_MODE_MAP_LABELS[mode]
+        local_mode = AURO_3D_MODE_MAP_REVERSE[mode]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_auro_3d_mode.format(
@@ -1235,7 +1235,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if mode not in self._effect_speakers:
             raise AvrCommandError(f"{mode} is not a valid effect speaker selection")
 
-        local_mode = EFFECT_SPEAKER_SELECTION_MAP_LABELS[mode]
+        local_mode = EFFECT_SPEAKER_SELECTION_MAP_REVERSE[mode]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_effect_speaker_selection.format(
@@ -1275,7 +1275,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if mode not in self._mdaxs:
             raise AvrCommandError(f"{mode} is not a valid M-DAX mode")
 
-        local_mode = MDAX_MAP_LABELS[mode]
+        local_mode = MDAX_MAP_REVERSE[mode]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_mdax.format(mode=local_mode)
@@ -1297,7 +1297,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if mode not in self._dac_filters:
             raise AvrCommandError(f"{mode} is not a valid DAC Filter mode")
 
-        local_mode = DAC_FILTERS_MAP_LABELS[mode]
+        local_mode = DAC_FILTERS_MAP_REVERSE[mode]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_dac_filter.format(mode=local_mode)

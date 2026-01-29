@@ -1565,6 +1565,9 @@ ZONE2_ZONE3_NAME = {ZONE2: None, ZONE3: None}
 APPCOMMAND_CMD_TEXT = "cmd_text"
 APPCOMMAND_NAME = "name"
 
+# _MAP dictionaries map receiver outputs to denonavr properties
+# _MAP_REVERSE dictionaries map them the opposite way
+
 # Audyssey parameter
 MULTI_EQ_MAP_APPCOMMAND = {"0": "Off", "1": "Flat", "2": "L/R Bypass", "3": "Reference"}
 MULTI_EQ_MAP_TELNET = {
@@ -1575,18 +1578,18 @@ MULTI_EQ_MAP_TELNET = {
     "MANUAL": "Manual",
 }
 MULTI_EQ_MAP = {**MULTI_EQ_MAP_APPCOMMAND, **MULTI_EQ_MAP_TELNET}
-MULTI_EQ_MAP_LABELS_APPCOMMAND = {
+MULTI_EQ_MAP_REVERSE_APPCOMMAND = {
     value: key for key, value in MULTI_EQ_MAP_APPCOMMAND.items()
 }
-MULTI_EQ_MAP_LABELS_TELNET = {value: key for key, value in MULTI_EQ_MAP_TELNET.items()}
+MULTI_EQ_MAP_REVERSE_TELNET = {value: key for key, value in MULTI_EQ_MAP_TELNET.items()}
 
 REF_LVL_OFFSET_MAP_APPCOMMAND = {"0": "0dB", "1": "+5dB", "2": "+10dB", "3": "+15dB"}
 REF_LVL_OFFSET_MAP_TELNET = {"0": "0dB", "5": "+5dB", "10": "+10dB", "15": "+15dB"}
 REF_LVL_OFFSET_MAP = {**REF_LVL_OFFSET_MAP_APPCOMMAND, **REF_LVL_OFFSET_MAP_TELNET}
-REF_LVL_OFFSET_MAP_LABELS_APPCOMMAND = {
+REF_LVL_OFFSET_MAP_REVERSE_APPCOMMAND = {
     value: key for key, value in REF_LVL_OFFSET_MAP_APPCOMMAND.items()
 }
-REF_LVL_OFFSET_MAP_LABELS_TELNET = {
+REF_LVL_OFFSET_MAP_REVERSE_TELNET = {
     value: key for key, value in REF_LVL_OFFSET_MAP_TELNET.items()
 }
 
@@ -1598,10 +1601,10 @@ DYNAMIC_VOLUME_MAP_TELNET = {
     "HEV": "Heavy",
 }
 DYNAMIC_VOLUME_MAP = {**DYNAMIC_VOLUME_MAP_APPCOMMAND, **DYNAMIC_VOLUME_MAP_TELNET}
-DYNAMIC_VOLUME_MAP_LABELS_APPCOMMAND = {
+DYNAMIC_VOLUME_MAP_REVERSE_APPCOMMAND = {
     value: key for key, value in DYNAMIC_VOLUME_MAP_APPCOMMAND.items()
 }
-DYNAMIC_VOLUME_MAP_LABELS_TELNET = {
+DYNAMIC_VOLUME_MAP_REVERSE_TELNET = {
     value: key for key, value in DYNAMIC_VOLUME_MAP_TELNET.items()
 }
 
@@ -1614,7 +1617,7 @@ AUDIO_RESTORER_MAP = {
     "MED": "Medium",
     "HI": "High",
 }
-AUDIO_RESTORER_MAP_LABELS = {value: key for key, value in AUDIO_RESTORER_MAP.items()}
+AUDIO_RESTORER_MAP_REVERSE = {value: key for key, value in AUDIO_RESTORER_MAP.items()}
 
 AuroMatic3DPresets = Literal[
     "Small",
@@ -1632,7 +1635,7 @@ AURO_MATIC_3D_PRESET_MAP = {
     "SPE": "Speech",
     "MOV": "Movie",
 }
-AURO_MATIC_3D_PRESET_MAP_LABELS = {
+AURO_MATIC_3D_PRESET_MAP_REVERSE = {
     value: key for key, value in AURO_MATIC_3D_PRESET_MAP.items()
 }
 
@@ -1640,7 +1643,7 @@ Auro3DModes = Literal["Direct", "Channel Expansion"]
 """Auro 3D Modes."""
 
 AURO_3D_MODE_MAP = {"DRCT": "Direct", "EXP": "Channel Expansion"}
-AURO_3D_MODE_MAP_LABELS = {value: key for key, value in AURO_3D_MODE_MAP.items()}
+AURO_3D_MODE_MAP_REVERSE = {value: key for key, value in AURO_3D_MODE_MAP.items()}
 
 AutoStandbys = Literal["OFF", "15M", "30M", "60M"]
 
@@ -1651,7 +1654,7 @@ BLUETOOTH_OUTPUT_MODES_MAP = {
     "SP": "Bluetooth + Speakers",
     "BT": "Bluetooth Only",
 }
-BLUETOOTH_OUTPUT_MODES_MAP_LABELS = {
+BLUETOOTH_OUTPUT_MODES_MAP_REVERSE = {
     value: key for key, value in BLUETOOTH_OUTPUT_MODES_MAP.items()
 }
 
@@ -1661,13 +1664,13 @@ DIMMER_MODE_MAP = {
     DIMER_DIM: "Dim",
     DIMER_BRIGHT: "Bright",
 }
-DIMMER_MODE_MAP_LABELS = {value: key for key, value in DIMMER_MODE_MAP.items()}
+DIMMER_MODE_MAP_REVERSE = {value: key for key, value in DIMMER_MODE_MAP.items()}
 
 DimmerModes = Literal["Off", "Dark", "Dim", "Bright"]
 """Dimmer Modes."""
 
 DIRAC_FILTER_MAP = {"OFF": "Off", "1": "Slot 1", "2": "Slot 2", "3": "Slot 3"}
-DIRAC_FILTER_MAP_LABELS = {value: key for key, value in DIRAC_FILTER_MAP.items()}
+DIRAC_FILTER_MAP_REVERSE = {value: key for key, value in DIRAC_FILTER_MAP.items()}
 
 DiracFilters = Literal["Slot 1", "Slot 2", "Slot 3", "Off"]
 """Dirac Filters."""
@@ -1677,7 +1680,7 @@ ECO_MODE_MAP = {
     "AUTO": "Auto",
     "OFF": "Off",
 }
-ECO_MODE_MAP_LABELS = {value: key for key, value in ECO_MODE_MAP.items()}
+ECO_MODE_MAP_REVERSE = {value: key for key, value in ECO_MODE_MAP.items()}
 
 EcoModes = Literal["On", "Auto", "Off"]
 """Eco Modes."""
@@ -1706,7 +1709,7 @@ EFFECT_SPEAKER_SELECTION_MAP = {
     "BH": "Surround Back + Front Height",
     "BW": "Surround Back + Front Wide",
 }
-EFFECT_SPEAKER_SELECTION_MAP_LABELS = {
+EFFECT_SPEAKER_SELECTION_MAP_REVERSE = {
     value: key for key, value in EFFECT_SPEAKER_SELECTION_MAP.items()
 }
 
@@ -1718,7 +1721,7 @@ HDMI_OUTPUT_MAP = {
     "MONI1": "HDMI1",
     "MONI2": "HDMI2",
 }
-HDMI_OUTPUT_MAP_LABELS = {
+HDMI_OUTPUT_MAP_REVERSE = {
     "Auto": "AUTO",
     "HDMI1": "1",
     "HDMI2": "2",
@@ -1739,7 +1742,7 @@ SUBWOOFERS_MAP = {
     "SWL4": "Subwoofer 4",
 }
 
-SUBWOOFERS_MAP_LABELS = {
+SUBWOOFERS_MAP_REVERSE = {
     "Subwoofer": "",
     "Subwoofer 2": "2",
     "Subwoofer 3": "3",
@@ -1781,7 +1784,7 @@ CHANNEL_MAP = {
     "TS": "Top Surround",
     "CH": "Center Height",
 }
-CHANNEL_MAP_LABELS = {value: key for key, value in CHANNEL_MAP.items()}
+CHANNEL_MAP_REVERSE = {value: key for key, value in CHANNEL_MAP.items()}
 
 Channels = Literal[
     "Front Left",
@@ -1871,7 +1874,7 @@ CHANNEL_VOLUME_MAP = {
     "615": 11.5,
     "62": 12.0,
 }
-CHANNEL_VOLUME_MAP_LABELS = {value: key for key, value in CHANNEL_VOLUME_MAP.items()}
+CHANNEL_VOLUME_MAP_REVERSE = {value: key for key, value in CHANNEL_VOLUME_MAP.items()}
 
 DialogEnhancerLevels = Literal["Off", "Low", "Medium", "High"]
 """Dialog Enhancer Levels."""
@@ -1883,7 +1886,7 @@ DIALOG_ENHANCER_LEVEL_MAP = {
     "HIGH": "High",
 }
 
-DIALOG_ENHANCER_LEVEL_MAP_LABELS = {
+DIALOG_ENHANCER_LEVEL_MAP_REVERSE = {
     value: key for key, value in DIALOG_ENHANCER_LEVEL_MAP.items()
 }
 
@@ -1932,7 +1935,7 @@ VIDEO_PROCESSING_MODES_MAP = {
     "BYP": "Bypass",
 }
 
-VIDEO_PROCESSING_MODES_MAP_LABELS = {
+VIDEO_PROCESSING_MODES_MAP_REVERSE = {
     value: key for key, value in VIDEO_PROCESSING_MODES_MAP.items()
 }
 
@@ -1945,7 +1948,7 @@ MDAX_MAP = {
     "MED": "Medium",
     "HI": "High",
 }
-MDAX_MAP_LABELS = {value: key for key, value in MDAX_MAP.items()}
+MDAX_MAP_REVERSE = {value: key for key, value in MDAX_MAP.items()}
 
 DACFilters = Literal["Mode 1", "Mode 2"]
 """DAC Filter Modes."""
@@ -1955,7 +1958,7 @@ DAC_FILTERS_MAP = {
     "MODE2": "Mode 2",
 }
 
-DAC_FILTERS_MAP_LABELS = {value: key for key, value in DAC_FILTERS_MAP.items()}
+DAC_FILTERS_MAP_REVERSE = {value: key for key, value in DAC_FILTERS_MAP.items()}
 
 Illuminations = Literal["Auto", "Bright", "Dim", "Dark", "Off"]
 """Illumination Modes."""
@@ -1968,7 +1971,7 @@ ILLUMINATION_MAP = {
     "OFF": "Off",
 }
 
-ILLUMINATION_MAP_LABELS = {value: key for key, value in ILLUMINATION_MAP.items()}
+ILLUMINATION_MAP_REVERSE = {value: key for key, value in ILLUMINATION_MAP.items()}
 
 InputModes = Literal["Select", "Auto", "HDMI", "Digital", "Analog"]
 """Input Mode Selection."""

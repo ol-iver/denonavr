@@ -22,12 +22,12 @@ from .const import (
     APPCOMMAND_CMD_TEXT,
     APPCOMMAND_NAME,
     AUDIO_RESTORER_MAP,
-    AUDIO_RESTORER_MAP_LABELS,
+    AUDIO_RESTORER_MAP_REVERSE,
     AVR,
     AVR_X,
     AVR_X_2016,
     BLUETOOTH_OUTPUT_MODES_MAP,
-    BLUETOOTH_OUTPUT_MODES_MAP_LABELS,
+    BLUETOOTH_OUTPUT_MODES_MAP_REVERSE,
     CHANNEL_VOLUME_MAP,
     DENON_ATTR_SETATTR,
     DENONAVR_TELNET_COMMANDS,
@@ -36,20 +36,20 @@ from .const import (
     DEVICEINFO_AVR_X_PATTERN,
     DEVICEINFO_COMMAPI_PATTERN,
     DIMMER_MODE_MAP,
-    DIMMER_MODE_MAP_LABELS,
+    DIMMER_MODE_MAP_REVERSE,
     ECO_MODE_MAP,
-    ECO_MODE_MAP_LABELS,
+    ECO_MODE_MAP_REVERSE,
     HDMI_OUTPUT_MAP,
-    HDMI_OUTPUT_MAP_LABELS,
+    HDMI_OUTPUT_MAP_REVERSE,
     ILLUMINATION_MAP,
-    ILLUMINATION_MAP_LABELS,
+    ILLUMINATION_MAP_REVERSE,
     MAIN_ZONE,
     POWER_STATES,
     SETTINGS_MENU_STATES,
     VALID_RECEIVER_TYPES,
     VALID_ZONES,
     VIDEO_PROCESSING_MODES_MAP,
-    VIDEO_PROCESSING_MODES_MAP_LABELS,
+    VIDEO_PROCESSING_MODES_MAP_REVERSE,
     ZONE2,
     ZONE2_TELNET_COMMANDS,
     ZONE2_URLS,
@@ -1237,7 +1237,7 @@ class DenonAVRDeviceInfo:
         if mode not in self._dimmer_modes:
             raise AvrCommandError("Invalid dimmer mode")
 
-        mapped_mode = DIMMER_MODE_MAP_LABELS[mode]
+        mapped_mode = DIMMER_MODE_MAP_REVERSE[mode]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_dimmer_set.format(mode=mapped_mode)
@@ -1493,7 +1493,7 @@ class DenonAVRDeviceInfo:
         if mode not in self._eco_modes:
             raise AvrCommandError("Invalid Eco mode")
 
-        mapped_mode = ECO_MODE_MAP_LABELS[mode]
+        mapped_mode = ECO_MODE_MAP_REVERSE[mode]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_eco_mode.format(mode=mapped_mode)
@@ -1508,7 +1508,7 @@ class DenonAVRDeviceInfo:
         if output not in self._hdmi_outputs:
             raise AvrCommandError("Invalid HDMI output mode")
 
-        mapped_output = HDMI_OUTPUT_MAP_LABELS[output]
+        mapped_output = HDMI_OUTPUT_MAP_REVERSE[output]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_hdmi_output.format(output=mapped_output)
@@ -1536,7 +1536,7 @@ class DenonAVRDeviceInfo:
         """Set video processing mode on receiver via HTTP get command."""
         if mode not in self._video_processing_modes:
             raise AvrCommandError("Invalid video processing mode")
-        processing_mode = VIDEO_PROCESSING_MODES_MAP_LABELS[mode]
+        processing_mode = VIDEO_PROCESSING_MODES_MAP_REVERSE[mode]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_video_processing_mode.format(
@@ -1647,7 +1647,7 @@ class DenonAVRDeviceInfo:
         if mode not in self._bt_output_modes:
             raise AvrCommandError("Invalid Bluetooth output mode")
 
-        mapped_mode = BLUETOOTH_OUTPUT_MODES_MAP_LABELS[mode]
+        mapped_mode = BLUETOOTH_OUTPUT_MODES_MAP_REVERSE[mode]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_bluetooth_transmitter.format(
@@ -1715,7 +1715,7 @@ class DenonAVRDeviceInfo:
         if mode not in self._audio_restorers:
             raise AvrCommandError("Invalid audio restorer mode")
 
-        mapped_mode = AUDIO_RESTORER_MAP_LABELS[mode]
+        mapped_mode = AUDIO_RESTORER_MAP_REVERSE[mode]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_audio_restorer.format(mode=mapped_mode)
@@ -1890,7 +1890,7 @@ class DenonAVRDeviceInfo:
         if mode not in self._illuminations:
             raise AvrCommandError("Invalid illumination mode")
 
-        mapped_mode = ILLUMINATION_MAP_LABELS[mode]
+        mapped_mode = ILLUMINATION_MAP_REVERSE[mode]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_illumination.format(mode=mapped_mode)

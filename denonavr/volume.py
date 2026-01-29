@@ -16,14 +16,14 @@ import attr
 from .appcommand import AppCommands
 from .const import (
     CHANNEL_MAP,
-    CHANNEL_MAP_LABELS,
+    CHANNEL_MAP_REVERSE,
     CHANNEL_VOLUME_MAP,
-    CHANNEL_VOLUME_MAP_LABELS,
+    CHANNEL_VOLUME_MAP_REVERSE,
     DENON_ATTR_SETATTR,
     MAIN_ZONE,
     STATE_ON,
     SUBWOOFERS_MAP,
-    SUBWOOFERS_MAP_LABELS,
+    SUBWOOFERS_MAP_REVERSE,
     Channels,
     Subwoofers,
 )
@@ -372,7 +372,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         """Increase Channel volume on receiver via HTTP get command."""
         self._is_valid_channel(channel)
 
-        mapped_channel = CHANNEL_MAP_LABELS[channel]
+        mapped_channel = CHANNEL_MAP_REVERSE[channel]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_channel_volume.format(
@@ -390,7 +390,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         """Decrease Channel volume on receiver via HTTP get command."""
         self._is_valid_channel(channel)
 
-        mapped_channel = CHANNEL_MAP_LABELS[channel]
+        mapped_channel = CHANNEL_MAP_REVERSE[channel]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_channel_volume.format(
@@ -412,11 +412,11 @@ class DenonAVRVolume(DenonAVRFoundation):
         :param volume: Volume to set. Valid values are -12 to 12 with 0.5 steps.
         """
         self._is_valid_channel(channel)
-        if volume not in CHANNEL_VOLUME_MAP_LABELS:
+        if volume not in CHANNEL_VOLUME_MAP_REVERSE:
             raise AvrCommandError(f"Invalid channel volume: {volume}")
 
-        mapped_channel = CHANNEL_MAP_LABELS[channel]
-        mapped_volume = CHANNEL_VOLUME_MAP_LABELS[volume]
+        mapped_channel = CHANNEL_MAP_REVERSE[channel]
+        mapped_volume = CHANNEL_VOLUME_MAP_REVERSE[volume]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_channel_volume.format(
@@ -477,7 +477,7 @@ class DenonAVRVolume(DenonAVRFoundation):
     async def async_subwoofer_level_up(self, subwoofer: Subwoofers) -> None:
         """Increase Subwoofer level on receiver via HTTP get command."""
         self._is_valid_subwoofer(subwoofer)
-        mapped_subwoofer = SUBWOOFERS_MAP_LABELS[subwoofer]
+        mapped_subwoofer = SUBWOOFERS_MAP_REVERSE[subwoofer]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_subwoofer_level.format(
@@ -494,7 +494,7 @@ class DenonAVRVolume(DenonAVRFoundation):
     async def async_subwoofer_level_down(self, subwoofer: Subwoofers) -> None:
         """Decrease Subwoofer level on receiver via HTTP get command."""
         self._is_valid_subwoofer(subwoofer)
-        mapped_subwoofer = SUBWOOFERS_MAP_LABELS[subwoofer]
+        mapped_subwoofer = SUBWOOFERS_MAP_REVERSE[subwoofer]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_subwoofer_level.format(

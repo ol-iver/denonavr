@@ -11,11 +11,11 @@ import unittest
 from typing import get_args
 
 from denonavr.const import (
-    CHANNEL_MAP_LABELS,
-    DIMMER_MODE_MAP_LABELS,
-    DIRAC_FILTER_MAP_LABELS,
-    ECO_MODE_MAP_LABELS,
-    HDMI_OUTPUT_MAP_LABELS,
+    CHANNEL_MAP_REVERSE,
+    DIMMER_MODE_MAP_REVERSE,
+    DIRAC_FILTER_MAP_REVERSE,
+    ECO_MODE_MAP_REVERSE,
+    HDMI_OUTPUT_MAP_REVERSE,
     Channels,
     DimmerModes,
     DiracFilters,
@@ -30,27 +30,27 @@ class TestMappings(unittest.TestCase):
     def test_dimmer_modes_mappings(self):
         """Test that all dimmer modes are in the mapping."""
         for mode in get_args(DimmerModes):
-            self.assertIn(mode, DIMMER_MODE_MAP_LABELS)
+            self.assertIn(mode, DIMMER_MODE_MAP_REVERSE)
 
     def test_eco_modes_mappings(self):
         """Test that all eco-modes are in the mapping."""
         for mode in get_args(EcoModes):
-            self.assertIn(mode, ECO_MODE_MAP_LABELS)
+            self.assertIn(mode, ECO_MODE_MAP_REVERSE)
 
     def test_hdmi_outputs_mappings(self):
         """Test that all hdmi outputs are in the mapping."""
         for hdmi_output in get_args(HDMIOutputs):
-            self.assertIn(hdmi_output, HDMI_OUTPUT_MAP_LABELS)
+            self.assertIn(hdmi_output, HDMI_OUTPUT_MAP_REVERSE)
 
     def test_channel_mappings(self):
         """Test that all channels are in the mapping."""
         for channel in get_args(Channels):
-            self.assertIn(channel, CHANNEL_MAP_LABELS)
+            self.assertIn(channel, CHANNEL_MAP_REVERSE)
 
     def test_dirac_filter_mappings(self):
         """Test that dirac filters are in the mapping."""
         for dirac_filter in get_args(DiracFilters):
-            self.assertIn(dirac_filter, DIRAC_FILTER_MAP_LABELS)
+            self.assertIn(dirac_filter, DIRAC_FILTER_MAP_REVERSE)
 
 
 if __name__ == "__main__":
