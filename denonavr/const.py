@@ -1926,10 +1926,10 @@ VideoProcessingModes = Literal["Auto", "Game", "Movie", "Bypass"]
 """Video Processing Modes."""
 
 VIDEO_PROCESSING_MODES_MAP = {
-    "Auto": "AUTO",
-    "Game": "GAME",
-    "Movie": "MOVI",
-    "Bypass": "BYP",
+    "AUTO": "Auto",
+    "GAME": "Game",
+    "MOVI": "Movie",
+    "BYP": "Bypass",
 }
 
 VIDEO_PROCESSING_MODES_MAP_LABELS = {

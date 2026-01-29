@@ -333,9 +333,7 @@ class DenonAVRDeviceInfo:
     ) -> None:
         """Handle a Video Processing Mode change event."""
         if event == "VS" and parameter[0:3] == "VPM":
-            self._video_processing_mode = VIDEO_PROCESSING_MODES_MAP_LABELS[
-                parameter[3:]
-            ]
+            self._video_processing_mode = VIDEO_PROCESSING_MODES_MAP[parameter[3:]]
 
     def _tactile_transducer_callback(
         self, zone: str, event: str, parameter: str
@@ -1538,7 +1536,7 @@ class DenonAVRDeviceInfo:
         """Set video processing mode on receiver via HTTP get command."""
         if mode not in self._video_processing_modes:
             raise AvrCommandError("Invalid video processing mode")
-        processing_mode = VIDEO_PROCESSING_MODES_MAP[mode]
+        processing_mode = VIDEO_PROCESSING_MODES_MAP_LABELS[mode]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_video_processing_mode.format(
