@@ -1609,10 +1609,10 @@ AudioRestorers = Literal["Off", "Low", "Medium", "High"]
 """Audio Restorer settings."""
 
 AUDIO_RESTORER_MAP = {
-    "Off": "OFF",
-    "Low": "LOW",
-    "Medium": "MED",
-    "High": "HI",
+    "OFF": "Off",
+    "LOW": "Low",
+    "MED": "Medium",
+    "HI": "High",
 }
 AUDIO_RESTORER_MAP_LABELS = {value: key for key, value in AUDIO_RESTORER_MAP.items()}
 

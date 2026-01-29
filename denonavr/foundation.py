@@ -388,7 +388,7 @@ class DenonAVRDeviceInfo:
         if event != "PS" or parameter[0:4] != "RSTR":
             return
 
-        self._audio_restorer = AUDIO_RESTORER_MAP_LABELS[parameter[5:]]
+        self._audio_restorer = AUDIO_RESTORER_MAP[parameter[5:]]
 
     def _graphic_eq_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Graphic EQ change event."""
@@ -1717,7 +1717,7 @@ class DenonAVRDeviceInfo:
         if mode not in self._audio_restorers:
             raise AvrCommandError("Invalid audio restorer mode")
 
-        mapped_mode = AUDIO_RESTORER_MAP[mode]
+        mapped_mode = AUDIO_RESTORER_MAP_LABELS[mode]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_audio_restorer.format(mode=mapped_mode)
