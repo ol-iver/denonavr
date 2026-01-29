@@ -357,7 +357,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if len(key_value) != 2 or key_value[0] != "DACFIL":
             return
 
-        self._dac_filter = DAC_FILTERS_MAP_LABELS[key_value[1]]
+        self._dac_filter = DAC_FILTERS_MAP[key_value[1]]
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -1297,7 +1297,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if mode not in self._dac_filters:
             raise AvrCommandError(f"{mode} is not a valid DAC Filter mode")
 
-        local_mode = DAC_FILTERS_MAP[mode]
+        local_mode = DAC_FILTERS_MAP_LABELS[mode]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_dac_filter.format(mode=local_mode)

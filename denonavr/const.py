@@ -1951,8 +1951,8 @@ DACFilters = Literal["Mode 1", "Mode 2"]
 """DAC Filter Modes."""
 
 DAC_FILTERS_MAP = {
-    "Mode 1": "MODE1",
-    "Mode 2": "MODE2",
+    "MODE1": "Mode 1",
+    "MODE2": "Mode 2",
 }
 
 DAC_FILTERS_MAP_LABELS = {value: key for key, value in DAC_FILTERS_MAP.items()}
