@@ -1733,18 +1733,17 @@ Subwoofers = Literal["Subwoofer", "Subwoofer 2", "Subwoofer 3", "Subwoofer 4"]
 """Subwoofers."""
 
 SUBWOOFERS_MAP = {
-    "Subwoofer": "",
-    "Subwoofer 2": "2",
-    "Subwoofer 3": "3",
-    "Subwoofer 4": "4",
-}
-"""Subwoofers."""
-
-SUBWOOFERS_MAP_LABELS = {
     "SWL": "Subwoofer",
     "SWL2": "Subwoofer 2",
     "SWL3": "Subwoofer 3",
     "SWL4": "Subwoofer 4",
+}
+
+SUBWOOFERS_MAP_LABELS = {
+    "Subwoofer": "",
+    "Subwoofer 2": "2",
+    "Subwoofer 3": "3",
+    "Subwoofer 4": "4",
 }
 
 CHANNEL_MAP = {

@@ -142,16 +142,13 @@ class DenonAVRVolume(DenonAVRFoundation):
             return
 
         subwoofer_volume = parameter.split()
-        if (
-            len(subwoofer_volume) != 2
-            or subwoofer_volume[0] not in SUBWOOFERS_MAP_LABELS
-        ):
+        if len(subwoofer_volume) != 2 or subwoofer_volume[0] not in SUBWOOFERS_MAP:
             return
 
         if self._subwoofer_levels is None:
             self._subwoofer_levels = {}
 
-        subwoofer = SUBWOOFERS_MAP_LABELS[subwoofer_volume[0]]
+        subwoofer = SUBWOOFERS_MAP[subwoofer_volume[0]]
         level = subwoofer_volume[1]
         val = convert_on_off_bool(level)
         if val is not None:
@@ -480,7 +477,7 @@ class DenonAVRVolume(DenonAVRFoundation):
     async def async_subwoofer_level_up(self, subwoofer: Subwoofers) -> None:
         """Increase Subwoofer level on receiver via HTTP get command."""
         self._is_valid_subwoofer(subwoofer)
-        mapped_subwoofer = SUBWOOFERS_MAP[subwoofer]
+        mapped_subwoofer = SUBWOOFERS_MAP_LABELS[subwoofer]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_subwoofer_level.format(
@@ -497,7 +494,7 @@ class DenonAVRVolume(DenonAVRFoundation):
     async def async_subwoofer_level_down(self, subwoofer: Subwoofers) -> None:
         """Decrease Subwoofer level on receiver via HTTP get command."""
         self._is_valid_subwoofer(subwoofer)
-        mapped_subwoofer = SUBWOOFERS_MAP[subwoofer]
+        mapped_subwoofer = SUBWOOFERS_MAP_LABELS[subwoofer]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_subwoofer_level.format(
