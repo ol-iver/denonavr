@@ -11,7 +11,7 @@ import unittest
 from typing import get_args
 
 from denonavr.const import (
-    CHANNEL_MAP,
+    CHANNEL_MAP_LABELS,
     DIMMER_MODE_MAP_LABELS,
     DIRAC_FILTER_MAP_LABELS,
     ECO_MODE_MAP_LABELS,
@@ -45,7 +45,7 @@ class TestMappings(unittest.TestCase):
     def test_channel_mappings(self):
         """Test that all channels are in the mapping."""
         for channel in get_args(Channels):
-            self.assertIn(channel, CHANNEL_MAP)
+            self.assertIn(channel, CHANNEL_MAP_LABELS)
 
     def test_dirac_filter_mappings(self):
         """Test that dirac filters are in the mapping."""

@@ -119,7 +119,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         channel_volume = parameter.split()
         if (
             len(channel_volume) != 2
-            or channel_volume[0] not in CHANNEL_MAP_LABELS
+            or channel_volume[0] not in CHANNEL_MAP
             or channel_volume[1] not in CHANNEL_VOLUME_MAP
         ):
             return
@@ -127,7 +127,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         if self._channel_volumes is None:
             self._channel_volumes = {}
 
-        channel = CHANNEL_MAP_LABELS[channel_volume[0]]
+        channel = CHANNEL_MAP[channel_volume[0]]
         volume = channel_volume[1]
         self._channel_volumes[channel] = CHANNEL_VOLUME_MAP[volume]
 
@@ -372,7 +372,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         """Increase Channel volume on receiver via HTTP get command."""
         self._is_valid_channel(channel)
 
-        mapped_channel = CHANNEL_MAP[channel]
+        mapped_channel = CHANNEL_MAP_LABELS[channel]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_channel_volume.format(
@@ -390,7 +390,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         """Decrease Channel volume on receiver via HTTP get command."""
         self._is_valid_channel(channel)
 
-        mapped_channel = CHANNEL_MAP[channel]
+        mapped_channel = CHANNEL_MAP_LABELS[channel]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_channel_volume.format(
@@ -415,7 +415,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         if volume not in CHANNEL_VOLUME_MAP_LABELS:
             raise AvrCommandError(f"Invalid channel volume: {volume}")
 
-        mapped_channel = CHANNEL_MAP[channel]
+        mapped_channel = CHANNEL_MAP_LABELS[channel]
         mapped_volume = CHANNEL_VOLUME_MAP_LABELS[volume]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
