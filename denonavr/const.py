@@ -1648,10 +1648,10 @@ BluetoothOutputModes = Literal["Bluetooth + Speakers", "Bluetooth Only"]
 """Bluetooth Output Modes."""
 
 BLUETOOTH_OUTPUT_MODES_MAP = {
-    "Bluetooth + Speakers": "SP",
-    "Bluetooth Only": "BT",
+    "SP": "Bluetooth + Speakers",
+    "BT": "Bluetooth Only",
 }
-BLUETOOTH_OUTPUT_MAP_LABELS = {
+BLUETOOTH_OUTPUT_MODES_MAP_LABELS = {
     value: key for key, value in BLUETOOTH_OUTPUT_MODES_MAP.items()
 }
 

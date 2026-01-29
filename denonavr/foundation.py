@@ -26,8 +26,8 @@ from .const import (
     AVR,
     AVR_X,
     AVR_X_2016,
-    BLUETOOTH_OUTPUT_MAP_LABELS,
     BLUETOOTH_OUTPUT_MODES_MAP,
+    BLUETOOTH_OUTPUT_MODES_MAP_LABELS,
     CHANNEL_VOLUME_MAP,
     DENON_ATTR_SETATTR,
     DENONAVR_TELNET_COMMANDS,
@@ -373,7 +373,7 @@ class DenonAVRDeviceInfo:
         if parameter[3:] in ("ON", "OFF"):
             self._bt_transmitter = parameter[3:]
         else:
-            self._bt_output_mode = BLUETOOTH_OUTPUT_MAP_LABELS[parameter[3:]]
+            self._bt_output_mode = BLUETOOTH_OUTPUT_MODES_MAP[parameter[3:]]
 
     def _delay_time_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a delay time change event."""
@@ -1649,7 +1649,7 @@ class DenonAVRDeviceInfo:
         if mode not in self._bt_output_modes:
             raise AvrCommandError("Invalid Bluetooth output mode")
 
-        mapped_mode = BLUETOOTH_OUTPUT_MODES_MAP[mode]
+        mapped_mode = BLUETOOTH_OUTPUT_MODES_MAP_LABELS[mode]
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_bluetooth_transmitter.format(
