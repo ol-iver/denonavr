@@ -156,7 +156,7 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(convert_on_off_bool), default=None
     )
     _dimmer: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(DIMMER_MODE_MAP.get), default=None
     )
     _dimmer_modes = get_args(DimmerModes)
     _auto_standby: Optional[str] = attr.ib(
@@ -170,11 +170,11 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(int), default=None
     )
     _eco_mode: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(ECO_MODE_MAP.get), default=None
     )
     _eco_modes = get_args(EcoModes)
     _hdmi_output: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(HDMI_OUTPUT_MAP.get), default=None
     )
     _hdmi_outputs = get_args(HDMIOutputs)
     _hdmi_audio_decode: Optional[str] = attr.ib(
@@ -182,7 +182,7 @@ class DenonAVRDeviceInfo:
     )
     _hdmi_audio_decodes = get_args(HDMIAudioDecodes)
     _video_processing_mode: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(VIDEO_PROCESSING_MODES_MAP.get), default=None
     )
     _video_processing_modes = get_args(VideoProcessingModes)
     _tactile_transducer: Optional[str] = attr.ib(
@@ -207,14 +207,14 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(convert_on_off_bool), default=None
     )
     _bt_output_mode: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(BLUETOOTH_OUTPUT_MODES_MAP.get), default=None
     )
     _bt_output_modes = get_args(BluetoothOutputModes)
     _delay_time: Optional[int] = attr.ib(
         converter=attr.converters.optional(int), default=None
     )
     _audio_restorer: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(AUDIO_RESTORER_MAP.get), default=None
     )
     _audio_restorers = get_args(AudioRestorers)
     _panel_locks = get_args(PanelLocks)
@@ -225,7 +225,7 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(convert_on_off_bool), default=None
     )
     _illumination: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(ILLUMINATION_MAP.get), default=None
     )
     _illuminations = get_args(Illuminations)
     _auto_lip_sync: Optional[bool] = attr.ib(
@@ -268,7 +268,7 @@ class DenonAVRDeviceInfo:
     def _dimmer_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a dimmer change event."""
         if event == "DIM" and parameter[1:] in DIMMER_MODE_MAP:
-            self._dimmer = DIMMER_MODE_MAP[parameter[1:]]
+            self._dimmer = parameter[1:]
 
     def _auto_standby_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a auto standby change event."""
@@ -314,12 +314,12 @@ class DenonAVRDeviceInfo:
     def _eco_mode_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an Eco-mode change event."""
         if event == "ECO" and parameter in ECO_MODE_MAP:
-            self._eco_mode = ECO_MODE_MAP[parameter]
+            self._eco_mode = parameter
 
     def _hdmi_output_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a HDMI output change event."""
         if event == "VS" and parameter[0:4] == "MONI":
-            self._hdmi_output = HDMI_OUTPUT_MAP[parameter]
+            self._hdmi_output = parameter
 
     def _hdmi_audio_decode_callback(
         self, zone: str, event: str, parameter: str
@@ -333,7 +333,7 @@ class DenonAVRDeviceInfo:
     ) -> None:
         """Handle a Video Processing Mode change event."""
         if event == "VS" and parameter[0:3] == "VPM":
-            self._video_processing_mode = VIDEO_PROCESSING_MODES_MAP[parameter[3:]]
+            self._video_processing_mode = parameter[3:]
 
     def _tactile_transducer_callback(
         self, zone: str, event: str, parameter: str
@@ -371,7 +371,7 @@ class DenonAVRDeviceInfo:
         if parameter[3:] in ("ON", "OFF"):
             self._bt_transmitter = parameter[3:]
         else:
-            self._bt_output_mode = BLUETOOTH_OUTPUT_MODES_MAP[parameter[3:]]
+            self._bt_output_mode = parameter[3:]
 
     def _delay_time_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a delay time change event."""
@@ -386,7 +386,7 @@ class DenonAVRDeviceInfo:
         if event != "PS" or parameter[0:4] != "RSTR":
             return
 
-        self._audio_restorer = AUDIO_RESTORER_MAP[parameter[5:]]
+        self._audio_restorer = parameter[5:]
 
     def _graphic_eq_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Graphic EQ change event."""
@@ -407,7 +407,7 @@ class DenonAVRDeviceInfo:
         if event != "ILB" or parameter[0:3] != "ILL":
             return
 
-        self._illumination = ILLUMINATION_MAP[parameter[4:]]
+        self._illumination = parameter[4:]
 
     def _auto_lip_sync_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a auto lip sync change event."""

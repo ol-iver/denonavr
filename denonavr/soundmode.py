@@ -125,18 +125,18 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         converter=attr.converters.optional(convert_on_off_bool), default=None
     )
     _dialog_enhancer_level: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(DIALOG_ENHANCER_LEVEL_MAP.get), default=None
     )
     _dialog_enhancer_levels = get_args(DialogEnhancerLevels)
     _auromatic_3d_preset: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(AURO_MATIC_3D_PRESET_MAP.get), default=None
     )
     _auromatic_3d_presets = get_args(AuroMatic3DPresets)
     _auromatic_3d_strength: Optional[int] = attr.ib(
         converter=attr.converters.optional(int), default=None
     )
     _auro_3d_mode: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(AURO_3D_MODE_MAP.get), default=None
     )
     _auro_3d_modes = get_args(Auro3DModes)
     _dialog_control: Optional[int] = attr.ib(
@@ -146,17 +146,18 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         converter=attr.converters.optional(convert_on_off_bool), default=None
     )
     _effect_speaker_selection: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(EFFECT_SPEAKER_SELECTION_MAP.get),
+        default=None,
     )
     _effect_speakers = get_args(EffectSpeakers)
     _drc: Optional[str] = attr.ib(converter=attr.converters.optional(str), default=None)
     _drcs = get_args(DRCs)
     _mdax: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(MDAX_MAP.get), default=None
     )
     _mdaxs = get_args(MDAXs)
     _dac_filter: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(DAC_FILTERS_MAP.get), default=None
     )
     _dac_filters = get_args(DACFilters)
     _sound_mode_map: Dict[str, list] = attr.ib(
@@ -292,7 +293,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     def _dialog_enhancer_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Dialog Enhancer change event."""
         if parameter[:3] == "DEH":
-            self._dialog_enhancer_level = DIALOG_ENHANCER_LEVEL_MAP[parameter[4:]]
+            self._dialog_enhancer_level = parameter[4:]
 
     def _auro_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Auro change event."""
@@ -301,11 +302,11 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             return
 
         if key_value[0] == "AUROPR":
-            self._auromatic_3d_preset = AURO_MATIC_3D_PRESET_MAP[parameter[7:]]
+            self._auromatic_3d_preset = parameter[7:]
         elif key_value[0] == "AUROST":
-            self._auromatic_3d_strength = int(parameter[7:])
+            self._auromatic_3d_strength = parameter[7:]
         elif key_value[0] == "AUROMODE":
-            self._auro_3d_mode = AURO_3D_MODE_MAP[parameter[9:]]
+            self._auro_3d_mode = parameter[9:]
 
     def _dialog_control_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Dialog Control change event."""
@@ -333,7 +334,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if len(key_value) != 2 or key_value[0] != "SP":
             return
 
-        self._effect_speaker_selection = EFFECT_SPEAKER_SELECTION_MAP[key_value[1]]
+        self._effect_speaker_selection = key_value[1]
 
     def _drc_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a DRC change event."""
@@ -349,7 +350,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if len(key_value) != 2 or key_value[0] != "MDAX":
             return
 
-        self._mdax = MDAX_MAP[key_value[1]]
+        self._mdax = key_value[1]
 
     def _dac_filter_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a DAC Filter change event."""
@@ -357,7 +358,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if len(key_value) != 2 or key_value[0] != "DACFIL":
             return
 
-        self._dac_filter = DAC_FILTERS_MAP[key_value[1]]
+        self._dac_filter = key_value[1]
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None

@@ -29,7 +29,7 @@ class DenonAVRDirac(DenonAVRFoundation):
     """Dirac Settings."""
 
     _dirac_filter: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(DIRAC_FILTER_MAP.get), default=None
     )
     _dirac_filters = get_args(DiracFilters)
 
@@ -41,7 +41,7 @@ class DenonAVRDirac(DenonAVRFoundation):
     def _dirac_filter_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle Dirac filter change event."""
         if event == "PS" and parameter[0:5] == "DIRAC":
-            self._dirac_filter = DIRAC_FILTER_MAP[parameter[6:]]
+            self._dirac_filter = parameter[6:]
 
     ##############
     # Properties #
