@@ -25,6 +25,9 @@ from .const import (
     REF_LVL_OFFSET_MAP,
     REF_LVL_OFFSET_MAP_REVERSE_APPCOMMAND,
     REF_LVL_OFFSET_MAP_REVERSE_TELNET,
+    DynamicVolumeSettings,
+    MultiEQModes,
+    ReferenceLevelOffsets,
 )
 from .exceptions import AvrCommandError, AvrProcessingError
 from .foundation import DenonAVRFoundation, convert_string_int_bool
@@ -239,7 +242,7 @@ class DenonAVRAudyssey(DenonAVRFoundation):
         )
         await self._async_set_audyssey(cmd)
 
-    async def async_set_multieq(self, value: str) -> None:
+    async def async_set_multieq(self, value: MultiEQModes) -> None:
         """Set MultiEQ mode."""
         if self._device.telnet_available:
             setting = MULTI_EQ_MAP_REVERSE_TELNET.get(value)
@@ -258,7 +261,7 @@ class DenonAVRAudyssey(DenonAVRFoundation):
         )
         await self._async_set_audyssey(cmd)
 
-    async def async_set_reflevoffset(self, value: str) -> None:
+    async def async_set_reflevoffset(self, value: ReferenceLevelOffsets) -> None:
         """Set Reference Level Offset."""
         # Reference level offset can only be used with DynamicEQ
         if not self._dynamiceq:
@@ -284,7 +287,7 @@ class DenonAVRAudyssey(DenonAVRFoundation):
         )
         await self._async_set_audyssey(cmd)
 
-    async def async_set_dynamicvol(self, value: str) -> None:
+    async def async_set_dynamicvol(self, value: DynamicVolumeSettings) -> None:
         """Set Dynamic Volume."""
         if self._device.telnet_available:
             setting = DYNAMIC_VOLUME_MAP_REVERSE_TELNET.get(value)

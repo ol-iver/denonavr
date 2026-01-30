@@ -1568,6 +1568,9 @@ APPCOMMAND_NAME = "name"
 # _MAP dictionaries map receiver outputs to denonavr properties
 # _MAP_REVERSE dictionaries map them the opposite way
 
+MultiEQModes = Literal["Off", "Flat", "L/R Bypass", "Reference", "Manual"]
+"""Multi EQ modes."""
+
 MULTI_EQ_MAP_APPCOMMAND = {"0": "Off", "1": "Flat", "2": "L/R Bypass", "3": "Reference"}
 MULTI_EQ_MAP_TELNET = {
     "OFF": "Off",
@@ -1582,6 +1585,9 @@ MULTI_EQ_MAP_REVERSE_APPCOMMAND = {
 }
 MULTI_EQ_MAP_REVERSE_TELNET = {value: key for key, value in MULTI_EQ_MAP_TELNET.items()}
 
+ReferenceLevelOffsets = Literal["0dB", "+5dB", "+10dB", "+15dB"]
+"""Reference Level Offsets."""
+
 REF_LVL_OFFSET_MAP_APPCOMMAND = {"0": "0dB", "1": "+5dB", "2": "+10dB", "3": "+15dB"}
 REF_LVL_OFFSET_MAP_TELNET = {"0": "0dB", "5": "+5dB", "10": "+10dB", "15": "+15dB"}
 REF_LVL_OFFSET_MAP = {**REF_LVL_OFFSET_MAP_APPCOMMAND, **REF_LVL_OFFSET_MAP_TELNET}
@@ -1591,6 +1597,9 @@ REF_LVL_OFFSET_MAP_REVERSE_APPCOMMAND = {
 REF_LVL_OFFSET_MAP_REVERSE_TELNET = {
     value: key for key, value in REF_LVL_OFFSET_MAP_TELNET.items()
 }
+
+DynamicVolumeSettings = Literal["Off", "Light", "Medium", "Heavy"]
+"""Dynamic Volume Settings."""
 
 DYNAMIC_VOLUME_MAP_APPCOMMAND = {"0": "Off", "1": "Light", "2": "Medium", "3": "Heavy"}
 DYNAMIC_VOLUME_MAP_TELNET = {
