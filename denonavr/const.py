@@ -1666,13 +1666,21 @@ BLUETOOTH_OUTPUT_MODES_MAP_REVERSE = {
     value: key for key, value in BLUETOOTH_OUTPUT_MODES_MAP.items()
 }
 
-DIMMER_MODE_MAP = {
+DIMMER_MODE_MAP_APPCOMMAND = {
+    "0": "Off",
+    "1": "Dark",
+    "2": "Dim",
+    "3": "Bright",
+}
+DIMMER_MODE_MAP_TELNET = {
     DIMER_OFF: "Off",
     DIMER_DARK: "Dark",
     DIMER_DIM: "Dim",
     DIMER_BRIGHT: "Bright",
 }
-DIMMER_MODE_MAP_REVERSE = {value: key for key, value in DIMMER_MODE_MAP.items()}
+DIMMER_MODE_MAP = {**DIMMER_MODE_MAP_TELNET, **DIMMER_MODE_MAP_APPCOMMAND}
+# Telnet literals are correct for telnet and HTTP setters
+DIMMER_MODE_MAP_REVERSE = {value: key for key, value in DIMMER_MODE_MAP_TELNET.items()}
 
 DimmerModes = Literal["Off", "Dark", "Dim", "Bright"]
 """Dimmer Modes."""

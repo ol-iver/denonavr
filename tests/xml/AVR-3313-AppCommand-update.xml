@@ -5,6 +5,9 @@
 <zone2>OFF</zone2>
 <zone3>OFF</zone3>
 </cmd>
+<cmd>
+<value>3</value>
+</cmd>
 <error>2</error>
 <cmd>
 <zone1>

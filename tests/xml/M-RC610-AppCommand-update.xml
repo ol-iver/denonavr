@@ -3,6 +3,9 @@
   <cmd>
     <zone1>MainZone</zone1>
   </cmd>
+  <cmd>
+    <value>3</value>
+  </cmd>
   <error>2</error>
   <cmd>
     <functionrename>

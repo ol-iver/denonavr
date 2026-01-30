@@ -3,6 +3,9 @@
 <cmd>
 <zone1>ON</zone1>
 </cmd>
+<cmd>
+<value>3</value>
+</cmd>
 <error>2</error>
 <cmd>
 <zone1>

@@ -5,6 +5,9 @@
 <zone2>OFF</zone2>
 </cmd>
 <cmd>
+<value>0</value>
+</cmd>
+<cmd>
 <status>1</status>
 <mode>2</mode>
 <pwondefault>3</pwondefault>

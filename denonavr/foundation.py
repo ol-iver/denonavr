@@ -37,6 +37,7 @@ from .const import (
     DEVICEINFO_COMMAPI_PATTERN,
     DIMMER_MODE_MAP,
     DIMMER_MODE_MAP_REVERSE,
+    DIMMER_MODE_MAP_TELNET,
     ECO_MODE_MAP,
     ECO_MODE_MAP_REVERSE,
     ECO_MODE_MAP_TELNET,
@@ -267,7 +268,7 @@ class DenonAVRDeviceInfo:
 
     def _dimmer_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a dimmer change event."""
-        if event == "DIM" and parameter[1:] in DIMMER_MODE_MAP:
+        if event == "DIM" and parameter[1:] in DIMMER_MODE_MAP_TELNET:
             self._dimmer = parameter[1:]
 
     def _auto_standby_callback(self, zone: str, event: str, parameter: str) -> None:
@@ -443,6 +444,7 @@ class DenonAVRDeviceInfo:
 
             # Add tags for a potential AppCommand.xml update
             self.api.add_appcommand_update_tag(AppCommands.GetAllZonePowerStatus)
+            self.api.add_appcommand_update_tag(AppCommands.GetDimmer)
             self.api.add_appcommand_update_tag(AppCommands.GetECO)
 
             power_event = "ZM"
@@ -750,8 +752,9 @@ class DenonAVRDeviceInfo:
     ) -> None:
         """Update status from AppCommand.xml."""
         power_appcommand = AppCommands.GetAllZonePowerStatus
+        dimmer_appcommand = AppCommands.GetDimmer
         eco_appcommand = AppCommands.GetECO
-        appcommands = (power_appcommand, eco_appcommand)
+        appcommands = (power_appcommand, dimmer_appcommand, eco_appcommand)
 
         try:
             if global_update:
@@ -855,8 +858,6 @@ class DenonAVRDeviceInfo:
     def dimmer(self) -> Optional[str]:
         """
         Returns the dimmer state of the device.
-
-        Only available if using Telnet.
 
         Possible values are: "Off", "Dark", "Dim" and "Bright"
         """

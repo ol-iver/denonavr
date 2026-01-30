@@ -544,8 +544,6 @@ class DenonAVR(DenonAVRFoundation):
         """
         Returns the dimmer state of the device.
 
-        Only available if using Telnet.
-
         Possible values are: "Off", "Dark", "Dim" and "Bright"
         """
         return self._device.dimmer

@@ -111,6 +111,16 @@ class AppCommands:
         ),
     )
 
+    GetDimmer = AppCommandCmd(
+        cmd_id="1",
+        cmd_text="GetDimmer",
+        response_pattern=(
+            AppCommandResponsePattern(
+                update_attribute="_dimmer", add_zone=False, suffix="/value"
+            ),
+        ),
+    )
+
     GetECO = AppCommandCmd(
         cmd_id="1",
         cmd_text="GetECO",

@@ -3,6 +3,9 @@
 <zone1>ON</zone1>
 </cmd>
 <cmd>
+<value>3</value>
+</cmd>
+<cmd>
 <status>1</status>
 <mode>2</mode>
 <pwondefault>3</pwondefault>
