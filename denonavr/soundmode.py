@@ -19,18 +19,18 @@ from .appcommand import AppCommands
 from .const import (
     ALL_ZONE_STEREO,
     AURO_3D_MODE_MAP,
-    AURO_3D_MODE_MAP_MAP_LABELS,
+    AURO_3D_MODE_MAP_REVERSE,
     AURO_MATIC_3D_PRESET_MAP,
-    AURO_MATIC_3D_PRESET_MAP_LABELS,
+    AURO_MATIC_3D_PRESET_MAP_REVERSE,
     DAC_FILTERS_MAP,
-    DAC_FILTERS_MAP_LABELS,
+    DAC_FILTERS_MAP_REVERSE,
     DENON_ATTR_SETATTR,
     DIALOG_ENHANCER_LEVEL_MAP,
-    DIALOG_ENHANCER_LEVEL_MAP_LABELS,
+    DIALOG_ENHANCER_LEVEL_MAP_REVERSE,
     EFFECT_SPEAKER_SELECTION_MAP,
-    EFFECT_SPEAKER_SELECTION_MAP_LABELS,
+    EFFECT_SPEAKER_SELECTION_MAP_REVERSE,
     MDAX_MAP,
-    MDAX_MAP_LABELS,
+    MDAX_MAP_REVERSE,
     SOUND_MODE_MAPPING,
     Auro3DModes,
     AuroMatic3DPresets,
@@ -125,18 +125,18 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         converter=attr.converters.optional(convert_on_off_bool), default=None
     )
     _dialog_enhancer_level: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(DIALOG_ENHANCER_LEVEL_MAP.get), default=None
     )
     _dialog_enhancer_levels = get_args(DialogEnhancerLevels)
     _auromatic_3d_preset: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(AURO_MATIC_3D_PRESET_MAP.get), default=None
     )
     _auromatic_3d_presets = get_args(AuroMatic3DPresets)
     _auromatic_3d_strength: Optional[int] = attr.ib(
         converter=attr.converters.optional(int), default=None
     )
     _auro_3d_mode: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(AURO_3D_MODE_MAP.get), default=None
     )
     _auro_3d_modes = get_args(Auro3DModes)
     _dialog_control: Optional[int] = attr.ib(
@@ -146,17 +146,18 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         converter=attr.converters.optional(convert_on_off_bool), default=None
     )
     _effect_speaker_selection: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(EFFECT_SPEAKER_SELECTION_MAP.get),
+        default=None,
     )
     _effect_speakers = get_args(EffectSpeakers)
     _drc: Optional[str] = attr.ib(converter=attr.converters.optional(str), default=None)
     _drcs = get_args(DRCs)
     _mdax: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(MDAX_MAP.get), default=None
     )
     _mdaxs = get_args(MDAXs)
     _dac_filter: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(DAC_FILTERS_MAP.get), default=None
     )
     _dac_filters = get_args(DACFilters)
     _sound_mode_map: Dict[str, list] = attr.ib(
@@ -292,9 +293,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     def _dialog_enhancer_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Dialog Enhancer change event."""
         if parameter[:3] == "DEH":
-            self._dialog_enhancer_level = DIALOG_ENHANCER_LEVEL_MAP_LABELS[
-                parameter[4:]
-            ]
+            self._dialog_enhancer_level = parameter[4:]
 
     def _auro_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Auro change event."""
@@ -303,11 +302,11 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             return
 
         if key_value[0] == "AUROPR":
-            self._auromatic_3d_preset = AURO_MATIC_3D_PRESET_MAP_LABELS[parameter[7:]]
+            self._auromatic_3d_preset = parameter[7:]
         elif key_value[0] == "AUROST":
-            self._auromatic_3d_strength = int(parameter[7:])
+            self._auromatic_3d_strength = parameter[7:]
         elif key_value[0] == "AUROMODE":
-            self._auro_3d_mode = AURO_3D_MODE_MAP_MAP_LABELS[parameter[9:]]
+            self._auro_3d_mode = parameter[9:]
 
     def _dialog_control_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Dialog Control change event."""
@@ -335,9 +334,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if len(key_value) != 2 or key_value[0] != "SP":
             return
 
-        self._effect_speaker_selection = EFFECT_SPEAKER_SELECTION_MAP_LABELS[
-            key_value[1]
-        ]
+        self._effect_speaker_selection = key_value[1]
 
     def _drc_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a DRC change event."""
@@ -353,7 +350,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if len(key_value) != 2 or key_value[0] != "MDAX":
             return
 
-        self._mdax = MDAX_MAP_LABELS[key_value[1]]
+        self._mdax = key_value[1]
 
     def _dac_filter_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a DAC Filter change event."""
@@ -361,7 +358,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if len(key_value) != 2 or key_value[0] != "DACFIL":
             return
 
-        self._dac_filter = DAC_FILTERS_MAP_LABELS[key_value[1]]
+        self._dac_filter = key_value[1]
 
     async def async_update(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
@@ -1057,7 +1054,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if level not in self._dialog_enhancer_levels:
             raise AvrCommandError(f"{level} is not a valid dialog enhancer level")
 
-        level_mapped = DIALOG_ENHANCER_LEVEL_MAP[level]
+        level_mapped = DIALOG_ENHANCER_LEVEL_MAP_REVERSE[level]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_dialog_enhancer.format(
@@ -1074,7 +1071,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if preset not in self._auromatic_3d_presets:
             raise AvrCommandError(f"{preset} is not a valid Auro-Matic 3D Preset")
 
-        local_preset = AURO_MATIC_3D_PRESET_MAP[preset]
+        local_preset = AURO_MATIC_3D_PRESET_MAP_REVERSE[preset]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_auromatic_3d_preset.format(
@@ -1142,7 +1139,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if mode not in self._auro_3d_modes:
             raise AvrCommandError(f"{mode} is not a valid Auro 3D Mode")
 
-        local_mode = AURO_3D_MODE_MAP[mode]
+        local_mode = AURO_3D_MODE_MAP_REVERSE[mode]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_auro_3d_mode.format(
@@ -1239,7 +1236,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if mode not in self._effect_speakers:
             raise AvrCommandError(f"{mode} is not a valid effect speaker selection")
 
-        local_mode = EFFECT_SPEAKER_SELECTION_MAP[mode]
+        local_mode = EFFECT_SPEAKER_SELECTION_MAP_REVERSE[mode]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_effect_speaker_selection.format(
@@ -1279,7 +1276,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if mode not in self._mdaxs:
             raise AvrCommandError(f"{mode} is not a valid M-DAX mode")
 
-        local_mode = MDAX_MAP[mode]
+        local_mode = MDAX_MAP_REVERSE[mode]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_mdax.format(mode=local_mode)
@@ -1301,7 +1298,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if mode not in self._dac_filters:
             raise AvrCommandError(f"{mode} is not a valid DAC Filter mode")
 
-        local_mode = DAC_FILTERS_MAP[mode]
+        local_mode = DAC_FILTERS_MAP_REVERSE[mode]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_dac_filter.format(mode=local_mode)

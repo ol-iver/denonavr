@@ -24,12 +24,15 @@ from .const import (
     AutoStandbys,
     BluetoothOutputModes,
     DimmerModes,
+    DynamicVolumeSettings,
     EcoModes,
     HDMIAudioDecodes,
     HDMIOutputs,
     Illuminations,
     InputModes,
+    MultiEQModes,
     PanelLocks,
+    ReferenceLevelOffsets,
     RoomSizes,
     TransducerLPFs,
     VideoProcessingModes,
@@ -800,15 +803,15 @@ class DenonAVR(DenonAVRFoundation):
         """Toggle DynamicEQ."""
         await self.audyssey.async_toggle_dynamic_eq()
 
-    async def async_set_multieq(self, value: str) -> None:
+    async def async_set_multieq(self, value: MultiEQModes) -> None:
         """Set MultiEQ mode."""
         await self.audyssey.async_set_multieq(value)
 
-    async def async_set_reflevoffset(self, value: str) -> None:
+    async def async_set_reflevoffset(self, value: ReferenceLevelOffsets) -> None:
         """Set Reference Level Offset."""
         await self.audyssey.async_set_reflevoffset(value)
 
-    async def async_set_dynamicvol(self, value: str) -> None:
+    async def async_set_dynamicvol(self, value: DynamicVolumeSettings) -> None:
         """Set Dynamic Volume."""
         await self.audyssey.async_set_dynamicvol(value)
 

@@ -15,7 +15,7 @@ import attr
 from .const import (
     DENON_ATTR_SETATTR,
     DIRAC_FILTER_MAP,
-    DIRAC_FILTER_MAP_LABELS,
+    DIRAC_FILTER_MAP_REVERSE,
     DiracFilters,
 )
 from .exceptions import AvrCommandError
@@ -29,7 +29,7 @@ class DenonAVRDirac(DenonAVRFoundation):
     """Dirac Settings."""
 
     _dirac_filter: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(DIRAC_FILTER_MAP.get), default=None
     )
     _dirac_filters = get_args(DiracFilters)
 
@@ -41,7 +41,7 @@ class DenonAVRDirac(DenonAVRFoundation):
     def _dirac_filter_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle Dirac filter change event."""
         if event == "PS" and parameter[0:5] == "DIRAC":
-            self._dirac_filter = DIRAC_FILTER_MAP_LABELS[parameter[6:]]
+            self._dirac_filter = parameter[6:]
 
     ##############
     # Properties #
@@ -66,7 +66,7 @@ class DenonAVRDirac(DenonAVRFoundation):
         if dirac_filter not in self._dirac_filters:
             raise AvrCommandError("Invalid Dirac filter")
 
-        mapped_filter = DIRAC_FILTER_MAP[dirac_filter]
+        mapped_filter = DIRAC_FILTER_MAP_REVERSE[dirac_filter]
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_dirac_filter.format(
