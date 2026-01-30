@@ -1568,7 +1568,6 @@ APPCOMMAND_NAME = "name"
 # _MAP dictionaries map receiver outputs to denonavr properties
 # _MAP_REVERSE dictionaries map them the opposite way
 
-# Audyssey parameter
 MULTI_EQ_MAP_APPCOMMAND = {"0": "Off", "1": "Flat", "2": "L/R Bypass", "3": "Reference"}
 MULTI_EQ_MAP_TELNET = {
     "OFF": "Off",
