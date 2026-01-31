@@ -1017,11 +1017,7 @@ class DenonAVR(DenonAVRFoundation):
         await self.vol.async_mute(mute)
 
     async def async_mute_toggle(self) -> None:
-        """
-        Mute toggle receiver via HTTP get command.
-
-        Only available if using Telnet.
-        """
+        """Mute toggle receiver via HTTP get command."""
         await self.vol.async_mute_toggle()
 
     async def async_enable_tone_control(self) -> None:
