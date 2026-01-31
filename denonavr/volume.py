@@ -431,6 +431,9 @@ class DenonAVRVolume(DenonAVRFoundation):
     async def async_mute(self, mute: bool) -> None:
         """Mute receiver via HTTP get command."""
         if mute:
+            if self._muted:
+                return
+
             if self._device.telnet_available:
                 await self._device.telnet_api.async_send_commands(
                     self._device.telnet_commands.command_mute_on
@@ -440,6 +443,9 @@ class DenonAVRVolume(DenonAVRFoundation):
                     self._device.urls.command_mute_on
                 )
         else:
+            if self._muted is False:
+                return
+
             if self._device.telnet_available:
                 await self._device.telnet_api.async_send_commands(
                     self._device.telnet_commands.command_mute_off
@@ -447,6 +453,31 @@ class DenonAVRVolume(DenonAVRFoundation):
             else:
                 await self._device.api.async_get_command(
                     self._device.urls.command_mute_off
+                )
+
+    async def async_mute_toggle(self) -> None:
+        """
+        Mute toggle receiver via HTTP get command.
+
+        Only available if using Telnet.
+        """
+        if self._muted:
+            if self._device.telnet_available:
+                await self._device.telnet_api.async_send_commands(
+                    self._device.telnet_commands.command_mute_off
+                )
+            else:
+                await self._device.api.async_get_command(
+                    self._device.urls.command_mute_off
+                )
+        else:
+            if self._device.telnet_available:
+                await self._device.telnet_api.async_send_commands(
+                    self._device.telnet_commands.command_mute_on
+                )
+            else:
+                await self._device.api.async_get_command(
+                    self._device.urls.command_mute_on
                 )
 
     async def async_channel_volume_up(self, channel: Channels) -> None:
