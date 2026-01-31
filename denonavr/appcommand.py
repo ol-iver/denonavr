@@ -30,6 +30,8 @@ class AppCommandResponsePattern:
 
     update_attribute: str = attr.ib(converter=str)
     add_zone: bool = attr.ib(converter=bool, default=True)
+    search_zone_text: bool = attr.ib(converter=bool, default=False)
+    prefix: str = attr.ib(converter=str, default="")
     suffix: str = attr.ib(converter=str, default="")
     get_xml_attribute: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None

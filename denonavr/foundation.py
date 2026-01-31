@@ -422,17 +422,6 @@ class DenonAVRDeviceInfo:
 
         self._auto_lip_sync = auto_lip_sync
 
-    def get_own_zone(self) -> str:
-        """
-        Get zone from actual instance.
-
-        These zone information are used to evaluate responses of HTTP POST
-        commands.
-        """
-        if self.zone == MAIN_ZONE:
-            return "zone1"
-        return self.zone.lower()
-
     async def async_setup(self) -> None:
         """Ensure that configuration is loaded from receiver asynchronously."""
         async with self._setup_lock:
@@ -773,11 +762,9 @@ class DenonAVRDeviceInfo:
             raise
 
         # Extract relevant information
-        zone = self.get_own_zone()
-
         for appcommand in appcommands:
             for i, item in enumerate(
-                create_appcommand_search_strings(appcommand, zone)
+                create_appcommand_search_strings(appcommand, self.zone)
             ):
                 tag = xml.find(item)
 
@@ -2122,11 +2109,11 @@ class DenonAVRFoundation:
             raise
 
         # Extract relevant information
-        zone = self._device.get_own_zone()
-
         attrs = deepcopy(update_attrs)
         for app_command in attrs.keys():
-            search_strings = create_appcommand_search_strings(app_command, zone)
+            search_strings = create_appcommand_search_strings(
+                app_command, self._device.zone
+            )
             start = 0
             success = 0
             for i, pattern in enumerate(app_command.response_pattern):
@@ -2239,6 +2226,8 @@ def create_appcommand_search_strings(
     """Create search pattern for AppCommand(0300).xml response."""
     result = []
 
+    zone_element = get_zone_element(zone)
+
     for resp in app_command_cmd.response_pattern:
         string = "./cmd"
         # Text of cmd tag in query was added as attribute to response
@@ -2247,17 +2236,35 @@ def create_appcommand_search_strings(
         # Text of name tag in query was added as attribute to response
         if app_command_cmd.name:
             string = string + f"[@{APPCOMMAND_NAME}='{app_command_cmd.name}']"
-        # Some results include a zone tag
+        # Prefix like /list/listvalue/
+        if resp.prefix:
+            string = string + resp.prefix
+        # Some results include a zone element
         if resp.add_zone:
-            string = string + f"/{zone}"
+            string = string + f"/{zone_element}"
+        # If the result can be identified by a "zone" element in the same node
+        if resp.search_zone_text:
+            string = string + f"/zone[.='{zone}']/.."
         # Suffix like /status, /volume
         string = string + resp.suffix
 
-        # A complete search string with all strributes set looks like
+        # A complete search string with all attributes looks like
         # ./cmd[@cmd_text={cmd_text}][@name={name}]/zone1/volume
         result.append(string)
 
     return result
+
+
+def get_zone_element(zone: str) -> str:
+    """
+    Get a zone element for evaluation of receiver XML responses.
+
+    This zone element are used to evaluate XML responses of HTTP POST
+    commands.
+    """
+    if zone == MAIN_ZONE:
+        return "zone1"
+    return zone.lower()
 
 
 def set_api_host(
