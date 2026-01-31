@@ -1653,7 +1653,27 @@ Auro3DModes = Literal["Direct", "Channel Expansion"]
 AURO_3D_MODE_MAP = {"DRCT": "Direct", "EXP": "Channel Expansion"}
 AURO_3D_MODE_MAP_REVERSE = {value: key for key, value in AURO_3D_MODE_MAP.items()}
 
-AutoStandbys = Literal["OFF", "15M", "30M", "60M"]
+AutoStandbys = Literal["OFF", "15M", "30M", "60M", "2H", "4H", "8H"]
+
+AUTO_STANDBY_MAP_APPCOMMAND = {
+    "0": "OFF",
+    "15": "15M",
+    "30": "30M",
+    "60": "60M",
+    "120": "2H",
+    "240": "4H",
+    "480": "8H",
+}
+AUTO_STANDBY_MAP_TELNET = {
+    "OFF": "OFF",
+    "15M": "15M",
+    "30M": "30M",
+    "60M": "60M",
+    "2H": "2H",
+    "4H": "4H",
+    "8H": "8H",
+}
+AUTO_STANDBY_MAP = {**AUTO_STANDBY_MAP_APPCOMMAND, **AUTO_STANDBY_MAP_TELNET}
 
 BluetoothOutputModes = Literal["Bluetooth + Speakers", "Bluetooth Only"]
 """Bluetooth Output Modes."""

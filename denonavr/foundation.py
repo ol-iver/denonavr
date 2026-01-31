@@ -23,6 +23,7 @@ from .const import (
     APPCOMMAND_NAME,
     AUDIO_RESTORER_MAP,
     AUDIO_RESTORER_MAP_REVERSE,
+    AUTO_STANDBY_MAP,
     AVR,
     AVR_X,
     AVR_X_2016,
@@ -161,7 +162,7 @@ class DenonAVRDeviceInfo:
     )
     _dimmer_modes = get_args(DimmerModes)
     _auto_standby: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(AUTO_STANDBY_MAP.get), default=None
     )
     _auto_standbys = get_args(AutoStandbys)
     _sleep: Optional[Union[str, int]] = attr.ib(
@@ -444,6 +445,7 @@ class DenonAVRDeviceInfo:
 
             # Add tags for a potential AppCommand.xml update
             self.api.add_appcommand_update_tag(AppCommands.GetAllZonePowerStatus)
+            self.api.add_appcommand_update_tag(AppCommands.GetAutoStandby)
             self.api.add_appcommand_update_tag(AppCommands.GetDimmer)
             self.api.add_appcommand_update_tag(AppCommands.GetECO)
 
@@ -753,8 +755,14 @@ class DenonAVRDeviceInfo:
         """Update status from AppCommand.xml."""
         power_appcommand = AppCommands.GetAllZonePowerStatus
         dimmer_appcommand = AppCommands.GetDimmer
+        autostandby_appcommand = AppCommands.GetAutoStandby
         eco_appcommand = AppCommands.GetECO
-        appcommands = (power_appcommand, dimmer_appcommand, eco_appcommand)
+        appcommands = (
+            power_appcommand,
+            autostandby_appcommand,
+            dimmer_appcommand,
+            eco_appcommand,
+        )
 
         try:
             if global_update:
@@ -868,9 +876,7 @@ class DenonAVRDeviceInfo:
         """
         Return the auto-standby state of the device.
 
-        Only available if using Telnet.
-
-        Possible values are: "OFF", "15M", "30M", "60M"
+        Possible values are: "OFF", "15M", "30M", "60M", "2H", "4H", "8H"
         """
         return self._auto_standby
 

@@ -553,9 +553,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Return the auto-standby state of the device.
 
-        Only available if using Telnet.
-
-        Possible values are: "OFF", "15M", "30M", "60M"
+        Possible values are: "OFF", "15M", "30M", "60M", "2H", "4H", "8H"
         """
         return self._device.auto_standby
 

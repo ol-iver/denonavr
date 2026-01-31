@@ -111,6 +111,20 @@ class AppCommands:
         ),
     )
 
+    GetAutoStandby = AppCommandCmd(
+        cmd_id="1",
+        cmd_text="GetAutoStandby",
+        response_pattern=(
+            AppCommandResponsePattern(
+                update_attribute="_auto_standby",
+                add_zone=False,
+                search_zone_text=True,
+                prefix="/list/listvalue/",
+                suffix="/value",
+            ),
+        ),
+    )
+
     GetDimmer = AppCommandCmd(
         cmd_id="1",
         cmd_text="GetDimmer",
