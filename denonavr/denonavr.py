@@ -17,6 +17,7 @@ import httpx
 
 from .audyssey import DenonAVRAudyssey, audyssey_factory
 from .const import (
+    AVR_X,
     DENON_ATTR_SETATTR,
     MAIN_ZONE,
     VALID_ZONES,
@@ -38,7 +39,7 @@ from .const import (
     VideoProcessingModes,
 )
 from .dirac import DenonAVRDirac, dirac_factory
-from .exceptions import AvrCommandError
+from .exceptions import AvrCommandError, AvrForbiddenError, AvrIncompleteResponseError
 from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
 from .input import DenonAVRInput, input_factory
 from .soundmode import DenonAVRSoundMode, sound_mode_factory
@@ -99,6 +100,7 @@ class DenonAVR(DenonAVRFoundation):
         init=False,
     )
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
+    _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     audyssey: DenonAVRAudyssey = attr.ib(
         validator=attr.validators.instance_of(DenonAVRAudyssey),
         default=attr.Factory(audyssey_factory, takes_self=True),
@@ -198,23 +200,46 @@ class DenonAVR(DenonAVRFoundation):
         # Create a cache id for this global update
         cache_id = time.time()
 
-        # Verify update method
-        _LOGGER.debug("Verifying update method")
-        await self._device.async_verify_avr_2016_update_method(cache_id=cache_id)
+        try:
+            # Update device
+            await self._device.async_update(global_update=True, cache_id=cache_id)
 
-        # Update device
-        await self._device.async_update(global_update=True, cache_id=cache_id)
+            # Update other functions
+            await self.input.async_update(global_update=True, cache_id=cache_id)
+            await self.soundmode.async_update(global_update=True, cache_id=cache_id)
+            await self.tonecontrol.async_update(global_update=True, cache_id=cache_id)
+            await self.vol.async_update(global_update=True, cache_id=cache_id)
+        except AvrForbiddenError:
+            # Recovery in case receiver changes port from 80 to 8080 which
+            # might happen at Denon AVR-X 2016 receivers
+            if self._device.use_avr_2016_update and self._allow_recovery:
+                self._allow_recovery = False
+                _LOGGER.warning(
+                    "AppCommand.xml returns HTTP status 403. Running setup"
+                    " again once to check if receiver interface switched "
+                    "ports"
+                )
+                self._is_setup = False
+                await self.async_update()
+            else:
+                raise
+        except AvrIncompleteResponseError:
+            # Use status XML interface if Appcommand.xml returns an incomplete result
+            # Only AVR_X devices support both interfaces
+            if self._device.use_avr_2016_update and self._device.receiver == AVR_X:
+                _LOGGER.warning(
+                    "Error verifying Appcommand.xml update method, it returns "
+                    "an incomplete result set. Deactivating the interface"
+                )
+                self._device.use_avr_2016_update = False
+                await self.async_update()
+            else:
+                raise
+        else:
+            if not self._allow_recovery:
+                self._allow_recovery = True
+                _LOGGER.info("AppCommand.xml recovered from HTTP status 403 error")
 
-        # Update other functions
-        await self.input.async_update(global_update=True, cache_id=cache_id)
-        await self.soundmode.async_update(global_update=True, cache_id=cache_id)
-        await self.tonecontrol.async_update(global_update=True, cache_id=cache_id)
-        await self.vol.async_update(global_update=True, cache_id=cache_id)
-
-        # AppCommand0300.xml interface is very slow, thus it is not included
-        # into main update
-        # await self.audyssey.async_update(
-        #     global_update=True, cache_id=cache_id)
         _LOGGER.debug("Finished denonavr update")
 
     async def async_update_tonecontrol(self):

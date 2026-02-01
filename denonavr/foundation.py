@@ -78,8 +78,6 @@ from .const import (
 )
 from .exceptions import (
     AvrCommandError,
-    AvrForbiddenError,
-    AvrIncompleteResponseError,
     AvrNetworkError,
     AvrRequestError,
     AvrTimoutError,
@@ -235,7 +233,6 @@ class DenonAVRDeviceInfo:
     )
     _input_modes = get_args(InputModes)
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
-    _allow_recovery: bool = attr.ib(converter=bool, default=True, init=True)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
 
     def __attrs_post_init__(self) -> None:
@@ -639,49 +636,6 @@ class DenonAVRDeviceInfo:
                     self.friendly_name = "Denon AVR"
             else:
                 self._set_friendly_name(xml)
-
-    async def async_verify_avr_2016_update_method(
-        self, *, cache_id: Hashable = None
-    ) -> None:
-        """Verify if avr 2016 update method is working."""
-        # Nothing to do if Appcommand.xml interface is not supported
-        if self._is_setup and not self.use_avr_2016_update:
-            return
-
-        try:
-            # Result is cached that it can be reused during update
-            await self.api.async_get_global_appcommand(cache_id=cache_id)
-        except (AvrTimoutError, AvrNetworkError) as err:
-            _LOGGER.debug("Connection error when verifying update method: %s", err)
-            raise
-        except AvrForbiddenError:
-            # Recovery in case receiver changes port from 80 to 8080 which
-            # might happen at Denon AVR-X 2016 receivers
-            if self._allow_recovery:
-                self._allow_recovery = False
-                _LOGGER.warning(
-                    "AppCommand.xml returns HTTP status 403. Running setup"
-                    " again once to check if receiver interface switched "
-                    "ports"
-                )
-                self._is_setup = False
-                await self.async_setup()
-                await self.async_verify_avr_2016_update_method(cache_id=cache_id)
-            else:
-                raise
-        except AvrIncompleteResponseError as err:
-            _LOGGER.debug("Request error when verifying update method: %s", err)
-            # Only AVR_X devices support both interfaces
-            if self.receiver == AVR_X:
-                _LOGGER.warning(
-                    "Error verifying Appcommand.xml update method, it returns "
-                    "an incomplete result set. Deactivating the interface"
-                )
-                self.use_avr_2016_update = False
-        else:
-            if not self._allow_recovery:
-                _LOGGER.info("AppCommand.xml recovered from HTTP status 403 error")
-            self._allow_recovery = True
 
     def _set_friendly_name(self, xml: ET.Element) -> None:
         """Set FriendlyName from result xml."""
