@@ -1080,7 +1080,7 @@ class DenonAVRDeviceInfo:
     ##########
 
     async def async_power_on(self) -> None:
-        """Turn on receiver via HTTP get command."""
+        """Turn on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_power_on
@@ -1089,7 +1089,7 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(self.urls.command_power_on)
 
     async def async_power_off(self) -> None:
-        """Turn off receiver via HTTP get command."""
+        """Turn off receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_power_standby
@@ -1098,7 +1098,7 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(self.urls.command_power_standby)
 
     async def async_cursor_up(self) -> None:
-        """Cursor Up on receiver via HTTP get command."""
+        """Cursor Up on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_cusor_up, skip_confirmation=True
@@ -1107,7 +1107,7 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(self.urls.command_cusor_up)
 
     async def async_cursor_down(self) -> None:
-        """Cursor Down on receiver via HTTP get command."""
+        """Cursor Down on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_cusor_down, skip_confirmation=True
@@ -1116,7 +1116,7 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(self.urls.command_cusor_down)
 
     async def async_cursor_left(self) -> None:
-        """Cursor Left on receiver via HTTP get command."""
+        """Cursor Left on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_cusor_left, skip_confirmation=True
@@ -1125,7 +1125,7 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(self.urls.command_cusor_left)
 
     async def async_cursor_right(self) -> None:
-        """Cursor Right on receiver via HTTP get command."""
+        """Cursor Right on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_cusor_right, skip_confirmation=True
@@ -1134,7 +1134,7 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(self.urls.command_cusor_right)
 
     async def async_cursor_enter(self) -> None:
-        """Cursor Enter on receiver via HTTP get command."""
+        """Cursor Enter on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_cusor_enter, skip_confirmation=True
@@ -1143,7 +1143,7 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(self.urls.command_cusor_enter)
 
     async def async_back(self) -> None:
-        """Back command on receiver via HTTP get command."""
+        """Back command on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_back, skip_confirmation=True
@@ -1152,7 +1152,7 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(self.urls.command_back)
 
     async def async_info(self) -> None:
-        """Info OSD on receiver via HTTP get command."""
+        """Info OSD on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_info, skip_confirmation=True
@@ -1161,7 +1161,7 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(self.urls.command_info)
 
     async def async_options(self) -> None:
-        """Options menu on receiver via HTTP get command."""
+        """Options menu on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_options, skip_confirmation=True
@@ -1171,7 +1171,7 @@ class DenonAVRDeviceInfo:
 
     async def async_settings_menu(self) -> None:
         """
-        Options menu on receiver via HTTP get command.
+        Options menu on receiver.
 
         Only available if using Telnet.
         """
@@ -1185,7 +1185,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_channel_level_adjust(self) -> None:
-        """Toggle the channel level adjust menu on receiver via HTTP get command."""
+        """Toggle the channel level adjust menu on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_channel_level_adjust
@@ -1194,7 +1194,7 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(self.urls.command_channel_level_adjust)
 
     async def async_dimmer_toggle(self) -> None:
-        """Toggle dimmer on receiver via HTTP get command."""
+        """Toggle dimmer on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_dimmer_toggle
@@ -1203,7 +1203,7 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(self.urls.command_dimmer_toggle)
 
     async def async_dimmer(self, mode: DimmerModes) -> None:
-        """Set dimmer mode on receiver via HTTP get command."""
+        """Set dimmer mode on receiver."""
         if mode not in self._dimmer_modes:
             raise AvrCommandError("Invalid dimmer mode")
 
@@ -1218,7 +1218,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_tactile_transducer_on(self) -> None:
-        """Turn on tactile transducer on receiver via HTTP get command."""
+        """Turn on tactile transducer on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_tactile_transducer.format(mode="ON")
@@ -1229,7 +1229,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_auto_standby(self, auto_standby: AutoStandbys) -> None:
-        """Set auto standby on receiver via HTTP get command."""
+        """Set auto standby on receiver."""
         if auto_standby not in self._auto_standbys:
             raise AvrCommandError("Invalid Auto Standby mode")
         if self.telnet_available:
@@ -1243,7 +1243,7 @@ class DenonAVRDeviceInfo:
 
     async def async_sleep(self, sleep: Union[Literal["OFF"], int]) -> None:
         """
-        Set auto standby on receiver via HTTP get command.
+        Set auto standby on receiver.
 
         Valid sleep values are "OFF" and 1-120 (in minutes)
         """
@@ -1261,7 +1261,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_tactile_transducer_off(self) -> None:
-        """Turn on tactile transducer on receiver via HTTP get command."""
+        """Turn on tactile transducer on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_tactile_transducer.format(mode="OFF")
@@ -1273,7 +1273,7 @@ class DenonAVRDeviceInfo:
 
     async def async_tactile_transducer_toggle(self) -> None:
         """
-        Turn on tactile transducer on receiver via HTTP get command.
+        Turn on tactile transducer on receiver.
 
         Only available if using Telnet.
         """
@@ -1283,7 +1283,7 @@ class DenonAVRDeviceInfo:
             await self.async_tactile_transducer_on()
 
     async def async_tactile_transducer_level_up(self) -> None:
-        """Increase the transducer level on receiver via HTTP get command."""
+        """Increase the transducer level on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_tactile_transducer_level.format(mode="UP")
@@ -1294,7 +1294,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_tactile_transducer_level_down(self) -> None:
-        """Decrease the transducer level on receiver via HTTP get command."""
+        """Decrease the transducer level on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_tactile_transducer_level.format(
@@ -1307,7 +1307,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_transducer_lpf(self, lpf: TransducerLPFs):
-        """Set transducer low pass filter on receiver via HTTP get command."""
+        """Set transducer low pass filter on receiver."""
         if lpf not in self._tactile_transducer_lpfs:
             raise AvrCommandError("Invalid tactile transducer low pass filter")
 
@@ -1326,7 +1326,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_room_size(self, room_size: RoomSizes) -> None:
-        """Set room size on receiver via HTTP get command."""
+        """Set room size on receiver."""
         if room_size not in self._room_sizes:
             raise AvrCommandError("Invalid room size")
 
@@ -1341,7 +1341,7 @@ class DenonAVRDeviceInfo:
 
     async def async_trigger_on(self, trigger: int) -> None:
         """
-        Set trigger to ON on receiver via HTTP get command.
+        Set trigger to ON on receiver.
 
         :param trigger: Trigger number to set to ON. Valid values are 1-3.
         """
@@ -1359,7 +1359,7 @@ class DenonAVRDeviceInfo:
 
     async def async_trigger_off(self, trigger: int) -> None:
         """
-        Set trigger to OFF on receiver via HTTP get command.
+        Set trigger to OFF on receiver.
 
         :param trigger: Trigger number to set to OFF. Valid values are 1-3.
         """
@@ -1377,7 +1377,7 @@ class DenonAVRDeviceInfo:
 
     async def async_trigger_toggle(self, trigger: int) -> None:
         """
-        Toggle trigger on receiver via HTTP get command.
+        Toggle trigger on receiver.
 
         Only available if using Telnet.
 
@@ -1394,7 +1394,7 @@ class DenonAVRDeviceInfo:
 
     async def async_quick_select_mode(self, quick_select_number: int) -> None:
         """
-        Set quick select mode on receiver via HTTP get command.
+        Set quick select mode on receiver.
 
         :param quick_select_number: Quick select number to set. Valid values are 1-5.
         """
@@ -1418,7 +1418,7 @@ class DenonAVRDeviceInfo:
 
     async def async_quick_select_memory(self, quick_select_number: int) -> None:
         """
-        Set quick select memory on receiver via HTTP get command.
+        Set quick select memory on receiver.
 
         :param quick_select_number: Quick select number to set. Valid values are 1-5.
         """
@@ -1441,7 +1441,7 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(command.format(number=quick_select_number))
 
     async def async_delay_up(self) -> None:
-        """Delay up on receiver via HTTP get command."""
+        """Delay up on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_delay_up
@@ -1450,7 +1450,7 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(self.urls.command_delay_up)
 
     async def async_delay_down(self) -> None:
-        """Delay down on receiver via HTTP get command."""
+        """Delay down on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_delay_down
@@ -1489,7 +1489,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_hdmi_audio_decode(self, mode: HDMIAudioDecodes) -> None:
-        """Set HDMI Audio Decode mode on receiver via HTTP get command."""
+        """Set HDMI Audio Decode mode on receiver."""
         if mode not in self._hdmi_audio_decodes:
             raise AvrCommandError("Invalid HDMI Audio Decode mode")
 
@@ -1503,7 +1503,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_video_processing_mode(self, mode: VideoProcessingModes) -> None:
-        """Set video processing mode on receiver via HTTP get command."""
+        """Set video processing mode on receiver."""
         if mode not in self._video_processing_modes:
             raise AvrCommandError("Invalid video processing mode")
         processing_mode = VIDEO_PROCESSING_MODES_MAP_REVERSE[mode]
@@ -1519,7 +1519,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_status(self) -> None:
-        """Get status of receiver via HTTP get command."""
+        """Get status of receiver."""
         if not self.is_denon:
             raise AvrCommandError("Status command is only supported for Denon devices")
 
@@ -1531,7 +1531,7 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(self.urls.command_status)
 
     async def async_system_reset(self) -> None:
-        """DANGER! Reset the receiver via HTTP get command."""
+        """DANGER! Reset the receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_system_reset
@@ -1540,7 +1540,7 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(self.urls.command_system_reset)
 
     async def async_network_restart(self) -> None:
-        """Restart the network on the receiver via HTTP get command."""
+        """Restart the network on the receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_network_restart
@@ -1550,7 +1550,7 @@ class DenonAVRDeviceInfo:
 
     async def async_speaker_preset(self, preset: int) -> None:
         """
-        Set speaker preset on receiver via HTTP get command.
+        Set speaker preset on receiver.
 
         Valid preset values are 1-2.
         """
@@ -1568,7 +1568,7 @@ class DenonAVRDeviceInfo:
 
     async def async_speaker_preset_toggle(self) -> None:
         """
-        Toggle speaker preset on receiver via HTTP get command.
+        Toggle speaker preset on receiver.
 
         Only available if using Telnet.
         """
@@ -1578,7 +1578,7 @@ class DenonAVRDeviceInfo:
     async def async_bt_transmitter_on(
         self,
     ) -> None:
-        """Turn on Bluetooth transmitter on receiver via HTTP get command."""
+        """Turn on Bluetooth transmitter on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_bluetooth_transmitter.format(mode="ON")
@@ -1591,7 +1591,7 @@ class DenonAVRDeviceInfo:
     async def async_bt_transmitter_off(
         self,
     ) -> None:
-        """Turn off Bluetooth transmitter on receiver via HTTP get command."""
+        """Turn off Bluetooth transmitter on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_bluetooth_transmitter.format(mode="OFF")
@@ -1603,7 +1603,7 @@ class DenonAVRDeviceInfo:
 
     async def async_bt_transmitter_toggle(self) -> None:
         """
-        Toggle Bluetooth transmitter mode on receiver via HTTP get command.
+        Toggle Bluetooth transmitter mode on receiver.
 
         Only available if using Telnet.
         """
@@ -1613,7 +1613,7 @@ class DenonAVRDeviceInfo:
             await self.async_bt_transmitter_on()
 
     async def async_bt_output_mode(self, mode: BluetoothOutputModes) -> None:
-        """Set Bluetooth transmitter mode on receiver via HTTP get command."""
+        """Set Bluetooth transmitter mode on receiver."""
         if mode not in self._bt_output_modes:
             raise AvrCommandError("Invalid Bluetooth output mode")
 
@@ -1631,7 +1631,7 @@ class DenonAVRDeviceInfo:
 
     async def async_bt_output_mode_toggle(self) -> None:
         """
-        Toggle Bluetooth output mode on receiver via HTTP get command.
+        Toggle Bluetooth output mode on receiver.
 
         Only available if using Telnet.
         """
@@ -1641,7 +1641,7 @@ class DenonAVRDeviceInfo:
             await self.async_bt_output_mode("Bluetooth + Speakers")
 
     async def async_delay_time_up(self) -> None:
-        """Delay time up on receiver via HTTP get command."""
+        """Delay time up on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_delay_time.format(value="UP")
@@ -1652,7 +1652,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_delay_time_down(self) -> None:
-        """Delay time up on receiver via HTTP get command."""
+        """Delay time up on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_delay_time.format(value="DOWN")
@@ -1664,7 +1664,7 @@ class DenonAVRDeviceInfo:
 
     async def async_delay_time(self, delay_time: int) -> None:
         """
-        Set delay time on receiver via HTTP get command.
+        Set delay time on receiver.
 
         :param delay_time: Delay time in ms. Valid values are 0-999.
         """
@@ -1681,7 +1681,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_audio_restorer(self, mode: AudioRestorers):
-        """Set audio restorer on receiver via HTTP get command."""
+        """Set audio restorer on receiver."""
         if mode not in self._audio_restorers:
             raise AvrCommandError("Invalid audio restorer mode")
 
@@ -1696,7 +1696,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_remote_control_lock(self):
-        """Set remote control lock on receiver via HTTP get command."""
+        """Set remote control lock on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_remote_control_lock.format(mode="ON")
@@ -1707,7 +1707,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_remote_control_unlock(self):
-        """Set remote control unlock on receiver via HTTP get command."""
+        """Set remote control unlock on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_remote_control_lock.format(mode="OFF")
@@ -1718,7 +1718,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_panel_lock(self, panel_lock_mode: PanelLocks):
-        """Set panel lock on receiver via HTTP get command."""
+        """Set panel lock on receiver."""
         if panel_lock_mode not in self._panel_locks:
             raise AvrCommandError("Invalid panel lock mode")
 
@@ -1742,7 +1742,7 @@ class DenonAVRDeviceInfo:
                 )
 
     async def async_panel_unlock(self):
-        """Set panel unlock on receiver via HTTP get command."""
+        """Set panel unlock on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_panel_lock.format(mode="OFF")
@@ -1753,7 +1753,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_graphic_eq_on(self) -> None:
-        """Turn on Graphic EQ on receiver via HTTP get command."""
+        """Turn on Graphic EQ on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_graphic_eq.format(mode="ON")
@@ -1764,7 +1764,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_graphic_eq_off(self) -> None:
-        """Turn off Graphic EQ on receiver via HTTP get command."""
+        """Turn off Graphic EQ on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_graphic_eq.format(mode="OFF")
@@ -1776,7 +1776,7 @@ class DenonAVRDeviceInfo:
 
     async def async_graphic_eq_toggle(self) -> None:
         """
-        Toggle Graphic EQ on receiver via HTTP get command.
+        Toggle Graphic EQ on receiver.
 
         Only available if using Telnet.
         """
@@ -1786,7 +1786,7 @@ class DenonAVRDeviceInfo:
             await self.async_graphic_eq_on()
 
     async def async_headphone_eq_on(self) -> None:
-        """Turn on Headphone EQ on receiver via HTTP get command."""
+        """Turn on Headphone EQ on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_headphone_eq.format(mode="ON")
@@ -1797,7 +1797,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_headphone_eq_off(self) -> None:
-        """Turn off Headphone EQ on receiver via HTTP get command."""
+        """Turn off Headphone EQ on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_headphone_eq.format(mode="OFF")
@@ -1809,7 +1809,7 @@ class DenonAVRDeviceInfo:
 
     async def async_headphone_eq_toggle(self) -> None:
         """
-        Toggle Headphone EQ on receiver via HTTP get command.
+        Toggle Headphone EQ on receiver.
 
         Only available if using Telnet.
         """
@@ -1819,7 +1819,7 @@ class DenonAVRDeviceInfo:
             await self.async_headphone_eq_on()
 
     async def async_hdmi_cec_on(self) -> None:
-        """Turn on HDMI CEC on receiver via HTTP get command."""
+        """Turn on HDMI CEC on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_denon_hdmi_cec_on
@@ -1834,7 +1834,7 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_hdmi_cec_off(self) -> None:
-        """Turn off HDMI CEC on receiver via HTTP get command."""
+        """Turn off HDMI CEC on receiver."""
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_denon_hdmi_cec_off
@@ -1850,7 +1850,7 @@ class DenonAVRDeviceInfo:
 
     async def async_illumination(self, mode: Illuminations):
         """
-        Set illumination mode on receiver via HTTP get command.
+        Set illumination mode on receiver.
 
         Only available on Marantz devices.
         """
@@ -1872,7 +1872,7 @@ class DenonAVRDeviceInfo:
 
     async def async_auto_lip_sync_on(self) -> None:
         """
-        Turn on auto lip sync on receiver via HTTP get command.
+        Turn on auto lip sync on receiver.
 
         Only available on Marantz devices.
         """
@@ -1890,7 +1890,7 @@ class DenonAVRDeviceInfo:
 
     async def async_auto_lip_sync_off(self) -> None:
         """
-        Turn off auto lip sync on receiver via HTTP get command.
+        Turn off auto lip sync on receiver.
 
         Only available on Marantz devices.
         """
@@ -1908,7 +1908,7 @@ class DenonAVRDeviceInfo:
 
     async def async_auto_lip_sync_toggle(self) -> None:
         """
-        Toggle auto lip sync on receiver via HTTP get command.
+        Toggle auto lip sync on receiver.
 
         Only available on Marantz devices and when using Telnet.
         """
@@ -1921,7 +1921,7 @@ class DenonAVRDeviceInfo:
             await self.async_auto_lip_sync_on()
 
     async def async_page_up(self) -> None:
-        """Page Up on receiver via HTTP get command."""
+        """Page Up on receiver."""
         if self.telnet_available:
             command = (
                 self.telnet_commands.command_page_up_denon
@@ -1938,7 +1938,7 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(command)
 
     async def async_page_down(self) -> None:
-        """Page Down on receiver via HTTP get command."""
+        """Page Down on receiver."""
         if self.telnet_available:
             command = (
                 self.telnet_commands.command_page_down_denon
@@ -1955,7 +1955,7 @@ class DenonAVRDeviceInfo:
             await self.api.async_get_command(command)
 
     async def async_input_mode(self, mode: InputModes):
-        """Set input mode on receiver via HTTP get command."""
+        """Set input mode on receiver."""
         if mode not in self._input_modes:
             raise AvrCommandError("Invalid input mode")
 
