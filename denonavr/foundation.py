@@ -134,6 +134,7 @@ class DenonAVRDeviceInfo:
     zone: str = attr.ib(
         validator=attr.validators.in_(VALID_ZONES), default=MAIN_ZONE, kw_only=True
     )
+    zones: int = attr.ib(converter=attr.converters.optional(int), default=0)
     friendly_name: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
@@ -451,6 +452,13 @@ class DenonAVRDeviceInfo:
                 power_event = "Z2"
             elif self.zone == ZONE3:
                 power_event = "Z3"
+            elif self.zones == 1:
+                # ZM events do not always work when the receiver has only one zone
+                # In this case it is safe to turn the entire device on and off
+                power_event = "PW"
+                self.telnet_commands = self.telnet_commands._replace(
+                    command_power_on="PWON", command_power_standby="PWSTANDBY"
+                )
             self.telnet_api.register_callback(power_event, self._power_callback)
 
             self.telnet_api.register_callback("MN", self._settings_menu_callback)
@@ -538,6 +546,10 @@ class DenonAVRDeviceInfo:
                     err,
                 )
             else:
+                device_zones = xml.find("./DeviceZones")
+                if device_zones is not None:
+                    self.zones = device_zones.text
+
                 is_avr_x = self._is_avr_x(xml)
                 if is_avr_x:
                     self.receiver = r_type
@@ -564,7 +576,7 @@ class DenonAVRDeviceInfo:
         # First test by CommApiVers
         try:
             if bool(
-                DEVICEINFO_COMMAPI_PATTERN.search(deviceinfo.find("CommApiVers").text)
+                DEVICEINFO_COMMAPI_PATTERN.search(deviceinfo.find("./CommApiVers").text)
                 is not None
             ):
                 # receiver found , return True
@@ -577,7 +589,7 @@ class DenonAVRDeviceInfo:
         # if first test did not find AVR-X device, check by model name
         try:
             if bool(
-                DEVICEINFO_AVR_X_PATTERN.search(deviceinfo.find("ModelName").text)
+                DEVICEINFO_AVR_X_PATTERN.search(deviceinfo.find("./ModelName").text)
                 is not None
             ):
                 # receiver found , return True
