@@ -1131,7 +1131,7 @@ class DenonAVRInput(DenonAVRFoundation):
             await self.async_play()
 
     async def async_play(self) -> None:
-        """Send play command to receiver command via HTTP post."""
+        """Send play command to receiver command."""
         # Use pause command only for sources which support NETAUDIO
         if self._input_func in self._netaudio_func_list:
             if self._device.telnet_available:
@@ -1143,7 +1143,7 @@ class DenonAVRInput(DenonAVRFoundation):
             self._state = STATE_PLAYING
 
     async def async_pause(self) -> None:
-        """Send pause command to receiver command via HTTP post."""
+        """Send pause command to receiver command."""
         # Use pause command only for sources which support NETAUDIO
         if self._input_func in self._netaudio_func_list:
             if self._device.telnet_available:
@@ -1157,7 +1157,7 @@ class DenonAVRInput(DenonAVRFoundation):
             self._state = STATE_PAUSED
 
     async def async_stop(self) -> None:
-        """Send stop command to receiver command via HTTP post."""
+        """Send stop command to receiver command."""
         # Use stop command only for sources which support NETAUDIO
         if self._input_func in self._netaudio_func_list:
             if self._device.telnet_available:
@@ -1169,7 +1169,7 @@ class DenonAVRInput(DenonAVRFoundation):
             self._state = STATE_STOPPED
 
     async def async_previous_track(self) -> None:
-        """Send previous track command to receiver command via HTTP post."""
+        """Send previous track command to receiver command."""
         # Use previous track button only for sources which support NETAUDIO
         if self._input_func in self._netaudio_func_list:
             body = {
@@ -1182,7 +1182,7 @@ class DenonAVRInput(DenonAVRFoundation):
             )
 
     async def async_next_track(self) -> None:
-        """Send next track command to receiver command via HTTP post."""
+        """Send next track command to receiver command."""
         # Use next track button only for sources which support NETAUDIO
         if self._input_func in self._netaudio_func_list:
             body = {
