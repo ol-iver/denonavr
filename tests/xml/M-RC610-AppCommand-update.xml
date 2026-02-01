@@ -4,6 +4,18 @@
     <zone1>MainZone</zone1>
   </cmd>
   <cmd>
+    <list>
+      <listvalue>
+        <zone>Main</zone>
+        <value>60</value>
+      </listvalue>
+    </list>
+  </cmd>
+  <cmd>
+    <value>3</value>
+  </cmd>
+  <error>2</error>
+  <cmd>
     <functionrename>
       <list>
         <name>TUNER</name>

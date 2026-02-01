@@ -1653,7 +1653,27 @@ Auro3DModes = Literal["Direct", "Channel Expansion"]
 AURO_3D_MODE_MAP = {"DRCT": "Direct", "EXP": "Channel Expansion"}
 AURO_3D_MODE_MAP_REVERSE = {value: key for key, value in AURO_3D_MODE_MAP.items()}
 
-AutoStandbys = Literal["OFF", "15M", "30M", "60M"]
+AutoStandbys = Literal["OFF", "15M", "30M", "60M", "2H", "4H", "8H"]
+
+AUTO_STANDBY_MAP_APPCOMMAND = {
+    "0": "OFF",
+    "15": "15M",
+    "30": "30M",
+    "60": "60M",
+    "120": "2H",
+    "240": "4H",
+    "480": "8H",
+}
+AUTO_STANDBY_MAP_TELNET = {
+    "OFF": "OFF",
+    "15M": "15M",
+    "30M": "30M",
+    "60M": "60M",
+    "2H": "2H",
+    "4H": "4H",
+    "8H": "8H",
+}
+AUTO_STANDBY_MAP = {**AUTO_STANDBY_MAP_APPCOMMAND, **AUTO_STANDBY_MAP_TELNET}
 
 BluetoothOutputModes = Literal["Bluetooth + Speakers", "Bluetooth Only"]
 """Bluetooth Output Modes."""
@@ -1666,13 +1686,21 @@ BLUETOOTH_OUTPUT_MODES_MAP_REVERSE = {
     value: key for key, value in BLUETOOTH_OUTPUT_MODES_MAP.items()
 }
 
-DIMMER_MODE_MAP = {
+DIMMER_MODE_MAP_APPCOMMAND = {
+    "0": "Off",
+    "1": "Dark",
+    "2": "Dim",
+    "3": "Bright",
+}
+DIMMER_MODE_MAP_TELNET = {
     DIMER_OFF: "Off",
     DIMER_DARK: "Dark",
     DIMER_DIM: "Dim",
     DIMER_BRIGHT: "Bright",
 }
-DIMMER_MODE_MAP_REVERSE = {value: key for key, value in DIMMER_MODE_MAP.items()}
+DIMMER_MODE_MAP = {**DIMMER_MODE_MAP_TELNET, **DIMMER_MODE_MAP_APPCOMMAND}
+# Telnet literals are correct for telnet and HTTP setters
+DIMMER_MODE_MAP_REVERSE = {value: key for key, value in DIMMER_MODE_MAP_TELNET.items()}
 
 DimmerModes = Literal["Off", "Dark", "Dim", "Bright"]
 """Dimmer Modes."""
@@ -1683,12 +1711,19 @@ DIRAC_FILTER_MAP_REVERSE = {value: key for key, value in DIRAC_FILTER_MAP.items(
 DiracFilters = Literal["Slot 1", "Slot 2", "Slot 3", "Off"]
 """Dirac Filters."""
 
-ECO_MODE_MAP = {
+ECO_MODE_MAP_APPCOMMAND = {
+    "0": "Off",
+    "1": "On",
+    "2": "Auto",
+}
+ECO_MODE_MAP_TELNET = {
     "ON": "On",
     "AUTO": "Auto",
     "OFF": "Off",
 }
-ECO_MODE_MAP_REVERSE = {value: key for key, value in ECO_MODE_MAP.items()}
+ECO_MODE_MAP = {**ECO_MODE_MAP_APPCOMMAND, **ECO_MODE_MAP_TELNET}
+# Telnet literals are correct for telnet and HTTP setters
+ECO_MODE_MAP_REVERSE = {value: key for key, value in ECO_MODE_MAP_TELNET.items()}
 
 EcoModes = Literal["On", "Auto", "Off"]
 """Eco Modes."""

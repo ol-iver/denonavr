@@ -23,6 +23,7 @@ from .const import (
     APPCOMMAND_NAME,
     AUDIO_RESTORER_MAP,
     AUDIO_RESTORER_MAP_REVERSE,
+    AUTO_STANDBY_MAP,
     AVR,
     AVR_X,
     AVR_X_2016,
@@ -37,8 +38,10 @@ from .const import (
     DEVICEINFO_COMMAPI_PATTERN,
     DIMMER_MODE_MAP,
     DIMMER_MODE_MAP_REVERSE,
+    DIMMER_MODE_MAP_TELNET,
     ECO_MODE_MAP,
     ECO_MODE_MAP_REVERSE,
+    ECO_MODE_MAP_TELNET,
     HDMI_OUTPUT_MAP,
     HDMI_OUTPUT_MAP_REVERSE,
     ILLUMINATION_MAP,
@@ -78,7 +81,6 @@ from .exceptions import (
     AvrForbiddenError,
     AvrIncompleteResponseError,
     AvrNetworkError,
-    AvrProcessingError,
     AvrRequestError,
     AvrTimoutError,
 )
@@ -160,7 +162,7 @@ class DenonAVRDeviceInfo:
     )
     _dimmer_modes = get_args(DimmerModes)
     _auto_standby: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(AUTO_STANDBY_MAP.get), default=None
     )
     _auto_standbys = get_args(AutoStandbys)
     _sleep: Optional[Union[str, int]] = attr.ib(
@@ -267,7 +269,7 @@ class DenonAVRDeviceInfo:
 
     def _dimmer_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a dimmer change event."""
-        if event == "DIM" and parameter[1:] in DIMMER_MODE_MAP:
+        if event == "DIM" and parameter[1:] in DIMMER_MODE_MAP_TELNET:
             self._dimmer = parameter[1:]
 
     def _auto_standby_callback(self, zone: str, event: str, parameter: str) -> None:
@@ -313,7 +315,7 @@ class DenonAVRDeviceInfo:
 
     def _eco_mode_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an Eco-mode change event."""
-        if event == "ECO" and parameter in ECO_MODE_MAP:
+        if event == "ECO" and parameter in ECO_MODE_MAP_TELNET:
             self._eco_mode = parameter
 
     def _hdmi_output_callback(self, zone: str, event: str, parameter: str) -> None:
@@ -423,17 +425,6 @@ class DenonAVRDeviceInfo:
 
         self._auto_lip_sync = auto_lip_sync
 
-    def get_own_zone(self) -> str:
-        """
-        Get zone from actual instance.
-
-        These zone information are used to evaluate responses of HTTP POST
-        commands.
-        """
-        if self.zone == MAIN_ZONE:
-            return "zone1"
-        return self.zone.lower()
-
     async def async_setup(self) -> None:
         """Ensure that configuration is loaded from receiver asynchronously."""
         async with self._setup_lock:
@@ -454,6 +445,9 @@ class DenonAVRDeviceInfo:
 
             # Add tags for a potential AppCommand.xml update
             self.api.add_appcommand_update_tag(AppCommands.GetAllZonePowerStatus)
+            self.api.add_appcommand_update_tag(AppCommands.GetAutoStandby)
+            self.api.add_appcommand_update_tag(AppCommands.GetDimmer)
+            self.api.add_appcommand_update_tag(AppCommands.GetECO)
 
             power_event = "ZM"
             if self.zone == ZONE2:
@@ -499,8 +493,13 @@ class DenonAVRDeviceInfo:
         if not self._is_setup:
             await self.async_setup()
 
-        # Update power status
-        await self.async_update_power(global_update=global_update, cache_id=cache_id)
+        if self.use_avr_2016_update:
+            await self.async_update_appcommand(
+                global_update=global_update, cache_id=cache_id
+            )
+        else:
+            await self.async_update_status_xml(cache_id=cache_id)
+
         _LOGGER.debug("Finished device update")
 
     async def async_identify_receiver(self) -> None:
@@ -750,86 +749,97 @@ class DenonAVRDeviceInfo:
         self.model_name = device_info["modelName"]
         self.serial_number = device_info["serialNumber"]
 
-    async def async_update_power(
+    async def async_update_appcommand(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
     ) -> None:
-        """Update power status of device."""
-        if self.use_avr_2016_update is None:
-            raise AvrProcessingError(
-                "Device is not setup correctly, update method not set"
-            )
-
-        if self.use_avr_2016_update:
-            await self.async_update_power_appcommand(
-                global_update=global_update, cache_id=cache_id
-            )
-        else:
-            await self.async_update_power_status_xml(cache_id=cache_id)
-
-    async def async_update_power_appcommand(
-        self, global_update: bool = False, cache_id: Optional[Hashable] = None
-    ) -> None:
-        """Update power status from AppCommand.xml."""
+        """Update status from AppCommand.xml."""
         power_appcommand = AppCommands.GetAllZonePowerStatus
+        dimmer_appcommand = AppCommands.GetDimmer
+        autostandby_appcommand = AppCommands.GetAutoStandby
+        eco_appcommand = AppCommands.GetECO
+        appcommands = (
+            power_appcommand,
+            autostandby_appcommand,
+            dimmer_appcommand,
+            eco_appcommand,
+        )
+
         try:
             if global_update:
                 xml = await self.api.async_get_global_appcommand(cache_id=cache_id)
             else:
                 xml = await self.api.async_post_appcommand(
-                    self.urls.appcommand, tuple(power_appcommand), cache_id=cache_id
+                    self.urls.appcommand, appcommands, cache_id=cache_id
                 )
         except AvrRequestError as err:
-            _LOGGER.debug("Error when getting power status: %s", err)
+            _LOGGER.debug("Error when getting device status: %s", err)
             raise
 
         # Extract relevant information
-        zone = self.get_own_zone()
+        for appcommand in appcommands:
+            for i, item in enumerate(
+                create_appcommand_search_strings(appcommand, self.zone)
+            ):
+                tag = xml.find(item)
 
-        # Search for power tag
-        power_tag = xml.find(
-            f"./cmd[@{APPCOMMAND_CMD_TEXT}='{power_appcommand.cmd_text}']/{zone}"
-        )
+                if tag is None:
+                    _LOGGER.debug(
+                        "%s attribute of zone %s not found on update",
+                        appcommand.response_pattern[0].update_attribute,
+                        self.zone,
+                    )
+                    continue
 
-        if power_tag is None:
-            raise AvrProcessingError(
-                f"Power attribute of zone {self.zone} not found on update"
-            )
+                setattr(self, appcommand.response_pattern[i].update_attribute, tag.text)
 
-        self._power = power_tag.text
-
-    async def async_update_power_status_xml(
+    async def async_update_status_xml(
         self, cache_id: Optional[Hashable] = None
     ) -> None:
-        """Update power status from status xml."""
+        """Update status from status xml."""
         # URLs to be scanned
         urls = [self.urls.status]
         if self.zone == MAIN_ZONE:
             urls.append(self.urls.mainzone)
         else:
             urls.append(f"{self.urls.mainzone}?ZoneName={self.zone}")
-        # Tags in XML which might contain information about zones power status
-        # ordered by their priority
-        tags = ["./ZonePower/value", "./Power/value"]
 
-        for tag in tags:
-            for url in urls:
-                try:
-                    xml = await self.api.async_get_xml(url, cache_id=cache_id)
-                except AvrRequestError as err:
-                    _LOGGER.debug(
-                        "Error when getting power status from url %s: %s", url, err
-                    )
-                    continue
+        # There are different XML tags which might contain information
+        # about zone status attributes.
+        attribute_searchstrings = {
+            "_power": ["./ZonePower/value", "./Power/value"],
+            "_eco_mode": ["./ECOMode/value"],
+        }
 
-                # Search for power tag
-                power_tag = xml.find(tag)
-                if power_tag is not None and power_tag.text is not None:
-                    self._power = power_tag.text
-                    return
+        for url in urls:
+            if len(attribute_searchstrings) == 0:
+                break
 
-        raise AvrProcessingError(
-            f"Power attribute of zone {self.zone} not found on update"
-        )
+            try:
+                xml = await self.api.async_get_xml(url, cache_id=cache_id)
+            except AvrRequestError as err:
+                _LOGGER.debug(
+                    "Error when getting device status from url %s: %s", url, err
+                )
+                continue
+
+            attributes_found = []
+            for attribute, searchstrings in attribute_searchstrings.items():
+                for searchstring in searchstrings:
+                    tag = xml.find(searchstring)
+                    if tag is not None and tag.text is not None:
+                        setattr(self, attribute, tag.text)
+                        attributes_found.append(attribute)
+                        break
+
+            for attribute in attributes_found:
+                attribute_searchstrings.pop(attribute)
+
+        if len(attribute_searchstrings) > 0:
+            _LOGGER.debug(
+                "%s attributes of zone %s not found on update",
+                attribute_searchstrings.keys(),
+                self.zone,
+            )
 
     ##############
     # Properties #
@@ -857,8 +867,6 @@ class DenonAVRDeviceInfo:
         """
         Returns the dimmer state of the device.
 
-        Only available if using Telnet.
-
         Possible values are: "Off", "Dark", "Dim" and "Bright"
         """
         return self._dimmer
@@ -868,9 +876,7 @@ class DenonAVRDeviceInfo:
         """
         Return the auto-standby state of the device.
 
-        Only available if using Telnet.
-
-        Possible values are: "OFF", "15M", "30M", "60M"
+        Possible values are: "OFF", "15M", "30M", "60M", "2H", "4H", "8H"
         """
         return self._auto_standby
 
@@ -898,8 +904,6 @@ class DenonAVRDeviceInfo:
     def eco_mode(self) -> Optional[str]:
         """
         Returns the eco-mode for the device.
-
-        Only available if using Telnet.
 
         Possible values are: "Off", "On", "Auto"
         """
@@ -2114,11 +2118,11 @@ class DenonAVRFoundation:
             raise
 
         # Extract relevant information
-        zone = self._device.get_own_zone()
-
         attrs = deepcopy(update_attrs)
         for app_command in attrs.keys():
-            search_strings = self.create_appcommand_search_strings(app_command, zone)
+            search_strings = create_appcommand_search_strings(
+                app_command, self._device.zone
+            )
             start = 0
             success = 0
             for i, pattern in enumerate(app_command.response_pattern):
@@ -2157,9 +2161,10 @@ class DenonAVRFoundation:
 
         # Check if each attribute was updated
         if update_attrs:
-            raise AvrProcessingError(
-                f"Some attributes of zone {self._device.zone} not found on update:"
-                f" {update_attrs}"
+            _LOGGER.debug(
+                "Some attributes of zone %s not found on update: %s",
+                self._device.zone,
+                update_attrs,
             )
 
     async def async_update_attrs_status_xml(
@@ -2217,39 +2222,58 @@ class DenonAVRFoundation:
 
         # Check if each attribute was updated
         if update_attrs:
-            raise AvrProcessingError(
-                f"Some attributes of zone {self._device.zone} not found on update:"
-                f" {update_attrs}"
+            _LOGGER.debug(
+                "Some attributes of zone %s not found on update: %s",
+                self._device.zone,
+                update_attrs,
             )
 
-    @staticmethod
-    def create_appcommand_search_strings(
-        app_command_cmd: AppCommandCmd, zone: str
-    ) -> List[str]:
-        """Create search pattern for AppCommand(0300).xml response."""
-        result = []
 
-        for resp in app_command_cmd.response_pattern:
-            string = "./cmd"
-            # Text of cmd tag in query was added as attribute to response
-            if app_command_cmd.cmd_text:
-                string = (
-                    string + f"[@{APPCOMMAND_CMD_TEXT}='{app_command_cmd.cmd_text}']"
-                )
-            # Text of name tag in query was added as attribute to response
-            if app_command_cmd.name:
-                string = string + f"[@{APPCOMMAND_NAME}='{app_command_cmd.name}']"
-            # Some results include a zone tag
-            if resp.add_zone:
-                string = string + f"/{zone}"
-            # Suffix like /status, /volume
-            string = string + resp.suffix
+def create_appcommand_search_strings(
+    app_command_cmd: AppCommandCmd, zone: str
+) -> List[str]:
+    """Create search pattern for AppCommand(0300).xml response."""
+    result = []
 
-            # A complete search string with all strributes set looks like
-            # ./cmd[@cmd_text={cmd_text}][@name={name}]/zone1/volume
-            result.append(string)
+    zone_element = get_zone_element(zone)
 
-        return result
+    for resp in app_command_cmd.response_pattern:
+        string = "./cmd"
+        # Text of cmd tag in query was added as attribute to response
+        if app_command_cmd.cmd_text:
+            string = string + f"[@{APPCOMMAND_CMD_TEXT}='{app_command_cmd.cmd_text}']"
+        # Text of name tag in query was added as attribute to response
+        if app_command_cmd.name:
+            string = string + f"[@{APPCOMMAND_NAME}='{app_command_cmd.name}']"
+        # Prefix like /list/listvalue/
+        if resp.prefix:
+            string = string + resp.prefix
+        # Some results include a zone element
+        if resp.add_zone:
+            string = string + f"/{zone_element}"
+        # If the result can be identified by a "zone" element in the same node
+        if resp.search_zone_text:
+            string = string + f"/zone[.='{zone}']/.."
+        # Suffix like /status, /volume
+        string = string + resp.suffix
+
+        # A complete search string with all attributes looks like
+        # ./cmd[@cmd_text={cmd_text}][@name={name}]/zone1/volume
+        result.append(string)
+
+    return result
+
+
+def get_zone_element(zone: str) -> str:
+    """
+    Get a zone element for evaluation of receiver XML responses.
+
+    This zone element are used to evaluate XML responses of HTTP POST
+    commands.
+    """
+    if zone == MAIN_ZONE:
+        return "zone1"
+    return zone.lower()
 
 
 def set_api_host(

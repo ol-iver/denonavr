@@ -5,6 +5,31 @@
         <zone2>OFF</zone2>
         <zone3>OFF</zone3>
     </cmd>
+	<cmd>
+		<list>
+			<listvalue>
+				<zone>Main</zone>
+				<value>60</value>
+			</listvalue>
+			<listvalue>
+				<zone>Zone2</zone>
+				<value>0</value>
+			</listvalue>
+			<listvalue>
+				<zone>Zone3</zone>
+				<value>0</value>
+			</listvalue>
+		</list>
+	</cmd>
+	<cmd>
+		<value>3</value>
+	</cmd>
+	<cmd>
+		<status>1</status>
+		<mode>2</mode>
+		<pwondefault>3</pwondefault>
+		<display>2</display>
+  	</cmd>
     <cmd>
         <zone1>
             <source>SAT/CBL</source>

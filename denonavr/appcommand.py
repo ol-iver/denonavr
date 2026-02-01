@@ -30,6 +30,8 @@ class AppCommandResponsePattern:
 
     update_attribute: str = attr.ib(converter=str)
     add_zone: bool = attr.ib(converter=bool, default=True)
+    search_zone_text: bool = attr.ib(converter=bool, default=False)
+    prefix: str = attr.ib(converter=str, default="")
     suffix: str = attr.ib(converter=str, default="")
     get_xml_attribute: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
@@ -105,6 +107,40 @@ class AppCommands:
         response_pattern=(
             AppCommandResponsePattern(
                 update_attribute="_volume", add_zone=True, suffix="/volume"
+            ),
+        ),
+    )
+
+    GetAutoStandby = AppCommandCmd(
+        cmd_id="1",
+        cmd_text="GetAutoStandby",
+        response_pattern=(
+            AppCommandResponsePattern(
+                update_attribute="_auto_standby",
+                add_zone=False,
+                search_zone_text=True,
+                prefix="/list/listvalue/",
+                suffix="/value",
+            ),
+        ),
+    )
+
+    GetDimmer = AppCommandCmd(
+        cmd_id="1",
+        cmd_text="GetDimmer",
+        response_pattern=(
+            AppCommandResponsePattern(
+                update_attribute="_dimmer", add_zone=False, suffix="/value"
+            ),
+        ),
+    )
+
+    GetECO = AppCommandCmd(
+        cmd_id="1",
+        cmd_text="GetECO",
+        response_pattern=(
+            AppCommandResponsePattern(
+                update_attribute="_eco_mode", add_zone=False, suffix="/mode"
             ),
         ),
     )
