@@ -3,6 +3,9 @@
 <cmd>
 <zone1>ON</zone1>
 </cmd>
+<error>2</error>
+<error>2</error>
+<error>2</error>
 <cmd>
 <zone1>
 <source>AUXD</source>

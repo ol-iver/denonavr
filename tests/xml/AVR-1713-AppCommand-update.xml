@@ -4,6 +4,16 @@
 <zone1>ON</zone1>
 </cmd>
 <cmd>
+<list>
+<listvalue>
+<zone>Main</zone>
+<value>90</value>
+</listvalue>
+</list>
+</cmd>
+<error>2</error>
+<error>2</error>
+<cmd>
 <zone1>
 <source>NET</source>
 </zone1>

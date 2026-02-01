@@ -3,6 +3,23 @@
 <zone1>ON</zone1>
 </cmd>
 <cmd>
+<list>
+<listvalue>
+<zone>Main</zone>
+<value>60</value>
+</listvalue>
+</list>
+</cmd>
+<cmd>
+<value>3</value>
+</cmd>
+<cmd>
+<status>1</status>
+<mode>2</mode>
+<pwondefault>3</pwondefault>
+<display>2</display>
+</cmd>
+<cmd>
 <zone1>
 <source>Internet Radio</source>
 </zone1>

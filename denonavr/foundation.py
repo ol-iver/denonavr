@@ -23,6 +23,7 @@ from .const import (
     APPCOMMAND_NAME,
     AUDIO_RESTORER_MAP,
     AUDIO_RESTORER_MAP_REVERSE,
+    AUTO_STANDBY_MAP,
     AVR,
     AVR_X,
     AVR_X_2016,
@@ -37,8 +38,10 @@ from .const import (
     DEVICEINFO_COMMAPI_PATTERN,
     DIMMER_MODE_MAP,
     DIMMER_MODE_MAP_REVERSE,
+    DIMMER_MODE_MAP_TELNET,
     ECO_MODE_MAP,
     ECO_MODE_MAP_REVERSE,
+    ECO_MODE_MAP_TELNET,
     HDMI_OUTPUT_MAP,
     HDMI_OUTPUT_MAP_REVERSE,
     ILLUMINATION_MAP,
@@ -78,7 +81,6 @@ from .exceptions import (
     AvrForbiddenError,
     AvrIncompleteResponseError,
     AvrNetworkError,
-    AvrProcessingError,
     AvrRequestError,
     AvrTimoutError,
 )
@@ -281,7 +283,7 @@ class DenonAVRDeviceInfo:
     )
     _dimmer_modes = get_args(DimmerModes)
     _auto_standby: Optional[str] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(AUTO_STANDBY_MAP.get), default=None
     )
     _auto_standbys = get_args(AutoStandbys)
     _sleep: Optional[Union[str, int]] = attr.ib(
@@ -473,7 +475,7 @@ class DenonAVRDeviceInfo:
 
     def _dimmer_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle a dimmer change event."""
-        if (value := parameter[1:]) in DIMMER_MODE_MAP:
+        if (value := parameter[1:]) in DIMMER_MODE_MAP_TELNET:
             self._dimmer = value
 
     def _auto_standby_callback(self, zone: str, _event: str, parameter: str) -> None:
@@ -531,7 +533,7 @@ class DenonAVRDeviceInfo:
 
     def _eco_mode_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle an Eco-mode change event."""
-        if parameter in ECO_MODE_MAP:
+        if parameter in ECO_MODE_MAP_TELNET:
             self._eco_mode = parameter
 
     def _hdmi_output_callback(self, parameter: str) -> None:
@@ -722,17 +724,6 @@ class DenonAVRDeviceInfo:
                     key_value[1],
                 )
 
-    def get_own_zone(self) -> str:
-        """
-        Get zone from actual instance.
-
-        These zone information are used to evaluate responses of HTTP POST
-        commands.
-        """
-        if self.zone == MAIN_ZONE:
-            return "zone1"
-        return self.zone.lower()
-
     async def async_setup(self) -> None:
         """Ensure that configuration is loaded from receiver asynchronously."""
         async with self._setup_lock:
@@ -753,6 +744,9 @@ class DenonAVRDeviceInfo:
 
             # Add tags for a potential AppCommand.xml update
             self.api.add_appcommand_update_tag(AppCommands.GetAllZonePowerStatus)
+            self.api.add_appcommand_update_tag(AppCommands.GetAutoStandby)
+            self.api.add_appcommand_update_tag(AppCommands.GetDimmer)
+            self.api.add_appcommand_update_tag(AppCommands.GetECO)
 
             self._register_callbacks()
 
@@ -1160,8 +1154,6 @@ class DenonAVRDeviceInfo:
         """
         Returns the dimmer state of the device.
 
-        Only available if using Telnet.
-
         Possible values are: "Off", "Dark", "Dim" and "Bright"
         """
         return self._dimmer
@@ -1171,9 +1163,7 @@ class DenonAVRDeviceInfo:
         """
         Return the auto-standby state of the device.
 
-        Only available if using Telnet.
-
-        Possible values are: "OFF", "15M", "30M", "60M"
+        Possible values are: "OFF", "15M", "30M", "60M", "2H", "4H", "8H"
         """
         return self._auto_standby
 
@@ -1201,8 +1191,6 @@ class DenonAVRDeviceInfo:
     def eco_mode(self) -> Optional[str]:
         """
         Returns the eco-mode for the device.
-
-        Only available if using Telnet.
 
         Possible values are: "Off", "On", "Auto"
         """
@@ -2639,11 +2627,11 @@ class DenonAVRFoundation:
             raise
 
         # Extract relevant information
-        zone = self._device.get_own_zone()
-
         attrs = deepcopy(update_attrs)
         for app_command in attrs.keys():
-            search_strings = create_appcommand_search_strings(app_command, zone)
+            search_strings = create_appcommand_search_strings(
+                app_command, self._device.zone
+            )
             start = 0
             success = 0
             for i, pattern in enumerate(app_command.response_pattern):

@@ -588,8 +588,6 @@ class DenonAVR(DenonAVRFoundation):
         """
         Returns the dimmer state of the device.
 
-        Only available if using Telnet.
-
         Possible values are: "Off", "Dark", "Dim" and "Bright"
         """
         return self._device.dimmer
@@ -599,9 +597,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Return the auto-standby state of the device.
 
-        Only available if using Telnet.
-
-        Possible values are: "OFF", "15M", "30M", "60M"
+        Possible values are: "OFF", "15M", "30M", "60M", "2H", "4H", "8H"
         """
         return self._device.auto_standby
 
@@ -629,8 +625,6 @@ class DenonAVR(DenonAVRFoundation):
     def eco_mode(self) -> Optional[str]:
         """
         Returns the eco-mode for the device.
-
-        Only available if using Telnet.
 
         Possible values are: "Off", "On", "Auto"
         """
