@@ -2643,7 +2643,7 @@ class DenonAVRFoundation:
 
         attrs = deepcopy(update_attrs)
         for app_command in attrs.keys():
-            search_strings = self.create_appcommand_search_strings(app_command, zone)
+            search_strings = create_appcommand_search_strings(app_command, zone)
             start = 0
             success = 0
             for i, pattern in enumerate(app_command.response_pattern):
