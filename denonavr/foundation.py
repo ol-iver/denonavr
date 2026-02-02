@@ -272,7 +272,7 @@ class DenonAVRDeviceInfo:
 
     def _auto_standby_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a auto standby change event."""
-        if zone == "Main" and event == "STBY":
+        if zone == self.zone and event == "STBY":
             self._auto_standby = parameter
 
     def _auto_sleep_callback(self, zone: str, event: str, parameter: str) -> None:
