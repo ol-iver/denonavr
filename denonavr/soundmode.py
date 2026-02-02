@@ -226,6 +226,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             self._device.telnet_api.register_callback("PS", self._ps_callback)
 
             self._is_setup = True
+            _LOGGER.debug("Finished sound mode setup")
 
     def _soundmode_callback(self, zone: str, _event: str, parameter: str) -> None:
         """Handle a sound mode change event."""

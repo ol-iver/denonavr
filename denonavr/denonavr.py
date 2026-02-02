@@ -16,6 +16,7 @@ import attr
 
 from .audyssey import DenonAVRAudyssey, audyssey_factory
 from .const import (
+    AVR_X,
     DENON_ATTR_SETATTR,
     MAIN_ZONE,
     VALID_ZONES,
@@ -35,10 +36,9 @@ from .const import (
     RoomSizes,
     TransducerLPFs,
     VideoProcessingModes,
-    AVR_X,
 )
 from .dirac import DenonAVRDirac, dirac_factory
-from .exceptions import AvrIncompleteResponseError, AvrForbiddenError
+from .exceptions import AvrForbiddenError, AvrIncompleteResponseError
 from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
 from .input import DenonAVRInput, input_factory
 from .soundmode import DenonAVRSoundMode, sound_mode_factory

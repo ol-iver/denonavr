@@ -78,8 +78,6 @@ from .const import (
 )
 from .exceptions import (
     AvrCommandError,
-    AvrForbiddenError,
-    AvrIncompleteResponseError,
     AvrNetworkError,
     AvrRequestError,
     AvrTimoutError,
@@ -1047,7 +1045,7 @@ class DenonAVRDeviceInfo:
     async def async_update_appcommand(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
     ) -> None:
-        """Update power status from AppCommand.xml."""
+        """Update status from AppCommand.xml."""
         power_appcommand = AppCommands.GetAllZonePowerStatus
         dimmer_appcommand = AppCommands.GetDimmer
         autostandby_appcommand = AppCommands.GetAutoStandby
