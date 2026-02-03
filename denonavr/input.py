@@ -296,8 +296,9 @@ class DenonAVRInput(DenonAVRFoundation):
             if parameter[1:].startswith(NETAUDIO_PLAYING):
                 # It is not possible to see if the device is playing or paused.
                 # We assume it is playing first.
-                # Then, the state might be changed by async_play and async_pause.
-                if self._state not in {STATE_PLAYING, STATE_PAUSED}:
+                # Then, the state might be changed by async_play, async_pause
+                # and async_stop.
+                if self._state not in {STATE_PLAYING, STATE_PAUSED, STATE_STOPPED}:
                     self._state = STATE_PLAYING
             else:
                 self._state = STATE_STOPPED
@@ -890,8 +891,9 @@ class DenonAVRInput(DenonAVRFoundation):
         if self._netaudio_state.startswith(NETAUDIO_PLAYING):
             # It is not possible to see if the device is playing or paused.
             # We assume it is playing first.
-            # Then, the state might be changed by async_play and async_pause.
-            if self._state not in {STATE_PLAYING, STATE_PAUSED}:
+            # Then, the state might be changed by async_play, async_pause
+            # and async_stop.
+            if self._state not in {STATE_PLAYING, STATE_PAUSED, STATE_STOPPED}:
                 self._state = STATE_PLAYING
         else:
             self._state = STATE_STOPPED
