@@ -265,9 +265,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         elif key_value[0] == "IMAXAUD":
             self._imax_audio_settings = parameter[8:]
         elif key_value[0] == "IMAXHPF":
-            self._imax_hpf = int(parameter[8:])
+            self._imax_hpf = parameter[8:]
         elif key_value[0] == "IMAXLPF":
-            self._imax_lpf = int(parameter[8:])
+            self._imax_lpf = parameter[8:]
         elif key_value[0] == "IMAXSWM":
             self._imax_subwoofer_mode = parameter[8:]
         elif key_value[0] == "IMAXSWO":
@@ -314,7 +314,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         if len(key_value) != 2 or key_value[0] != "DIC":
             return
 
-        self._dialog_control = int(key_value[1])
+        self._dialog_control = key_value[1]
 
     def _speaker_virtualizer_callback(
         self, zone: str, event: str, parameter: str

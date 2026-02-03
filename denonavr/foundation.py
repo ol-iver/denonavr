@@ -202,7 +202,7 @@ class DenonAVRDeviceInfo:
     _room_sizes = get_args(RoomSizes)
     _triggers: Optional[Dict[int, str]] = attr.ib(default=None)
     _speaker_preset: Optional[int] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(int), default=None
     )
     _bt_transmitter: Optional[bool] = attr.ib(
         converter=attr.converters.optional(convert_on_off_bool), default=None
@@ -258,45 +258,31 @@ class DenonAVRDeviceInfo:
 
     def _settings_menu_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a settings menu event."""
-        if (
-            event == "MN"
-            and parameter[0:3] == "MEN"
-            and parameter[4:] in SETTINGS_MENU_STATES
-        ):
+        if parameter[0:3] == "MEN" and parameter[4:] in SETTINGS_MENU_STATES:
             self._settings_menu = parameter[4:]
 
     def _dimmer_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a dimmer change event."""
-        if event == "DIM" and parameter[1:] in DIMMER_MODE_MAP_TELNET:
+        if parameter[1:] in DIMMER_MODE_MAP_TELNET:
             self._dimmer = parameter[1:]
 
     def _auto_standby_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a auto standby change event."""
-        if zone == self.zone and event == "STBY":
+        if zone == self.zone:
             self._auto_standby = parameter
 
     def _auto_sleep_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a sleep change event."""
-        if event != "SLP":
-            return
-
-        if parameter == "OFF":
+        if zone == self.zone:
             self._sleep = parameter
-        else:
-            self._sleep = int(parameter)
 
     def _room_size_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a room size change event."""
-        if parameter[:3] != "RSZ":
-            return
-
-        self._room_size = parameter[4:]
+        if zone == self.zone and parameter[:3] == "RSZ":
+            self._room_size = parameter[4:]
 
     def _trigger_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a trigger change event."""
-        if event != "TR":
-            return
-
         values = parameter.split()
         if len(values) != 2:
             return
@@ -308,31 +294,31 @@ class DenonAVRDeviceInfo:
 
     def _delay_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a delay change event."""
-        if event == "PS" and parameter[0:5] == "DELAY":
-            self._delay = int(parameter[6:])
+        if zone == self.zone and parameter[0:5] == "DELAY":
+            self._delay = parameter[6:]
 
     def _eco_mode_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an Eco-mode change event."""
-        if event == "ECO" and parameter in ECO_MODE_MAP_TELNET:
+        if zone == self.zone and parameter in ECO_MODE_MAP_TELNET:
             self._eco_mode = parameter
 
     def _hdmi_output_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a HDMI output change event."""
-        if event == "VS" and parameter[0:4] == "MONI":
+        if zone == self.zone and parameter[0:4] == "MONI":
             self._hdmi_output = parameter
 
     def _hdmi_audio_decode_callback(
         self, zone: str, event: str, parameter: str
     ) -> None:
         """Handle a HDMI Audio Decode mode change event."""
-        if event == "VS" and parameter[0:5] == "AUDIO":
+        if zone == self.zone and parameter[0:5] == "AUDIO":
             self._hdmi_audio_decode = parameter[6:]
 
     def _video_processing_mode_callback(
         self, zone: str, event: str, parameter: str
     ) -> None:
         """Handle a Video Processing Mode change event."""
-        if event == "VS" and parameter[0:3] == "VPM":
+        if zone == self.zone and parameter[0:3] == "VPM":
             self._video_processing_mode = parameter[3:]
 
     def _tactile_transducer_callback(
@@ -353,19 +339,16 @@ class DenonAVRDeviceInfo:
         elif key == "TTRLEV":
             self._tactile_transducer_level = CHANNEL_VOLUME_MAP[value]
         elif key == "TTRLPF":
-            self._tactile_transducer_lpf = f"{int(value)} Hz"
+            self._tactile_transducer_lpf = f"{value} Hz"
 
     def _speaker_preset_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a speaker preset change event."""
-        if event != "SP":
-            return
-
         if parameter[0:2] == "PR":
-            self._speaker_preset = int(parameter[3:])
+            self._speaker_preset = parameter[3:]
 
     def _bt_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a Bluetooth change event."""
-        if event != "BT" or parameter[0:2] != "TX":
+        if parameter[0:2] != "TX":
             return
 
         if parameter[3:] in ("ON", "OFF"):
@@ -376,14 +359,14 @@ class DenonAVRDeviceInfo:
     def _delay_time_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a delay time change event."""
         # do not match "DELAY" as it's another event
-        if event != "PS" or parameter[0:3] != "DEL" or parameter[0:5] == "DELAY":
+        if parameter[0:3] != "DEL" or parameter[0:5] == "DELAY":
             return
 
         self._delay_time = int(parameter[4:])
 
     def _audio_restorer_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an audio restorer change event."""
-        if event != "PS" or parameter[0:4] != "RSTR":
+        if parameter[0:4] != "RSTR":
             return
 
         self._audio_restorer = parameter[5:]
@@ -411,7 +394,7 @@ class DenonAVRDeviceInfo:
 
     def _auto_lip_sync_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a auto lip sync change event."""
-        if event != "PS" or parameter[0:3] != "HOS":
+        if parameter[0:3] != "HOS":
             return
 
         if parameter[6:] == "HOSALS":
