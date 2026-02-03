@@ -387,10 +387,8 @@ class DenonAVRDeviceInfo:
 
     def _illumination_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an illumination change event."""
-        if event != "ILB" or parameter[0:3] != "ILL":
-            return
-
-        self._illumination = parameter[4:]
+        if parameter[0:3] == "ILL":
+            self._illumination = parameter[4:]
 
     def _auto_lip_sync_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a auto lip sync change event."""
