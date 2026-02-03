@@ -1125,7 +1125,6 @@ TELNET_EVENTS = {
     "DIM",
     "ECO",
     "HD",
-    "ILB",  # Marantz Only
     "MN",
     "MS",
     "MU",
@@ -1160,6 +1159,7 @@ TELNET_EVENTS = {
 ALL_ZONE_TELNET_EVENTS = {
     "DIM",
     "HD",
+    "ILB",  # Marantz Only
     "NS",
     "NSA",
     "NSE",
