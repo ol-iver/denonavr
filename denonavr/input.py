@@ -169,9 +169,8 @@ class DenonAVRInput(DenonAVRFoundation):
         converter=attr.converters.optional(str), default=None
     )
     _image_available: Optional[bool] = attr.ib(
-        converter=attr.converters.optional(str), default=None
+        converter=attr.converters.optional(bool), default=None
     )
-
     _renamed_sources_warnings: Set[Tuple[str, str]] = attr.ib(
         validator=attr.validators.deep_iterable(
             attr.validators.instance_of(tuple), attr.validators.instance_of(set)
@@ -180,6 +179,7 @@ class DenonAVRInput(DenonAVRFoundation):
     )
     _callback_tasks: Set[asyncio.Task] = attr.ib(default=attr.Factory(set))
     _netaudio_state: str = attr.ib(converter=fix_string, default="")
+    _netaudio_now_playing: bool = attr.ib(converter=bool, default=False)
 
     # Update tags for attributes
     # AppCommand.xml interface
@@ -298,10 +298,15 @@ class DenonAVRInput(DenonAVRFoundation):
                 # We assume it is playing first.
                 # Then, the state might be changed by async_play, async_pause
                 # and async_stop.
-                if self._state not in {STATE_PLAYING, STATE_PAUSED, STATE_STOPPED}:
+                if (
+                    self._state not in {STATE_PLAYING, STATE_PAUSED, STATE_STOPPED}
+                    or not self._netaudio_now_playing
+                ):
                     self._state = STATE_PLAYING
+                self._netaudio_now_playing = True
             else:
                 self._state = STATE_STOPPED
+                self._netaudio_now_playing = False
             self._netaudio_state = parameter[1:]
         elif parameter.startswith("1"):
             self._title = parameter[1:]
@@ -893,10 +898,15 @@ class DenonAVRInput(DenonAVRFoundation):
             # We assume it is playing first.
             # Then, the state might be changed by async_play, async_pause
             # and async_stop.
-            if self._state not in {STATE_PLAYING, STATE_PAUSED, STATE_STOPPED}:
+            if (
+                self._state not in {STATE_PLAYING, STATE_PAUSED, STATE_STOPPED}
+                or not self._netaudio_now_playing
+            ):
                 self._state = STATE_PLAYING
+            self._netaudio_now_playing = True
         else:
             self._state = STATE_STOPPED
+            self._netaudio_now_playing = False
 
         await self._async_test_image_accessible()
 
