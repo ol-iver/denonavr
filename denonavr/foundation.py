@@ -42,8 +42,6 @@ from .const import (
     ECO_MODE_MAP,
     ECO_MODE_MAP_REVERSE,
     ECO_MODE_MAP_TELNET,
-    HDMI_OUTPUT_MAP,
-    HDMI_OUTPUT_MAP_REVERSE,
     ILLUMINATION_MAP,
     ILLUMINATION_MAP_REVERSE,
     MAIN_ZONE,
@@ -174,10 +172,6 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(ECO_MODE_MAP.get), default=None
     )
     _eco_modes = get_args(EcoModes)
-    _hdmi_output: Optional[str] = attr.ib(
-        converter=attr.converters.optional(HDMI_OUTPUT_MAP.get), default=None
-    )
-    _hdmi_outputs = get_args(HDMIOutputs)
     _hdmi_audio_decode: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
@@ -301,11 +295,6 @@ class DenonAVRDeviceInfo:
         """Handle an Eco-mode change event."""
         if zone == self.zone and parameter in ECO_MODE_MAP_TELNET:
             self._eco_mode = parameter
-
-    def _hdmi_output_callback(self, zone: str, event: str, parameter: str) -> None:
-        """Handle a HDMI output change event."""
-        if zone == self.zone and parameter[0:4] == "MONI":
-            self._hdmi_output = parameter
 
     def _hdmi_audio_decode_callback(
         self, zone: str, event: str, parameter: str
@@ -446,7 +435,6 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback("DIM", self._dimmer_callback)
             self.telnet_api.register_callback("PS", self._delay_callback)
             self.telnet_api.register_callback("ECO", self._eco_mode_callback)
-            self.telnet_api.register_callback("VS", self._hdmi_output_callback)
             self.telnet_api.register_callback("VS", self._hdmi_audio_decode_callback)
             self.telnet_api.register_callback(
                 "VS", self._video_processing_mode_callback
@@ -855,17 +843,6 @@ class DenonAVRDeviceInfo:
         Possible values are: "Off", "On", "Auto"
         """
         return self._eco_mode
-
-    @property
-    def hdmi_output(self) -> Optional[str]:
-        """
-        Returns the HDMI-output for the device.
-
-        Only available if using Telnet.
-
-        Possible values are: "Auto", "HDMI1", "HDMI2"
-        """
-        return self._hdmi_output
 
     @property
     def hdmi_audio_decode(self) -> Optional[str]:
@@ -1452,21 +1429,6 @@ class DenonAVRDeviceInfo:
         else:
             await self.api.async_get_command(
                 self.urls.command_eco_mode.format(mode=mapped_mode)
-            )
-
-    async def async_hdmi_output(self, output: HDMIOutputs) -> None:
-        """Set HDMI output."""
-        if output not in self._hdmi_outputs:
-            raise AvrCommandError("Invalid HDMI output mode")
-
-        mapped_output = HDMI_OUTPUT_MAP_REVERSE[output]
-        if self.telnet_available:
-            await self.telnet_api.async_send_commands(
-                self.telnet_commands.command_hdmi_output.format(output=mapped_output)
-            )
-        else:
-            await self.api.async_get_command(
-                self.urls.command_hdmi_output.format(output=mapped_output)
             )
 
     async def async_hdmi_audio_decode(self, mode: HDMIAudioDecodes) -> None:

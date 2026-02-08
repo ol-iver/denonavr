@@ -1760,16 +1760,25 @@ EFFECT_SPEAKER_SELECTION_MAP_REVERSE = {
 DRCs = Literal["AUTO", "LOW", "MID", "HI", "OFF"]
 """Dynamic Range Control (DRC) Settings."""
 
-HDMI_OUTPUT_MAP = {
+HDMI_OUTPUT_MAP_APPCOMMAND = {
+    "3": "Auto",
+    "1": "HDMI1",
+    "2": "HDMI2",
+}
+HDMI_OUTPUT_MAP_TELNET = {
     "MONIAUTO": "Auto",
     "MONI1": "HDMI1",
     "MONI2": "HDMI2",
 }
-HDMI_OUTPUT_MAP_REVERSE = {
+HDMI_OUTPUT_MAP_TELNET_REVERSE = {
     "Auto": "AUTO",
     "HDMI1": "1",
     "HDMI2": "2",
 }
+HDMI_OUTPUT_MAP_APPCOMMAND_REVERSE = {
+    value: key for key, value in HDMI_OUTPUT_MAP_APPCOMMAND.items()
+}
+HDMI_OUTPUT_MAP = {**HDMI_OUTPUT_MAP_APPCOMMAND, **HDMI_OUTPUT_MAP_TELNET}
 
 HDMIOutputs = Literal["Auto", "HDMI1", "HDMI2"]
 """HDMI Output Modes."""
