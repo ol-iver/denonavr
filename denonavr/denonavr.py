@@ -42,6 +42,7 @@ from .dirac import DenonAVRDirac, dirac_factory
 from .exceptions import AvrCommandError, AvrForbiddenError, AvrIncompleteResponseError
 from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
 from .input import DenonAVRInput, input_factory
+from .outputsettings import DenonAVROutputSettings, outputsettings_factory
 from .soundmode import DenonAVRSoundMode, sound_mode_factory
 from .tonecontrol import DenonAVRToneControl, tone_control_factory
 from .volume import DenonAVRVolume, volume_factory
@@ -116,6 +117,11 @@ class DenonAVR(DenonAVRFoundation):
         default=attr.Factory(input_factory, takes_self=True),
         init=False,
     )
+    outputsettings: DenonAVROutputSettings = attr.ib(
+        validator=attr.validators.instance_of(DenonAVROutputSettings),
+        default=attr.Factory(outputsettings_factory, takes_self=True),
+        init=False,
+    )
     soundmode: DenonAVRSoundMode = attr.ib(
         validator=attr.validators.instance_of(DenonAVRSoundMode),
         default=attr.Factory(sound_mode_factory, takes_self=True),
@@ -178,6 +184,7 @@ class DenonAVR(DenonAVRFoundation):
             self.vol.setup()
             self.audyssey.setup()
             self.dirac.setup()
+            self.outputsettings.setup()
 
             for zone_name, zone_item in self._zones.items():
                 if zone_name != self.zone:
@@ -209,6 +216,9 @@ class DenonAVR(DenonAVRFoundation):
             await self.soundmode.async_update(global_update=True, cache_id=cache_id)
             await self.tonecontrol.async_update(global_update=True, cache_id=cache_id)
             await self.vol.async_update(global_update=True, cache_id=cache_id)
+            await self.outputsettings.async_update(
+                global_update=True, cache_id=cache_id
+            )
         except AvrForbiddenError:
             # Recovery in case receiver changes port from 80 to 8080 which
             # might happen at Denon AVR-X 2016 receivers
@@ -616,11 +626,9 @@ class DenonAVR(DenonAVRFoundation):
         """
         Returns the HDMI-output for the device.
 
-        Only available if using Telnet.
-
         Possible values are: "Auto", "HDMI1", "HDMI2"
         """
-        return self._device.hdmi_output
+        return self.outputsettings.videoout
 
     @property
     def hdmi_audio_decode(self) -> Optional[str]:
@@ -1045,7 +1053,7 @@ class DenonAVR(DenonAVRFoundation):
 
     async def async_hdmi_output(self, output: HDMIOutputs) -> None:
         """Set HDMI output."""
-        await self._device.async_hdmi_output(output)
+        await self.outputsettings.async_set_videoout(output)
 
     async def async_hdmi_audio_decode(self, mode: HDMIAudioDecodes) -> None:
         """Set HDMI Audio Decode mode on receiver."""
