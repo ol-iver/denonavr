@@ -63,7 +63,6 @@ from .const import (
     DimmerModes,
     EcoModes,
     HDMIAudioDecodes,
-    HDMIOutputs,
     Illuminations,
     InputModes,
     PanelLocks,

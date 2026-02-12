@@ -67,7 +67,9 @@ class DenonAVROutputSettings(DenonAVRFoundation):
             self.setup()
 
         # Update state
-        await self.async_update_outputsettings(global_update=global_update, cache_id=cache_id)
+        await self.async_update_outputsettings(
+            global_update=global_update, cache_id=cache_id
+        )
         _LOGGER.debug("Finished OutputSettings update")
 
     async def async_update_outputsettings(
@@ -102,7 +104,9 @@ class DenonAVROutputSettings(DenonAVRFoundation):
             if res.find("cmd").text != "OK":
                 raise AvrProcessingError(f"SetOutputSettings command {cmd.name} failed")
         except AttributeError as err:
-            raise AvrProcessingError(f"SetOutputSettings command {cmd.name} failed") from err
+            raise AvrProcessingError(
+                f"SetOutputSettings command {cmd.name} failed"
+            ) from err
 
     ##############
     # Properties #
@@ -112,7 +116,6 @@ class DenonAVROutputSettings(DenonAVRFoundation):
     def videoout(self) -> Optional[str]:
         """Return value of Video Out."""
         return self._videoout
-
 
     ##########
     # Setter #
@@ -124,7 +127,9 @@ class DenonAVROutputSettings(DenonAVRFoundation):
             setting = HDMI_OUTPUT_MAP_TELNET_REVERSE.get(value)
             if setting is None:
                 raise AvrCommandError(f"Value {value} not known for Video Out")
-            telnet_command = self._device.telnet_commands.command_hdmi_output.format(output=setting)
+            telnet_command = self._device.telnet_commands.command_hdmi_output.format(
+                output=setting
+            )
             await self._device.telnet_api.async_send_commands(telnet_command)
             return
 
@@ -136,7 +141,6 @@ class DenonAVROutputSettings(DenonAVRFoundation):
             param_list=(AppCommandCmdParam(name="videoout", text=setting),),
         )
         await self._async_set_outputsettings(cmd)
-
 
 
 def outputsettings_factory(instance: DenonAVRFoundation) -> DenonAVROutputSettings:

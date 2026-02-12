@@ -216,7 +216,9 @@ class DenonAVR(DenonAVRFoundation):
             await self.soundmode.async_update(global_update=True, cache_id=cache_id)
             await self.tonecontrol.async_update(global_update=True, cache_id=cache_id)
             await self.vol.async_update(global_update=True, cache_id=cache_id)
-            await self.outputsettings.async_update(global_update=True, cache_id=cache_id)
+            await self.outputsettings.async_update(
+                global_update=True, cache_id=cache_id
+            )
         except AvrForbiddenError:
             # Recovery in case receiver changes port from 80 to 8080 which
             # might happen at Denon AVR-X 2016 receivers
