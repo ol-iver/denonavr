@@ -46,7 +46,7 @@ This provides instant updates via a callback when the device status changes. Rec
 >>> await d.async_setup()
 >>> await d.async_telnet_connect()
 >>> await d.async_update()
->>> async def update_callback(zone, event, parameter):
+>>> def update_callback(zone, event, parameter):
 >>>>>> print("Zone: " + zone + " Event: " + event + " Parameter: " + parameter)
 >>> d.register_callback("ALL", update_callback)
 ```
