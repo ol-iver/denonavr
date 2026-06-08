@@ -39,21 +39,29 @@ def async_handle_receiver_exceptions(func: Callable[..., AnyT]) -> Callable[...,
             _LOGGER.debug("HTTP status error on request %s: %s", err.request, err)
             # Separate handling of 403 errors
             if err.response.status_code == 403:
-                raise AvrForbiddenError(f"HTTPStatusError: {err}", err.request) from err
-            raise AvrRequestError(f"HTTPStatusError: {err}", err.request) from err
+                raise AvrForbiddenError(
+                    f"HTTPStatusError for {err.request.url}: {err}", err.request
+                ) from err
+            raise AvrRequestError(
+                f"HTTPStatusError for {err.request.url}: {err}", err.request
+            ) from err
         except httpx.TimeoutException as err:
             _LOGGER.debug("HTTP timeout exception on request %s: %s", err.request, err)
-            raise AvrTimoutError(f"TimeoutException: {err}", err.request) from err
+            raise AvrTimoutError(
+                f"TimeoutException for {err.request.url}: {err}", err.request
+            ) from err
         except httpx.NetworkError as err:
             _LOGGER.debug("Network error exception on request %s: %s", err.request, err)
-            raise AvrNetworkError(f"NetworkError: {err}", err.request) from err
+            raise AvrNetworkError(
+                f"NetworkError for {err.request.url}: {err}", err.request
+            ) from err
         except httpx.RemoteProtocolError as err:
             _LOGGER.debug(
                 "Remote protocol error exception on request %s",
                 err.request,
             )
             raise AvrInvalidResponseError(
-                f"RemoteProtocolError: {err}", err.request
+                f"RemoteProtocolError for {err.request.url}: {err}", err.request
             ) from err
 
     return wrapper
