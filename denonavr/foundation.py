@@ -19,6 +19,7 @@ import attr
 from .api import DenonAVRApi, DenonAVRTelnetApi
 from .appcommand import AppCommandCmd, AppCommands
 from .const import (
+    ALL_ZONES,
     APPCOMMAND_CMD_TEXT,
     APPCOMMAND_NAME,
     AUDIO_RESTORER_MAP,
@@ -46,7 +47,6 @@ from .const import (
     HDMI_OUTPUT_MAP_REVERSE,
     ILLUMINATION_MAP,
     ILLUMINATION_MAP_REVERSE,
-    ALL_ZONES,
     MAIN_ZONE,
     POWER_STATES,
     SETTINGS_MENU_STATES,

@@ -20,6 +20,7 @@ from ftfy import fix_text
 from .appcommand import AppCommands
 from .const import (
     ALBUM_COVERS_URL,
+    ALL_ZONES,
     APPCOMMAND_CMD_TEXT,
     AVR,
     AVR_X,
@@ -27,7 +28,6 @@ from .const import (
     CHANGE_INPUT_MAPPING,
     DENON_ATTR_SETATTR,
     HDTUNER_SOURCES,
-    ALL_ZONES,
     MAIN_ZONE,
     NETAUDIO_PLAYING,
     NETAUDIO_SOURCES,
