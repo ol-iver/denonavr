@@ -19,6 +19,7 @@ import attr
 from .api import DenonAVRApi, DenonAVRTelnetApi
 from .appcommand import AppCommandCmd, AppCommands
 from .const import (
+    ALL_ZONES,
     APPCOMMAND_CMD_TEXT,
     APPCOMMAND_NAME,
     AUDIO_RESTORER_MAP,
@@ -253,7 +254,12 @@ class DenonAVRDeviceInfo:
 
     def _power_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a power change event."""
-        if self.zone == zone and parameter in POWER_STATES:
+        if parameter not in POWER_STATES:
+            return
+
+        if self.zone == zone or (
+            self.zone == MAIN_ZONE and event == "PW" and zone == ALL_ZONES
+        ):
             self._power = parameter
 
     def _settings_menu_callback(self, zone: str, event: str, parameter: str) -> None:
@@ -437,9 +443,12 @@ class DenonAVRDeviceInfo:
                 # ZM events do not always work when the receiver has only one zone
                 # In this case it is safe to turn the entire device on and off
                 power_event = "PW"
+                self.telnet_api.power_query_command = "PW?"
                 self.telnet_commands = self.telnet_commands._replace(
                     command_power_on="PWON", command_power_standby="PWSTANDBY"
                 )
+            elif self.zone == MAIN_ZONE:
+                self.telnet_api.power_query_command = "ZM?"
             self.telnet_api.register_callback(power_event, self._power_callback)
 
             self.telnet_api.register_callback("MN", self._settings_menu_callback)
