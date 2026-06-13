@@ -17,6 +17,7 @@ from pytest_httpx import HTTPXMock
 import denonavr
 from denonavr.api import DenonAVRTelnetApi, DenonAVRTelnetProtocol
 from denonavr.const import SOUND_MODE_MAPPING
+from denonavr.decorators import async_handle_receiver_exceptions
 from denonavr.exceptions import AvrNetworkError, AvrTimoutError
 
 FAKE_IP = "10.0.0.0"
@@ -401,6 +402,36 @@ class TestMainFunctions:
             )
             with pytest.raises(AvrTimoutError):
                 await api.async_connect()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("raised_error", "expected_error"),
+        [
+            (httpx.ConnectError, AvrNetworkError),
+            (httpx.ConnectTimeout, AvrTimoutError),
+        ],
+    )
+    async def test_request_error_message_includes_url(
+        self, raised_error, expected_error
+    ):
+        """Errors raised by the request decorator include the request URL."""
+        url = "http://10.0.0.0:60006/upnp/desc/aios_device/aios_device.xml"
+
+        @async_handle_receiver_exceptions
+        async def failing_request():
+            raise raised_error(
+                "All connection attempts failed",
+                request=httpx.Request("GET", url),
+            )
+
+        with pytest.raises(expected_error) as exc_info:
+            await failing_request()
+
+        # URL must appear in the message so consumers (e.g. Home Assistant)
+        # can tell which endpoint/port was unreachable.
+        assert url in str(exc_info.value)
+        # the original request is still attached for programmatic access
+        assert exc_info.value.request.url == httpx.URL(url)
 
     @pytest.mark.asyncio
     @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
