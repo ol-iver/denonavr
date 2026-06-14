@@ -310,7 +310,7 @@ class DenonAVRVolume(DenonAVRFoundation):
             )
         else:
             await self._device.api.async_get_command(
-                self._device.urls.command_volume_up
+                self._device.urls.command_volume_up,
             )
 
     async def async_volume_down(self) -> None:
@@ -321,7 +321,7 @@ class DenonAVRVolume(DenonAVRFoundation):
             )
         else:
             await self._device.api.async_get_command(
-                self._device.urls.command_volume_down
+                self._device.urls.command_volume_down,
             )
 
     async def async_set_volume(self, volume: float) -> None:
