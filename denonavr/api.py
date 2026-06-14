@@ -169,10 +169,6 @@ class HTTPXAsyncClient:
         """Check if default httpx.AsyncClient getter is used."""
         return self.client_getter is get_default_async_client
 
-    async def aclose(self):
-        """Close rate limiter when done."""
-        await self.rate_limiter.aclose()
-
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
 class DenonAVRApi:
@@ -201,7 +197,6 @@ class DenonAVRApi:
         default=attr.Factory(HTTPXAsyncClient),
         init=False,
     )
-    _http_callback_tasks: Set[asyncio.Task] = attr.ib(default=attr.Factory(set))
 
     async def async_get(
         self,
@@ -209,7 +204,6 @@ class DenonAVRApi:
         *,
         port: Optional[int] = None,
         cache_id: Hashable = None,
-        skip_confirmation: bool = False,
         record_latency: bool = True,
         skip_rate_limiter: bool = False,
     ) -> httpx.Response:
@@ -218,23 +212,6 @@ class DenonAVRApi:
         port = port if port is not None else self.port
 
         endpoint = f"http://{self.host}:{port}{request}"
-
-        if skip_confirmation:
-            task = asyncio.create_task(
-                self.httpx_async_client.async_get(
-                    endpoint,
-                    self.host,
-                    self.timeout,
-                    self.read_timeout,
-                    cache_id=cache_id,
-                    record_latency=False,
-                    skip_rate_limiter=skip_rate_limiter,
-                )
-            )
-            task.add_done_callback(
-                self._http_callback_tasks.discard
-            )  # Prevent garbage collection
-            return httpx.Response(200, text="")
 
         return await self.httpx_async_client.async_get(
             endpoint,
@@ -269,21 +246,19 @@ class DenonAVRApi:
             content=content,
             data=data,
             cache_id=cache_id,
-            record_latency=False,
-            skip_rate_limiter=True,
+            record_latency=True,
+            skip_rate_limiter=False,
         )
 
     async def async_get_command(
         self,
         request: str,
-        skip_confirmation: bool = False,
         skip_rate_limiter: bool = False,
     ) -> str:
         """Send HTTP GET command to Denon AVR receiver asynchronously."""
         # HTTP GET to endpoint
         res = await self.async_get(
             request,
-            skip_confirmation=skip_confirmation,
             skip_rate_limiter=skip_rate_limiter,
         )
         # Return text
@@ -707,7 +682,7 @@ class DenonAVRTelnetApi:
         await self.async_send_commands(
             *commands,
             confirmation_timeout=0.2,
-            skip_rate_limiter=True,
+            skip_rate_limiter=False,
             record_latency=False,
         )
 
@@ -977,9 +952,10 @@ class DenonAVRTelnetApi:
                     _LOGGER.debug(
                         "Timeout waiting for confirmation of command: %s", command
                     )
-                finally:
+                else:
                     if record_latency:
                         self._rate_limiter.record_latency(self.host, start)
+                finally:
                     self._send_confirmation_command = ""
 
     async def async_send_commands(

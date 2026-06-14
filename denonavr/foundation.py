@@ -1088,7 +1088,7 @@ class DenonAVRDeviceInfo:
             )
         else:
             await self.api.async_get_command(
-                self.urls.command_cusor_up, skip_confirmation=True
+                self.urls.command_cusor_up,
             )
 
     async def async_cursor_down(self) -> None:
@@ -1099,7 +1099,7 @@ class DenonAVRDeviceInfo:
             )
         else:
             await self.api.async_get_command(
-                self.urls.command_cusor_down, skip_confirmation=True
+                self.urls.command_cusor_down,
             )
 
     async def async_cursor_left(self) -> None:
@@ -1110,7 +1110,7 @@ class DenonAVRDeviceInfo:
             )
         else:
             await self.api.async_get_command(
-                self.urls.command_cusor_left, skip_confirmation=True
+                self.urls.command_cusor_left,
             )
 
     async def async_cursor_right(self) -> None:
@@ -1121,7 +1121,7 @@ class DenonAVRDeviceInfo:
             )
         else:
             await self.api.async_get_command(
-                self.urls.command_cusor_right, skip_confirmation=True
+                self.urls.command_cusor_right,
             )
 
     async def async_cursor_enter(self) -> None:
@@ -1132,7 +1132,7 @@ class DenonAVRDeviceInfo:
             )
         else:
             await self.api.async_get_command(
-                self.urls.command_cusor_enter, skip_confirmation=True
+                self.urls.command_cusor_enter,
             )
 
     async def async_back(self) -> None:
@@ -1143,7 +1143,7 @@ class DenonAVRDeviceInfo:
             )
         else:
             await self.api.async_get_command(
-                self.urls.command_back, skip_confirmation=True
+                self.urls.command_back,
             )
 
     async def async_info(self) -> None:
@@ -1154,7 +1154,7 @@ class DenonAVRDeviceInfo:
             )
         else:
             await self.api.async_get_command(
-                self.urls.command_info, skip_confirmation=True
+                self.urls.command_info,
             )
 
     async def async_options(self) -> None:
@@ -1165,7 +1165,7 @@ class DenonAVRDeviceInfo:
             )
         else:
             await self.api.async_get_command(
-                self.urls.command_options, skip_confirmation=True
+                self.urls.command_options,
             )
 
     async def async_settings_menu(self) -> None:
