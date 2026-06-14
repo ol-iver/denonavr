@@ -20,6 +20,7 @@ from ftfy import fix_text
 from .appcommand import AppCommands
 from .const import (
     ALBUM_COVERS_URL,
+    ALL_ZONES,
     APPCOMMAND_CMD_TEXT,
     AVR,
     AVR_X,
@@ -203,6 +204,8 @@ class DenonAVRInput(DenonAVRFoundation):
             power_event = "Z2"
         elif self._device.zone == ZONE3:
             power_event = "Z3"
+        elif self._device.zone == MAIN_ZONE and self._device.zones == 1:
+            power_event = "PW"
         self._device.telnet_api.register_callback(power_event, self._power_callback)
         self._device.telnet_api.register_callback("SI", self._input_callback)
         self._device.telnet_api.register_callback("NSE", self._netaudio_callback)
@@ -232,7 +235,9 @@ class DenonAVRInput(DenonAVRFoundation):
 
     def _power_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a power change event."""
-        if self._device.zone != zone:
+        if self._device.zone != zone and not (
+            self._device.zone == MAIN_ZONE and event == "PW" and zone == ALL_ZONES
+        ):
             return
 
         if parameter != POWER_ON:

@@ -16,7 +16,8 @@ from pytest_httpx import HTTPXMock
 
 import denonavr
 from denonavr.api import DenonAVRTelnetApi, DenonAVRTelnetProtocol
-from denonavr.const import SOUND_MODE_MAPPING
+from denonavr.const import SOUND_MODE_MAPPING, STATE_OFF, STATE_ON
+from denonavr.decorators import async_handle_receiver_exceptions
 from denonavr.exceptions import AvrNetworkError, AvrTimoutError
 
 FAKE_IP = "10.0.0.0"
@@ -153,6 +154,26 @@ class TestMainFunctions:
 
     def _callback(self, zone, event, parameter):
         self.future.set_result(True)
+
+    @staticmethod
+    def _command_response(command: str) -> bytes:
+        """Return a telnet response that confirms a command."""
+        response_map = {
+            "PW?": "PWSTANDBY",
+            "ZM?": "ZMOFF",
+            "SI?": "SISAT/CBL",
+            "MV?": "MV50",
+            "MU?": "MUOFF",
+            "Z2?": "Z2OFF",
+            "Z2MU?": "Z2MUOFF",
+            "Z3?": "Z3OFF",
+            "Z3MU?": "Z3MUOFF",
+            "MS?": "MSSTEREO",
+        }
+        response = response_map.get(
+            command, command.replace("?", "").replace(" ", "") + "X"
+        )
+        return f"{response}\r".encode("utf-8")
 
     @pytest.mark.asyncio
     @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
@@ -403,6 +424,36 @@ class TestMainFunctions:
                 await api.async_connect()
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("raised_error", "expected_error"),
+        [
+            (httpx.ConnectError, AvrNetworkError),
+            (httpx.ConnectTimeout, AvrTimoutError),
+        ],
+    )
+    async def test_request_error_message_includes_url(
+        self, raised_error, expected_error
+    ):
+        """Errors raised by the request decorator include the request URL."""
+        url = "http://10.0.0.0:60006/upnp/desc/aios_device/aios_device.xml"
+
+        @async_handle_receiver_exceptions
+        async def failing_request():
+            raise raised_error(
+                "All connection attempts failed",
+                request=httpx.Request("GET", url),
+            )
+
+        with pytest.raises(expected_error) as exc_info:
+            await failing_request()
+
+        # URL must appear in the message so consumers (e.g. Home Assistant)
+        # can tell which endpoint/port was unreachable.
+        assert url in str(exc_info.value)
+        # the original request is still attached for programmatic access
+        assert exc_info.value.request.url == httpx.URL(url)
+
+    @pytest.mark.asyncio
     @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
     async def test_receive_callback_called(self, httpx_mock: HTTPXMock):
         """Check that the callback is triggered whena message is received."""
@@ -561,6 +612,85 @@ class TestMainFunctions:
             protocol.data_received(b"ZMOFF\r")
             await self.future
             assert self.denon.power == "OFF"
+
+    @pytest.mark.asyncio
+    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
+    async def test_one_zone_power_state_updates_from_pw_events(
+        self, httpx_mock: HTTPXMock
+    ):
+        """Check that one-zone receivers derive state updates from PW events."""
+        httpx_mock.add_callback(self.custom_matcher)
+        self.testing_receiver = "AVR-1713"
+        self.denon = denonavr.DenonAVR(FAKE_IP)
+        await self.denon.async_setup()
+        await self.denon.async_update()
+        # pylint: disable=protected-access
+        assert self.denon._device.zones == 1
+        # pylint: disable=protected-access
+        self.denon.input._input_func = None
+
+        # pylint: disable=protected-access
+        self.denon._device.telnet_api._process_event("PWON")
+        assert self.denon.power == "ON"
+        assert self.denon.state == STATE_ON
+
+        # pylint: disable=protected-access
+        self.denon._device.telnet_api._process_event("PWSTANDBY")
+        assert self.denon.state == STATE_OFF
+
+    @pytest.mark.asyncio
+    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
+    async def test_one_zone_telnet_connect_refreshes_power_before_source(
+        self, httpx_mock: HTTPXMock
+    ):
+        """Check that reconnect queries power before source for one-zone receivers."""
+        sent_commands = []
+        transport = mock.Mock(is_closing=lambda: False)
+        protocol = DenonAVRTelnetProtocol(None, None)
+
+        def write_side_effect(data: bytes):
+            command = data.decode("utf-8").strip()
+            sent_commands.append(command)
+            protocol.data_received(self._command_response(command))
+
+        transport.write.side_effect = write_side_effect
+
+        def create_conn(proto_lambda, host, port):
+            proto = proto_lambda()
+            # pylint: disable=protected-access
+            protocol._on_message = proto._on_message
+            # pylint: disable=protected-access
+            protocol._on_connection_lost = proto._on_connection_lost
+            proto.connection_made(transport)
+            protocol.connection_made(transport)
+            return [transport, proto]
+
+        httpx_mock.add_callback(self.custom_matcher)
+        self.testing_receiver = "AVR-1713"
+        self.denon = denonavr.DenonAVR(FAKE_IP)
+        # pylint: disable=protected-access
+        self.denon._device.telnet_api._send_confirmation_timeout = 0.01
+        await self.denon.async_setup()
+        await self.denon.async_update()
+        # Simulate a stale power state from before the reconnect.
+        # pylint: disable=protected-access
+        self.denon._device._power = "ON"
+        # pylint: disable=protected-access
+        self.denon.input._state = STATE_OFF
+
+        with mock.patch("asyncio.get_event_loop", new_callable=mock.Mock) as debug_mock:
+            debug_mock.return_value.create_connection = mock.AsyncMock(
+                side_effect=create_conn
+            )
+            await self.denon.async_telnet_connect()
+            for _ in range(20):
+                if "SI?" in sent_commands:
+                    break
+                await asyncio.sleep(0)
+
+        assert sent_commands[0] == "PW?"
+        assert self.denon.power == "STANDBY"
+        assert self.denon.state == STATE_OFF
 
     @pytest.mark.asyncio
     @pytest.mark.httpx_mock(can_send_already_matched_responses=True)

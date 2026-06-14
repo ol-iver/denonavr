@@ -510,6 +510,7 @@ class DenonAVRTelnetApi:
     host: str = attr.ib(converter=str, default="localhost")
     timeout: float = attr.ib(converter=float, default=2.0)
     is_denon: bool = attr.ib(converter=bool, default=True)
+    power_query_command: str = attr.ib(converter=str, default="ZM?")
     _connection_enabled: bool = attr.ib(default=False)
     _last_message_time: float = attr.ib(default=-1.0)
     _connect_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
@@ -602,7 +603,7 @@ class DenonAVRTelnetApi:
         """Trigger update of all attributes."""
         commands = [
             # Critical State Info
-            "ZM?",  # Main Zone Power
+            self.power_query_command,  # Main Zone Power
             "SI?",  # Select INPUT source
             "MV?",  # MASTER VOLUME
             "MU?",  # Mute
