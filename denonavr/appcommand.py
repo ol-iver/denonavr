@@ -145,6 +145,24 @@ class AppCommands:
         ),
     )
 
+    GetOutputSettings = AppCommandCmd(
+        cmd_id="3",
+        name="GetOutputSettings",
+        param_list=(AppCommandCmdParam(name="videoout"),),
+        response_pattern=(
+            AppCommandResponsePattern(
+                update_attribute="_videoout",
+                add_zone=False,
+                suffix="/list/param[@name='videoout']",
+            ),
+        ),
+    )
+    SetOutputSettingsVideoOut = AppCommandCmd(
+        cmd_id="3",
+        name="SetOutputSettings",
+        param_list=(AppCommandCmdParam(name="videoout", text="REPLACE"),),
+    )
+
     GetSurroundModeStatus = AppCommandCmd(
         cmd_id="1",
         cmd_text="GetSurroundModeStatus",
