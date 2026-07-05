@@ -13,9 +13,7 @@ def fast_rate_limiter(monkeypatch):
     original_init = AdaptiveLimiter.__init__
 
     def fast_init(self, **kwargs):
-        kwargs.setdefault("initial_rate", 1.0)
-        kwargs.setdefault("min_rate", 1.0)
-        kwargs.setdefault("max_rate", 1.0)
+        kwargs.setdefault("enabled", False)
         original_init(self, **kwargs)
 
     monkeypatch.setattr(AdaptiveLimiter, "__init__", fast_init)

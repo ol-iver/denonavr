@@ -44,13 +44,14 @@ class AdaptiveLimiter:
     Adaptive token-bucket rate limiter per key.
 
     Parameters:
-    - initial_rate: initial wait time between requests in milliseconds (> 0)
-    - min_rate: minimum wait time between requests in milliseconds (> 0)
-    - max_rate: maximum wait time between requests in milliseconds (>= min_rate)
+    - initial_rate: initial number of requests per second (> 0)
+    - min_rate: minimum number of requests per second (> 0)
+    - max_rate: maximum number of requests per second (>= min_rate)
     - k: scaling constant used in target_rate = k / avg_rtt (> 0)
     - min_adjust_interval: minimum seconds between rate adjustments per key (> 0)
     - adjust_threshold: relative delta required to trigger an adjustment (> 0)
     - alpha: EWMA smoothing factor in (0,1]
+    - enabled: when False, acquire() and record_latency() are no-ops
 
     Behavior:
     - Rate adjustments are triggered from record_latency() when the target rate
@@ -62,18 +63,19 @@ class AdaptiveLimiter:
     def __init__(
         self,
         *,
-        initial_rate: float = 100.0,
-        min_rate: float = 100.0,
-        max_rate: float = 200.0,
+        initial_rate: float = 25.0,
+        min_rate: float = 5.0,
+        max_rate: float = 100.0,
         k: float = 2.0,
         min_adjust_interval: float = 10.0,
         adjust_threshold: float = 0.2,
         alpha: float = 0.2,
+        enabled: bool = True,
     ) -> None:
         """Initialize AdaptiveLimiter with given parameters."""
-        # Validate wait params
+        # Validate rate params
         if initial_rate <= 0 or min_rate <= 0 or max_rate <= 0:
-            raise ValueError("wait values must be > 0")
+            raise ValueError("rate values must be > 0")
         if min_rate > max_rate:
             raise ValueError("min_rate must be <= max_rate")
 
@@ -87,11 +89,11 @@ class AdaptiveLimiter:
         if not 0 < alpha <= 1:
             raise ValueError("alpha must be in (0, 1]")
 
-        # Convert waits to rates (req/s): rate = 1000 / wait_ms
-        initial_rate = 1000.0 / initial_rate
-        self._min_rate = 1000.0 / max_rate  # max wait -> min rate
-        self._max_rate = 1000.0 / min_rate  # min wait -> max rate
+        # Rates are requests per second
+        self._min_rate = float(min_rate)
+        self._max_rate = float(max_rate)
         self._initial_rate = float(initial_rate)
+        self.enabled = enabled
 
         self._k = float(k)
         self._min_adjust_interval = float(min_adjust_interval)
@@ -135,6 +137,8 @@ class AdaptiveLimiter:
 
     async def acquire(self, destination: str) -> None:
         """Acquire a token for the given destination."""
+        if not self.enabled:
+            return
         await self._ensure_key(destination)
         # Acquire with current limiter. Use lock to avoid swap race.
         async with self._locks[destination]:
@@ -152,6 +156,8 @@ class AdaptiveLimiter:
         rate diverges from the current rate by more than adjust_threshold and
         at least min_adjust_interval has elapsed since the last adjustment.
         """
+        if not self.enabled:
+            return
         seconds = time.monotonic() - start
         # Avoid skewing the rate limiter when calling endpoints that are
         # known to be slow

@@ -40,7 +40,12 @@ from .const import (
 )
 from .dirac import DenonAVRDirac, dirac_factory
 from .exceptions import AvrCommandError, AvrForbiddenError, AvrIncompleteResponseError
-from .foundation import DenonAVRFoundation, set_api_host, set_api_timeout
+from .foundation import (
+    DenonAVRFoundation,
+    set_api_host,
+    set_api_timeout,
+    set_api_use_rate_limiter,
+)
 from .input import DenonAVRInput, input_factory
 from .soundmode import DenonAVRSoundMode, sound_mode_factory
 from .tonecontrol import DenonAVRToneControl, tone_control_factory
@@ -70,6 +75,10 @@ class DenonAVR(DenonAVRFoundation):
 
     :param add_zones: Additional Zones for which an instance are created
     :type add_zones: dict [str, str] or None
+
+    :param use_rate_limiter: If True (default) requests to the receiver are
+        rate limited. Set to False to disable rate limiting entirely.
+    :type use_rate_limiter: bool
     """
 
     _host: str = attr.ib(converter=str, on_setattr=[*DENON_ATTR_SETATTR, set_api_host])
@@ -89,6 +98,11 @@ class DenonAVR(DenonAVRFoundation):
     )
     _timeout: float = attr.ib(
         converter=float, on_setattr=[*DENON_ATTR_SETATTR, set_api_timeout], default=2.0
+    )
+    _use_rate_limiter: bool = attr.ib(
+        converter=bool,
+        on_setattr=[*DENON_ATTR_SETATTR, set_api_use_rate_limiter],
+        default=True,
     )
     _zones: Dict[str, "DenonAVR"] = attr.ib(
         validator=attr.validators.deep_mapping(
@@ -134,9 +148,11 @@ class DenonAVR(DenonAVRFoundation):
 
     def __attrs_post_init__(self) -> None:
         """Initialize special attributes."""
-        # Set host and timeout again to start its custom setattr function
+        # Set host, timeout and use_rate_limiter again to start its custom
+        # setattr function
         self._host = self._host
         self._timeout = self._timeout
+        self._use_rate_limiter = self._use_rate_limiter
 
         # Add own instance to zone dictionary
         self._zones[self._device.zone] = self
@@ -159,6 +175,7 @@ class DenonAVR(DenonAVRFoundation):
                 name=zonename,
                 timeout=self._timeout,
                 show_all_inputs=self._show_all_inputs,
+                use_rate_limiter=self._use_rate_limiter,
             )
             self._zones[zone] = zone_inst
 
