@@ -13,6 +13,7 @@ from typing import List, Optional
 
 import attr
 
+from .api import appcommand_status
 from .appcommand import AppCommandCmd, AppCommandCmdParam, AppCommands
 from .const import (
     DENON_ATTR_SETATTR,
@@ -147,11 +148,8 @@ class DenonAVRAudyssey(DenonAVRFoundation):
             self._device.urls.appcommand0300, (cmd,)
         )
 
-        try:
-            if res.find("cmd").text != "OK":
-                raise AvrProcessingError(f"SetAudyssey command {cmd.name} failed")
-        except AttributeError as err:
-            raise AvrProcessingError(f"SetAudyssey command {cmd.name} failed") from err
+        if appcommand_status(res) != "OK":
+            raise AvrProcessingError(f"SetAudyssey command {cmd.name} failed")
 
     ##############
     # Properties #
