@@ -199,10 +199,16 @@ class DenonAVRToneControl(DenonAVRFoundation):
     # Setter #
     ##########
     async def async_enable_tone_control(self) -> None:
-        """Enable tone control to change settings like bass or treble."""
-        if self._tone_control_status is None:
+        """
+        Enable tone control to change settings like bass or treble.
+
+        Note:
+        The receiver silently refuses this while Dynamic Equalizer is active.
+        Dynamic EQ is served by another command and is not readable from here.
+        """
+        if self._support_tone_control is False:
             raise AvrCommandError(
-                "Cannot enable tone control, Dynamic EQ must be deactivated"
+                "Cannot enable tone control, the receiver does not support it"
             )
 
         if self._device.telnet_available:
@@ -212,11 +218,18 @@ class DenonAVRToneControl(DenonAVRFoundation):
             await self.async_set_tone_control_command("adjust", 1)
 
     async def async_disable_tone_control(self) -> None:
-        """Disable tone control to change settings like bass or treble."""
-        if self._tone_control_status is None:
+        """
+        Disable tone control to change settings like bass or treble.
+
+        Note:
+        The receiver silently refuses this while Dynamic Equalizer is active.
+        Dynamic EQ is served by another command and is not readable from here.
+        """
+        if self._support_tone_control is False:
             raise AvrCommandError(
-                "Cannot disable tone control, Dynamic EQ must be deactivated"
+                "Cannot disable tone control, the receiver does not support it"
             )
+
         if self._device.telnet_available:
             telnet_command = self._device.telnet_commands.command_tonecontrol + "OFF"
             await self._device.telnet_api.async_send_commands(telnet_command)

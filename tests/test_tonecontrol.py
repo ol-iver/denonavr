@@ -7,6 +7,7 @@ This module covers tests of the tone control reads and setters.
 :license: MIT, see LICENSE for more details.
 """
 
+from typing import Optional
 from unittest import mock
 
 import attr
@@ -15,6 +16,7 @@ from pytest_httpx import HTTPXMock
 
 from denonavr.appcommand import AppCommands
 from denonavr.const import MAIN_ZONE
+from denonavr.exceptions import AvrCommandError
 from denonavr.tonecontrol import DenonAVRToneControl
 
 # Both fixtures reproduce a state the AVR-X1700H was measured in. The dormant
@@ -193,6 +195,66 @@ class TestSetterAfterADormantResponse:
             await tone_control.async_set_bass(9)
 
         send.assert_awaited_once_with("PSBAS 53")
+
+
+class TestToneControlGuard:
+    """Test case for the guard on enabling and disabling tone control."""
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "method",
+        [
+            pytest.param("async_enable_tone_control", id="enable"),
+            pytest.param("async_disable_tone_control", id="disable"),
+        ],
+    )
+    async def test_an_unsupported_receiver_raises(self, method: str):
+        """Check that the command is refused on a model without the block."""
+        tone_control = tone_control_instance()
+        # pylint: disable=protected-access
+        tone_control._support_tone_control = False
+
+        with pytest.raises(AvrCommandError) as excinfo:
+            await getattr(tone_control, method)()
+
+        assert "Dynamic EQ" not in str(excinfo.value)
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "method,expected",
+        [
+            pytest.param("async_enable_tone_control", "PSTONE CTRL ON", id="enable"),
+            pytest.param("async_disable_tone_control", "PSTONE CTRL OFF", id="disable"),
+        ],
+    )
+    @pytest.mark.parametrize(
+        "support",
+        [
+            pytest.param(True, id="supported"),
+            pytest.param(None, id="not-yet-known"),
+        ],
+    )
+    async def test_the_command_is_sent_otherwise(
+        self, method: str, expected: str, support: Optional[bool]
+    ):
+        """Check that nothing but a lack of support stops the command."""
+        # The guard tests support, not tone_control_status, which the receiver
+        # answers as a bool from the first update on and so never fires
+        tone_control = tone_control_instance()
+        # pylint: disable=protected-access
+        tone_control._support_tone_control = support
+        tone_control._tone_control_status = None
+
+        with mock.patch.object(
+            type(tone_control._device),
+            "telnet_available",
+            mock.PropertyMock(return_value=True),
+        ), mock.patch.object(
+            tone_control._device.telnet_api, "async_send_commands", mock.AsyncMock()
+        ) as send:
+            await getattr(tone_control, method)()
+
+        send.assert_awaited_once_with(expected)
 
 
 class TestLevelFormat:
