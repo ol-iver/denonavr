@@ -23,6 +23,11 @@ from .foundation import DenonAVRFoundation, convert_string_int_bool
 _LOGGER = logging.getLogger(__name__)
 
 
+def _format_tone_control_level(level: int) -> str:
+    """Format a tone control level the way AppCommand.xml reports it."""
+    return f"{level:+d}dB" if level else "0dB"
+
+
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
 class DenonAVRToneControl(DenonAVRFoundation):
     """This class implements tone control functions of Denon AVR receiver."""
@@ -79,10 +84,10 @@ class DenonAVRToneControl(DenonAVRFoundation):
 
         if parameter[0:3] == "BAS":
             self._bass = int(parameter[4:]) - 44
-            self._bass_level = f"{int(parameter[4:]) - 50}dB"
+            self._bass_level = _format_tone_control_level(int(parameter[4:]) - 50)
         elif parameter[0:3] == "TRE":
             self._treble = int(parameter[4:]) - 44
-            self._treble_level = f"{int(parameter[4:]) - 50}dB"
+            self._treble_level = _format_tone_control_level(int(parameter[4:]) - 50)
         elif parameter == "TONE CTRL OFF":
             self._tone_control_adjust = False
             self._tone_control_status = True
