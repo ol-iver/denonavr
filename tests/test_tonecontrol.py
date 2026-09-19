@@ -7,9 +7,13 @@ This module covers tests of the tone control reads and setters.
 :license: MIT, see LICENSE for more details.
 """
 
+from unittest import mock
+
+import attr
 import pytest
 from pytest_httpx import HTTPXMock
 
+from denonavr.appcommand import AppCommands
 from denonavr.const import MAIN_ZONE
 from denonavr.tonecontrol import DenonAVRToneControl
 
@@ -76,6 +80,119 @@ class TestToneControlUpdate:
         await tone_control.async_update_tone_control()
 
         assert tone_control.tone_control_status is False
+
+
+class TestDormantResponseDoesNotOverwrite:
+    """Test case for a blank element meeting a value telnet already pushed."""
+
+    @pytest.mark.asyncio
+    async def test_the_telnet_values_survive_the_poll(self, httpx_mock: HTTPXMock):
+        """Check that a dormant block keeps what telnet reported."""
+        # The poll runs every 10 s. Overwriting here blanks a value the user
+        # has just changed, within seconds of the change reaching the library
+        httpx_mock.add_response(content=get_sample_content(DORMANT))
+        tone_control = tone_control_instance()
+        # pylint: disable=protected-access
+        tone_control._sound_detail_callback(MAIN_ZONE, "PS", "BAS 53")
+        tone_control._sound_detail_callback(MAIN_ZONE, "PS", "TRE 46")
+
+        await tone_control.async_update_tone_control()
+
+        assert tone_control.bass == 9
+        assert tone_control.bass_level == "+3dB"
+        assert tone_control.treble == 2
+        assert tone_control.treble_level == "-4dB"
+
+    @pytest.mark.asyncio
+    async def test_a_populated_response_still_wins(self, httpx_mock: HTTPXMock):
+        """Check that the rule is blank does not overwrite, not telnet wins."""
+        httpx_mock.add_response(content=get_sample_content(ENGAGED))
+        tone_control = tone_control_instance()
+        # pylint: disable=protected-access
+        tone_control._sound_detail_callback(MAIN_ZONE, "PS", "BAS 53")
+
+        await tone_control.async_update_tone_control()
+
+        assert tone_control.bass == 10
+        assert tone_control.bass_level == "+4dB"
+
+    @pytest.mark.asyncio
+    async def test_a_command_that_does_not_opt_in_still_clears(
+        self, httpx_mock: HTTPXMock
+    ):
+        """Check that a blank element is unknown for every other command."""
+        # Commands whose blank elements carry an explicit readability marker
+        # must go on reporting unknown rather than a stale value
+        httpx_mock.add_response(content=get_sample_content(DORMANT))
+        tone_control = tone_control_instance()
+        # pylint: disable=protected-access
+        tone_control._sound_detail_callback(MAIN_ZONE, "PS", "BAS 53")
+
+        await tone_control.async_update_attrs_appcommand(
+            {attr.evolve(AppCommands.GetToneControl, blank_is_unknown=True): None}
+        )
+
+        assert tone_control.bass is None
+        assert tone_control.bass_level is None
+
+
+class TestSetterAfterADormantResponse:
+    """Test case for the setters reading an attribute the poll kept."""
+
+    @pytest.mark.asyncio
+    async def test_the_enable_is_still_sent_when_adjust_was_seen_off(
+        self, httpx_mock: HTTPXMock
+    ):
+        """Check that a kept adjust of False still triggers the enable."""
+        # async_set_bass relies on tone_control_adjust being falsy to send the
+        # enable. Keeping the last value instead of blanking it must not cost
+        # the enable when that last value was off
+        httpx_mock.add_response(content=get_sample_content(DORMANT))
+        tone_control = tone_control_instance()
+        # pylint: disable=protected-access
+        tone_control._sound_detail_callback(MAIN_ZONE, "PS", "TONE CTRL OFF")
+        await tone_control.async_update_tone_control()
+
+        assert tone_control.tone_control_adjust is False
+
+        with mock.patch.object(
+            type(tone_control._device),
+            "telnet_available",
+            mock.PropertyMock(return_value=True),
+        ), mock.patch.object(
+            tone_control._device.telnet_api, "async_send_commands", mock.AsyncMock()
+        ) as send:
+            await tone_control.async_set_bass(9)
+
+        assert [call.args[0] for call in send.await_args_list] == [
+            "PSTONE CTRL ON",
+            "PSBAS 53",
+        ]
+
+    @pytest.mark.asyncio
+    async def test_the_enable_is_skipped_when_adjust_was_seen_on(
+        self, httpx_mock: HTTPXMock
+    ):
+        """Check that a kept adjust of True spares the redundant enable."""
+        httpx_mock.add_response(content=get_sample_content(ENGAGED))
+        httpx_mock.add_response(content=get_sample_content(DORMANT))
+        tone_control = tone_control_instance()
+        await tone_control.async_update_tone_control()
+        await tone_control.async_update_tone_control()
+
+        assert tone_control.tone_control_adjust is True
+
+        # pylint: disable=protected-access
+        with mock.patch.object(
+            type(tone_control._device),
+            "telnet_available",
+            mock.PropertyMock(return_value=True),
+        ), mock.patch.object(
+            tone_control._device.telnet_api, "async_send_commands", mock.AsyncMock()
+        ) as send:
+            await tone_control.async_set_bass(9)
+
+        send.assert_awaited_once_with("PSBAS 53")
 
 
 class TestLevelFormat:
