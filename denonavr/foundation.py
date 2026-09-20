@@ -410,8 +410,14 @@ class DenonAVRDeviceInfo:
 
         self._auto_lip_sync = auto_lip_sync
 
-    async def async_setup(self) -> None:
-        """Ensure that configuration is loaded from receiver asynchronously."""
+    async def async_setup(self, cache_id: Optional[Hashable] = None) -> None:
+        """
+        Ensure that configuration is loaded from receiver asynchronously.
+
+        The requests made here describe the receiver rather than this zone, so
+        every zone of a receiver can be set up under one cache id and have the
+        first zone's requests answer the rest.
+        """
         async with self._setup_lock:
             _LOGGER.debug("Starting device setup")
             # Reduce read timeout during receiver identification
@@ -422,11 +428,11 @@ class DenonAVRDeviceInfo:
                 _LOGGER.debug("Identifying receiver")
                 await self.async_identify_receiver()
                 _LOGGER.debug("Getting device info")
-                await self.async_get_device_info()
+                await self.async_get_device_info(cache_id=cache_id)
             finally:
                 self.api.read_timeout = read_timeout
             _LOGGER.debug("Identifying update method")
-            await self.async_identify_update_method()
+            await self.async_identify_update_method(cache_id=cache_id)
 
             # Add tags for a potential AppCommand.xml update
             self.api.add_appcommand_update_tag(AppCommands.GetAllZonePowerStatus)
@@ -591,7 +597,9 @@ class DenonAVRDeviceInfo:
 
         return False
 
-    async def async_identify_update_method(self) -> None:
+    async def async_identify_update_method(
+        self, cache_id: Optional[Hashable] = None
+    ) -> None:
         """
         Identify the correct update method for the receiver asynchronously.
 
@@ -604,7 +612,9 @@ class DenonAVRDeviceInfo:
         else:
             try:
                 xml = await self.api.async_post_appcommand(
-                    self.urls.appcommand, (AppCommands.GetFriendlyName,)
+                    self.urls.appcommand,
+                    (AppCommands.GetFriendlyName,),
+                    cache_id=cache_id,
                 )
             except (AvrTimoutError, AvrNetworkError) as err:
                 _LOGGER.debug(
@@ -622,7 +632,9 @@ class DenonAVRDeviceInfo:
 
         if not self.use_avr_2016_update:
             try:
-                xml = await self.api.async_get_xml(self.urls.mainzone)
+                xml = await self.api.async_get_xml(
+                    self.urls.mainzone, cache_id=cache_id
+                )
             except (AvrTimoutError, AvrNetworkError) as err:
                 _LOGGER.debug(
                     "Connection error when identifying update method: %s", err
@@ -656,7 +668,7 @@ class DenonAVRDeviceInfo:
             _LOGGER.warning("No FriendlyName found, using standard name: Denon AVR")
             self.friendly_name = "Denon AVR"
 
-    async def async_get_device_info(self) -> None:
+    async def async_get_device_info(self, cache_id: Optional[Hashable] = None) -> None:
         """Get device information."""
         port = DESCRIPTION_TYPES[self.receiver.type].port
         command = DESCRIPTION_TYPES[self.receiver.type].url
@@ -664,7 +676,7 @@ class DenonAVRDeviceInfo:
 
         device_info = None
         try:
-            res = await self.api.async_get(command, port=port)
+            res = await self.api.async_get(command, port=port, cache_id=cache_id)
         except AvrTimoutError as err:
             _LOGGER.debug("Timeout when getting device info: %s", err)
             raise
