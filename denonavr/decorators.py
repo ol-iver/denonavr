@@ -10,7 +10,7 @@ This module implements the REST API to Denon AVR receivers.
 import inspect
 import logging
 from functools import wraps
-from typing import Callable, TypeVar
+from typing import Any, Callable, Optional, Sequence, TypeVar
 
 import httpx
 from asyncstdlib import lru_cache
@@ -67,25 +67,87 @@ def async_handle_receiver_exceptions(func: Callable[..., AnyT]) -> Callable[...,
     return wrapper
 
 
-def cache_result(func: Callable[..., AnyT]) -> Callable[..., AnyT]:
+class _UnkeyedArg:
+    """An argument that is left out of the cache key.
+
+    Every instance hashes and compares alike whatever it holds, so the
+    entry one value made answers a call carrying another.
+    """
+
+    __slots__ = ("value",)
+
+    def __init__(self, value: Any) -> None:
+        """Wrap a value so it takes no part in a cache key."""
+        self.value = value
+
+    def __hash__(self) -> int:
+        """Hash alike whatever is wrapped."""
+        return hash(_UnkeyedArg)
+
+    def __eq__(self, other: Any) -> bool:
+        """Compare equal to any other unkeyed argument."""
+        return isinstance(other, _UnkeyedArg)
+
+
+def _unwrap(value: Any) -> Any:
+    """Return what an unkeyed argument holds, or the value itself."""
+    return value.value if isinstance(value, _UnkeyedArg) else value
+
+
+def cache_result(
+    func: Optional[Callable[..., AnyT]] = None,
+    *,
+    unkeyed: Sequence[str] = (),
+) -> Callable[..., Any]:
     """
     Decorate a function to cache its results with an lru_cache of maxsize 32.
 
     The cache is only used if the "cache_id" keyword argument is set.
+
+    Parameters named in "unkeyed" are left out of the cache key: calls that
+    differ only in them share one entry, made by whichever ran first. Name
+    only a parameter that describes the call rather than the answer, such
+    as a timeout; anything that changes what comes back has to stay in the
+    key.
     """
-    if inspect.signature(func).parameters.get("cache_id") is None:
-        raise AttributeError(
-            f"Function {func} does not have a 'cache_id' keyword parameter"
-        )
 
-    lru_decorator = lru_cache(maxsize=32)
-    cached_func = lru_decorator(func)
+    def decorator(func: Callable[..., AnyT]) -> Callable[..., AnyT]:
+        signature = inspect.signature(func)
+        if signature.parameters.get("cache_id") is None:
+            raise AttributeError(
+                f"Function {func} does not have a 'cache_id' keyword parameter"
+            )
+        for name in unkeyed:
+            if signature.parameters.get(name) is None:
+                raise AttributeError(
+                    f"Function {func} does not have a '{name}' parameter"
+                )
 
-    @wraps(func)
-    async def wrapper(*args, **kwargs):
-        if kwargs.get("cache_id") is None:
-            return await func(*args, **kwargs)
+        @wraps(func)
+        async def unkeyed_func(*args, **kwargs):
+            return await func(
+                *(_unwrap(arg) for arg in args),
+                **{name: _unwrap(value) for name, value in kwargs.items()},
+            )
 
-        return await cached_func(*args, **kwargs)
+        lru_decorator = lru_cache(maxsize=32)
+        cached_func = lru_decorator(unkeyed_func)
 
-    return wrapper
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            if kwargs.get("cache_id") is None:
+                return await func(*args, **kwargs)
+
+            bound = signature.bind(*args, **kwargs)
+            for name in unkeyed:
+                if name in bound.arguments:
+                    bound.arguments[name] = _UnkeyedArg(bound.arguments[name])
+
+            return await cached_func(*bound.args, **bound.kwargs)
+
+        return wrapper
+
+    if func is None:
+        return decorator
+
+    return decorator(func)
