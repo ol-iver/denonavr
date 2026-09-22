@@ -38,40 +38,56 @@ def convert_muted(value: str) -> bool:
     return bool(value.lower() == STATE_ON)
 
 
+def convert_max_volume(value: Union[float, str]) -> Optional[float]:
+    """
+    Convert the volume limit to float, or None when no limit is set.
+
+    Handles both the HTTP <limit> tag (uses dB, OFF when unset) and
+    plain float from the Telnet API.
+    """
+    if isinstance(value, str):
+        value = value.strip()
+        if value in ("OFF", "--", ""):
+            return None
+    return float(value)
+
+
 def convert_volume(value: str) -> float:
     """Convert volume to float."""
     if value is None or value == "--":
         return -80.0
 
-    value = value.strip()
-    if value.startswith("-"):
-        return float(value)
+    raw_value = value.strip()
+    if raw_value.startswith("-"):
+        return float(raw_value)
 
-    if len(value) > 3:
+    if len(raw_value) > 3:
         _LOGGER.warning(
-            "Volume value length is invalid: %s, defaulting to -80.0 dB", value
+            "Volume value length is invalid: %s, defaulting to -80.0 dB", raw_value
         )
         return -80.0
 
-    if len(value) < 3:
-        value = -80.0 + float(value)
+    if len(raw_value) < 3:
+        converted = -80.0 + float(raw_value)
     else:
-        value = float(value[:2] + "." + value[2]) - 80.0
+        converted = float(raw_value[:2] + "." + raw_value[2]) - 80.0
 
-    if value < -80.0 or value > 18.0:
+    if converted < -80.0 or converted > 18.0:
         _LOGGER.warning(
             "Volume %s converted to %s is out of range. Will use clamping.",
-            value,
-            value,
+            raw_value,
+            converted,
         )
-    return max(min(value, 18.0), -80.0)
+    return max(min(converted, 18.0), -80.0)
 
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
 class DenonAVRVolume(DenonAVRFoundation):
     """This class implements volume functions of Denon AVR receiver."""
 
-    _max_volume: Optional[float] = attr.ib(default=None)
+    _max_volume: Optional[float] = attr.ib(
+        converter=attr.converters.optional(convert_max_volume), default=None
+    )
     _volume: Optional[float] = attr.ib(
         converter=attr.converters.optional(convert_volume), default=None
     )
@@ -106,9 +122,7 @@ class DenonAVRVolume(DenonAVRFoundation):
             self._device.api.add_appcommand_update_tag(tag)
 
         self._device.telnet_api.register_callback("MV", self._volume_callback)
-        self._device.telnet_api.register_callback(
-            "CUST_MAX_VOL", self._max_volume_callback
-        )
+        self._device.telnet_api.register_callback("SS", self._max_volume_callback)
         self._device.telnet_api.register_callback("MU", self._mute_callback)
         self._device.telnet_api.register_callback("CV", self._channel_volume_callback)
         self._device.telnet_api.register_callback("PS", self._subwoofer_state_callback)
@@ -127,21 +141,17 @@ class DenonAVRVolume(DenonAVRFoundation):
 
     def _max_volume_callback(self, zone: str, _event: str, parameter: str) -> None:
         """Handle a max volume change event."""
+        if parameter[0:9] != "VCTZMALIM":
+            return
+
         if self._device.zone != zone:
-            _LOGGER.info(
-                "Max volume zone mismatch: expected %s, got %s", self._device.zone, zone
-            )
             return
 
-        if not parameter.startswith("MAX"):
-            _LOGGER.info("Ignoring invalid max volume parameter: %s", parameter)
-            return
-
-        volume = convert_volume(parameter[4:])
-        if volume == -80.0:
-            # -80.0 indicates error with parsing max volume, minimum allowed is -40.0
-            # Set a reasonable default
-            volume = -20.0
+        value = parameter[9:].strip()
+        if value in ("OFF", ""):
+            volume = None
+        else:
+            volume = -80.0 + float(value)
 
         if self._max_volume != volume:
             self._max_volume = volume
@@ -356,7 +366,7 @@ class DenonAVRVolume(DenonAVRFoundation):
     ##########
     async def async_volume_up(self) -> None:
         """Volume up receiver."""
-        if self._max_volume and self._volume and self._volume >= self._max_volume:
+        if self._volume is not None and self._volume >= self.max_volume:
             _LOGGER.debug("Volume already at max value, skipping.")
             return
         if self._device.telnet_available:
@@ -386,13 +396,13 @@ class DenonAVRVolume(DenonAVRFoundation):
         Volume is send in a format like -50.0.
         Minimum is -80.0, maximum at 18.0
         """
-        if self._max_volume and volume > self._max_volume:
+        if volume > self.max_volume:
             _LOGGER.debug(
                 "Volume %s exceeds custom max volume %s. Setting volume to max allowed",
                 volume,
-                self._max_volume,
+                self.max_volume,
             )
-            volume = self._max_volume
+            volume = self.max_volume
 
         if volume < -80 or volume > 18:
             raise AvrCommandError(f"Invalid volume: {volume}")

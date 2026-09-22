@@ -803,10 +803,10 @@ class DenonAVRTelnetApi:
         parameter = message[len(event) :]
 
         if event == "MV":
-            # Handle undocumented max volume event:
-            # propagate as a custom event for DenonAVRVolume
+            # MVMAX is not reliably pushed when changing max volume,
+            # use /limit from app command and SSVCTZMALIM from Telnet event instead
             if parameter[0:3] == "MAX":
-                event = "CUST_MAX_VOL"
+                return
 
         # Determine zone
         zone = MAIN_ZONE

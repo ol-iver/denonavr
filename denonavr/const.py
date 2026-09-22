@@ -1120,7 +1120,6 @@ ZONE3_URLS = ReceiverURLs(
 ALL_TELNET_EVENTS = "ALL"
 TELNET_EVENTS = {
     "BT",
-    "CUST_MAX_VOL",  # Custom event for separating volume from max volume
     "CV",
     "DC",
     "DIM",
