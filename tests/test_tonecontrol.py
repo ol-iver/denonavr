@@ -157,13 +157,16 @@ class TestSetterAfterADormantResponse:
 
         assert tone_control.tone_control_adjust is False
 
-        with mock.patch.object(
-            type(tone_control._device),
-            "telnet_available",
-            mock.PropertyMock(return_value=True),
-        ), mock.patch.object(
-            tone_control._device.telnet_api, "async_send_commands", mock.AsyncMock()
-        ) as send:
+        with (
+            mock.patch.object(
+                type(tone_control._device),
+                "telnet_available",
+                mock.PropertyMock(return_value=True),
+            ),
+            mock.patch.object(
+                tone_control._device.telnet_api, "async_send_commands", mock.AsyncMock()
+            ) as send,
+        ):
             await tone_control.async_set_bass(9)
 
         assert [call.args[0] for call in send.await_args_list] == [
@@ -185,13 +188,16 @@ class TestSetterAfterADormantResponse:
         assert tone_control.tone_control_adjust is True
 
         # pylint: disable=protected-access
-        with mock.patch.object(
-            type(tone_control._device),
-            "telnet_available",
-            mock.PropertyMock(return_value=True),
-        ), mock.patch.object(
-            tone_control._device.telnet_api, "async_send_commands", mock.AsyncMock()
-        ) as send:
+        with (
+            mock.patch.object(
+                type(tone_control._device),
+                "telnet_available",
+                mock.PropertyMock(return_value=True),
+            ),
+            mock.patch.object(
+                tone_control._device.telnet_api, "async_send_commands", mock.AsyncMock()
+            ) as send,
+        ):
             await tone_control.async_set_bass(9)
 
         send.assert_awaited_once_with("PSBAS 53")
@@ -245,13 +251,16 @@ class TestToneControlGuard:
         tone_control._support_tone_control = support
         tone_control._tone_control_status = None
 
-        with mock.patch.object(
-            type(tone_control._device),
-            "telnet_available",
-            mock.PropertyMock(return_value=True),
-        ), mock.patch.object(
-            tone_control._device.telnet_api, "async_send_commands", mock.AsyncMock()
-        ) as send:
+        with (
+            mock.patch.object(
+                type(tone_control._device),
+                "telnet_available",
+                mock.PropertyMock(return_value=True),
+            ),
+            mock.patch.object(
+                tone_control._device.telnet_api, "async_send_commands", mock.AsyncMock()
+            ) as send,
+        ):
             await getattr(tone_control, method)()
 
         send.assert_awaited_once_with(expected)
