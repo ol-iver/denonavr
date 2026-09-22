@@ -190,15 +190,16 @@ class DenonAVR(DenonAVRFoundation):
 
             # Setup other functions
             self.input.setup()
-            await self.soundmode.async_setup()
-            await self.tonecontrol.async_setup()
+            async_tasks = [self.soundmode.async_setup(), self.tonecontrol.async_setup()]
+            for zone_name, zone_item in self._zones.items():
+                if zone_name != self.zone:
+                    async_tasks.append(zone_item.async_setup())
+
+            await asyncio.gather(*async_tasks)
+
             self.vol.setup()
             self.audyssey.setup()
             self.dirac.setup()
-
-            for zone_name, zone_item in self._zones.items():
-                if zone_name != self.zone:
-                    await zone_item.async_setup()
 
             self._is_setup = True
             _LOGGER.debug("Finished denonavr setup")
@@ -222,10 +223,12 @@ class DenonAVR(DenonAVRFoundation):
             await self._device.async_update(global_update=True, cache_id=cache_id)
 
             # Update other functions
-            await self.input.async_update(global_update=True, cache_id=cache_id)
-            await self.soundmode.async_update(global_update=True, cache_id=cache_id)
-            await self.tonecontrol.async_update(global_update=True, cache_id=cache_id)
-            await self.vol.async_update(global_update=True, cache_id=cache_id)
+            await asyncio.gather(
+                self.input.async_update(global_update=True, cache_id=cache_id),
+                self.soundmode.async_update(global_update=True, cache_id=cache_id),
+                self.tonecontrol.async_update(global_update=True, cache_id=cache_id),
+                self.vol.async_update(global_update=True, cache_id=cache_id),
+            )
         except AvrForbiddenError:
             # Recovery in case receiver changes port from 80 to 8080 which
             # might happen at Denon AVR-X 2016 receivers
