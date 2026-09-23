@@ -69,6 +69,9 @@ class AppCommandCmd:
         ),
         default=attr.Factory(tuple),
     )
+    # False where a blank element means "unchanged" rather than "unknown", so
+    # the update keeps the current value instead of clearing it.
+    blank_is_unknown: bool = attr.ib(converter=bool, default=True)
 
 
 class AppCommands:
@@ -182,6 +185,9 @@ class AppCommands:
                 update_attribute="_treble", add_zone=False, suffix="/treblevalue"
             ),
         ),
+        # The receiver serves this command with every element blank for long
+        # stretches, while tone control is working and telnet reports values
+        blank_is_unknown=False,
     )
     # Replace set command with a real command using attr.evolve
     SetToneControl = AppCommandCmd(
