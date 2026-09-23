@@ -407,7 +407,8 @@ class DenonAVRVolume(DenonAVRFoundation):
         if self._device.telnet_available:
             if volume > self.max_volume:
                 _LOGGER.debug(
-                    "Volume %s exceeds custom max volume %s. Setting volume to max allowed",
+                    "Volume %s exceeds custom max volume %s."
+                    " Setting volume to max allowed",
                     volume,
                     self.max_volume,
                 )
