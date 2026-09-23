@@ -925,6 +925,10 @@ class DenonAVR(DenonAVRFoundation):
         """Mute receiver."""
         await self.vol.async_mute(mute)
 
+    async def async_mute_toggle(self) -> None:
+        """Mute toggle receiver via HTTP get command."""
+        await self.vol.async_mute_toggle()
+
     async def async_enable_tone_control(self) -> None:
         """Enable tone control to change settings like bass or treble."""
         await self.tonecontrol.async_enable_tone_control()
