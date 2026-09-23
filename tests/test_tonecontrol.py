@@ -307,3 +307,36 @@ class TestLevelFormat:
         tone_control._sound_detail_callback(MAIN_ZONE, "PS", "BAS 54")
 
         assert tone_control.bass_level == from_http
+
+
+class TestStepWithoutAKnownLevel:
+    """Test case for a step over HTTP while the level is still unknown."""
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "method",
+        [
+            pytest.param("async_bass_up", id="bass-up"),
+            pytest.param("async_bass_down", id="bass-down"),
+            pytest.param("async_treble_up", id="treble-up"),
+            pytest.param("async_treble_down", id="treble-down"),
+        ],
+    )
+    async def test_the_step_is_refused(self, httpx_mock: HTTPXMock, method: str):
+        """Check that a step after a dormant setup raises instead of guessing."""
+        httpx_mock.add_response(content=get_sample_content(DORMANT))
+        tone_control = tone_control_instance()
+        await tone_control.async_setup()
+
+        assert tone_control.support_tone_control is True
+        assert tone_control.bass is None
+        assert tone_control.treble is None
+
+        # pylint: disable=protected-access
+        with mock.patch.object(
+            tone_control._device.api, "async_post_appcommand", mock.AsyncMock()
+        ) as post:
+            with pytest.raises(AvrCommandError):
+                await getattr(tone_control, method)()
+
+        post.assert_not_awaited()

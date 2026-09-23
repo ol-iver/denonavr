@@ -271,6 +271,10 @@ class DenonAVRToneControl(DenonAVRFoundation):
             telnet_command = self._device.telnet_commands.command_bass + "UP"
             await self._device.telnet_api.async_send_commands(telnet_command)
         else:
+            if self.bass is None:
+                raise AvrCommandError(
+                    "Cannot increase bass, its current level is unknown"
+                )
             await self.async_enable_tone_control()
             await self.async_set_tone_control_command("bassvalue", self.bass + 1)
             await self.async_update()
@@ -290,6 +294,10 @@ class DenonAVRToneControl(DenonAVRFoundation):
             telnet_command = self._device.telnet_commands.command_bass + "DOWN"
             await self._device.telnet_api.async_send_commands(telnet_command)
         else:
+            if self.bass is None:
+                raise AvrCommandError(
+                    "Cannot decrease bass, its current level is unknown"
+                )
             await self.async_enable_tone_control()
             await self.async_set_tone_control_command("bassvalue", self.bass - 1)
             await self.async_update()
@@ -331,6 +339,10 @@ class DenonAVRToneControl(DenonAVRFoundation):
             telnet_command = self._device.telnet_commands.command_treble + "UP"
             await self._device.telnet_api.async_send_commands(telnet_command)
         else:
+            if self.treble is None:
+                raise AvrCommandError(
+                    "Cannot increase treble, its current level is unknown"
+                )
             await self.async_enable_tone_control()
             await self.async_set_tone_control_command("treblevalue", self.treble + 1)
             await self.async_update()
@@ -350,6 +362,10 @@ class DenonAVRToneControl(DenonAVRFoundation):
             telnet_command = self._device.telnet_commands.command_treble + "DOWN"
             await self._device.telnet_api.async_send_commands(telnet_command)
         else:
+            if self.treble is None:
+                raise AvrCommandError(
+                    "Cannot decrease treble, its current level is unknown"
+                )
             await self.async_enable_tone_control()
             await self.async_set_tone_control_command("treblevalue", self.treble - 1)
             await self.async_update()
