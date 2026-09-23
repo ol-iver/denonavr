@@ -366,10 +366,10 @@ class DenonAVRVolume(DenonAVRFoundation):
     ##########
     async def async_volume_up(self) -> None:
         """Volume up receiver."""
-        if self._volume is not None and self._volume >= self.max_volume:
-            _LOGGER.debug("Volume already at max value, skipping.")
-            return
         if self._device.telnet_available:
+            if self._volume is not None and self._volume >= self.max_volume:
+                _LOGGER.debug("Volume already at max value, skipping.")
+                return
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_volume_up, skip_confirmation=True
             )
@@ -381,6 +381,9 @@ class DenonAVRVolume(DenonAVRFoundation):
     async def async_volume_down(self) -> None:
         """Volume down receiver."""
         if self._device.telnet_available:
+            if self._volume is not None and self._volume == -80.0:
+                _LOGGER.debug("Volume already at min value, skipping.")
+                return
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_volume_down, skip_confirmation=True
             )
@@ -396,20 +399,24 @@ class DenonAVRVolume(DenonAVRFoundation):
         Volume is send in a format like -50.0.
         Minimum is -80.0, maximum at 18.0
         """
-        if volume > self.max_volume:
-            _LOGGER.debug(
-                "Volume %s exceeds custom max volume %s. Setting volume to max allowed",
-                volume,
-                self.max_volume,
-            )
-            volume = self.max_volume
-
         if volume < -80 or volume > 18:
             raise AvrCommandError(f"Invalid volume: {volume}")
 
         # Round volume because only values which are a multi of 0.5 are working
         volume = round(volume * 2) / 2.0
         if self._device.telnet_available:
+            if volume > self.max_volume:
+                _LOGGER.debug(
+                    "Volume %s exceeds custom max volume %s. Setting volume to max allowed",
+                    volume,
+                    self.max_volume,
+                )
+                volume = self.max_volume
+
+            if volume == self._volume:
+                _LOGGER.debug("Volume already set for receiver, skipping.")
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_set_volume.format(
                     volume=int(volume + 80)
