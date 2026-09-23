@@ -511,14 +511,14 @@ class DenonAVRDeviceInfo:
 
         timeout_errors = 0
         for r_type in r_types:
-            self.api.port = r_type.port
             # This XML is needed to get the sources of the receiver
             try:
                 # Deviceinfo.xml is static and can be cached for the whole
                 # time. The document describes the receiver, not the zone, so
-                # the cache id names the api object every zone shares
+                # the cache id names the api object every zone shares. The port
+                # is an argument so that other zones' requests do not follow it
                 xml = await self.api.async_get_xml(
-                    self.urls.deviceinfo, cache_id=id(self.api)
+                    self.urls.deviceinfo, port=r_type.port, cache_id=id(self.api)
                 )
             except (AvrTimoutError, AvrNetworkError) as err:
                 _LOGGER.debug(
@@ -550,6 +550,7 @@ class DenonAVRDeviceInfo:
                 is_avr_x = self._is_avr_x(xml)
                 if is_avr_x:
                     self.receiver = r_type
+                    self.api.port = r_type.port
                     _LOGGER.info(
                         "Identified %s receiver using port %s",
                         r_type.type,

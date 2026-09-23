@@ -250,11 +250,15 @@ class DenonAVRApi:
         return res.text
 
     async def async_get_xml(
-        self, request: str, *, cache_id: Hashable = None
+        self,
+        request: str,
+        *,
+        port: Optional[int] = None,
+        cache_id: Hashable = None,
     ) -> ET.Element:
         """Return XML data from HTTP GET endpoint asynchronously."""
         # HTTP GET to endpoint
-        res = await self.async_get(request, cache_id=cache_id)
+        res = await self.async_get(request, port=port, cache_id=cache_id)
         # create ElementTree
         try:
             xml_root = fromstring(res.text)
