@@ -202,15 +202,15 @@ class DenonAVR(DenonAVRFoundation):
 
             # Setup other functions
             self.input.setup()
-            async_tasks = [
+            await asyncio.gather(
                 self.soundmode.async_setup(cache_id=cache_id),
                 self.tonecontrol.async_setup(cache_id=cache_id),
-            ]
+            )
+            # A zone's identification moves the shared api's port, and the cache
+            # only answers finished requests: zones go one at a time, after these
             for zone_name, zone_item in self._zones.items():
                 if zone_name != self.zone:
-                    async_tasks.append(zone_item.async_setup(cache_id=cache_id))
-
-            await asyncio.gather(*async_tasks)
+                    await zone_item.async_setup(cache_id=cache_id)
 
             self.vol.setup()
             self.audyssey.setup()

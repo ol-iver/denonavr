@@ -7,6 +7,7 @@ This module covers tests of the requests every zone's setup repeats.
 :license: MIT, see LICENSE for more details.
 """
 
+import asyncio
 from typing import List
 
 import httpx
@@ -125,6 +126,34 @@ class TestSetupProbes:
         await denon.async_setup()
 
         assert len(setup_requests(httpx_mock, DESCRIPTION_URL2)) == 1
+        assert probe_suffixes(httpx_mock) == [
+            "-setup",
+            "-update-soundmode",
+            "-update-tonecontrol",
+        ]
+
+    @pytest.mark.asyncio
+    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
+    async def test_the_probes_are_made_once_when_the_receiver_is_slow(
+        self, httpx_mock: HTTPXMock
+    ):
+        """Check that the probes stay single when requests take time.
+
+        A mock that answers without yielding finishes each zone's setup before
+        the next begins, which hides a probe sent while another zone's
+        identification had moved the shared port or while a probe was in flight.
+        """
+        answer = sample_matcher(RECEIVER_2016)
+
+        async def slow_matcher(request: httpx.Request, *args, **kwargs):
+            await asyncio.sleep(0.02)
+            return answer(request, *args, **kwargs)
+
+        httpx_mock.add_callback(slow_matcher)
+        denon = denonavr.DenonAVR(FAKE_IP, add_zones=ZONE2_ZONE3)
+
+        await denon.async_setup()
+
         assert probe_suffixes(httpx_mock) == [
             "-setup",
             "-update-soundmode",
