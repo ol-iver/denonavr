@@ -57,8 +57,8 @@ def convert_volume(value: Union[float, str]) -> float:
     Convert volume to float.
 
     HTTP reports in dB
-    The telnet wire format is a different, absolute 2/3-digit encoding, decoded separately in
-    _volume_callback before it reaches this converter.
+    The telnet wire format is a different, absolute 2/3-digit encoding,
+    decoded separately in_volume_callback before it reaches this converter.
     """
     if value is None or value == "--":
         return -80.0
