@@ -52,33 +52,17 @@ def convert_max_volume(value: Union[float, str]) -> Optional[float]:
     return float(value)
 
 
-def convert_volume(value: str) -> float:
-    """Convert volume to float."""
+def convert_volume(value: Union[float, str]) -> float:
+    """
+    Convert volume to float.
+
+    HTTP reports in dB
+    The telnet wire format is a different, absolute 2/3-digit encoding, decoded separately in
+    _volume_callback before it reaches this converter.
+    """
     if value is None or value == "--":
         return -80.0
-
-    raw_value = value.strip()
-    if raw_value.startswith("-"):
-        return float(raw_value)
-
-    if len(raw_value) > 3:
-        _LOGGER.warning(
-            "Volume value length is invalid: %s, defaulting to -80.0 dB", raw_value
-        )
-        return -80.0
-
-    if len(raw_value) < 3:
-        converted = -80.0 + float(raw_value)
-    else:
-        converted = float(raw_value[:2] + "." + raw_value[2]) - 80.0
-
-    if converted < -80.0 or converted > 18.0:
-        _LOGGER.warning(
-            "Volume %s converted to %s is out of range. Will use clamping.",
-            raw_value,
-            converted,
-        )
-    return max(min(converted, 18.0), -80.0)
+    return float(value)
 
 
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
@@ -137,7 +121,26 @@ class DenonAVRVolume(DenonAVRFoundation):
         if self._device.zone != zone:
             return
 
-        self._volume = parameter
+        raw_value = parameter.strip()
+        if len(raw_value) > 3:
+            _LOGGER.warning(
+                "Volume value length is invalid: %s, defaulting to -80.0 dB", raw_value
+            )
+            self._volume = -80.0
+            return
+
+        if len(raw_value) < 3:
+            converted = -80.0 + float(raw_value)
+        else:
+            converted = float(raw_value[:2] + "." + raw_value[2]) - 80.0
+
+        if converted < -80.0 or converted > 18.0:
+            _LOGGER.warning(
+                "Volume %s converted to %s is out of range. Will use clamping.",
+                raw_value,
+                converted,
+            )
+        self._volume = max(min(converted, 18.0), -80.0)
 
     def _max_volume_callback(self, zone: str, _event: str, parameter: str) -> None:
         """Handle a max volume change event."""
