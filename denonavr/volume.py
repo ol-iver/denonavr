@@ -38,9 +38,29 @@ def convert_muted(value: str) -> bool:
     return bool(value.lower() == STATE_ON)
 
 
+def convert_max_volume(value: Union[float, str]) -> Optional[float]:
+    """
+    Convert the volume limit to float, or None when no limit is set.
+
+    Handles both the HTTP <limit> tag (uses dB, OFF when unset) and
+    plain float from the Telnet API.
+    """
+    if isinstance(value, str):
+        value = value.strip()
+        if value in ("OFF", "--", ""):
+            return None
+    return float(value)
+
+
 def convert_volume(value: Union[float, str]) -> float:
-    """Convert volume to float."""
-    if value == "--":
+    """
+    Convert volume to float.
+
+    HTTP reports in dB
+    The telnet wire format is a different, absolute 2/3-digit encoding,
+    decoded separately in_volume_callback before it reaches this converter.
+    """
+    if value is None or value == "--":
         return -80.0
     return float(value)
 
@@ -49,6 +69,9 @@ def convert_volume(value: Union[float, str]) -> float:
 class DenonAVRVolume(DenonAVRFoundation):
     """This class implements volume functions of Denon AVR receiver."""
 
+    _max_volume: Optional[float] = attr.ib(
+        converter=attr.converters.optional(convert_max_volume), default=None
+    )
     _volume: Optional[float] = attr.ib(
         converter=attr.converters.optional(convert_volume), default=None
     )
@@ -83,6 +106,7 @@ class DenonAVRVolume(DenonAVRFoundation):
             self._device.api.add_appcommand_update_tag(tag)
 
         self._device.telnet_api.register_callback("MV", self._volume_callback)
+        self._device.telnet_api.register_callback("SS", self._max_volume_callback)
         self._device.telnet_api.register_callback("MU", self._mute_callback)
         self._device.telnet_api.register_callback("CV", self._channel_volume_callback)
         self._device.telnet_api.register_callback("PS", self._subwoofer_state_callback)
@@ -92,17 +116,49 @@ class DenonAVRVolume(DenonAVRFoundation):
 
         self._is_setup = True
 
-    def _volume_callback(self, zone: str, event: str, parameter: str) -> None:
+    def _volume_callback(self, zone: str, _event: str, parameter: str) -> None:
         """Handle a volume change event."""
         if self._device.zone != zone:
             return
 
-        if len(parameter) < 3:
-            self._volume = -80.0 + float(parameter)
+        raw_value = parameter.strip()
+        if len(raw_value) > 3:
+            _LOGGER.warning(
+                "Volume value length is invalid: %s, defaulting to -80.0 dB", raw_value
+            )
+            self._volume = -80.0
+            return
+
+        if len(raw_value) < 3:
+            converted = -80.0 + float(raw_value)
         else:
-            whole_number = float(parameter[0:2])
-            fraction = 0.1 * float(parameter[2])
-            self._volume = -80.0 + whole_number + fraction
+            converted = float(raw_value[:2] + "." + raw_value[2]) - 80.0
+
+        if converted < -80.0 or converted > 18.0:
+            _LOGGER.warning(
+                "Volume %s converted to %s is out of range. Will use clamping.",
+                raw_value,
+                converted,
+            )
+        self._volume = max(min(converted, 18.0), -80.0)
+
+    def _max_volume_callback(self, zone: str, _event: str, parameter: str) -> None:
+        """Handle a max volume change event."""
+        if parameter[0:9] != "VCTZMALIM":
+            return
+
+        if self._device.zone != zone:
+            return
+
+        value = parameter[9:].strip()
+        if value in ("OFF", ""):
+            volume = None
+        else:
+            volume = -80.0 + float(value)
+
+        if self._max_volume != volume:
+            self._max_volume = volume
+            _LOGGER.debug("Set max volume: %s", self._max_volume)
 
     def _mute_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a muting change event."""
@@ -227,6 +283,15 @@ class DenonAVRVolume(DenonAVRFoundation):
         return self._volume
 
     @property
+    def max_volume(self) -> float:
+        """
+        Return maximum allowed volume of Denon AVR as float.
+
+        Volume is sent in a format like -50.0.
+        """
+        return self._max_volume if self._max_volume is not None else 18.0
+
+    @property
     def channel_volumes(self) -> Optional[Dict[Channels, float]]:
         """
         Return the channel levels of the device in dB.
@@ -305,6 +370,9 @@ class DenonAVRVolume(DenonAVRFoundation):
     async def async_volume_up(self) -> None:
         """Volume up receiver."""
         if self._device.telnet_available:
+            if self._volume is not None and self._volume >= self.max_volume:
+                _LOGGER.debug("Volume already at max value, skipping.")
+                return
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_volume_up, skip_confirmation=True
             )
@@ -316,6 +384,9 @@ class DenonAVRVolume(DenonAVRFoundation):
     async def async_volume_down(self) -> None:
         """Volume down receiver."""
         if self._device.telnet_available:
+            if self._volume is not None and self._volume == -80.0:
+                _LOGGER.debug("Volume already at min value, skipping.")
+                return
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_volume_down, skip_confirmation=True
             )
@@ -337,6 +408,19 @@ class DenonAVRVolume(DenonAVRFoundation):
         # Round volume because only values which are a multi of 0.5 are working
         volume = round(volume * 2) / 2.0
         if self._device.telnet_available:
+            if volume > self.max_volume:
+                _LOGGER.debug(
+                    "Volume %s exceeds custom max volume %s."
+                    " Setting volume to max allowed",
+                    volume,
+                    self.max_volume,
+                )
+                volume = self.max_volume
+
+            if volume == self._volume:
+                _LOGGER.debug("Volume already set for receiver, skipping.")
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_set_volume.format(
                     volume=int(volume + 80)
