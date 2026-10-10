@@ -138,6 +138,7 @@ class DenonAVRInput(DenonAVRFoundation):
     )
     _media_update_handle: asyncio.TimerHandle = attr.ib(default=None)
     _input_func_update_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
+    _input_func_update_pending: bool = attr.ib(default=False)
 
     _state: Optional[str] = attr.ib(
         converter=attr.converters.optional(lower_string), default=None
@@ -423,11 +424,29 @@ class DenonAVRInput(DenonAVRFoundation):
         self, zone: str, event: str, parameter: str
     ) -> None:
         """Handle input func update events."""
+        # Only renamed (SSFUN) and hidden (SSSOD) sources change the source
+        # list. Receivers also send other SS lines when a setup value is viewed.
+        if not parameter.startswith(("FUN", "SOD")):
+            return
+        # A running update may have read the sources before this change,
+        # so let it run once more
+        self._input_func_update_pending = True
         if self._input_func_update_lock.locked():
             return
-        task = asyncio.create_task(self.async_update_inputfuncs())
+        task = asyncio.create_task(self._async_input_func_update())
         self._callback_tasks.add(task)
         task.add_done_callback(self._callback_tasks.discard)
+
+    async def _async_input_func_update(self) -> None:
+        """Update input functions after a telnet event."""
+        # Lines that arrive in one read all pass the check above before any
+        # task has run, so check again here to let them share one update.
+        if self._input_func_update_lock.locked():
+            return
+        try:
+            await self.async_update_inputfuncs()
+        except AvrRequestError as err:
+            _LOGGER.debug("Error updating input functions: %s", err)
 
     def _set_image_url(self, image_url: str) -> None:
         """Set image URL if it is accessible."""
@@ -654,17 +673,34 @@ class DenonAVRInput(DenonAVRFoundation):
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
     ) -> None:
         """Update sources list from receiver."""
+        if self._input_func_update_lock.locked():
+            # Wait for the running update instead of fetching again
+            async with self._input_func_update_lock:
+                return
         async with self._input_func_update_lock:
-            if self._device.receiver in [AVR_X, AVR_X_2016]:
-                await self._async_update_inputfuncs_avr_x(
-                    global_update=global_update, cache_id=cache_id
-                )
-            elif self._device.receiver in [AVR]:
-                await self._async_update_inputfuncs_avr(cache_id=cache_id)
-            else:
-                raise AvrProcessingError(
-                    "Device is not setup correctly, receiver type not set"
-                )
+            self._input_func_update_pending = False
+            await self._async_update_inputfuncs(
+                global_update=global_update, cache_id=cache_id
+            )
+            # Rerun with fresh data if sources changed during the update
+            while self._input_func_update_pending:
+                self._input_func_update_pending = False
+                await self._async_update_inputfuncs()
+
+    async def _async_update_inputfuncs(
+        self, global_update: bool = False, cache_id: Optional[Hashable] = None
+    ) -> None:
+        """Update sources list based on receiver type."""
+        if self._device.receiver in [AVR_X, AVR_X_2016]:
+            await self._async_update_inputfuncs_avr_x(
+                global_update=global_update, cache_id=cache_id
+            )
+        elif self._device.receiver in [AVR]:
+            await self._async_update_inputfuncs_avr(cache_id=cache_id)
+        else:
+            raise AvrProcessingError(
+                "Device is not setup correctly, receiver type not set"
+            )
 
     async def _async_update_inputfuncs_avr_x(
         self, global_update: bool = False, cache_id: Optional[Hashable] = None
