@@ -784,3 +784,104 @@ class TestMainFunctions:
             protocol.data_received(b"MV565\r")
             await self.future
             assert self.denon.volume == -23.5
+
+    @pytest.mark.asyncio
+    async def test_image_url_with_content_is_kept(self, httpx_mock: HTTPXMock):
+        """Check that an image URL delivering an image is kept."""
+        image_url = f"http://{FAKE_IP}/NetAudio/art.asp-jpg?1"
+        httpx_mock.add_response(url=image_url, content=b"JPEG")
+        self.denon = denonavr.DenonAVR(FAKE_IP)
+        # pylint: disable=protected-access
+        await self.denon.input._async_update_image_url(image_url)
+        assert self.denon.input._image_available is True
+        assert self.denon.input._image_url == image_url
+
+    @pytest.mark.asyncio
+    async def test_image_url_with_empty_body_is_unset(self, httpx_mock: HTTPXMock):
+        """Check that an image URL delivering an empty body is unset."""
+        image_url = f"http://{FAKE_IP}/NetAudio/art.asp-jpg?1"
+        httpx_mock.add_response(url=image_url, content=b"")
+        self.denon = denonavr.DenonAVR(FAKE_IP)
+        # pylint: disable=protected-access
+        await self.denon.input._async_update_image_url(image_url)
+        # The receiver supports album art, only this media has none
+        assert self.denon.input._image_available is True
+        assert self.denon.input._image_url is None
+
+    @pytest.mark.asyncio
+    async def test_image_url_is_tested_again_after_timeout(self, httpx_mock: HTTPXMock):
+        """Check that an image URL is unset on timeout and tested again."""
+        image_url = f"http://{FAKE_IP}/NetAudio/art.asp-jpg?1"
+        httpx_mock.add_exception(httpx.ReadTimeout("Timeout"), url=image_url)
+        httpx_mock.add_response(url=image_url, content=b"JPEG")
+        self.denon = denonavr.DenonAVR(FAKE_IP)
+        # pylint: disable=protected-access
+        await self.denon.input._async_update_image_url(image_url)
+        assert self.denon.input._image_available is None
+        assert self.denon.input._image_url is None
+
+        await self.denon.input._async_update_image_url(image_url)
+        assert self.denon.input._image_available is True
+        assert self.denon.input._image_url == image_url
+        assert len(httpx_mock.get_requests()) == 2
+
+    @pytest.mark.asyncio
+    async def test_set_image_url_tests_every_new_url(self, httpx_mock: HTTPXMock):
+        """Check that each new image URL is tested once for an image."""
+        url_cover = f"http://{FAKE_IP}/NetAudio/art.asp-jpg?1"
+        url_empty = f"http://{FAKE_IP}/NetAudio/art.asp-jpg?2"
+        url_cover2 = f"http://{FAKE_IP}/NetAudio/art.asp-jpg?3"
+        httpx_mock.add_response(url=url_cover, content=b"JPEG")
+        httpx_mock.add_response(url=url_empty, content=b"")
+        httpx_mock.add_response(url=url_cover2, content=b"JPEG")
+        self.denon = denonavr.DenonAVR(FAKE_IP)
+        # pylint: disable=protected-access
+        inp = self.denon.input
+
+        inp._set_image_url(url_cover)
+        await asyncio.gather(*inp._callback_tasks)
+        assert inp._image_url == url_cover
+
+        # Album art disappears after a cover was available before
+        inp._set_image_url(url_empty)
+        await asyncio.gather(*inp._callback_tasks)
+        assert inp._image_url is None
+        inp._set_image_url(url_empty)
+        assert inp._image_url is None
+
+        # Untested URLs stay hidden until the receiver delivers an image again
+        inp._set_image_url(url_cover2)
+        assert inp._image_url is None
+        await asyncio.gather(*inp._callback_tasks)
+        inp._set_image_url(url_cover2)
+        assert inp._image_url == url_cover2
+
+        assert len(httpx_mock.get_requests()) == 3
+
+    @pytest.mark.asyncio
+    async def test_netaudio_image_url_set_after_complete_block(
+        self, httpx_mock: HTTPXMock
+    ):
+        """Check that the cover is refreshed with the last netaudio line only."""
+        httpx_mock.add_response(content=b"JPEG")
+        self.denon = denonavr.DenonAVR(FAKE_IP)
+        # pylint: disable=protected-access
+        inp = self.denon.input
+        inp._device._power = "ON"
+        inp._netaudio_func_list = ["Online Music"]
+        inp._input_func = "Online Music"
+        block = ["0Now Playing", "1Title", "2Artist", "3", "4Album", "5", "6", "7"]
+
+        # A block which was cut off does not refresh the cover
+        for line in [*block[:7], *block, "8"]:
+            assert inp._image_url is None
+            inp._netaudio_callback("Main", "NSE", line)
+        await asyncio.gather(*inp._callback_tasks)
+        assert inp._image_url is not None
+        assert inp.title == "Title"
+
+        # Polling the same media again does not test the image again
+        for line in [*block, "8"]:
+            inp._netaudio_callback("Main", "NSE", line)
+        assert not inp._callback_tasks
+        assert len(httpx_mock.get_requests()) == 1

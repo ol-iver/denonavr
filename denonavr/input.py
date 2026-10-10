@@ -172,6 +172,12 @@ class DenonAVRInput(DenonAVRFoundation):
     _image_available: Optional[bool] = attr.ib(
         converter=attr.converters.optional(bool), default=None
     )
+    _image_url_tested: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _image_has_content: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(bool), default=None
+    )
     _renamed_sources_warnings: Set[Tuple[str, str]] = attr.ib(
         validator=attr.validators.deep_iterable(
             attr.validators.instance_of(tuple), attr.validators.instance_of(set)
@@ -323,6 +329,11 @@ class DenonAVRInput(DenonAVRFoundation):
         self._frequency = None
         self._station = None
 
+        # The receiver sends the lines 0 to 8 as one block. Wait for its last
+        # line, otherwise the hash changes with every single line of it.
+        if not parameter.startswith("8"):
+            return
+
         # Refresh cover with a hash for media URL when track is changing
         self._set_image_url(
             ALBUM_COVERS_URL.format(
@@ -430,16 +441,17 @@ class DenonAVRInput(DenonAVRFoundation):
         task.add_done_callback(self._callback_tasks.discard)
 
     def _set_image_url(self, image_url: str) -> None:
-        """Set image URL if it is accessible."""
+        """Set image URL and test in the background if it delivers an image."""
         if self._image_available is False:
             return
 
-        self._image_url = image_url
+        # Expose the URL right away like before, unless the last image was empty
+        self._image_url = None if self._image_has_content is False else image_url
 
-        if self._image_available:
+        if image_url == self._image_url_tested:
             return
 
-        task = asyncio.create_task(self._async_test_image_accessible())
+        task = asyncio.create_task(self._async_update_image_url(image_url))
         self._callback_tasks.add(task)
         task.add_done_callback(self._callback_tasks.discard)
 
@@ -913,38 +925,46 @@ class DenonAVRInput(DenonAVRFoundation):
             self._state = STATE_STOPPED
             self._netaudio_now_playing = False
 
-        await self._async_test_image_accessible()
+        if self._image_url is not None:
+            await self._async_update_image_url(self._image_url)
 
-    async def _async_test_image_accessible(self) -> None:
-        """Test if image URL is accessible."""
-        if self._image_available is None and self._image_url is not None:
-            client = self._device.api.httpx_async_client.client_getter()
-            try:
-                res = await client.get(
-                    self._image_url,
-                    timeout=httpx.Timeout(
-                        self._device.api.timeout, read=self._device.api.read_timeout
-                    ),
-                )
-                res.raise_for_status()
-            except httpx.TimeoutException:
-                # No result set image URL to None
-                self._image_url = None
-            except httpx.HTTPStatusError:
-                _LOGGER.info("No album art available for your receiver")
-                # No image available. Save this status.
-                self._image_available = False
-                #  Set image URL to None.
-                self._image_url = None
-            else:
-                self._image_available = True
-            finally:
-                # Close the default AsyncClient but keep custom clients open
-                if self._device.api.httpx_async_client.is_default_async_client():
-                    await client.aclose()
-        # Already tested that image URL is not accessible
-        elif not self._image_available:
-            self._image_url = None
+    async def _async_test_image_accessible(self, image_url: str) -> None:
+        """Test if image URL is accessible and delivers an image."""
+        client = self._device.api.httpx_async_client.client_getter()
+        try:
+            res = await client.get(
+                image_url,
+                timeout=httpx.Timeout(
+                    self._device.api.timeout, read=self._device.api.read_timeout
+                ),
+            )
+            res.raise_for_status()
+        except httpx.TimeoutException:
+            # No result, test again next time
+            pass
+        except httpx.HTTPStatusError:
+            _LOGGER.info("No album art available for your receiver")
+            # No image available. Save this status.
+            self._image_available = False
+            self._image_url_tested = None
+        else:
+            self._image_available = True
+            # Some receivers answer with an empty body when the current media
+            # has no album art. Save this status for the tested URL.
+            self._image_url_tested = image_url
+            self._image_has_content = len(res.content) > 0
+        finally:
+            # Close the default AsyncClient but keep custom clients open
+            if self._device.api.httpx_async_client.is_default_async_client():
+                await client.aclose()
+
+    async def _async_update_image_url(self, image_url: str) -> None:
+        """Set image URL if it is accessible and delivers an image."""
+        if self._image_available is not False and image_url != self._image_url_tested:
+            await self._async_test_image_accessible(image_url)
+
+        tested_ok = image_url == self._image_url_tested and self._image_has_content
+        self._image_url = image_url if tested_ok else None
 
     def _unset_media_state(self) -> None:
         """Unsets media state attributes."""
