@@ -8,6 +8,7 @@ This module covers some tests for mappings in const.py.
 """
 
 import unittest
+from types import SimpleNamespace
 from typing import get_args
 
 from denonavr.const import (
@@ -22,6 +23,7 @@ from denonavr.const import (
     EcoModes,
     HDMIOutputs,
 )
+from denonavr.soundmode import sound_mode_map_factory, sound_mode_rev_map_factory
 
 
 class TestMappings(unittest.TestCase):
@@ -51,6 +53,12 @@ class TestMappings(unittest.TestCase):
         """Test that dirac filters are in the mapping."""
         for dirac_filter in get_args(DiracFilters):
             self.assertIn(dirac_filter, DIRAC_FILTER_MAP_REVERSE)
+
+    def test_pl2_c_dsx_sound_mode(self):
+        """Test that PL2 C DSX is matched to the MOVIE sound mode."""
+        instance = SimpleNamespace(_sound_mode_map=sound_mode_map_factory())
+        sound_mode_map_rev = sound_mode_rev_map_factory(instance)
+        self.assertEqual(sound_mode_map_rev["PL2 C DSX"], "MOVIE")
 
 
 if __name__ == "__main__":

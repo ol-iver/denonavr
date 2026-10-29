@@ -414,6 +414,7 @@ SOUND_MODE_MAPPING = {
         "M CH IN+NEO:X C",
         "M CH IN+PL2X C",
         "MULTI IN + VIRTUAL:X",
+        "PL2 C DSX",
         "PLII CINEMA",
         "PLII MOVIE",
         "PLIIX CINEMA",
