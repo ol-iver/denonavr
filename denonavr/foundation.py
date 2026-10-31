@@ -2085,7 +2085,7 @@ class DenonAVRFoundation:
                 try:
                     start += 1
                     # Check if attribute exists
-                    getattr(self, pattern.update_attribute)
+                    current_value = getattr(self, pattern.update_attribute)
                     # Set new value either from XML attribute or text
                     if pattern.get_xml_attribute is not None:
                         set_value = xml.find(search_strings[i]).get(
@@ -2093,6 +2093,20 @@ class DenonAVRFoundation:
                         )
                     else:
                         set_value = xml.find(search_strings[i]).text
+
+                    if (
+                        not app_command.blank_is_unknown
+                        and set_value is None
+                        and current_value is not None
+                    ):
+                        success += 1
+                        _LOGGER.debug(
+                            "Keeping variable %s at value %s, %s answered blank",
+                            pattern.update_attribute,
+                            current_value,
+                            app_command.cmd_text,
+                        )
+                        continue
 
                     setattr(self, pattern.update_attribute, set_value)
                     success += 1
