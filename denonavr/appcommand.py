@@ -108,6 +108,9 @@ class AppCommands:
             AppCommandResponsePattern(
                 update_attribute="_volume", add_zone=True, suffix="/volume"
             ),
+            AppCommandResponsePattern(
+                update_attribute="_max_volume", add_zone=True, suffix="/limit"
+            ),
         ),
     )
 

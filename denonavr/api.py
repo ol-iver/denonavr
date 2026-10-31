@@ -803,9 +803,8 @@ class DenonAVRTelnetApi:
         parameter = message[len(event) :]
 
         if event == "MV":
-            # This seems undocumented by Denon and appears to basically be a
-            # noop that goes along with volume changes. This is here to prevent
-            # duplicate callback calls.
+            # MVMAX is not reliably pushed when changing max volume,
+            # use /limit from app command and SSVCTZMALIM from Telnet event instead
             if parameter[0:3] == "MAX":
                 return
 
