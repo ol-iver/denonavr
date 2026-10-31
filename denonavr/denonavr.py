@@ -10,6 +10,7 @@ This module implements the interface to Denon AVR receivers.
 import asyncio
 import logging
 import time
+from collections.abc import Hashable
 from typing import Callable, Dict, List, Literal, Optional, Union
 
 import attr
@@ -179,23 +180,37 @@ class DenonAVR(DenonAVRFoundation):
             )
             self._zones[zone] = zone_inst
 
-    async def async_setup(self) -> None:
-        """Ensure that configuration is loaded from receiver asynchronously."""
+    async def async_setup(self, cache_id: Optional[Hashable] = None) -> None:
+        """
+        Ensure that configuration is loaded from receiver asynchronously.
+
+        Setting a zone up re-runs the receiver level identification, whose
+        requests carry no zone and are the same for every one of them. A
+        single cache id is minted for the whole run so the first zone's
+        requests answer the rest; calling again mints a new one.
+        """
         async with self._setup_lock:
             _LOGGER.debug("Starting denonavr setup")
+            # Create a cache id for this setup run
+            if cache_id is None:
+                cache_id = time.time()
+
             # Device setup
-            await self._device.async_setup()
+            await self._device.async_setup(cache_id=cache_id)
             if self._name is None:
                 self._name = self._device.friendly_name
 
             # Setup other functions
             self.input.setup()
-            async_tasks = [self.soundmode.async_setup(), self.tonecontrol.async_setup()]
+            await asyncio.gather(
+                self.soundmode.async_setup(cache_id=cache_id),
+                self.tonecontrol.async_setup(cache_id=cache_id),
+            )
+            # A zone's identification moves the shared api's port, and the cache
+            # only answers finished requests: zones go one at a time, after these
             for zone_name, zone_item in self._zones.items():
                 if zone_name != self.zone:
-                    async_tasks.append(zone_item.async_setup())
-
-            await asyncio.gather(*async_tasks)
+                    await zone_item.async_setup(cache_id=cache_id)
 
             self.vol.setup()
             self.audyssey.setup()
