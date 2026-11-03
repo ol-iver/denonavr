@@ -1448,6 +1448,24 @@ class DenonAVRDeviceInfo:
         else:
             await self.api.async_get_command(self.urls.command_delay_down)
 
+    async def async_delay(self, delay: int) -> None:
+        """
+        Set delay on receiver.
+
+        :param delay: Delay time in ms. Valid values are 0-500.
+        """
+        if delay < 0 or delay > 500:
+            raise AvrCommandError("Invalid delay value")
+
+        if self.telnet_available:
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_delay.format(delay=delay)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_delay.format(delay=delay)
+            )
+
     async def async_eco_mode(self, mode: EcoModes) -> None:
         """Set Eco mode."""
         if mode not in self._eco_modes:
