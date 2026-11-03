@@ -47,7 +47,7 @@ class AppCommandCmd:
         converter=attr.converters.optional(str), default=None
     )
     name: Optional[str] = attr.ib(converter=attr.converters.optional(str), default=None)
-    param_list: Optional[Tuple[AppCommandCmdParam]] = attr.ib(
+    param_list: Optional[Tuple[AppCommandCmdParam, ...]] = attr.ib(
         validator=attr.validators.optional(
             attr.validators.deep_iterable(
                 attr.validators.instance_of(AppCommandCmdParam),
@@ -62,7 +62,7 @@ class AppCommandCmd:
         ),
         default=None,
     )
-    response_pattern: Tuple[AppCommandResponsePattern] = attr.ib(
+    response_pattern: Tuple[AppCommandResponsePattern, ...] = attr.ib(
         validator=attr.validators.deep_iterable(
             attr.validators.instance_of(AppCommandResponsePattern),
             attr.validators.instance_of(tuple),
@@ -193,10 +193,10 @@ class AppCommands:
         set_command=AppCommandCmdParam(name="REPLACE", text="REPLACE"),
     )
 
-    GetRenameSource = AppCommandCmd(cmd_id=1, cmd_text="GetRenameSource")
-    GetDeletedSource = AppCommandCmd(cmd_id=1, cmd_text="GetDeletedSource")
+    GetRenameSource = AppCommandCmd(cmd_id="1", cmd_text="GetRenameSource")
+    GetDeletedSource = AppCommandCmd(cmd_id="1", cmd_text="GetDeletedSource")
 
-    GetFriendlyName = AppCommandCmd(cmd_id=1, cmd_text="GetFriendlyName")
+    GetFriendlyName = AppCommandCmd(cmd_id="1", cmd_text="GetFriendlyName")
 
     GetAudyssey = AppCommandCmd(
         cmd_id="3",
