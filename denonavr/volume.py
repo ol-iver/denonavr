@@ -403,7 +403,8 @@ class DenonAVRVolume(DenonAVRFoundation):
         Minimum is -80.0, maximum at 18.0
         """
         if volume < -80 or volume > 18:
-            raise AvrCommandError(f"Invalid volume: {volume}")
+            _LOGGER.warning("Volume %s out of range, skipping.", volume)
+            return
 
         # Round volume because only values which are a multi of 0.5 are working
         volume = round(volume * 2) / 2.0
