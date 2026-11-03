@@ -48,6 +48,9 @@ from .const import (
     ILLUMINATION_MAP,
     ILLUMINATION_MAP_REVERSE,
     MAIN_ZONE,
+    POWER_OFF,
+    POWER_ON,
+    POWER_STANDBY,
     POWER_STATES,
     SETTINGS_MENU_STATES,
     VALID_RECEIVER_TYPES,
@@ -1072,6 +1075,9 @@ class DenonAVRDeviceInfo:
     async def async_power_on(self) -> None:
         """Turn on receiver."""
         if self.telnet_available:
+            if self._power == POWER_ON:
+                return
+
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_power_on
             )
@@ -1081,6 +1087,9 @@ class DenonAVRDeviceInfo:
     async def async_power_off(self) -> None:
         """Turn off receiver."""
         if self.telnet_available:
+            if self._power in (POWER_OFF, POWER_STANDBY):
+                return
+
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_power_standby
             )
@@ -1433,6 +1442,9 @@ class DenonAVRDeviceInfo:
     async def async_delay_up(self) -> None:
         """Delay up on receiver."""
         if self.telnet_available:
+            if self._delay == 500:
+                return
+
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_delay_up
             )
@@ -1442,6 +1454,9 @@ class DenonAVRDeviceInfo:
     async def async_delay_down(self) -> None:
         """Delay down on receiver."""
         if self.telnet_available:
+            if self._delay == 0:
+                return
+
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_delay_down
             )
@@ -1633,6 +1648,9 @@ class DenonAVRDeviceInfo:
     async def async_delay_time_up(self) -> None:
         """Delay time up on receiver."""
         if self.telnet_available:
+            if self._delay_time == 300:
+                return
+
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_delay_time.format(value="UP")
             )
@@ -1642,8 +1660,11 @@ class DenonAVRDeviceInfo:
             )
 
     async def async_delay_time_down(self) -> None:
-        """Delay time up on receiver."""
+        """Delay time down on receiver."""
         if self.telnet_available:
+            if self._delay_time == 0:
+                return
+
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_delay_time.format(value="DOWN")
             )
@@ -1662,6 +1683,9 @@ class DenonAVRDeviceInfo:
             raise AvrCommandError("Invalid delay time value")
 
         if self.telnet_available:
+            if self._delay_time == delay_time:
+                return
+
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_delay_time.format(value=delay_time)
             )
