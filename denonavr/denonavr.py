@@ -33,6 +33,7 @@ from .const import (
     InputModes,
     MultiEQModes,
     PanelLocks,
+    PictureModes,
     ReferenceLevelOffsets,
     RoomSizes,
     TransducerLPFs,
@@ -665,6 +666,18 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.video_processing_mode
 
     @property
+    def picture_mode(self) -> Optional[str]:
+        """
+        Return the current picture mode.
+
+        Only available if using Telnet and on models with video processing.
+
+        Possible values are: "Off", "Brilliant", "Custom", "Game", "ISF Day",
+        "ISF Night", "Movie", "Standard", "Stream", "Vivid"
+        """
+        return self._device.picture_mode
+
+    @property
     def tactile_transducer(self) -> Optional[str]:
         """
         Return the tactile transducer state of the device.
@@ -1078,6 +1091,10 @@ class DenonAVR(DenonAVRFoundation):
     async def async_video_processing_mode(self, mode: VideoProcessingModes) -> None:
         """Set video processing mode on receiver."""
         await self._device.async_video_processing_mode(mode)
+
+    async def async_set_picture_mode(self, mode: PictureModes) -> None:
+        """Set picture mode on receiver."""
+        await self._device.async_set_picture_mode(mode)
 
     async def async_status(self) -> None:
         """
