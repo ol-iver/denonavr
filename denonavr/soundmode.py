@@ -786,6 +786,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_neural_x_on(self):
         """Turn on Neural:X sound mode."""
         if self._device.telnet_available:
+            if self._neural_x:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_neural_x_on_off.format(mode="ON")
             )
@@ -797,6 +800,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_neural_x_off(self):
         """Turn off Neural:X sound mode."""
         if self._device.telnet_available:
+            if self._neural_x is False:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_neural_x_on_off.format(mode="OFF")
             )
@@ -819,6 +825,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_imax_auto(self):
         """Set IMAX sound mode to Auto."""
         if self._device.telnet_available:
+            if self._imax_auto_off == "AUTO":
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_imax_auto_off.format(mode="AUTO")
             )
@@ -830,6 +839,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_imax_off(self):
         """Turn off IMAX sound mode."""
         if self._device.telnet_available:
+            if self._imax_auto_off == "OFF":
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_imax_auto_off.format(mode="OFF")
             )
@@ -855,6 +867,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             raise AvrCommandError(f"{mode} is not a valid IMAX audio setting")
 
         if self._device.telnet_available:
+            if self._imax_audio_settings == mode:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_imax_audio_settings.format(
                     mode=mode
@@ -920,6 +935,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             raise AvrCommandError(f"{mode} is not a valid IMAX subwoofer mode")
 
         if self._device.telnet_available:
+            if self._imax_subwoofer_mode == mode:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_imax_subwoofer_mode.format(
                     mode=mode
@@ -936,6 +954,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             raise AvrCommandError(f"{mode} is not a valid IMAX subwoofer output mode")
 
         if self._device.telnet_available:
+            if self._imax_subwoofer_output == mode:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_imax_subwoofer_output.format(
                     mode=mode
@@ -949,6 +970,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_cinema_eq_on(self):
         """Set Cinema EQ to ON."""
         if self._device.telnet_available:
+            if self._cinema_eq:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_cinema_eq.format(mode="ON")
             )
@@ -960,6 +984,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_cinema_eq_off(self):
         """Set Cinema EQ to OFF."""
         if self._device.telnet_available:
+            if self._cinema_eq is False:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_cinema_eq.format(mode="OFF")
             )
@@ -982,6 +1009,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_center_spread_on(self):
         """Set Center Spread to ON."""
         if self._device.telnet_available:
+            if self._center_spread:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_center_spread.format(mode="ON")
             )
@@ -993,6 +1023,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_center_spread_off(self):
         """Set Center Spread to ON."""
         if self._device.telnet_available:
+            if self._center_spread is False:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_center_spread.format(mode="OFF")
             )
@@ -1015,6 +1048,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_loudness_management_on(self):
         """Set Loudness Management to ON."""
         if self._device.telnet_available:
+            if self._loudness_management:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_loudness_management.format(
                     mode="ON"
@@ -1028,6 +1064,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_loudness_management_off(self):
         """Set Loudness Management to OFF."""
         if self._device.telnet_available:
+            if self._loudness_management is False:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_loudness_management.format(
                     mode="OFF"
@@ -1056,6 +1095,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         level_mapped = DIALOG_ENHANCER_LEVEL_MAP_REVERSE[level]
         if self._device.telnet_available:
+            if self._dialog_enhancer_level == level:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_dialog_enhancer.format(
                     level=level_mapped
@@ -1073,6 +1115,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         local_preset = AURO_MATIC_3D_PRESET_MAP_REVERSE[preset]
         if self._device.telnet_available:
+            if self._auromatic_3d_preset == preset:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_auromatic_3d_preset.format(
                     preset=local_preset
@@ -1088,6 +1133,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_auromatic_3d_strength_up(self) -> None:
         """Increase Auro-Matic 3D Strength."""
         if self._device.telnet_available:
+            if self._auromatic_3d_strength == 16:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_auromatic_3d_strength.format(
                     value="UP"
@@ -1101,6 +1149,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_auromatic_3d_strength_down(self) -> None:
         """Decrease Auro-Matic 3D Strength."""
         if self._device.telnet_available:
+            if self._auromatic_3d_strength == 1:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_auromatic_3d_strength.format(
                     value="DOWN"
@@ -1122,6 +1173,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         local_strength = f"{strength:02}"
         if self._device.telnet_available:
+            if self._auromatic_3d_strength == strength:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_auromatic_3d_strength.format(
                     value=local_strength
@@ -1141,6 +1195,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         local_mode = AURO_3D_MODE_MAP_REVERSE[mode]
         if self._device.telnet_available:
+            if self._auro_3d_mode == mode:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_auro_3d_mode.format(
                     mode=local_mode
@@ -1154,6 +1211,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_dialog_control_up(self) -> None:
         """Increase Dialog Control level."""
         if self._device.telnet_available:
+            if self._dialog_control == 6:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_dialog_control.format(value="UP")
             )
@@ -1165,6 +1225,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_dialog_control_down(self) -> None:
         """Decrease Dialog Control level."""
         if self._device.telnet_available:
+            if self._dialog_control == 0:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_dialog_control.format(value="DOWN")
             )
@@ -1184,6 +1247,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         local_level = f"{level:02}"
         if self._device.telnet_available:
+            if self._dialog_control == level:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_dialog_control.format(
                     value=local_level
@@ -1197,6 +1263,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_speaker_virtualizer_on(self) -> None:
         """Set Speaker Virtualizer to ON."""
         if self._device.telnet_available:
+            if self._speaker_virtualizer:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_speaker_virtualizer.format(
                     mode="ON"
@@ -1210,6 +1279,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_speaker_virtualizer_off(self) -> None:
         """Set Speaker Virtualizer to OFF."""
         if self._device.telnet_available:
+            if self._speaker_virtualizer is False:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_speaker_virtualizer.format(
                     mode="OFF"
@@ -1238,6 +1310,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         local_mode = EFFECT_SPEAKER_SELECTION_MAP_REVERSE[mode]
         if self._device.telnet_available:
+            if self._effect_speaker_selection == mode:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_effect_speaker_selection.format(
                     mode=local_mode
@@ -1256,6 +1331,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             raise AvrCommandError(f"{mode} is not a valid DRC mode")
 
         if self._device.telnet_available:
+            if self._drc == mode:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_drc.format(mode=mode)
             )
@@ -1278,6 +1356,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         local_mode = MDAX_MAP_REVERSE[mode]
         if self._device.telnet_available:
+            if self._mdax == mode:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_mdax.format(mode=local_mode)
             )
@@ -1300,6 +1381,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         local_mode = DAC_FILTERS_MAP_REVERSE[mode]
         if self._device.telnet_available:
+            if self._dac_filter == mode:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_dac_filter.format(mode=local_mode)
             )
