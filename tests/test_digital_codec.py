@@ -59,3 +59,23 @@ async def test_async_set_digital_codec_raises_on_invalid():
         await fixture.async_execute(
             device.async_set_digital_codec("Invalid")  # type: ignore
         )
+
+
+@pytest.mark.asyncio
+async def test_async_set_digital_codec_returns_early_when_matches():
+    """Test that no command is sent when the digital codec is already set."""
+    fixture = DeviceTestFixture(True)
+    device = DenonAVRInput(device=fixture.device_info)
+    device._digital_codec_callback("Main", "DC", "DTS")
+    await fixture.async_execute(device.async_set_digital_codec("DTS"))
+    fixture.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_async_set_digital_codec_sends_command_when_differs():
+    """Test that a command is sent when another digital codec is set."""
+    fixture = DeviceTestFixture(True)
+    device = DenonAVRInput(device=fixture.device_info)
+    device._digital_codec_callback("Main", "DC", "DTS")
+    await fixture.async_execute(device.async_set_digital_codec("PCM"))
+    fixture.assert_called_once()

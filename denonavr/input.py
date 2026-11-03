@@ -1091,6 +1091,9 @@ class DenonAVRInput(DenonAVRFoundation):
 
         raw_mode = DIGITAL_CODEC_MAP_REVERSE[mode]
         if self._device.telnet_available:
+            if self._digital_codec == mode:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_digital_codec.format(mode=raw_mode)
             )
