@@ -911,7 +911,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             )
 
     @staticmethod
-    def _padded_pass_filter(pass_filter: str) -> str:
+    def _padded_pass_filter(pass_filter: int) -> str:
         return f"0{pass_filter}" if len(str(pass_filter)) == 2 else str(pass_filter)
 
     async def async_imax_subwoofer_mode(self, mode: Literal["ON", "OFF"]) -> None:

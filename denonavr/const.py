@@ -1951,12 +1951,10 @@ TransducerLPFs = Literal[
 ]
 """Tactile Transducer Low Pass Frequencies."""
 
-IMAXHPFs = Literal[
-    "40", "60", "80", "90", "100", "110", "120", "150", "180", "200", "250"
-]
+IMAXHPFs = Literal[40, 60, 80, 90, 100, 110, 120, 150, 180, 200, 250]
 """IMAX High Pass Frequencies."""
 
-IMAXLPFs = Literal["80", "90", "100", "110", "120", "150", "180", "200", "250"]
+IMAXLPFs = Literal[80, 90, 100, 110, 120, 150, 180, 200, 250]
 """IMAX Low Pass Frequencies."""
 
 PanelLocks = Literal["Panel", "Panel + Master Volume"]
