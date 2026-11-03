@@ -1458,6 +1458,9 @@ class DenonAVRDeviceInfo:
             raise AvrCommandError("Invalid delay value")
 
         if self.telnet_available:
+            if self._delay == delay:
+                return
+
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_delay.format(delay=delay)
             )
