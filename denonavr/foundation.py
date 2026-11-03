@@ -1540,6 +1540,9 @@ class DenonAVRDeviceInfo:
 
         raw_mode = PICTURE_MODE_MAP_REVERSE[mode]
         if self.telnet_available:
+            if self._picture_mode == mode:
+                return
+
             await self.telnet_api.async_send_commands(
                 self.telnet_commands.command_picture_mode.format(mode=raw_mode)
             )

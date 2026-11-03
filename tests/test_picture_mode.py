@@ -52,3 +52,23 @@ async def test_async_set_picture_mode_raises_on_invalid():
         await fixture.async_execute(
             fixture.device_info.async_set_picture_mode("Invalid")  # type: ignore
         )
+
+
+@pytest.mark.asyncio
+async def test_async_set_picture_mode_returns_early_when_matches():
+    """Test that no command is sent when the picture mode is already set."""
+    fixture = DeviceTestFixture(True)
+    device = fixture.device_info
+    device._picture_mode_callback("Main", "PV", "MOV")
+    await fixture.async_execute(device.async_set_picture_mode("Movie"))
+    fixture.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_async_set_picture_mode_sends_command_when_differs():
+    """Test that a command is sent when another picture mode is set."""
+    fixture = DeviceTestFixture(True)
+    device = fixture.device_info
+    device._picture_mode_callback("Main", "PV", "MOV")
+    await fixture.async_execute(device.async_set_picture_mode("Game"))
+    fixture.assert_called_once()
