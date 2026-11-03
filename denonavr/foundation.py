@@ -234,6 +234,7 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(convert_on_off_bool), default=None
     )
     _input_modes = get_args(InputModes)
+    _is_dirac_supported: bool = attr.ib(converter=bool, default=False, init=False)
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
 
@@ -539,6 +540,8 @@ class DenonAVRDeviceInfo:
                 device_zones = xml.find("./DeviceZones")
                 if device_zones is not None:
                     self.zones = device_zones.text
+
+                self._is_dirac_supported = xml.find(".//DiracLive") is not None
 
                 is_avr_x = self._is_avr_x(xml)
                 if is_avr_x:
@@ -1033,6 +1036,11 @@ class DenonAVRDeviceInfo:
         Only available on Marantz devices and when using Telnet.
         """
         return self._auto_lip_sync
+
+    @property
+    def is_dirac_supported(self) -> Optional[bool]:
+        """Return true if Dirac is supported by the device."""
+        return self._is_dirac_supported
 
     @property
     def telnet_available(self) -> bool:
