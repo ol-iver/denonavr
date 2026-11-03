@@ -97,6 +97,7 @@ ReceiverURLs = namedtuple(
         "command_sleep",
         "command_center_spread",
         "command_video_processing_mode",
+        "command_digital_codec",
         "command_room_size",
         "command_status",
         "command_system_reset",
@@ -217,6 +218,7 @@ TelnetCommands = namedtuple(
         "command_sleep",
         "command_center_spread",
         "command_video_processing_mode",
+        "command_digital_codec",
         "command_room_size",
         "command_status",
         "command_system_reset",
@@ -689,6 +691,7 @@ COMMAND_AUTO_STANDBY = "/goform/formiPhoneAppDirect.xml?STBY{mode}"
 COMMAND_SLEEP = "/goform/formiPhoneAppDirect.xml?SLP{value}"
 COMMAND_CENTER_SPREAD = "/goform/formiPhoneAppDirect.xml?PSCES%20{mode}"
 COMMAND_VIDEO_PROCESSING_MODE = "/goform/formiPhoneAppDirect.xml?VSVPM{mode}"
+COMMAND_DIGITAL_CODEC = "/goform/formiPhoneAppDirect.xml?DC{mode}"
 COMMAND_ROOM_SIZE = "/goform/formiPhoneAppDirect.xml?PSRSZ%20{size}"
 COMMAND_STATUS = "/goform/formiPhoneAppDirect.xml?RCSHP0230030"
 COMMAND_SYSTEM_RESET = "/goform/formiPhoneAppDirect.xml?SYRST"
@@ -834,6 +837,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_sleep=COMMAND_SLEEP,
     command_center_spread=COMMAND_CENTER_SPREAD,
     command_video_processing_mode=COMMAND_VIDEO_PROCESSING_MODE,
+    command_digital_codec=COMMAND_DIGITAL_CODEC,
     command_room_size=COMMAND_ROOM_SIZE,
     command_status=COMMAND_STATUS,
     command_system_reset=COMMAND_SYSTEM_RESET,
@@ -954,6 +958,7 @@ ZONE2_URLS = ReceiverURLs(
     command_sleep=COMMAND_SLEEP,
     command_center_spread=COMMAND_CENTER_SPREAD,
     command_video_processing_mode=COMMAND_VIDEO_PROCESSING_MODE,
+    command_digital_codec=COMMAND_DIGITAL_CODEC,
     command_room_size=COMMAND_ROOM_SIZE,
     command_status=COMMAND_STATUS,
     command_system_reset=COMMAND_SYSTEM_RESET,
@@ -1074,6 +1079,7 @@ ZONE3_URLS = ReceiverURLs(
     command_sleep=COMMAND_SLEEP,
     command_center_spread=COMMAND_CENTER_SPREAD,
     command_video_processing_mode=COMMAND_VIDEO_PROCESSING_MODE,
+    command_digital_codec=COMMAND_DIGITAL_CODEC,
     command_room_size=COMMAND_ROOM_SIZE,
     command_status=COMMAND_STATUS,
     command_system_reset=COMMAND_SYSTEM_RESET,
@@ -1251,6 +1257,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_sleep="SLP{value}",
     command_center_spread="PSCES {mode}",
     command_video_processing_mode="VSVPM{mode}",
+    command_digital_codec="DC{mode}",
     command_room_size="PSRSZ {size}",
     command_status="RCSHP0230030",
     command_system_reset="SYRST",
@@ -1369,6 +1376,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_sleep="SLP{value}",
     command_center_spread="PSCES {mode}",
     command_video_processing_mode="VSVPM{mode}",
+    command_digital_codec="DC{mode}",
     command_room_size="PSRSZ {size}",
     command_status="RCSHP0230030",
     command_system_reset="SYRST",
@@ -1487,6 +1495,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_sleep="SLP{value}",
     command_center_spread="PSCES {mode}",
     command_video_processing_mode="VSVPM{mode}",
+    command_digital_codec="DC{mode}",
     command_room_size="PSRSZ {size}",
     command_status="RCSHP0230030",
     command_system_reset="SYRST",
@@ -1970,6 +1979,17 @@ RoomSizes = Literal[
     "L",
 ]
 """Room Sizes."""
+
+DigitalCodecModes = Literal["Auto", "PCM", "DTS"]
+"""Digital Codec Modes."""
+
+DIGITAL_CODEC_MAP = {
+    "AUTO": "Auto",
+    "PCM": "PCM",
+    "DTS": "DTS",
+}
+
+DIGITAL_CODEC_MAP_REVERSE = {value: key for key, value in DIGITAL_CODEC_MAP.items()}
 
 VideoProcessingModes = Literal["Auto", "Game", "Movie", "Bypass"]
 """Video Processing Modes."""

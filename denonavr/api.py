@@ -617,6 +617,7 @@ class DenonAVRTelnetApi:
             "PSDYNVOL ?",  # Dynamic Vol.
             "DIM ?",  # Dimmer
             "PSDELAY ?",  # Audio Delay
+            "DC?",  # Digital Codec
             "ECO?",  # ECO
             "VSMONI ?",  # HDMI Output
             "PSDIRAC ?",  # Dirac Live Filter

@@ -11,7 +11,7 @@ import asyncio
 import logging
 from collections.abc import Hashable
 from copy import deepcopy
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple, get_args
 
 import attr
 import httpx
@@ -27,6 +27,8 @@ from .const import (
     AVR_X_2016,
     CHANGE_INPUT_MAPPING,
     DENON_ATTR_SETATTR,
+    DIGITAL_CODEC_MAP,
+    DIGITAL_CODEC_MAP_REVERSE,
     HDTUNER_SOURCES,
     MAIN_ZONE,
     NETAUDIO_PLAYING,
@@ -44,6 +46,7 @@ from .const import (
     TUNER_SOURCES,
     ZONE2,
     ZONE3,
+    DigitalCodecModes,
 )
 from .exceptions import AvrCommandError, AvrProcessingError, AvrRequestError
 from .foundation import DenonAVRFoundation
@@ -160,6 +163,10 @@ class DenonAVRInput(DenonAVRFoundation):
     _title: Optional[str] = attr.ib(
         converter=attr.converters.optional(fix_string), default=None
     )
+    _digital_codec: Optional[str] = attr.ib(
+        converter=attr.converters.optional(DIGITAL_CODEC_MAP.get), default=None
+    )
+    _digital_codec_modes = get_args(DigitalCodecModes)
     _frequency: Optional[str] = attr.ib(
         converter=attr.converters.optional(fix_string), default=None
     )
@@ -211,6 +218,7 @@ class DenonAVRInput(DenonAVRFoundation):
         self._device.telnet_api.register_callback("NSE", self._netaudio_callback)
         self._device.telnet_api.register_callback("TF", self._tuner_callback)
         self._device.telnet_api.register_callback("HD", self._hdtuner_callback)
+        self._device.telnet_api.register_callback("DC", self._digital_codec_callback)
         self._device.telnet_api.register_callback(
             "SS", self._input_func_update_callback
         )
@@ -392,6 +400,11 @@ class DenonAVRInput(DenonAVRFoundation):
             self._schedule_hdtuner_update()
         else:
             self._stop_media_update()
+
+    def _digital_codec_callback(self, zone: str, _event: str, parameter: str) -> None:
+        """Handle a Digital Codec change event."""
+        if zone == self._device.zone:
+            self._digital_codec = parameter
 
     def _hdtuner_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle an HD tuner update event."""
@@ -1040,6 +1053,11 @@ class DenonAVRInput(DenonAVRFoundation):
         return self._frequency
 
     @property
+    def digital_codec(self) -> Optional[str]:
+        """Return the current digital converter mode."""
+        return self._digital_codec
+
+    @property
     def station(self) -> Optional[str]:
         """Return current radio station as string."""
         return self._station
@@ -1065,6 +1083,21 @@ class DenonAVRInput(DenonAVRFoundation):
     ##########
     # Setter #
     ##########
+
+    async def async_set_digital_codec(self, mode: DigitalCodecModes) -> None:
+        """Set digital converter mode on receiver."""
+        if mode not in self._digital_codec_modes:
+            raise AvrCommandError("Invalid digital codec mode")
+
+        raw_mode = DIGITAL_CODEC_MAP_REVERSE[mode]
+        if self._device.telnet_available:
+            await self._device.telnet_api.async_send_commands(
+                self._device.telnet_commands.command_digital_codec.format(mode=raw_mode)
+            )
+        else:
+            await self._device.api.async_get_command(
+                self._device.urls.command_digital_codec.format(mode=raw_mode)
+            )
 
     async def async_set_input_func(self, input_func: str) -> None:
         """
