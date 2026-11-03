@@ -4,7 +4,7 @@
 
 import pytest
 
-from denonavr.ssdp import evaluate_scpd_xml
+from denonavr.ssdp import evaluate_scpd_xml, get_local_ips
 
 
 def get_sample_content(filename):
@@ -34,3 +34,11 @@ def test_evaluate(model, expected_device):
     body = get_sample_content(f"{model}_upnp.xml")
     device = evaluate_scpd_xml(url, body)
     assert device == expected_device
+
+
+def test_get_local_ips():
+    """Test that method return non-empty list of IPv4 strings including loopback."""
+    ips = get_local_ips()
+    assert isinstance(ips, list)
+    assert all(isinstance(ip, str) for ip in ips)
+    assert "127.0.0.1" in ips
