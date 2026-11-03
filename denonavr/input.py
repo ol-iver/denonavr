@@ -1102,6 +1102,9 @@ class DenonAVRInput(DenonAVRFoundation):
             command_url = self._device.urls.command_sel_src + linp
             telnet_command = self._device.telnet_commands.command_sel_src + linp
         if self._device.telnet_available:
+            if self._input_func == input_func:
+                return
+
             await self._device.telnet_api.async_send_commands(telnet_command)
         else:
             await self._device.api.async_get_command(command_url)
