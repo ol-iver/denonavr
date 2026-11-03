@@ -883,6 +883,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         local_hpf = self._padded_pass_filter(hpf)
         if self._device.telnet_available:
+            if self._imax_hpf == hpf:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_imax_hpf.format(
                     frequency=local_hpf
@@ -900,6 +903,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         local_lpf = self._padded_pass_filter(lpf)
         if self._device.telnet_available:
+            if self._imax_lpf == lpf:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_imax_lpf.format(
                     frequency=local_lpf
