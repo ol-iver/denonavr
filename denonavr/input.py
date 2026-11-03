@@ -1008,6 +1008,16 @@ class DenonAVRInput(DenonAVRFoundation):
         return sorted(self._input_func_map.keys())
 
     @property
+    def input_func_map(self) -> Dict[str, str]:
+        """Return a dict of available input sources with default names as values."""
+        return deepcopy(self._input_func_map)
+
+    @property
+    def input_func_map_reverse(self) -> Dict[str, str]:
+        """Return a dict of available input sources with default names as keys."""
+        return deepcopy(self._input_func_map_rev)
+
+    @property
     def image_url(self) -> Optional[str]:
         """Return image URL of current playing media when powered on."""
         if self._device.power == POWER_ON:

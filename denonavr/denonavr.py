@@ -398,6 +398,16 @@ class DenonAVR(DenonAVRFoundation):
         return self.input.input_func_list
 
     @property
+    def input_func_map(self) -> Dict[str, str]:
+        """Return a dict of available input sources with default names as values."""
+        return self.input.input_func_map
+
+    @property
+    def input_func_map_reverse(self) -> Dict[str, str]:
+        """Return a dict of available input sources with default names as keys."""
+        return self.input.input_func_map_reverse
+
+    @property
     def support_sound_mode(self) -> Optional[bool]:
         """Return True if sound mode is supported."""
         return self.soundmode.support_sound_mode
