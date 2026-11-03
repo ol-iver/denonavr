@@ -991,7 +991,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             )
 
     async def async_center_spread_off(self):
-        """Set Center Spread to ON."""
+        """Set Center Spread to OFF."""
         if self._device.telnet_available:
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_center_spread.format(mode="OFF")
