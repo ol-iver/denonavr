@@ -19,6 +19,86 @@ class TestDenonAVRVolume:
     """Test cases for DenonAVRVolume."""
 
     @pytest.mark.asyncio
+    async def test_async_volume_up_returns_early_when_max(self):
+        """Test that async_volume_up returns early if volume is at max."""
+        fixture = DeviceTestFixture(True)
+        device = DenonAVRVolume(device=fixture.device_info)
+        device._volume_callback("Main", "", "98")
+        await fixture.async_execute(device.async_volume_up())
+        fixture.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_async_volume_up_returns_early_when_custom_max(self):
+        """Test that async_volume_up returns early if volume is at custom max."""
+        fixture = DeviceTestFixture(True)
+        device = DenonAVRVolume(device=fixture.device_info)
+        device._max_volume_callback("Main", "", "VCTZMALIM 30")
+        device._volume_callback("Main", "", "30")
+        await fixture.async_execute(device.async_volume_up())
+        fixture.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_async_volume_up_sends_command_when_not_max(self):
+        """Test that async_volume_up sends command if volume is not at max."""
+        fixture = DeviceTestFixture(True)
+        device = DenonAVRVolume(device=fixture.device_info)
+        device._volume_callback("Main", "", "50")
+        await fixture.async_execute(device.async_volume_up())
+        fixture.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_async_volume_down_returns_early_when_min(self):
+        """Test that async_volume_down returns early if volume is at min."""
+        fixture = DeviceTestFixture(True)
+        device = DenonAVRVolume(device=fixture.device_info)
+        device._volume_callback("Main", "", "00")
+        await fixture.async_execute(device.async_volume_down())
+        fixture.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_async_volume_down_sends_command_when_not_min(self):
+        """Test that async_volume_down sends command if volume is not at min."""
+        fixture = DeviceTestFixture(True)
+        device = DenonAVRVolume(device=fixture.device_info)
+        device._volume_callback("Main", "", "50")
+        await fixture.async_execute(device.async_volume_down())
+        fixture.assert_called_once()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("from_val", [-80, 18, 0])
+    async def test_async_set_volume_returns_early_when_matches(self, from_val):
+        """Test that async_set_volume returns early if value matches current volume."""
+        fixture = DeviceTestFixture(True)
+        device = DenonAVRVolume(device=fixture.device_info)
+        device._volume_callback("Main", "", str(int(from_val + 80)).zfill(2))
+        await fixture.async_execute(device.async_set_volume(from_val))
+        fixture.assert_not_called()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("from_val,to_val", [(0, 10), (-80, -12)])
+    async def test_async_set_volume_sends_command_when_differs(self, from_val, to_val):
+        """Test that async_set_volume sends command if value differs."""
+        fixture = DeviceTestFixture(True)
+        device = DenonAVRVolume(device=fixture.device_info)
+        device._volume_callback("Main", "", str(int(from_val + 80)).zfill(2))
+        await fixture.async_execute(device.async_set_volume(to_val))
+        fixture.assert_called_once()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("from_val", [-30, 0, 18])
+    async def test_async_set_volume_custom_max_when_above_custom_max(self, from_val):
+        """Test async_set_volume sets custom max when value exceeds custom max."""
+        fixture = DeviceTestFixture(True)
+        device = DenonAVRVolume(device=fixture.device_info)
+        device._max_volume_callback("Main", "", "VCTZMALIM 30")
+        # add 80 to map to Denon scale
+        # subtract 10 to not exceed custom max of 30 (-50)
+        device._volume_callback("Main", "", str(int(from_val + 80 - 10)))
+        await fixture.async_execute(device.async_set_volume(from_val))
+        # add 80 to map to Denon scale
+        fixture.assert_called_match_ends(f"MV{int(device.max_volume + 80)}")
+
+    @pytest.mark.asyncio
     async def test_async_channel_volume_up_returns_early_when_max(self):
         """Test that async_channel_volume_up returns early if volume is at max."""
         fixture = DeviceTestFixture(True)
