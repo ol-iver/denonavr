@@ -16,7 +16,7 @@ from typing import Dict, List, Optional, Set, Tuple
 from urllib.parse import urlparse
 
 import httpx
-import netifaces
+import ifaddr
 from defusedxml import DefusedXmlException
 from defusedxml.ElementTree import ParseError, fromstring
 
@@ -70,11 +70,10 @@ def ssdp_request(ssdp_st: str, ssdp_mx: float = SSDP_MX) -> bytes:
 def get_local_ips() -> List[str]:
     """Get IPs of local network adapters."""
     ips = []
-    # pylint: disable=c-extension-no-member
-    for interface in netifaces.interfaces():
-        addresses = netifaces.ifaddresses(interface)
-        for address in addresses.get(netifaces.AF_INET, []):
-            ips.append(address["addr"])
+    for adapter in ifaddr.get_adapters():
+        for ip in adapter.ips:
+            if ip.is_IPv4:
+                ips.append(ip.ip)
     return ips
 
 
