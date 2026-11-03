@@ -968,6 +968,11 @@ class DenonAVRTelnetApi:
         return self._connection_enabled
 
     @property
+    def update_running(self) -> bool:
+        """Return True while all attributes are queried after a connect."""
+        return any(not task.done() for task in self._update_callback_tasks)
+
+    @property
     def healthy(self) -> bool:
         """Return True if telnet connection is healthy."""
         return self._protocol is not None and self._protocol.connected
