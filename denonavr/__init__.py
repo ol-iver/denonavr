@@ -12,6 +12,9 @@ import asyncio
 # Set default logging handler to avoid "No handler found" warnings.
 import logging
 
+import httpx
+from zeroconf.asyncio import AsyncZeroconf
+
 # Import denonavr module
 from .denonavr import DenonAVR
 from .mdns import async_query_receivers
@@ -23,7 +26,11 @@ __title__ = "denonavr"
 __version__ = "1.4.0-dev"
 
 
-async def async_discover(timeout: float = 5):
+async def async_discover(
+    timeout: float = 2.5,
+    async_zeroconf: AsyncZeroconf | None = None,
+    async_client: httpx.AsyncClient | None = None,
+):
     """
     Discover all Denon AVR devices in LAN zone.
 
@@ -34,10 +41,17 @@ async def async_discover(timeout: float = 5):
 
     Args:
         timeout: Number of seconds to wait for mDNS responses.
+        async_zeroconf: Zeroconf instance for the mDNS discovery, for example
+            one that is shared with other code. It is not closed. If not
+            given, a new instance is created and closed afterwards.
+        async_client: HTTP client for the mDNS discovery. It is not closed.
+            If not given, a new client is created and closed afterwards.
     """
 
     async def async_query_mdns() -> list[dict]:
-        receivers = await async_query_receivers(timeout)
+        receivers = await async_query_receivers(
+            timeout, async_zeroconf=async_zeroconf, async_client=async_client
+        )
         return [
             {
                 "host": receiver.ip_address,

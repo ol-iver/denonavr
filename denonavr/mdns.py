@@ -22,6 +22,8 @@ from .ssdp import evaluate_scpd_xml
 
 _LOGGER = logging.getLogger(__name__)
 
+_SERVICE_TYPE = "_heos-audio._tcp.local."
+
 
 @dataclass
 class ServiceInfoRecord:
@@ -89,7 +91,11 @@ class MDNSListener(ServiceListener):
             _LOGGER.debug("Address: %s, Port: %s", info.parsed_addresses(), info.port)
 
 
-async def async_query_receivers(timeout: float = 2.5) -> list[FoundReceiver] | None:
+async def async_query_receivers(
+    timeout: float = 2.5,
+    async_zeroconf: AsyncZeroconf | None = None,
+    async_client: httpx.AsyncClient | None = None,
+) -> list[FoundReceiver] | None:
     """
     Query for Denon/Marantz receivers using mDNS.
 
@@ -97,52 +103,70 @@ async def async_query_receivers(timeout: float = 2.5) -> list[FoundReceiver] | N
         timeout: Number of seconds to wait for mDNS responses before
             collecting and returning the discovered services. During this
             period the service browser listens for receiver announcements.
+        async_zeroconf: Zeroconf instance to use, for example one that is
+            shared with other code. It is not closed. If not given, a new
+            instance is created and closed when the query is done.
+        async_client: HTTP client to use. It is not closed. If not given, a
+            new client is created and closed when the query is done.
     """
-    async with AsyncZeroconf() as zeroconf:
-        listener = MDNSListener()
-        ServiceBrowser(zeroconf.zeroconf, "_heos-audio._tcp.local.", listener)
-
+    own_zeroconf = async_zeroconf is None
+    zeroconf = AsyncZeroconf() if async_zeroconf is None else async_zeroconf
+    listener = MDNSListener()
+    browser = ServiceBrowser(zeroconf.zeroconf, _SERVICE_TYPE, listener)
+    try:
         await asyncio.sleep(timeout)
-        with listener.lock:
-            found_services = list(listener.services)
+    finally:
+        # Cancel in a thread, the browser waits for its own thread to stop
+        await asyncio.to_thread(browser.cancel)
+        if own_zeroconf:
+            await zeroconf.async_close()
 
-        if not found_services:
-            return None
+    with listener.lock:
+        found_services = list(listener.services)
 
-        async with httpx.AsyncClient() as client:
-            services: list[FoundReceiver] = []
-            for service in found_services:
-                if not service.info or service.info.decoded_properties is None:
-                    continue
+    if not found_services:
+        return None
 
-                ip_addresses = service.info.parsed_addresses(version=IPVersion.V4Only)
-                if not ip_addresses:
-                    ip_addresses = service.info.parsed_addresses(
-                        version=IPVersion.V6Only
-                    )
-                if not ip_addresses:
-                    _LOGGER.info(
-                        "No IP address found for service %s (%s)",
-                        service.name,
-                        service.type,
-                    )
-                    continue
-                ip = ip_addresses[0]
-                serial_number = await _async_get_serial_number(ip, client, timeout)
+    if async_client is not None:
+        return await _async_get_receivers(found_services, async_client, timeout)
 
-                services.append(
-                    FoundReceiver(
-                        name=service.name,
-                        ip_address=ip,
-                        model=service.info.decoded_properties.get("model", "Unknown"),
-                        network_id=service.info.decoded_properties.get(
-                            "networkid", "Unknown"
-                        ),
-                        did=service.info.decoded_properties.get("did", "Unknown"),
-                        serial_number=serial_number,
-                    )
-                )
-            return services or None
+    async with httpx.AsyncClient() as client:
+        return await _async_get_receivers(found_services, client, timeout)
+
+
+async def _async_get_receivers(
+    found_services: list[ServiceInfoRecord], client: AsyncClient, timeout: float
+) -> list[FoundReceiver] | None:
+    """Create receivers from the found services."""
+    services: list[FoundReceiver] = []
+    for service in found_services:
+        if not service.info or service.info.decoded_properties is None:
+            continue
+
+        ip_addresses = service.info.parsed_addresses(version=IPVersion.V4Only)
+        if not ip_addresses:
+            ip_addresses = service.info.parsed_addresses(version=IPVersion.V6Only)
+        if not ip_addresses:
+            _LOGGER.info(
+                "No IP address found for service %s (%s)",
+                service.name,
+                service.type,
+            )
+            continue
+        ip = ip_addresses[0]
+        serial_number = await _async_get_serial_number(ip, client, timeout)
+
+        services.append(
+            FoundReceiver(
+                name=service.name,
+                ip_address=ip,
+                model=service.info.decoded_properties.get("model", "Unknown"),
+                network_id=service.info.decoded_properties.get("networkid", "Unknown"),
+                did=service.info.decoded_properties.get("did", "Unknown"),
+                serial_number=serial_number,
+            )
+        )
+    return services or None
 
 
 async def _async_get_serial_number(
