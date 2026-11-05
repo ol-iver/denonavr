@@ -1661,13 +1661,14 @@ class DenonAVRDeviceInfo:
         if delay_time < 0 or delay_time > 999:
             raise AvrCommandError("Invalid delay time value")
 
+        local_delay_time = f"{delay_time:03}"
         if self.telnet_available:
             await self.telnet_api.async_send_commands(
-                self.telnet_commands.command_delay_time.format(value=delay_time)
+                self.telnet_commands.command_delay_time.format(value=local_delay_time)
             )
         else:
             await self.api.async_get_command(
-                self.urls.command_delay_time.format(value=delay_time)
+                self.urls.command_delay_time.format(value=local_delay_time)
             )
 
     async def async_audio_restorer(self, mode: AudioRestorers):
