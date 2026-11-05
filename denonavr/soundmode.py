@@ -649,7 +649,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         Only available if using Telnet.
 
-        Possible values are: 1-16
+        Possible values are: 0-15
         """
         return self._auromatic_3d_strength
 
@@ -1115,9 +1115,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
         """
         Set Auro-Matic 3D Strength.
 
-        :param strength: Strength value to set. Valid values are 1-16.
+        :param strength: Strength value to set. Valid values are 0-15.
         """
-        if strength < 1 or strength > 16:
+        if strength < 0 or strength > 15:
             raise AvrCommandError(f"{strength} is not a valid Auro-Matic 3D Strength")
 
         local_strength = f"{strength:02}"
