@@ -96,6 +96,7 @@ ReceiverURLs = namedtuple(
         "command_auto_standby",
         "command_sleep",
         "command_center_spread",
+        "command_picture_mode",
         "command_video_processing_mode",
         "command_room_size",
         "command_status",
@@ -216,6 +217,7 @@ TelnetCommands = namedtuple(
         "command_auto_standby",
         "command_sleep",
         "command_center_spread",
+        "command_picture_mode",
         "command_video_processing_mode",
         "command_room_size",
         "command_status",
@@ -689,6 +691,7 @@ COMMAND_AUTO_STANDBY = "/goform/formiPhoneAppDirect.xml?STBY{mode}"
 COMMAND_SLEEP = "/goform/formiPhoneAppDirect.xml?SLP{value}"
 COMMAND_CENTER_SPREAD = "/goform/formiPhoneAppDirect.xml?PSCES%20{mode}"
 COMMAND_VIDEO_PROCESSING_MODE = "/goform/formiPhoneAppDirect.xml?VSVPM{mode}"
+COMMAND_PICTURE_MODE = "/goform/formiPhoneAppDirect.xml?PV{mode}"
 COMMAND_ROOM_SIZE = "/goform/formiPhoneAppDirect.xml?PSRSZ%20{size}"
 COMMAND_STATUS = "/goform/formiPhoneAppDirect.xml?RCSHP0230030"
 COMMAND_SYSTEM_RESET = "/goform/formiPhoneAppDirect.xml?SYRST"
@@ -833,6 +836,7 @@ DENONAVR_URLS = ReceiverURLs(
     command_auto_standby=COMMAND_AUTO_STANDBY,
     command_sleep=COMMAND_SLEEP,
     command_center_spread=COMMAND_CENTER_SPREAD,
+    command_picture_mode=COMMAND_PICTURE_MODE,
     command_video_processing_mode=COMMAND_VIDEO_PROCESSING_MODE,
     command_room_size=COMMAND_ROOM_SIZE,
     command_status=COMMAND_STATUS,
@@ -953,6 +957,7 @@ ZONE2_URLS = ReceiverURLs(
     command_auto_standby=COMMAND_AUTO_STANDBY,
     command_sleep=COMMAND_SLEEP,
     command_center_spread=COMMAND_CENTER_SPREAD,
+    command_picture_mode=COMMAND_PICTURE_MODE,
     command_video_processing_mode=COMMAND_VIDEO_PROCESSING_MODE,
     command_room_size=COMMAND_ROOM_SIZE,
     command_status=COMMAND_STATUS,
@@ -1073,6 +1078,7 @@ ZONE3_URLS = ReceiverURLs(
     command_auto_standby=COMMAND_AUTO_STANDBY,
     command_sleep=COMMAND_SLEEP,
     command_center_spread=COMMAND_CENTER_SPREAD,
+    command_picture_mode=COMMAND_PICTURE_MODE,
     command_video_processing_mode=COMMAND_VIDEO_PROCESSING_MODE,
     command_room_size=COMMAND_ROOM_SIZE,
     command_status=COMMAND_STATUS,
@@ -1250,6 +1256,7 @@ DENONAVR_TELNET_COMMANDS = TelnetCommands(
     command_auto_standby="STBY{mode}",
     command_sleep="SLP{value}",
     command_center_spread="PSCES {mode}",
+    command_picture_mode="PV{mode}",
     command_video_processing_mode="VSVPM{mode}",
     command_room_size="PSRSZ {size}",
     command_status="RCSHP0230030",
@@ -1368,6 +1375,7 @@ ZONE2_TELNET_COMMANDS = TelnetCommands(
     command_auto_standby="STBY{mode}",
     command_sleep="SLP{value}",
     command_center_spread="PSCES {mode}",
+    command_picture_mode="PV{mode}",
     command_video_processing_mode="VSVPM{mode}",
     command_room_size="PSRSZ {size}",
     command_status="RCSHP0230030",
@@ -1486,6 +1494,7 @@ ZONE3_TELNET_COMMANDS = TelnetCommands(
     command_auto_standby="STBY{mode}",
     command_sleep="SLP{value}",
     command_center_spread="PSCES {mode}",
+    command_picture_mode="PV{mode}",
     command_video_processing_mode="VSVPM{mode}",
     command_room_size="PSRSZ {size}",
     command_status="RCSHP0230030",
@@ -1984,6 +1993,43 @@ VIDEO_PROCESSING_MODES_MAP = {
 VIDEO_PROCESSING_MODES_MAP_REVERSE = {
     value: key for key, value in VIDEO_PROCESSING_MODES_MAP.items()
 }
+
+PictureModes = Literal[
+    "Off",
+    "Brilliant",
+    "Custom",
+    "Game",
+    "ISF Day",
+    "ISF Night",
+    "Movie",
+    "Standard",
+    "Stream",
+    "Vivid",
+]
+"""Picture Modes."""
+
+# Custom is CSTM on Marantz and CTM on Denon, both are read
+PICTURE_MODE_MAP = {
+    "OFF": "Off",
+    "BRL": "Brilliant",
+    "CSTM": "Custom",
+    "CTM": "Custom",
+    "GAM": "Game",
+    "DAY": "ISF Day",
+    "NGT": "ISF Night",
+    "MOV": "Movie",
+    "STD": "Standard",
+    "STM": "Stream",
+    "VVD": "Vivid",
+}
+
+PICTURE_MODE_MAP_REVERSE = {
+    value: key for key, value in reversed(PICTURE_MODE_MAP.items())
+}
+"""Picture mode codes to send, Custom is CSTM (Marantz)."""
+
+PICTURE_MODE_MAP_REVERSE_DENON = {**PICTURE_MODE_MAP_REVERSE, "Custom": "CTM"}
+"""Picture mode codes to send to Denon, Custom is CTM."""
 
 MDAXs = Literal["Off", "Low", "Medium", "High"]
 """M-DAX Modes."""

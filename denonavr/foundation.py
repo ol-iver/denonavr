@@ -48,6 +48,9 @@ from .const import (
     ILLUMINATION_MAP,
     ILLUMINATION_MAP_REVERSE,
     MAIN_ZONE,
+    PICTURE_MODE_MAP,
+    PICTURE_MODE_MAP_REVERSE,
+    PICTURE_MODE_MAP_REVERSE_DENON,
     POWER_STATES,
     SETTINGS_MENU_STATES,
     VALID_RECEIVER_TYPES,
@@ -70,6 +73,7 @@ from .const import (
     Illuminations,
     InputModes,
     PanelLocks,
+    PictureModes,
     ReceiverType,
     ReceiverURLs,
     RoomSizes,
@@ -187,6 +191,10 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(VIDEO_PROCESSING_MODES_MAP.get), default=None
     )
     _video_processing_modes = get_args(VideoProcessingModes)
+    _picture_mode: Optional[str] = attr.ib(
+        converter=attr.converters.optional(PICTURE_MODE_MAP.get), default=None
+    )
+    _picture_modes = get_args(PictureModes)
     _tactile_transducer: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
@@ -297,6 +305,11 @@ class DenonAVRDeviceInfo:
             self._triggers = {}
 
         self._triggers[int(values[0])] = values[1]
+
+    def _picture_mode_callback(self, zone: str, _event: str, parameter: str) -> None:
+        """Handle a Picture Mode change event."""
+        if zone == self.zone:
+            self._picture_mode = parameter
 
     def _delay_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a delay change event."""
@@ -460,6 +473,7 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback(
                 "VS", self._video_processing_mode_callback
             )
+            self.telnet_api.register_callback("PV", self._picture_mode_callback)
             self.telnet_api.register_callback("SS", self._tactile_transducer_callback)
             self.telnet_api.register_callback("STBY", self._auto_standby_callback)
             self.telnet_api.register_callback("SLP", self._auto_sleep_callback)
@@ -897,6 +911,18 @@ class DenonAVRDeviceInfo:
         Possible values are: "Auto", "Game", "Movie", "Bypass"
         """
         return self._video_processing_mode
+
+    @property
+    def picture_mode(self) -> Optional[str]:
+        """
+        Return the current picture mode.
+
+        Only available if using Telnet and on models with video processing.
+
+        Possible values are: "Off", "Brilliant", "Custom", "Game", "ISF Day",
+        "ISF Night", "Movie", "Standard", "Stream", "Vivid"
+        """
+        return self._picture_mode
 
     @property
     def tactile_transducer(self) -> Optional[str]:
@@ -1506,6 +1532,27 @@ class DenonAVRDeviceInfo:
         else:
             await self.api.async_get_command(
                 self.urls.command_video_processing_mode.format(mode=processing_mode)
+            )
+
+    async def async_set_picture_mode(self, mode: PictureModes) -> None:
+        """Set picture mode on receiver."""
+        if mode not in self._picture_modes:
+            raise AvrCommandError("Invalid picture mode")
+
+        if self.is_denon:
+            raw_mode = PICTURE_MODE_MAP_REVERSE_DENON[mode]
+        else:
+            raw_mode = PICTURE_MODE_MAP_REVERSE[mode]
+        if self.telnet_available:
+            if self._picture_mode == mode:
+                return
+
+            await self.telnet_api.async_send_commands(
+                self.telnet_commands.command_picture_mode.format(mode=raw_mode)
+            )
+        else:
+            await self.api.async_get_command(
+                self.urls.command_picture_mode.format(mode=raw_mode)
             )
 
     async def async_status(self) -> None:
