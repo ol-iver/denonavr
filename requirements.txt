@@ -6,3 +6,4 @@ httpx>=0.21.0
 netifaces>=0.11.0
 async-timeout>=5.0.1; python_version < "3.11"
 aiolimiter>=1.2.1
+zeroconf>=0.149.16
