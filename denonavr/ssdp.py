@@ -80,26 +80,40 @@ def get_local_ips() -> List[str]:
     return ips
 
 
-async def async_identify_denonavr_receivers() -> List[Dict]:
+async def async_identify_denonavr_receivers(
+    async_client: Optional[httpx.AsyncClient] = None,
+) -> List[Dict]:
     """
     Identify DenonAVR using SSDP and SCPD queries.
 
     Returns a list of dictionaries which includes all discovered Denon AVR
     devices with keys "host", "modelName", "friendlyName", "presentationURL".
+
+    async_client is the HTTP client to use. It is not closed. If not given, a
+    new client is created and closed when the queries are done.
     """
     # Sending SSDP broadcast message to get resource urls from devices
     urls = await async_send_ssdp_broadcast()
 
     # Check which responding device is a DenonAVR device and prepare output
+    if async_client is not None:
+        return await _async_evaluate_devices(async_client, urls)
+
     async with httpx.AsyncClient(
         timeout=2.5,
         # Unlikely that you'd have more than 5 receivers
         limits=httpx.Limits(max_connections=5),
     ) as client:
-        results = await asyncio.gather(
-            *(_async_evaluate_single_device(client, url) for url in urls)
-        )
+        return await _async_evaluate_devices(client, urls)
 
+
+async def _async_evaluate_devices(
+    client: httpx.AsyncClient, urls: Set[str]
+) -> List[Dict]:
+    """Return the AV receivers among the devices at the given urls."""
+    results = await asyncio.gather(
+        *(_async_evaluate_single_device(client, url) for url in urls)
+    )
     return [receiver for receiver in results if receiver is not None]
 
 
