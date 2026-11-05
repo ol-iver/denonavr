@@ -1133,7 +1133,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_auromatic_3d_strength_up(self) -> None:
         """Increase Auro-Matic 3D Strength."""
         if self._device.telnet_available:
-            if self._auromatic_3d_strength == 16:
+            if self._auromatic_3d_strength == 15:
                 return
 
             await self._device.telnet_api.async_send_commands(
@@ -1149,7 +1149,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     async def async_auromatic_3d_strength_down(self) -> None:
         """Decrease Auro-Matic 3D Strength."""
         if self._device.telnet_available:
-            if self._auromatic_3d_strength == 1:
+            if self._auromatic_3d_strength == 0:
                 return
 
             await self._device.telnet_api.async_send_commands(

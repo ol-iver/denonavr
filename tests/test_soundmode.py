@@ -194,6 +194,60 @@ class TestDenonAVRSoundMode:
         fixture.assert_called_once()
 
     @pytest.mark.asyncio
+    async def test_async_auromatic_3d_strength_up_returns_early_when_max(self):
+        """Test that strength up returns early at the maximum of 15."""
+        fixture = DeviceTestFixture(True)
+        device = DenonAVRSoundMode(device=fixture.device_info)
+        device._auro_callback("Main", "PS", "AUROST 15")
+        await fixture.async_execute(device.async_auromatic_3d_strength_up())
+        fixture.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_async_auromatic_3d_strength_up_sends_command_below_max(self):
+        """Test that strength up sends a command below the maximum."""
+        fixture = DeviceTestFixture(True)
+        device = DenonAVRSoundMode(device=fixture.device_info)
+        device._auro_callback("Main", "PS", "AUROST 14")
+        await fixture.async_execute(device.async_auromatic_3d_strength_up())
+        fixture.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_async_auromatic_3d_strength_down_returns_early_when_min(self):
+        """Test that strength down returns early at the minimum of 0."""
+        fixture = DeviceTestFixture(True)
+        device = DenonAVRSoundMode(device=fixture.device_info)
+        device._auro_callback("Main", "PS", "AUROST 00")
+        await fixture.async_execute(device.async_auromatic_3d_strength_down())
+        fixture.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_async_auromatic_3d_strength_down_sends_command_from_1(self):
+        """Test that strength down sends a command from 1, the next value is 0."""
+        fixture = DeviceTestFixture(True)
+        device = DenonAVRSoundMode(device=fixture.device_info)
+        device._auro_callback("Main", "PS", "AUROST 01")
+        await fixture.async_execute(device.async_auromatic_3d_strength_down())
+        fixture.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_async_auromatic_3d_strength_returns_early_when_matches(self):
+        """Test that no command is sent when the strength is already set."""
+        fixture = DeviceTestFixture(True)
+        device = DenonAVRSoundMode(device=fixture.device_info)
+        device._auro_callback("Main", "PS", "AUROST 10")
+        await fixture.async_execute(device.async_auromatic_3d_strength(10))
+        fixture.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_async_auromatic_3d_strength_sends_command_when_differs(self):
+        """Test that a command is sent when another strength is set."""
+        fixture = DeviceTestFixture(True)
+        device = DenonAVRSoundMode(device=fixture.device_info)
+        device._auro_callback("Main", "PS", "AUROST 10")
+        await fixture.async_execute(device.async_auromatic_3d_strength(5))
+        fixture.assert_called_once()
+
+    @pytest.mark.asyncio
     async def test_async_auromatic_3d_preset_returns_early_when_matches(self):
         """Test that async_auromatic_3d_preset returns early when already matches."""
         fixture = DeviceTestFixture(True)
