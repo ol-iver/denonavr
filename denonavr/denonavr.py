@@ -382,7 +382,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Return volume of Denon AVR as float.
 
-        Volume is send in a format like -50.0.
+        Volume is sent in a format like -50.0.
         Minimum is -80.0, maximum at 18.0
         """
         return self.vol.volume
@@ -916,7 +916,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Set receiver volume.
 
-        Volume is send in a format like -50.0.
+        Volume is sent in a format like -50.0.
         Minimum is -80.0, maximum at 18.0
         """
         await self.vol.async_set_volume(volume)
@@ -1151,7 +1151,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Set delay time on receiver.
 
-        :param delay_time: Delay time in ms. Valid values are 0-999.
+        :param delay_time: Delay time in ms. Valid values are 0-300.
         """
         await self._device.async_delay_time(delay_time)
 
@@ -1269,7 +1269,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Set quick select mode on receiver.
 
-        :param quick_select_number: Quick select number to set. Valid values are 1-5.
+        :param quick_select_number: Quick select number to set. Valid values are 1-6.
         """
         await self._device.async_quick_select_mode(quick_select_number)
 
@@ -1277,7 +1277,7 @@ class DenonAVR(DenonAVRFoundation):
         """
         Set quick select memory on receiver.
 
-        :param quick_select_number: Quick select number to set. Valid values are 1-5.
+        :param quick_select_number: Quick select number to set. Valid values are 1-6.
         """
         await self._device.async_quick_select_memory(quick_select_number)
 

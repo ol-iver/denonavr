@@ -1237,7 +1237,7 @@ class DenonAVRDeviceInfo:
 
         Valid sleep values are "OFF" and 1-120 (in minutes)
         """
-        if sleep != "OFF" and sleep not in range(1, 120):
+        if sleep != "OFF" and sleep not in range(1, 121):
             raise AvrCommandError("Invalid sleep value")
 
         local_sleep = f"{sleep:03}" if isinstance(sleep, int) else sleep
@@ -1386,9 +1386,9 @@ class DenonAVRDeviceInfo:
         """
         Set quick select mode on receiver.
 
-        :param quick_select_number: Quick select number to set. Valid values are 1-5.
+        :param quick_select_number: Quick select number to set. Valid values are 1-6.
         """
-        if quick_select_number not in range(1, 5):
+        if quick_select_number not in range(1, 7):
             raise AvrCommandError("Quick select number must be between 1 and 5")
 
         if self.telnet_available:
@@ -1410,9 +1410,9 @@ class DenonAVRDeviceInfo:
         """
         Set quick select memory on receiver.
 
-        :param quick_select_number: Quick select number to set. Valid values are 1-5.
+        :param quick_select_number: Quick select number to set. Valid values are 1-6.
         """
-        if quick_select_number not in range(1, 5):
+        if quick_select_number not in range(1, 7):
             raise AvrCommandError("Quick select number must be between 1 and 5")
 
         if self.telnet_available:
@@ -1656,9 +1656,9 @@ class DenonAVRDeviceInfo:
         """
         Set delay time on receiver.
 
-        :param delay_time: Delay time in ms. Valid values are 0-999.
+        :param delay_time: Delay time in ms. Valid values are 0-300.
         """
-        if delay_time < 0 or delay_time > 999:
+        if delay_time < 0 or delay_time > 300:
             raise AvrCommandError("Invalid delay time value")
 
         if self.telnet_available:
