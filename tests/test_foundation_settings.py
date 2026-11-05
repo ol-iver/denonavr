@@ -410,7 +410,7 @@ class TestDenonAVRDeviceInfoSettings:
         """Test that async_auto_lip_sync_on returns early when auto lip sync is on."""
         fixture = DeviceTestFixture(False)
         device = fixture.device_info
-        device._auto_lip_sync_callback("Main", "SS", "HOS ON")
+        device._auto_lip_sync_callback("Main", "SS", "HOSALS ON")
         await fixture.async_execute(device.async_auto_lip_sync_on())
         fixture.assert_not_called()
 
@@ -419,7 +419,7 @@ class TestDenonAVRDeviceInfoSettings:
         """Test that async_auto_lip_sync_on sends command if auto lip sync is off."""
         fixture = DeviceTestFixture(False)
         device = fixture.device_info
-        device._auto_lip_sync_callback("Main", "SS", "HOS OFF")
+        device._auto_lip_sync_callback("Main", "SS", "HOSALS OFF")
         await fixture.async_execute(device.async_auto_lip_sync_on())
         fixture.assert_called_once()
 
@@ -428,7 +428,7 @@ class TestDenonAVRDeviceInfoSettings:
         """Test that async_auto_lip_sync_off returns early when auto lip sync is off."""
         fixture = DeviceTestFixture(False)
         device = fixture.device_info
-        device._auto_lip_sync_callback("Main", "SS", "HOS OFF")
+        device._auto_lip_sync_callback("Main", "SS", "HOSALS OFF")
         await fixture.async_execute(device.async_auto_lip_sync_off())
         fixture.assert_not_called()
 
@@ -437,7 +437,7 @@ class TestDenonAVRDeviceInfoSettings:
         """Test that async_auto_lip_sync_off sends command if auto lip sync is on."""
         fixture = DeviceTestFixture(False)
         device = fixture.device_info
-        device._auto_lip_sync_callback("Main", "SS", "HOS ON")
+        device._auto_lip_sync_callback("Main", "SS", "HOSALS ON")
         await fixture.async_execute(device.async_auto_lip_sync_off())
         fixture.assert_called_once()
 
@@ -494,3 +494,26 @@ class TestDenonAVRDeviceInfoSettings:
         device._audio_restorer_callback("Main", "PS", "RSTR OFF")
         with pytest.raises(AvrCommandError):
             await device.async_audio_restorer("Max")
+
+    @pytest.mark.parametrize(
+        "parameter, expected",
+        [
+            ("HOSALS ON", True),
+            ("HOSALS OFF", False),
+            ("HOS ON", True),
+            ("HOS OFF", False),
+        ],
+    )
+    def test_auto_lip_sync_callback_reads_value(self, parameter, expected):
+        """Test that the auto lip sync state is read from HOSALS and HOS events."""
+        device = DeviceTestFixture(False).device_info
+        assert device.auto_lip_sync is None
+        device._auto_lip_sync_callback("Main", "SS", parameter)
+        assert device.auto_lip_sync is expected
+
+    @pytest.mark.parametrize("parameter", ["HOSCON 1", "HOS", "HOSALS", "TTR ON"])
+    def test_auto_lip_sync_callback_ignores_other_events(self, parameter):
+        """Test that other SS events do not change the auto lip sync state."""
+        device = DeviceTestFixture(False).device_info
+        device._auto_lip_sync_callback("Main", "SS", parameter)
+        assert device.auto_lip_sync is None

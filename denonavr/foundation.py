@@ -398,7 +398,10 @@ class DenonAVRDeviceInfo:
 
     def _auto_lip_sync_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a auto lip sync change event."""
-        if parameter.startswith("HOS "):
+        # The command is SSHOSALS ON/OFF, but some receivers report HOS ON/OFF
+        if parameter.startswith("HOSALS "):
+            self._auto_lip_sync = parameter[7:]
+        elif parameter.startswith("HOS "):
             self._auto_lip_sync = parameter[4:]
 
     async def async_setup(self) -> None:
