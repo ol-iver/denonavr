@@ -50,6 +50,7 @@ from .const import (
     MAIN_ZONE,
     PICTURE_MODE_MAP,
     PICTURE_MODE_MAP_REVERSE,
+    PICTURE_MODE_MAP_REVERSE_DENON,
     POWER_STATES,
     SETTINGS_MENU_STATES,
     VALID_RECEIVER_TYPES,
@@ -1538,7 +1539,10 @@ class DenonAVRDeviceInfo:
         if mode not in self._picture_modes:
             raise AvrCommandError("Invalid picture mode")
 
-        raw_mode = PICTURE_MODE_MAP_REVERSE[mode]
+        if self.is_denon:
+            raw_mode = PICTURE_MODE_MAP_REVERSE_DENON[mode]
+        else:
+            raw_mode = PICTURE_MODE_MAP_REVERSE[mode]
         if self.telnet_available:
             if self._picture_mode == mode:
                 return

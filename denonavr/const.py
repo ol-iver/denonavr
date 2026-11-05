@@ -2008,10 +2008,12 @@ PictureModes = Literal[
 ]
 """Picture Modes."""
 
+# Custom is CSTM on Marantz and CTM on Denon, both are read
 PICTURE_MODE_MAP = {
     "OFF": "Off",
     "BRL": "Brilliant",
     "CSTM": "Custom",
+    "CTM": "Custom",
     "GAM": "Game",
     "DAY": "ISF Day",
     "NGT": "ISF Night",
@@ -2021,7 +2023,13 @@ PICTURE_MODE_MAP = {
     "VVD": "Vivid",
 }
 
-PICTURE_MODE_MAP_REVERSE = {value: key for key, value in PICTURE_MODE_MAP.items()}
+PICTURE_MODE_MAP_REVERSE = {
+    value: key for key, value in reversed(PICTURE_MODE_MAP.items())
+}
+"""Picture mode codes to send, Custom is CSTM (Marantz)."""
+
+PICTURE_MODE_MAP_REVERSE_DENON = {**PICTURE_MODE_MAP_REVERSE, "Custom": "CTM"}
+"""Picture mode codes to send to Denon, Custom is CTM."""
 
 MDAXs = Literal["Off", "Low", "Medium", "High"]
 """M-DAX Modes."""

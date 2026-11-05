@@ -6,7 +6,12 @@ from typing import get_args
 
 import pytest
 
-from denonavr.const import PICTURE_MODE_MAP, PICTURE_MODE_MAP_REVERSE, PictureModes
+from denonavr.const import (
+    PICTURE_MODE_MAP,
+    PICTURE_MODE_MAP_REVERSE,
+    PICTURE_MODE_MAP_REVERSE_DENON,
+    PictureModes,
+)
 from denonavr.foundation import AvrCommandError
 from tests.test_helpers import DeviceTestFixture
 
@@ -20,7 +25,10 @@ def test_picture_mode_maps_are_complete():
         assert PICTURE_MODE_MAP[PICTURE_MODE_MAP_REVERSE[mode]] == mode
 
 
-@pytest.mark.parametrize("raw, expected", [("OFF", "Off"), ("MOV", "Movie")])
+@pytest.mark.parametrize(
+    "raw, expected",
+    [("OFF", "Off"), ("MOV", "Movie"), ("CSTM", "Custom"), ("CTM", "Custom")],
+)
 def test_picture_mode_callback(raw, expected):
     """Test that the picture mode is read from telnet events."""
     device = DeviceTestFixture(True).device_info
@@ -72,3 +80,36 @@ async def test_async_set_picture_mode_sends_command_when_differs():
     device._picture_mode_callback("Main", "PV", "MOV")
     await fixture.async_execute(device.async_set_picture_mode("Game"))
     fixture.assert_called_once()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "is_denon, expected",
+    [(True, "PVCTM"), (False, "PVCSTM")],
+)
+async def test_async_set_picture_mode_custom_depends_on_brand(is_denon, expected):
+    """Test that Custom is sent as CTM to Denon and as CSTM to Marantz."""
+    fixture = DeviceTestFixture(is_denon)
+    await fixture.async_execute(fixture.device_info.async_set_picture_mode("Custom"))
+    fixture._mock_telnet.assert_called_once_with(expected)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("is_denon", [True, False])
+@pytest.mark.parametrize("mode", [m for m in get_args(PictureModes) if m != "Custom"])
+async def test_async_set_picture_mode_other_modes_are_the_same_for_all_brands(
+    is_denon, mode
+):
+    """Test that only Custom has another code for Denon."""
+    fixture = DeviceTestFixture(is_denon)
+    await fixture.async_execute(fixture.device_info.async_set_picture_mode(mode))
+    fixture._mock_telnet.assert_called_once_with(f"PV{PICTURE_MODE_MAP_REVERSE[mode]}")
+
+
+@pytest.mark.parametrize(
+    "brand_map", [PICTURE_MODE_MAP_REVERSE, PICTURE_MODE_MAP_REVERSE_DENON]
+)
+def test_every_code_that_is_sent_can_be_read(brand_map):
+    """Test that the receiver reports the code that we send back as the same mode."""
+    for mode, raw in brand_map.items():
+        assert PICTURE_MODE_MAP[raw] == mode
