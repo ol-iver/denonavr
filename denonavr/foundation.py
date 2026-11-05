@@ -636,6 +636,10 @@ class DenonAVRDeviceInfo:
                 return "4:4:4"
             if value == "3":
                 return "RGB"
+            if value == "8":
+                return "4:2:0"
+            if value == "9":
+                return "4:2:2/BT.2020"
             return None
 
         key_value = parameter.split()
@@ -1475,23 +1479,30 @@ class DenonAVRDeviceInfo:
         """
         return self._max_frl_output
 
+    @staticmethod
+    def _add_bt2020(colorspace: Optional[str], hdr: Optional[str]) -> Optional[str]:
+        """Add BT.2020 if the receiver did not send it and the signal has HDR."""
+        if colorspace and hdr and not colorspace.endswith("/BT.2020"):
+            return f"{colorspace}/BT.2020"
+        return colorspace
+
     @property
     def colorspace_input(self) -> Optional[str]:
         """
         Return the colorspace input for the device.
 
-        Only available if using Telnet.
+        Only available if using Telnet. Adds "/BT.2020" when the signal has HDR.
         """
-        return self._colorspace_input
+        return self._add_bt2020(self._colorspace_input, self._hdr_input)
 
     @property
     def colorspace_output(self) -> Optional[str]:
         """
         Return the colorspace output for the device.
 
-        Only available if using Telnet.
+        Only available if using Telnet. Adds "/BT.2020" when the signal has HDR.
         """
-        return self._colorspace_output
+        return self._add_bt2020(self._colorspace_output, self._hdr_output)
 
     @property
     def max_resolution(self) -> Optional[str]:

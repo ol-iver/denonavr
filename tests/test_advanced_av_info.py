@@ -74,6 +74,9 @@ def _device():
         ("_hdr_callback", "SS", "INFSIGHDR O ---", "hdr_output", None),
         ("_pixel_depth_callback", "SS", "INFSIGPIX 12", "pixel_depth_input", "8-bit"),
         ("_pixel_depth_callback", "SS", "INFSIGPIX 12", "pixel_depth_output", "10-bit"),
+        ("_pixel_depth_callback", "SS", "INFSIGPIX 01", "pixel_depth_input", "Unknown"),
+        ("_pixel_depth_callback", "SS", "INFSIGPIX 01", "pixel_depth_output", "8-bit"),
+        ("_pixel_depth_callback", "SS", "INFSIGPIX 33", "pixel_depth_input", "12-bit"),
         ("_max_frl_callback", "SS", "INFSIGFRL I 48G", "max_frl_input", "48G"),
         ("_max_frl_callback", "SS", "INFSIGFRL O ---", "max_frl_output", None),
         ("_max_frl_callback", "SS", "INFSIGFRL I48G", "max_frl_input", "48G"),
@@ -81,6 +84,17 @@ def _device():
         ("_max_frl_callback", "SS", "INFSIGFRL O---", "max_frl_output", None),
         ("_colorspace_callback", "SS", "INFSIGCOS 23", "colorspace_input", "4:4:4"),
         ("_colorspace_callback", "SS", "INFSIGCOS 23", "colorspace_output", "RGB"),
+        ("_colorspace_callback", "SS", "INFSIGCOS 88", "colorspace_input", "4:2:0"),
+        ("_colorspace_callback", "SS", "INFSIGCOS 11", "colorspace_output", "4:2:2"),
+        ("_colorspace_callback", "SS", "INFSIGCOS 03", "colorspace_input", None),
+        ("_colorspace_callback", "SS", "INFSIGCOS 03", "colorspace_output", "RGB"),
+        (
+            "_colorspace_callback",
+            "SS",
+            "INFSIGCOS 99",
+            "colorspace_input",
+            "4:2:2/BT.2020",
+        ),
         (
             "_max_resolution_callback",
             "SY",
@@ -132,6 +146,26 @@ def test_callbacks(callback, event, parameter, attribute, expected):
     assert getattr(device, attribute) is None
     getattr(device, callback)("Main", event, parameter)
     assert getattr(device, attribute) == expected
+
+
+@pytest.mark.parametrize(
+    "colorspace, hdr, expected",
+    [
+        ("INFSIGCOS 22", "INFSIGHDR I---", "4:4:4"),
+        ("INFSIGCOS 22", "INFSIGHDR IHDR10", "4:4:4/BT.2020"),
+        ("INFSIGCOS 11", "INFSIGHDR IHDR10+", "4:2:2/BT.2020"),
+        ("INFSIGCOS 11", "INFSIGHDR IDolby Vision", "4:2:2/BT.2020"),
+        ("INFSIGCOS 99", "INFSIGHDR I---", "4:2:2/BT.2020"),
+        ("INFSIGCOS 99", "INFSIGHDR IHDR10", "4:2:2/BT.2020"),
+        ("INFSIGCOS 03", "INFSIGHDR IHDR10", None),
+    ],
+)
+def test_colorspace_bt2020(colorspace, hdr, expected):
+    """Test that BT.2020 is added for HDR if the receiver did not send it."""
+    device = _device()
+    device._colorspace_callback("Main", "SS", colorspace)
+    device._hdr_callback("Main", "SS", hdr)
+    assert device.colorspace_input == expected
 
 
 @pytest.mark.parametrize(
