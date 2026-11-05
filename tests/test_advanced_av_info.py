@@ -76,6 +76,9 @@ def _device():
         ("_pixel_depth_callback", "SS", "INFSIGPIX 12", "pixel_depth_output", "10-bit"),
         ("_max_frl_callback", "SS", "INFSIGFRL I 48G", "max_frl_input", "48G"),
         ("_max_frl_callback", "SS", "INFSIGFRL O ---", "max_frl_output", None),
+        ("_max_frl_callback", "SS", "INFSIGFRL I48G", "max_frl_input", "48G"),
+        ("_max_frl_callback", "SS", "INFSIGFRL I---", "max_frl_input", None),
+        ("_max_frl_callback", "SS", "INFSIGFRL O---", "max_frl_output", None),
         ("_colorspace_callback", "SS", "INFSIGCOS 23", "colorspace_input", "4:4:4"),
         ("_colorspace_callback", "SS", "INFSIGCOS 23", "colorspace_output", "RGB"),
         (

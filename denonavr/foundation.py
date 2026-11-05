@@ -618,10 +618,11 @@ class DenonAVRDeviceInfo:
 
     def _max_frl_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle a max FRL change event."""
+        # Some receivers send a space after I and O, the value is stripped
         if parameter.startswith("INFSIGFRL I"):
-            self._max_frl_input = parameter[12:]
+            self._max_frl_input = parameter[11:]
         elif parameter.startswith("INFSIGFRL O"):
-            self._max_frl_output = parameter[12:]
+            self._max_frl_output = parameter[11:]
 
     def _colorspace_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle a colorspace event."""
