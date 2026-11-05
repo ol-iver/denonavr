@@ -171,10 +171,12 @@ async def test_trigger_sends_all_queries():
         patch.object(
             device.telnet_api, "async_send_commands", new_callable=AsyncMock
         ) as mock_send,
-        patch.object(asyncio, "sleep", new_callable=AsyncMock),
+        patch.object(asyncio, "sleep", new_callable=AsyncMock) as mock_sleep,
     ):
         await device.async_trigger_advanced_audio_video_info_update()
 
+    # The protocol asks for at least 50 ms between commands
+    assert [call.args[0] for call in mock_sleep.await_args_list] == [0.05] * 12
     commands = [call.args[0] for call in mock_send.call_args_list]
     assert len(commands) == 12
     assert "SSINFSIGRES ?" in commands

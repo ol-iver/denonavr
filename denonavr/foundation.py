@@ -814,7 +814,8 @@ class DenonAVRDeviceInfo:
                 await self.telnet_api.async_send_commands(
                     command, skip_confirmation=True
                 )
-                await asyncio.sleep(0.075)
+                # The protocol asks for at least 50 ms between commands
+                await asyncio.sleep(0.05)
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.debug(
                     "Failed to send advanced video info command: %s.", command
