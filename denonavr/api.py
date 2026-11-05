@@ -58,7 +58,7 @@ _LOGGER = logging.getLogger(__name__)
 
 _MONITOR_INTERVAL = 30
 
-_BACKGROUND_PAUSE_AFTER_COMMAND = 0.25
+_BACKGROUND_PAUSE_AFTER_COMMAND = 0.1
 """Seconds background queries wait after the last user command was sent."""
 
 

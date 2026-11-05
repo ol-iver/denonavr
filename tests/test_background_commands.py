@@ -111,3 +111,8 @@ async def test_send_commands_passes_background_flag():
     send.assert_awaited_once_with(
         "HD?", skip_confirmation=True, confirmation_timeout=None, background=True
     )
+
+
+def test_pause_after_user_command_is_in_the_range_of_the_protocol():
+    """Test that the pause is 50 to 100 ms, the interval between commands."""
+    assert 0.05 <= api_module._BACKGROUND_PAUSE_AFTER_COMMAND <= 0.1
