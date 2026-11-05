@@ -35,7 +35,25 @@ async def test_async_delay_sends_command_when_delay_is_unknown():
     """Test that a command is sent when the current delay is not known."""
     fixture = DeviceTestFixture(True)
     await fixture.async_execute(fixture.device_info.async_delay(0))
-    fixture._mock_telnet.assert_called_once_with("PSDELAY 0")
+    fixture._mock_telnet.assert_called_once_with("PSDELAY 000")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "delay, expected",
+    [(0, "PSDELAY 000"), (5, "PSDELAY 005"), (50, "PSDELAY 050"), (500, "PSDELAY 500")],
+)
+async def test_async_delay_pads_value_to_three_digits(delay, expected):
+    """Test that the receiver gets the delay with three digits."""
+    fixture = DeviceTestFixture(True)
+    await fixture.async_execute(fixture.device_info.async_delay(delay))
+    fixture._mock_telnet.assert_called_once_with(expected)
+
+
+def test_http_command_pads_value_to_three_digits():
+    """Test that the HTTP command also uses three digits."""
+    url = DeviceTestFixture(True).device_info.urls.command_delay
+    assert url.format(delay=5).endswith("PSDELAY%20005")
 
 
 @pytest.mark.asyncio
