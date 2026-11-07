@@ -168,6 +168,79 @@ def test_colorspace_bt2020(colorspace, hdr, expected):
     assert device.colorspace_input == expected
 
 
+def _feed(device, *parameters):
+    for parameter in parameters:
+        device._colorspace_callback("Main", "SS", parameter)
+        device._hdr_callback("Main", "SS", parameter)
+        device._extended_colorimetry_callback("Main", "SS", parameter)
+
+
+@pytest.mark.parametrize(
+    "colorspace, hdr, eci, expected_input, expected_output",
+    [
+        # Measured on an AVC-A10H, the screen showed the same
+        (
+            "INFSIGCOS 11",
+            "INFSIGHDR IDolby Vision",
+            "INFSIGECI 55",
+            "4:2:2/BT.2020",
+            "4:2:2/BT.2020",
+        ),
+        ("INFSIGCOS 33", "INFSIGHDR IDolby Vision", "INFSIGECI 00", "RGB", "RGB"),
+        (
+            "INFSIGCOS 22",
+            "INFSIGHDR IHDR10",
+            "INFSIGECI 55",
+            "4:4:4/BT.2020",
+            "4:4:4/BT.2020",
+        ),
+        ("INFSIGCOS 22", "INFSIGHDR I---", "INFSIGECI 00", "4:4:4", "4:4:4"),
+        # Wide gamut without HDR
+        (
+            "INFSIGCOS 22",
+            "INFSIGHDR I---",
+            "INFSIGECI 55",
+            "4:4:4/BT.2020",
+            "4:4:4/BT.2020",
+        ),
+        # Each side follows its own digit
+        ("INFSIGCOS 22", "INFSIGHDR I---", "INFSIGECI 50", "4:4:4/BT.2020", "4:4:4"),
+        ("INFSIGCOS 22", "INFSIGHDR I---", "INFSIGECI 05", "4:4:4", "4:4:4/BT.2020"),
+        # Already marked by the receiver, ECI does not change it
+        (
+            "INFSIGCOS 99",
+            "INFSIGHDR I---",
+            "INFSIGECI 00",
+            "4:2:2/BT.2020",
+            "4:2:2/BT.2020",
+        ),
+    ],
+)
+def test_extended_colorimetry(colorspace, hdr, eci, expected_input, expected_output):
+    """Test that the extended colorimetry decides if BT.2020 is added."""
+    device = _device()
+    _feed(device, colorspace, hdr, eci)
+    assert device.colorspace_input == expected_input
+    assert device.colorspace_output == expected_output
+
+
+def test_extended_colorimetry_comes_last():
+    """Test that an event after the colorspace changes the result."""
+    device = _device()
+    _feed(device, "INFSIGCOS 22", "INFSIGHDR IHDR10")
+    assert device.colorspace_input == "4:4:4/BT.2020"
+    _feed(device, "INFSIGECI 00")
+    assert device.colorspace_input == "4:4:4"
+
+
+@pytest.mark.parametrize("parameter", ["INFSIGECI", "INFSIGECI 5", "INFSIGECI 555"])
+def test_extended_colorimetry_ignores_bad_values(parameter):
+    """Test that a malformed event leaves the HDR rule in use."""
+    device = _device()
+    _feed(device, "INFSIGCOS 22", "INFSIGHDR IHDR10", parameter)
+    assert device.colorspace_input == "4:4:4/BT.2020"
+
+
 @pytest.mark.parametrize(
     "callback, attribute",
     [
@@ -210,9 +283,9 @@ async def test_trigger_sends_all_queries():
         await device.async_trigger_advanced_audio_video_info_update()
 
     # The protocol asks for at least 50 ms between commands
-    assert [call.args[0] for call in mock_sleep.await_args_list] == [0.05] * 12
+    assert [call.args[0] for call in mock_sleep.await_args_list] == [0.05] * 13
     commands = [call.args[0] for call in mock_send.call_args_list]
-    assert len(commands) == 12
+    assert len(commands) == 13
     assert "SSINFSIGRES ?" in commands
     assert "SYSMI ?" in commands
     assert all(

@@ -391,6 +391,12 @@ class DenonAVRDeviceInfo:
     _colorspace_output: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
+    _bt2020_input: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(bool), default=None
+    )
+    _bt2020_output: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(bool), default=None
+    )
     _max_resolution: Optional[str] = attr.ib(
         converter=attr.converters.optional(str), default=None
     )
@@ -647,6 +653,18 @@ class DenonAVRDeviceInfo:
             self._colorspace_input = get_colorspace(key_value[1][0])
             self._colorspace_output = get_colorspace(key_value[1][1])
 
+    def _extended_colorimetry_callback(
+        self, _zone: str, _event: str, parameter: str
+    ) -> None:
+        """Handle an extended colorimetry event, a non-zero digit is BT.2020."""
+        if not parameter.startswith("INFSIGECI"):
+            return
+
+        key_value = parameter.split()
+        if len(key_value) == 2 and len(key_value[1]) == 2:
+            self._bt2020_input = key_value[1][0] != "0"
+            self._bt2020_output = key_value[1][1] != "0"
+
     def _max_resolution_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle a max resolution change event."""
         if not parameter.startswith("HDMIDIAGMAXRES"):
@@ -759,6 +777,7 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback("SS", self._pixel_depth_callback)
             self.telnet_api.register_callback("SS", self._max_frl_callback)
             self.telnet_api.register_callback("SS", self._colorspace_callback)
+            self.telnet_api.register_callback("SS", self._extended_colorimetry_callback)
             self.telnet_api.register_callback("SY", self._max_resolution_callback)
             self.telnet_api.register_callback("SY", self._audio_signal_callback)
             self.telnet_api.register_callback("SY", self._audio_sound_callback)
@@ -808,6 +827,7 @@ class DenonAVRDeviceInfo:
             "SSINFSIGPIX ?",
             "SSINFSIGFRL ?",
             "SSINFSIGCOS ?",
+            "SSINFSIGECI ?",
             "OPINFASP ?",
             "OPINFINS ?",
             "SYSDA ?",
@@ -1480,29 +1500,42 @@ class DenonAVRDeviceInfo:
         return self._max_frl_output
 
     @staticmethod
-    def _add_bt2020(colorspace: Optional[str], hdr: Optional[str]) -> Optional[str]:
-        """Add BT.2020 if the receiver did not send it and the signal has HDR."""
-        if colorspace and hdr and not colorspace.endswith("/BT.2020"):
-            return f"{colorspace}/BT.2020"
-        return colorspace
+    def _add_bt2020(
+        colorspace: Optional[str], bt2020: Optional[bool], hdr: Optional[str]
+    ) -> Optional[str]:
+        """
+        Add BT.2020 if the receiver did not send it in the colorspace.
+
+        The receiver's extended colorimetry decides. Without it the signal's
+        HDR format is used.
+        """
+        if not colorspace or colorspace.endswith("/BT.2020"):
+            return colorspace
+        if bt2020 is None:
+            bt2020 = bool(hdr)
+        return f"{colorspace}/BT.2020" if bt2020 else colorspace
 
     @property
     def colorspace_input(self) -> Optional[str]:
         """
         Return the colorspace input for the device.
 
-        Only available if using Telnet. Adds "/BT.2020" when the signal has HDR.
+        Only available if using Telnet. Adds "/BT.2020" for a BT.2020 signal.
         """
-        return self._add_bt2020(self._colorspace_input, self._hdr_input)
+        return self._add_bt2020(
+            self._colorspace_input, self._bt2020_input, self._hdr_input
+        )
 
     @property
     def colorspace_output(self) -> Optional[str]:
         """
         Return the colorspace output for the device.
 
-        Only available if using Telnet. Adds "/BT.2020" when the signal has HDR.
+        Only available if using Telnet. Adds "/BT.2020" for a BT.2020 signal.
         """
-        return self._add_bt2020(self._colorspace_output, self._hdr_output)
+        return self._add_bt2020(
+            self._colorspace_output, self._bt2020_output, self._hdr_output
+        )
 
     @property
     def max_resolution(self) -> Optional[str]:
