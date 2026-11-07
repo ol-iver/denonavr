@@ -108,6 +108,118 @@ def convert_on_off_bool_str(value: str) -> Optional[Union[bool, str]]:
     return value
 
 
+def convert_audio_signal(value: str | None) -> Optional[str]:
+    """Convert an audio signal string."""
+    if value is None:
+        return None
+    value = value.strip()
+    if value == "Unknown":
+        return "-"
+    return value
+
+
+def convert_audio_sampling_rate(value: str | None) -> Optional[str]:
+    """Convert an audio sampling rate string."""
+    if value is None:
+        return None
+
+    if value in ("", "NON"):
+        return None
+
+    stripped_value = value.strip()
+    if stripped_value == "441":
+        return "44.1"
+    if stripped_value == "176":
+        return "176.4"
+    if stripped_value == "192":
+        return "192"
+
+    if stripped_value.endswith("K"):
+        return stripped_value.replace("K", "")
+
+    return stripped_value
+
+
+def convert_video_signal(value: str | None) -> Optional[str]:
+    """Convert a video signal string."""
+    if value is None:
+        return None
+    value = value.strip()
+    if value == "---":
+        return None
+    return value
+
+
+BED_CHANNELS = {
+    # Front Left
+    0: 1,
+    # Front Right
+    1: 1,
+    # Center
+    2: 1,
+    # Surround Left
+    4: 1,
+    # Surround Right
+    5: 1,
+    # Surround Back Left
+    6: 1,
+    # Surround Back Right
+    7: 1,
+    # Surround Back
+    8: 1,
+}
+
+LFE_CHANNELS = {
+    # LFE
+    3: 1,
+}
+
+IMMERSIVE_CHANNELS = {
+    9: 1,
+    10: 1,
+    11: 1,
+    12: 1,
+    # EX, count as 2
+    13: 2,
+}
+
+
+def channel_status_to_str(channel_statuses: str) -> str | None:
+    """
+    Convert channel status string to industry standard string (e.g. '2.1', '5.1.2').
+
+    Args:
+        channel_statuses: String of digits (0, 1, 2) for each channel.
+    Returns:
+        String representing channel layout.
+    """
+    base_channel_count = 0
+    lfe_count = 0
+    immersive_channel_count = 0
+    index = 0
+    for channel_status in channel_statuses:
+        if channel_status != "2":
+            index += 1
+            continue
+        if index in BED_CHANNELS:
+            base_channel_count += BED_CHANNELS[index]
+        elif index in LFE_CHANNELS:
+            lfe_count += LFE_CHANNELS[index]
+        elif index in IMMERSIVE_CHANNELS:
+            immersive_channel_count += IMMERSIVE_CHANNELS[index]
+        else:
+            # Most likely height channel
+            immersive_channel_count += 1
+        index += 1
+
+    result = f"{base_channel_count}.{lfe_count}"
+    if immersive_channel_count:
+        result += f".{immersive_channel_count}"
+    if result == "0.0":
+        return None
+    return result
+
+
 @attr.s(auto_attribs=True, on_setattr=DENON_ATTR_SETATTR)
 class DenonAVRDeviceInfo:
     """Implements a class with device information of the receiver."""
@@ -234,6 +346,60 @@ class DenonAVRDeviceInfo:
         converter=attr.converters.optional(convert_on_off_bool), default=None
     )
     _input_modes = get_args(InputModes)
+    _audio_signal: Optional[str] = attr.ib(
+        converter=attr.converters.optional(convert_audio_signal), default=None
+    )
+    _audio_sound: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _audio_sampling_rate: Optional[str] = attr.ib(
+        converter=attr.converters.optional(convert_audio_sampling_rate), default=None
+    )
+    _video_hdmi_signal_in: Optional[str] = attr.ib(
+        converter=attr.converters.optional(convert_video_signal), default=None
+    )
+    _video_hdmi_signal_out: Optional[str] = attr.ib(
+        converter=attr.converters.optional(convert_video_signal), default=None
+    )
+    _input_channels: Optional[str] = attr.ib(
+        converter=attr.converters.optional(channel_status_to_str), default=None
+    )
+    _output_channels: Optional[str] = attr.ib(
+        converter=attr.converters.optional(channel_status_to_str), default=None
+    )
+    _hdr_input: Optional[str] = attr.ib(
+        converter=attr.converters.optional(convert_video_signal), default=None
+    )
+    _hdr_output: Optional[str] = attr.ib(
+        converter=attr.converters.optional(convert_video_signal), default=None
+    )
+    _pixel_depth_input: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _pixel_depth_output: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _max_frl_input: Optional[str] = attr.ib(
+        converter=attr.converters.optional(convert_video_signal), default=None
+    )
+    _max_frl_output: Optional[str] = attr.ib(
+        converter=attr.converters.optional(convert_video_signal), default=None
+    )
+    _colorspace_input: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _colorspace_output: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
+    _bt2020_input: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(bool), default=None
+    )
+    _bt2020_output: Optional[bool] = attr.ib(
+        converter=attr.converters.optional(bool), default=None
+    )
+    _max_resolution: Optional[str] = attr.ib(
+        converter=attr.converters.optional(str), default=None
+    )
     _is_setup: bool = attr.ib(converter=bool, default=False, init=False)
     _setup_lock: asyncio.Lock = attr.ib(default=attr.Factory(asyncio.Lock))
 
@@ -398,17 +564,143 @@ class DenonAVRDeviceInfo:
 
     def _auto_lip_sync_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a auto lip sync change event."""
-        if parameter[0:3] != "HOS":
+        if parameter.startswith("HOSALS "):
+            self._auto_lip_sync = parameter[7:]
+        elif parameter.startswith("HOS ") and parameter != "HOS END":
+            self._auto_lip_sync = parameter[4:]
+
+    def _video_signal_callback(self, _zone: str, _event: str, parameter: str) -> None:
+        """Handle a video signal change event."""
+        if parameter.startswith("INFSIGRES I"):
+            self._video_hdmi_signal_in = parameter[11:]
+        elif parameter.startswith("INFSIGRES O"):
+            self._video_hdmi_signal_out = parameter[11:]
+        elif parameter.startswith("SDVIN "):
+            self._video_hdmi_signal_in = parameter[6:]
+        elif parameter.startswith("SDVOUT "):
+            self._video_hdmi_signal_out = parameter[7:]
+
+    def _audio_sampling_rate_callback(
+        self, _zone: str, _event: str, parameter: str
+    ) -> None:
+        """Handle an audio sampling rate change event."""
+        if parameter.startswith("INFAISFSV"):
+            self._audio_sampling_rate = parameter[10:]
+
+    def _hdr_callback(self, _zone: str, _event: str, parameter: str) -> None:
+        """Handle an HDR change event."""
+        if parameter.startswith("INFSIGHDR I"):
+            self._hdr_input = parameter[11:]
+        elif parameter.startswith("INFSIGHDR O"):
+            self._hdr_output = parameter[11:]
+
+    def _pixel_depth_callback(self, _zone: str, _event: str, parameter: str) -> None:
+        """Handle a pixel depth change event."""
+        if not parameter.startswith("INFSIGPIX"):
             return
 
-        if parameter[6:] == "HOSALS":
-            auto_lip_sync = parameter[5:]
-        elif parameter[3:] == "HOS":
-            auto_lip_sync = parameter[4:]
-        else:
+        def get_pixel_depth(value: str) -> str | None:
+            if value == "0":
+                return "Unknown"
+            if value == "1":
+                return "8-bit"
+            if value == "2":
+                return "10-bit"
+            if value == "3":
+                return "12-bit"
+            return None
+
+        key_value = parameter.split()
+        if len(key_value) == 2 and len(key_value[1]) == 2:
+            self._pixel_depth_input = get_pixel_depth(key_value[1][0])
+            self._pixel_depth_output = get_pixel_depth(key_value[1][1])
+
+    def _max_frl_callback(self, _zone: str, _event: str, parameter: str) -> None:
+        """Handle a max FRL change event."""
+        # Some receivers send a space after I and O, the value is stripped
+        if parameter.startswith("INFSIGFRL I"):
+            self._max_frl_input = parameter[11:]
+        elif parameter.startswith("INFSIGFRL O"):
+            self._max_frl_output = parameter[11:]
+
+    def _colorspace_callback(self, _zone: str, _event: str, parameter: str) -> None:
+        """Handle a colorspace event."""
+        if not parameter.startswith("INFSIGCOS"):
             return
 
-        self._auto_lip_sync = auto_lip_sync
+        def get_colorspace(value: str) -> str | None:
+            if value == "1":
+                return "4:2:2"
+            if value == "2":
+                return "4:4:4"
+            if value == "3":
+                return "RGB"
+            if value == "8":
+                return "4:2:0"
+            if value == "9":
+                return "4:2:2/BT.2020"
+            return None
+
+        key_value = parameter.split()
+        if len(key_value) == 2 and len(key_value[1]) == 2:
+            self._colorspace_input = get_colorspace(key_value[1][0])
+            self._colorspace_output = get_colorspace(key_value[1][1])
+
+    def _extended_colorimetry_callback(
+        self, _zone: str, _event: str, parameter: str
+    ) -> None:
+        """Handle an extended colorimetry event, a non-zero digit is BT.2020."""
+        if not parameter.startswith("INFSIGECI"):
+            return
+
+        key_value = parameter.split()
+        if len(key_value) == 2 and len(key_value[1]) == 2:
+            self._bt2020_input = key_value[1][0] != "0"
+            self._bt2020_output = key_value[1][1] != "0"
+
+    def _max_resolution_callback(self, _zone: str, _event: str, parameter: str) -> None:
+        """Handle a max resolution change event."""
+        if not parameter.startswith("HDMIDIAGMAXRES"):
+            return
+
+        key_value = parameter.split()
+        if len(key_value) == 2:
+            value = key_value[1]
+            if value == "NO":
+                value = "No limit"
+            elif value.endswith("G"):
+                value = value.replace("G", "Gbps")
+            self._max_resolution = value
+
+    def _audio_signal_callback(self, _zone: str, _event: str, parameter: str) -> None:
+        """Handle an audio in encoding change event."""
+        if parameter.startswith("SDA"):
+            self._audio_signal = parameter[4:]
+
+    def _audio_sound_callback(self, _zone: str, _event: str, parameter: str) -> None:
+        """Handle an audio out encoding change event."""
+        if parameter.startswith("SMI"):
+            self._audio_sound = parameter[4:]
+
+    def _input_channel_callback(self, _zone: str, _event: str, parameter: str) -> None:
+        """Handle an input channel change event."""
+        if not parameter.startswith("INFINS"):
+            return
+
+        key_value = parameter.split()
+        if len(key_value) == 2:
+            self._input_channels = key_value[1]
+
+    def _output_channels_callback(
+        self, _zone: str, _event: str, parameter: str
+    ) -> None:
+        """Handle an output channel change event."""
+        if not parameter.startswith("INFASP"):
+            return
+
+        key_value = parameter.split()
+        if len(key_value) == 2:
+            self._output_channels = key_value[1]
 
     async def async_setup(self) -> None:
         """Ensure that configuration is loaded from receiver asynchronously."""
@@ -471,6 +763,19 @@ class DenonAVRDeviceInfo:
             self.telnet_api.register_callback("PS", self._audio_restorer_callback)
             self.telnet_api.register_callback("PS", self._graphic_eq_callback)
             self.telnet_api.register_callback("PS", self._headphone_eq_callback)
+            self.telnet_api.register_callback("SS", self._video_signal_callback)
+            self.telnet_api.register_callback("SY", self._video_signal_callback)
+            self.telnet_api.register_callback("SS", self._audio_sampling_rate_callback)
+            self.telnet_api.register_callback("SS", self._hdr_callback)
+            self.telnet_api.register_callback("SS", self._pixel_depth_callback)
+            self.telnet_api.register_callback("SS", self._max_frl_callback)
+            self.telnet_api.register_callback("SS", self._colorspace_callback)
+            self.telnet_api.register_callback("SS", self._extended_colorimetry_callback)
+            self.telnet_api.register_callback("SY", self._max_resolution_callback)
+            self.telnet_api.register_callback("SY", self._audio_signal_callback)
+            self.telnet_api.register_callback("SY", self._audio_sound_callback)
+            self.telnet_api.register_callback("OP", self._input_channel_callback)
+            self.telnet_api.register_callback("OP", self._output_channels_callback)
 
             if not self.is_denon:
                 self.telnet_api.register_callback("ILB", self._illumination_callback)
@@ -496,6 +801,42 @@ class DenonAVRDeviceInfo:
             await self.async_update_status_xml(cache_id=cache_id)
 
         _LOGGER.debug("Finished device update")
+
+    async def async_trigger_advanced_audio_video_info_update(self) -> None:
+        """
+        Trigger an advanced audio and video info update.
+
+        Only available if using Telnet.
+        """
+        if not self.telnet_available:
+            return
+
+        commands = [
+            "SSINFSIGRES ?",
+            "SYSDVIN ?",
+            "SYSDVOUT ?",
+            "SYHDMIDIAGMAXRES ?",
+            "SSINFSIGHDR ?",
+            "SSINFSIGPIX ?",
+            "SSINFSIGFRL ?",
+            "SSINFSIGCOS ?",
+            "SSINFSIGECI ?",
+            "OPINFASP ?",
+            "OPINFINS ?",
+            "SYSDA ?",
+            "SYSMI ?",
+        ]
+        for command in commands:
+            try:
+                await self.telnet_api.async_send_commands(
+                    command, skip_confirmation=True
+                )
+                # The protocol asks for at least 50 ms between commands
+                await asyncio.sleep(0.05)
+            except Exception:  # pylint: disable=broad-except
+                _LOGGER.debug(
+                    "Failed to send advanced video info command: %s.", command
+                )
 
     async def async_identify_receiver(self) -> None:
         """Identify receiver asynchronously."""
@@ -1033,6 +1374,177 @@ class DenonAVRDeviceInfo:
         Only available on Marantz devices and when using Telnet.
         """
         return self._auto_lip_sync
+
+    @property
+    def audio_signal(self) -> Optional[str]:
+        """
+        Return the audio signal for the device.
+
+        Only available if using Telnet.
+        """
+        return self._audio_signal
+
+    @property
+    def audio_sound(self) -> Optional[str]:
+        """
+        Return the audio sound for the device.
+
+        Only available if using Telnet.
+        """
+        return self._audio_sound
+
+    @property
+    def audio_sampling_rate(self) -> Optional[str]:
+        """
+        Return the audio sampling rate for the device.
+
+        Only available if using Telnet.
+        """
+        return self._audio_sampling_rate
+
+    @property
+    def video_hdmi_signal_in(self) -> Optional[str]:
+        """
+        Return the video HDMI signal input for the device.
+
+        Only available if using Telnet.
+        """
+        return self._video_hdmi_signal_in
+
+    @property
+    def video_hdmi_signal_out(self) -> Optional[str]:
+        """
+        Return the video HDMI signal output for the device.
+
+        Only available if using Telnet.
+        """
+        return self._video_hdmi_signal_out
+
+    @property
+    def input_channels(self) -> Optional[str]:
+        """
+        Return the input channels for the device.
+
+        Only available if using Telnet.
+        """
+        return self._input_channels
+
+    @property
+    def output_channels(self) -> Optional[str]:
+        """
+        Return the output channels for the device.
+
+        Only available if using Telnet.
+        """
+        return self._output_channels
+
+    @property
+    def hdr_input(self) -> Optional[str]:
+        """
+        Return the HDR input format for the device.
+
+        Only available if using Telnet.
+        """
+        return self._hdr_input
+
+    @property
+    def hdr_output(self) -> Optional[str]:
+        """
+        Return the HDR output format for the device.
+
+        Only available if using Telnet.
+        """
+        return self._hdr_output
+
+    @property
+    def pixel_depth_input(self) -> Optional[str]:
+        """
+        Return the pixel depth input for the device.
+
+        Only available if using Telnet. An input signal without an indicated
+        depth takes the output depth.
+        """
+        if (
+            self._pixel_depth_input == "Unknown"
+            and self._video_hdmi_signal_in is not None
+            and self._pixel_depth_output not in (None, "Unknown")
+        ):
+            return self._pixel_depth_output
+        return self._pixel_depth_input
+
+    @property
+    def pixel_depth_output(self) -> Optional[str]:
+        """
+        Return the pixel depth output for the device.
+
+        Only available if using Telnet.
+        """
+        return self._pixel_depth_output
+
+    @property
+    def max_frl_input(self) -> Optional[str]:
+        """
+        Return the max FRL input for the device.
+
+        Only available if using Telnet.
+        """
+        return self._max_frl_input
+
+    @property
+    def max_frl_output(self) -> Optional[str]:
+        """
+        Return the max FRL output for the device.
+
+        Only available if using Telnet.
+        """
+        return self._max_frl_output
+
+    @staticmethod
+    def _add_bt2020(
+        colorspace: Optional[str], bt2020: Optional[bool], hdr: Optional[str]
+    ) -> Optional[str]:
+        """
+        Add BT.2020 if the receiver did not send it in the colorspace.
+
+        The receiver's extended colorimetry decides. Without it the signal's
+        HDR format is used.
+        """
+        if not colorspace or colorspace.endswith("/BT.2020"):
+            return colorspace
+        if bt2020 is None:
+            bt2020 = bool(hdr)
+        return f"{colorspace}/BT.2020" if bt2020 else colorspace
+
+    @property
+    def colorspace_input(self) -> Optional[str]:
+        """
+        Return the colorspace input for the device.
+
+        Only available if using Telnet. Adds "/BT.2020" for a BT.2020 signal.
+        """
+        return self._add_bt2020(
+            self._colorspace_input, self._bt2020_input, self._hdr_input
+        )
+
+    @property
+    def colorspace_output(self) -> Optional[str]:
+        """
+        Return the colorspace output for the device.
+
+        Only available if using Telnet. Adds "/BT.2020" for a BT.2020 signal.
+        """
+        return self._add_bt2020(
+            self._colorspace_output, self._bt2020_output, self._hdr_output
+        )
+
+    @property
+    def max_resolution(self) -> Optional[str]:
+        """
+        Return the max resolution for the current signal for the device.
+
+        Only available if using Telnet.
+        """
+        return self._max_resolution
 
     @property
     def telnet_available(self) -> bool:

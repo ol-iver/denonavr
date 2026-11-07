@@ -665,6 +665,150 @@ class DenonAVR(DenonAVRFoundation):
         return self._device.video_processing_mode
 
     @property
+    def audio_signal(self) -> Optional[str]:
+        """
+        Return the audio signal for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.audio_signal
+
+    @property
+    def audio_sound(self) -> Optional[str]:
+        """
+        Return the audio sound for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.audio_sound
+
+    @property
+    def audio_sampling_rate(self) -> Optional[str]:
+        """
+        Return the audio sampling rate for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.audio_sampling_rate
+
+    @property
+    def video_hdmi_signal_in(self) -> Optional[str]:
+        """
+        Return the video HDMI signal input for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.video_hdmi_signal_in
+
+    @property
+    def video_hdmi_signal_out(self) -> Optional[str]:
+        """
+        Return the video HDMI signal output for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.video_hdmi_signal_out
+
+    @property
+    def input_channels(self) -> Optional[str]:
+        """
+        Return the input channels for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.input_channels
+
+    @property
+    def output_channels(self) -> Optional[str]:
+        """
+        Return the output channels for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.output_channels
+
+    @property
+    def hdr_input(self) -> Optional[str]:
+        """
+        Return the HDR input format for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.hdr_input
+
+    @property
+    def hdr_output(self) -> Optional[str]:
+        """
+        Return the HDR output format for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.hdr_output
+
+    @property
+    def pixel_depth_input(self) -> Optional[str]:
+        """
+        Return the pixel depth input for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.pixel_depth_input
+
+    @property
+    def pixel_depth_output(self) -> Optional[str]:
+        """
+        Return the pixel depth output for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.pixel_depth_output
+
+    @property
+    def max_frl_input(self) -> Optional[str]:
+        """
+        Return the max FRL input for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.max_frl_input
+
+    @property
+    def max_frl_output(self) -> Optional[str]:
+        """
+        Return the max FRL output for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.max_frl_output
+
+    @property
+    def colorspace_input(self) -> Optional[str]:
+        """
+        Return the colorspace input for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.colorspace_input
+
+    @property
+    def colorspace_output(self) -> Optional[str]:
+        """
+        Return the colorspace output for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.colorspace_output
+
+    @property
+    def max_resolution(self) -> Optional[str]:
+        """
+        Return the max resolution for the current signal for the device.
+
+        Only available if using Telnet.
+        """
+        return self._device.max_resolution
+
+    @property
     def tactile_transducer(self) -> Optional[str]:
         """
         Return the tactile transducer state of the device.
@@ -1078,6 +1222,14 @@ class DenonAVR(DenonAVRFoundation):
     async def async_video_processing_mode(self, mode: VideoProcessingModes) -> None:
         """Set video processing mode on receiver."""
         await self._device.async_video_processing_mode(mode)
+
+    async def async_trigger_advanced_audio_video_info_update(self) -> None:
+        """
+        Trigger an advanced audio and video info update.
+
+        Only available if using Telnet.
+        """
+        await self._device.async_trigger_advanced_audio_video_info_update()
 
     async def async_status(self) -> None:
         """
