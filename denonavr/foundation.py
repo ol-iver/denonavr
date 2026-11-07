@@ -564,17 +564,10 @@ class DenonAVRDeviceInfo:
 
     def _auto_lip_sync_callback(self, zone: str, event: str, parameter: str) -> None:
         """Handle a auto lip sync change event."""
-        if parameter[0:3] != "HOS":
-            return
-
-        if parameter[6:] == "HOSALS":
-            auto_lip_sync = parameter[5:]
-        elif parameter[3:] == "HOS":
-            auto_lip_sync = parameter[4:]
-        else:
-            return
-
-        self._auto_lip_sync = auto_lip_sync
+        if parameter.startswith("HOSALS "):
+            self._auto_lip_sync = parameter[7:]
+        elif parameter.startswith("HOS ") and parameter != "HOS END":
+            self._auto_lip_sync = parameter[4:]
 
     def _video_signal_callback(self, _zone: str, _event: str, parameter: str) -> None:
         """Handle a video signal change event."""
@@ -1468,8 +1461,15 @@ class DenonAVRDeviceInfo:
         """
         Return the pixel depth input for the device.
 
-        Only available if using Telnet.
+        Only available if using Telnet. An input signal without an indicated
+        depth takes the output depth.
         """
+        if (
+            self._pixel_depth_input == "Unknown"
+            and self._video_hdmi_signal_in is not None
+            and self._pixel_depth_output not in (None, "Unknown")
+        ):
+            return self._pixel_depth_output
         return self._pixel_depth_input
 
     @property

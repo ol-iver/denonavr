@@ -168,6 +168,47 @@ def test_colorspace_bt2020(colorspace, hdr, expected):
     assert device.colorspace_input == expected
 
 
+@pytest.mark.parametrize(
+    "resolution, pixel_depth, expected",
+    [
+        ("INFSIGRES I1080p25", "INFSIGPIX 03", "12-bit"),
+        ("INFSIGRES I4K24", "INFSIGPIX 01", "8-bit"),
+        ("INFSIGRES I1080p50", "INFSIGPIX 31", "12-bit"),
+        ("INFSIGRES I1080p60", "INFSIGPIX 11", "8-bit"),
+        # No input signal, the 0 stays unknown
+        ("INFSIGRES I---", "INFSIGPIX 01", "Unknown"),
+        ("INFSIGRES I---", "INFSIGPIX 00", "Unknown"),
+        # Nothing to take over, both are unknown
+        ("INFSIGRES I1080p25", "INFSIGPIX 00", "Unknown"),
+    ],
+)
+def test_pixel_depth_input_without_indication(resolution, pixel_depth, expected):
+    """Test that an input without an indicated depth takes the output depth."""
+    device = _device()
+    device._video_signal_callback("Main", "SS", resolution)
+    device._pixel_depth_callback("Main", "SS", pixel_depth)
+    assert device.pixel_depth_input == expected
+
+
+@pytest.mark.parametrize(
+    "parameters, expected",
+    [
+        (["HOS ON"], True),
+        (["HOS OFF"], False),
+        (["HOSALS ON"], True),
+        # The end of the HOS block and other HOS values are ignored
+        (["HOS ON", "HOS END"], True),
+        (["HOS ON", "HOSCON OFF"], True),
+    ],
+)
+def test_auto_lip_sync_callback(parameters, expected):
+    """Test that only HOS and HOSALS values change auto lip sync."""
+    device = _device()
+    for parameter in parameters:
+        device._auto_lip_sync_callback("Main", "SS", parameter)
+    assert device.auto_lip_sync is expected
+
+
 def _feed(device, *parameters):
     for parameter in parameters:
         device._colorspace_callback("Main", "SS", parameter)
