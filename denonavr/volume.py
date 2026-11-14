@@ -277,7 +277,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         """
         Return volume of Denon AVR as float.
 
-        Volume is send in a format like -50.0.
+        Volume is sent in a format like -50.0.
         Minimum is -80.0, maximum at 18.0
         """
         return self._volume
@@ -399,7 +399,7 @@ class DenonAVRVolume(DenonAVRFoundation):
         """
         Set receiver volume.
 
-        Volume is send in a format like -50.0.
+        Volume is sent in a format like -50.0.
         Minimum is -80.0, maximum at 18.0
         """
         if volume < -80 or volume > 18:
