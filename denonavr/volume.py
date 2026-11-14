@@ -122,6 +122,10 @@ class DenonAVRVolume(DenonAVRFoundation):
             return
 
         raw_value = parameter.strip()
+        if raw_value == "--":
+            self._volume = -80.0
+            return
+
         if len(raw_value) > 3:
             _LOGGER.warning(
                 "Volume value length is invalid: %s, defaulting to -80.0 dB", raw_value
