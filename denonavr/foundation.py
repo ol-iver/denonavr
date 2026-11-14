@@ -772,6 +772,13 @@ class DenonAVRDeviceInfo:
 
             try:
                 xml = await self.api.async_get_xml(url, cache_id=cache_id)
+            except (AvrTimoutError, AvrNetworkError) as err:
+                _LOGGER.debug(
+                    "Connection error when getting device status from url %s: %s",
+                    url,
+                    err,
+                )
+                raise
             except AvrRequestError as err:
                 _LOGGER.debug(
                     "Error when getting device status from url %s: %s", url, err
