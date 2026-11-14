@@ -7,11 +7,17 @@ Automation Library for Denon AVR receivers.
 :license: MIT, see LICENSE for more details.
 """
 
+import asyncio
+
 # Set default logging handler to avoid "No handler found" warnings.
 import logging
 
+import httpx
+from zeroconf.asyncio import AsyncZeroconf
+
 # Import denonavr module
 from .denonavr import DenonAVR
+from .mdns import async_query_receivers
 from .ssdp import async_identify_denonavr_receivers
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
@@ -20,15 +26,63 @@ __title__ = "denonavr"
 __version__ = "1.4.0-dev"
 
 
-async def async_discover():
+async def async_discover(
+    timeout: float = 2.5,
+    async_zeroconf: AsyncZeroconf | None = None,
+    async_client: httpx.AsyncClient | None = None,
+):
     """
     Discover all Denon AVR devices in LAN zone.
 
     Returns a list of dictionaries which includes all discovered Denon AVR
     devices with keys "host", "modelName", "friendlyName", "presentationURL".
-    By default SSDP broadcasts are sent once with a 2 seconds timeout.
+    Combines both mDNS and SSDP discovery methods.
+    By default, SSDP broadcasts are sent once with a 2 seconds timeout.
+
+    Args:
+        timeout: Number of seconds to wait for mDNS responses.
+        async_zeroconf: Zeroconf instance for the mDNS discovery, for example
+            one that is shared with other code. It is not closed. If not
+            given, a new instance is created and closed afterwards.
+        async_client: HTTP client for the mDNS discovery. It is not closed.
+            If not given, a new client is created and closed afterwards.
     """
-    return await async_identify_denonavr_receivers()
+
+    async def async_query_mdns() -> list[dict]:
+        receivers = await async_query_receivers(
+            timeout, async_zeroconf=async_zeroconf, async_client=async_client
+        )
+        return [
+            {
+                "host": receiver.ip_address,
+                "modelName": receiver.model,
+                "friendlyName": receiver.name,
+                "presentationURL": None,
+                "serialNumber": (
+                    receiver.serial_number if receiver.serial_number else receiver.did
+                ),
+            }
+            for receiver in (receivers or [])
+        ]
+
+    tasks = [
+        async_query_mdns(),
+        async_identify_denonavr_receivers(),
+    ]
+
+    results = await asyncio.gather(*tasks)
+    combined: dict[str, dict] = {}
+    for result in results:
+        for entry in result:
+            host = entry["host"]
+            if host not in combined:
+                combined[host] = entry
+            elif (
+                combined[host]["presentationURL"] is None
+                and entry["presentationURL"] is not None
+            ):
+                combined[host] = entry
+    return list(combined.values())
 
 
 async def async_init_all_receivers():
