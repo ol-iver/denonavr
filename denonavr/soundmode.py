@@ -883,6 +883,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         local_hpf = self._padded_pass_filter(hpf)
         if self._device.telnet_available:
+            if self._imax_hpf == hpf:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_imax_hpf.format(
                     frequency=local_hpf
@@ -900,6 +903,9 @@ class DenonAVRSoundMode(DenonAVRFoundation):
 
         local_lpf = self._padded_pass_filter(lpf)
         if self._device.telnet_available:
+            if self._imax_lpf == lpf:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_imax_lpf.format(
                     frequency=local_lpf
@@ -911,7 +917,7 @@ class DenonAVRSoundMode(DenonAVRFoundation):
             )
 
     @staticmethod
-    def _padded_pass_filter(pass_filter: str) -> str:
+    def _padded_pass_filter(pass_filter: int) -> str:
         return f"0{pass_filter}" if len(str(pass_filter)) == 2 else str(pass_filter)
 
     async def async_imax_subwoofer_mode(self, mode: Literal["ON", "OFF"]) -> None:
