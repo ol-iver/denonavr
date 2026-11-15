@@ -300,6 +300,10 @@ class DenonAVR(DenonAVRFoundation):
         """Disconnect from the telnet interface of the receiver."""
         await self._device.telnet_api.async_disconnect()
 
+    def clear_duplicate_event_cache(self) -> None:
+        """Clear the cache for potential duplicate events."""
+        self._device.telnet_api.clear_duplicate_event_cache()
+
     ##############
     # Properties #
     ##############
