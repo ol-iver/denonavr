@@ -657,10 +657,19 @@ class DenonAVRTelnetApi:
             commands.insert(index := index + 1, "ILB ?")  # Illumination
             commands.insert(index + 1, "SSHOS ?")  # Auto Lip Sync
 
-        await self.async_send_commands(
-            *commands,
-            confirmation_timeout=0.2,
-        )
+        try:
+            await self.async_send_commands(
+                *commands,
+                confirmation_timeout=0.2,
+            )
+        except AvrProcessingError as err:
+            # This runs in a task nothing awaits, so an error raised here would
+            # reach the event loop as "Task exception was never retrieved". The
+            # connection dropped while the queries were being sent; the next
+            # connection starts a new update.
+            _LOGGER.debug(
+                "%s: Failed updating state after telnet connect: %s", self.host, err
+            )
 
     def _schedule_monitor(self) -> None:
         """Start the monitor task."""
