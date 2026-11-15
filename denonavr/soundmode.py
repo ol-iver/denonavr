@@ -190,13 +190,19 @@ class DenonAVRSoundMode(DenonAVRFoundation):
     status_xml_attrs_01 = {"_sound_mode_raw": "./selectSurround/value"}
     status_xml_attrs_02 = {"_sound_mode_raw": "./SurrMode/value"}
 
-    async def async_setup(self) -> None:
-        """Ensure that the instance is initialized."""
+    async def async_setup(self, cache_id: Optional[Hashable] = None) -> None:
+        """
+        Ensure that the instance is initialized.
+
+        The probe below asks the receiver, not the zone - the request carries
+        no zone and the command answers for the whole receiver - so a cache id
+        shared with the other zones' setup spares it a request each.
+        """
         async with self._setup_lock:
             _LOGGER.debug("Starting sound mode setup")
 
             # The first update determines if sound mode is supported
-            await self.async_update_sound_mode()
+            await self.async_update_sound_mode(cache_id=cache_id)
 
             if self._support_sound_mode and self._appcommand_active:
                 # Add tags for a potential AppCommand.xml update
