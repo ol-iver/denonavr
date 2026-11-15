@@ -619,6 +619,20 @@ class DenonAVRTelnetApi:
             "PSDELAY ?",  # Audio Delay
             "ECO?",  # ECO
             "VSMONI ?",  # HDMI Output
+            "SSINFSIGRES ?",  # Video Signal
+            "SSINFAISFSV ?",  # Audio Sampling Rate
+            "SYSDA ?",  # Audio Signal
+            "SYSMI ?",  # Audio Sound
+            "OPINFASP ?",  # Output Channels
+            "OPINFINS ?",  # Input Channels
+            "SYSDVIN ?",  # Video Signal Input
+            "SYSDVOUT ?",  # Video Signal Output
+            "SYHDMIDIAGMAXRES ?",  # HDMI Max Resolution
+            "SSINFSIGHDR ?",  # Video HDR Format
+            "SSINFSIGPIX ?",  # Video Pixel Depth
+            "SSINFSIGFRL ?",  # Video Max FRL
+            "SSINFSIGCOS ?",  # Signal Color Space
+            "SSINFSIGECI ?",  # Signal Extended Colorimetry
             "PSDIRAC ?",  # Dirac Live Filter
             "CV?",  # Channel Volume
             "PSIMAX ?",  # IMAX

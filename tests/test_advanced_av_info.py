@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, PropertyMock, patch
 
 import pytest
 
+from denonavr.api import DenonAVRTelnetApi
 from denonavr.foundation import channel_status_to_str
 from tests.test_helpers import DeviceTestFixture
 
@@ -344,6 +345,36 @@ async def test_trigger_without_telnet_sends_nothing():
         await device.async_trigger_advanced_audio_video_info_update()
 
     mock_send.assert_not_called()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("is_denon", [True, False])
+async def test_connect_update_sends_signal_queries_once(is_denon):
+    """Test that the update after a connect asks for each signal value once."""
+    telnet_api = DenonAVRTelnetApi(is_denon=is_denon)
+    with patch.object(
+        telnet_api, "async_send_commands", new_callable=AsyncMock
+    ) as mock_send:
+        await telnet_api._async_trigger_updates()
+
+    commands = mock_send.call_args.args
+    for query in (
+        "SSINFSIGRES ?",
+        "SSINFAISFSV ?",
+        "SYSDA ?",
+        "SYSMI ?",
+        "OPINFASP ?",
+        "OPINFINS ?",
+        "SYSDVIN ?",
+        "SYSDVOUT ?",
+        "SYHDMIDIAGMAXRES ?",
+        "SSINFSIGHDR ?",
+        "SSINFSIGPIX ?",
+        "SSINFSIGFRL ?",
+        "SSINFSIGCOS ?",
+        "SSINFSIGECI ?",
+    ):
+        assert commands.count(query) == 1
 
 
 @pytest.mark.parametrize(
