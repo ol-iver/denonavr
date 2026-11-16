@@ -698,10 +698,20 @@ class DenonAVRInput(DenonAVRFoundation):
             )
         else:
             # Else from status xml
-            (
-                renamed_sources,
-                deleted_sources,
-            ) = await self.async_get_changed_sources_status_xml(cache_id=cache_id)
+            try:
+                (
+                    renamed_sources,
+                    deleted_sources,
+                ) = await self.async_get_changed_sources_status_xml(cache_id=cache_id)
+            except AvrRequestError as err:
+                if not receiver_sources:
+                    raise
+                _LOGGER.debug(
+                    "Failed to get changed sources from status XML, "
+                    "using Deviceinfo sources only: %s",
+                    err,
+                )
+                renamed_sources, deleted_sources = {}, {}
 
         # Add new renamed_sources to receiver_sources
         for key, value in renamed_sources.items():
