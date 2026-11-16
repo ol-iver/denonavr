@@ -39,7 +39,12 @@ from .const import (
     VideoProcessingModes,
 )
 from .dirac import DenonAVRDirac, dirac_factory
-from .exceptions import AvrCommandError, AvrForbiddenError, AvrIncompleteResponseError
+from .exceptions import (
+    AvrCommandError,
+    AvrForbiddenError,
+    AvrIncompleteResponseError,
+    AvrRequestError,
+)
 from .foundation import (
     DenonAVRFoundation,
     set_api_host,
@@ -253,6 +258,14 @@ class DenonAVR(DenonAVRFoundation):
                 )
                 self._device.use_avr_2016_update = False
                 await self.async_update()
+            else:
+                raise
+        except AvrRequestError as err:
+            if self.telnet_connected:
+                _LOGGER.debug(
+                    "HTTP update failed while Telnet is connected, skipping: %s",
+                    err,
+                )
             else:
                 raise
         else:

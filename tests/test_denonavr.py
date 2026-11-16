@@ -784,3 +784,64 @@ class TestMainFunctions:
             protocol.data_received(b"MV565\r")
             await self.future
             assert self.denon.volume == -23.5
+
+    @pytest.mark.asyncio
+    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
+    async def test_telnet_connected_ignores_avr_request_error_on_update(
+        self, httpx_mock: HTTPXMock
+    ):
+        """Check HTTP AvrRequestError is ignored when Telnet is connected."""
+        httpx_mock.add_callback(self.custom_matcher)
+        self.denon = denonavr.DenonAVR(FAKE_IP)
+        await self.denon.async_setup()
+
+        err = denonavr.exceptions.AvrRequestError(
+            "301 Moved Permanently", mock.Mock()
+        )
+        with mock.patch.object(
+            self.denon.input, "async_update", side_effect=err
+        ), mock.patch.object(
+            type(self.denon),
+            "telnet_connected",
+            new_callable=mock.PropertyMock,
+            return_value=True,
+        ):
+            await self.denon.async_update()
+
+        with mock.patch.object(
+            self.denon.input, "async_update", side_effect=err
+        ), mock.patch.object(
+            type(self.denon),
+            "telnet_connected",
+            new_callable=mock.PropertyMock,
+            return_value=False,
+        ):
+            with pytest.raises(denonavr.exceptions.AvrRequestError):
+                await self.denon.async_update()
+
+    @pytest.mark.asyncio
+    @pytest.mark.httpx_mock(can_send_already_matched_responses=True)
+    async def test_inputfuncs_fallback_to_deviceinfo_on_status_xml_error(
+        self, httpx_mock: HTTPXMock
+    ):
+        """Check Deviceinfo sources are kept if status XML raises AvrRequestError."""
+        httpx_mock.add_callback(self.custom_matcher)
+        self.denon = denonavr.DenonAVR(FAKE_IP)
+        await self.denon.async_setup()
+        # pylint: disable=protected-access
+        self.denon._device.receiver = denonavr.const.AVR_X
+        self.denon._device.use_avr_2016_update = False
+
+        with mock.patch.object(
+            self.denon.input,
+            "async_get_sources_deviceinfo",
+            return_value={"DVD": "DVD"},
+        ), mock.patch.object(
+            self.denon.input,
+            "async_get_changed_sources_status_xml",
+            side_effect=denonavr.exceptions.AvrRequestError(
+                "403 Forbidden", mock.Mock()
+            ),
+        ):
+            await self.denon.input.async_update_inputfuncs()
+            assert "DVD" in self.denon.input.input_func_list
