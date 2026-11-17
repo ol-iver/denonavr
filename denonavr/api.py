@@ -64,6 +64,29 @@ def get_default_async_client() -> httpx.AsyncClient:
     return httpx.AsyncClient()
 
 
+def appcommand_status(xml_root: ET.Element) -> Optional[str]:
+    """
+    Return the status text of an AppCommand(0300) setter response.
+
+    The two command versions answer in different shapes: ver-2 setters use
+    ``<rx><cmd>OK</cmd></rx>`` while ver-1 setters nest the text one level
+    deeper in ``<rx><cmd><value>OK</value></cmd></rx>``. Reading ``cmd.text``
+    alone therefore reports a failure for every ver-1 setter.
+    """
+    cmd = xml_root.find("cmd")
+    if cmd is None:
+        return None
+
+    if cmd.text is not None and cmd.text.strip():
+        return cmd.text.strip()
+
+    value = cmd.find("value")
+    if value is None or value.text is None:
+        return None
+
+    return value.text.strip()
+
+
 def telnet_event_map_factory() -> Dict[str, List]:
     """Create telnet event map."""
     event_map: DefaultDict[str, List] = defaultdict(list)
