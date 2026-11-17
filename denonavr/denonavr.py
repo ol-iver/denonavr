@@ -10,6 +10,7 @@ This module implements the interface to Denon AVR receivers.
 import asyncio
 import logging
 import time
+from collections.abc import Hashable
 from typing import Callable, Dict, List, Literal, Optional, Union
 
 import attr
@@ -204,11 +205,17 @@ class DenonAVR(DenonAVRFoundation):
             self._is_setup = True
             _LOGGER.debug("Finished denonavr setup")
 
-    async def async_update(self):
+    async def async_update(self, cache_id: Optional[Hashable] = None) -> None:
         """
         Get the latest status information from device asynchronously.
 
         Method executes the update method for the current receiver type.
+
+        On the AppCommand.xml interface the request body carries no zone, so a
+        caller polling several zones can pass one cache id to all of them and
+        have the first zone's request answer the rest. Pass a value that is new
+        for each poll, or the answer is the status as it was then. The status
+        XML interface names the zone in the URL and stays one request per zone.
         """
         _LOGGER.debug("Starting denonavr update")
         # Ensure that the device is setup
@@ -216,7 +223,8 @@ class DenonAVR(DenonAVRFoundation):
             await self.async_setup()
 
         # Create a cache id for this global update
-        cache_id = time.time()
+        if cache_id is None:
+            cache_id = time.time()
 
         try:
             # Update device
@@ -240,6 +248,10 @@ class DenonAVR(DenonAVRFoundation):
                     "ports"
                 )
                 self._is_setup = False
+                # A retry mints its own cache id: the failed attempt is not
+                # cached, so reusing the caller's would only risk answering
+                # the retry from an entry another zone made before the port
+                # moved.
                 await self.async_update()
             else:
                 raise
@@ -252,6 +264,8 @@ class DenonAVR(DenonAVRFoundation):
                     "an incomplete result set. Deactivating the interface"
                 )
                 self._device.use_avr_2016_update = False
+                # Same as above: the retry reads a different interface
+                # entirely, so it starts from a fresh cache id.
                 await self.async_update()
             else:
                 raise
