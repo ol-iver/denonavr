@@ -468,9 +468,11 @@ class DenonAVRInput(DenonAVRFoundation):
     async def async_get_sources_deviceinfo(self) -> Dict[str, str]:
         """Get sources from Deviceinfo.xml."""
         try:
-            # Deviceinfo.xml is static and can be cached for the whole time
+            # Deviceinfo.xml is static and can be cached for the whole time.
+            # Keyed on the api object every zone shares, the way the receiver
+            # identification keys it, so all of them read one fetch
             xml = await self._device.api.async_get_xml(
-                self._device.urls.deviceinfo, cache_id=id(self._device)
+                self._device.urls.deviceinfo, cache_id=id(self._device.api)
             )
         except AvrRequestError as err:
             _LOGGER.debug("Error when getting sources: %s", err)
