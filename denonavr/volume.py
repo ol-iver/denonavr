@@ -487,6 +487,12 @@ class DenonAVRVolume(DenonAVRFoundation):
 
         mapped_channel = CHANNEL_MAP_REVERSE[channel]
         if self._device.telnet_available:
+            if (
+                self._channel_volumes is not None
+                and self._channel_volumes.get(channel) == 12
+            ):
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_channel_volume.format(
                     channel=mapped_channel, value="UP"
@@ -505,6 +511,12 @@ class DenonAVRVolume(DenonAVRFoundation):
 
         mapped_channel = CHANNEL_MAP_REVERSE[channel]
         if self._device.telnet_available:
+            if (
+                self._channel_volumes is not None
+                and self._channel_volumes.get(channel) == -12
+            ):
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_channel_volume.format(
                     channel=mapped_channel, value="DOWN"
@@ -531,6 +543,12 @@ class DenonAVRVolume(DenonAVRFoundation):
         mapped_channel = CHANNEL_MAP_REVERSE[channel]
         mapped_volume = CHANNEL_VOLUME_MAP_REVERSE[volume]
         if self._device.telnet_available:
+            if (
+                self._channel_volumes is not None
+                and self._channel_volumes.get(channel) == volume
+            ):
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_channel_volume.format(
                     channel=mapped_channel, value=mapped_volume
@@ -557,6 +575,9 @@ class DenonAVRVolume(DenonAVRFoundation):
     async def async_subwoofer_on(self) -> None:
         """Turn on Subwoofer on receiver."""
         if self._device.telnet_available:
+            if self._subwoofer:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_subwoofer_on_off.format(mode="ON")
             )
@@ -568,6 +589,9 @@ class DenonAVRVolume(DenonAVRFoundation):
     async def async_subwoofer_off(self) -> None:
         """Turn off Subwoofer on receiver."""
         if self._device.telnet_available:
+            if self._subwoofer is False:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_subwoofer_on_off.format(mode="OFF")
             )
@@ -592,6 +616,12 @@ class DenonAVRVolume(DenonAVRFoundation):
         self._is_valid_subwoofer(subwoofer)
         mapped_subwoofer = SUBWOOFERS_MAP_REVERSE[subwoofer]
         if self._device.telnet_available:
+            if (
+                self._subwoofer_levels is not None
+                and self._subwoofer_levels.get(subwoofer) == 12
+            ):
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_subwoofer_level.format(
                     number=mapped_subwoofer, mode="UP"
@@ -609,6 +639,12 @@ class DenonAVRVolume(DenonAVRFoundation):
         self._is_valid_subwoofer(subwoofer)
         mapped_subwoofer = SUBWOOFERS_MAP_REVERSE[subwoofer]
         if self._device.telnet_available:
+            if (
+                self._subwoofer_levels is not None
+                and self._subwoofer_levels.get(subwoofer) == -12
+            ):
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_subwoofer_level.format(
                     number=mapped_subwoofer, mode="DOWN"
@@ -624,6 +660,9 @@ class DenonAVRVolume(DenonAVRFoundation):
     async def async_lfe_up(self) -> None:
         """Increase LFE on receiver."""
         if self._device.telnet_available:
+            if self._lfe == 0:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_lfe.format(mode="UP")
             )
@@ -635,6 +674,9 @@ class DenonAVRVolume(DenonAVRFoundation):
     async def async_lfe_down(self) -> None:
         """Decrease LFE on receiver."""
         if self._device.telnet_available:
+            if self._lfe == -10:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_lfe.format(mode="DOWN")
             )
@@ -654,6 +696,9 @@ class DenonAVRVolume(DenonAVRFoundation):
 
         lfe_local = str(lfe).replace("-", "").zfill(2)
         if self._device.telnet_available:
+            if self._lfe == lfe:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_lfe.format(mode=lfe_local)
             )
@@ -665,6 +710,9 @@ class DenonAVRVolume(DenonAVRFoundation):
     async def async_bass_sync_up(self) -> None:
         """Increase Bass Sync on receiver."""
         if self._device.telnet_available:
+            if self._bass_sync == 16:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_bass_sync.format(mode="UP")
             )
@@ -676,6 +724,9 @@ class DenonAVRVolume(DenonAVRFoundation):
     async def async_bass_sync_down(self) -> None:
         """Decrease Bass Sync on receiver."""
         if self._device.telnet_available:
+            if self._bass_sync == 0:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_bass_sync.format(mode="DOWN")
             )
@@ -695,6 +746,9 @@ class DenonAVRVolume(DenonAVRFoundation):
 
         bass_sync_local = str(bass_sync).zfill(2)
         if self._device.telnet_available:
+            if self._bass_sync == bass_sync:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_bass_sync.format(
                     mode=bass_sync_local
