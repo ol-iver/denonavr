@@ -48,6 +48,11 @@ class DenonAVRDirac(DenonAVRFoundation):
     ##############
 
     @property
+    def is_dirac_supported(self) -> Optional[bool]:
+        """Return true if Dirac is supported by the device."""
+        return self._device.is_dirac_supported
+
+    @property
     def dirac_filter(self) -> Optional[str]:
         """
         Returns the current Dirac filter.
