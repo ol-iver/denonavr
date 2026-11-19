@@ -639,6 +639,7 @@ class DenonAVRTelnetApi:
             "PSAUROMODE ?",  # AURO-3D Mode
             "PSRSZ ?",  # ROOM SIZE
             "SPPR ?",  # Speaker Preset
+            "PV?",  # Picture Mode
             "PSDIC ?",  # Dialog Control
             "PSSP: ?",  # Effect Speaker selection
             "PSDRC ?",  # DRC
