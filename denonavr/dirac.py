@@ -68,6 +68,9 @@ class DenonAVRDirac(DenonAVRFoundation):
 
         mapped_filter = DIRAC_FILTER_MAP_REVERSE[dirac_filter]
         if self._device.telnet_available:
+            if self._dirac_filter == dirac_filter:
+                return
+
             await self._device.telnet_api.async_send_commands(
                 self._device.telnet_commands.command_dirac_filter.format(
                     filter=mapped_filter
