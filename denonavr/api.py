@@ -58,6 +58,9 @@ _LOGGER = logging.getLogger(__name__)
 
 _MONITOR_INTERVAL = 30
 
+_BACKGROUND_PAUSE_AFTER_COMMAND = 0.1
+"""Seconds background queries wait after the last user command was sent."""
+
 
 def get_default_async_client() -> httpx.AsyncClient:
     """Get the default httpx.AsyncClient."""
@@ -519,11 +522,17 @@ class DenonAVRTelnetApi:
         default=attr.Factory(AdaptiveLimiter),
         init=False,
     )
+    _user_commands_pending: int = attr.ib(default=0, init=False)
+    _user_commands_idle: asyncio.Event = attr.ib(
+        default=attr.Factory(asyncio.Event), init=False
+    )
+    _last_user_command_time: float = attr.ib(default=-1.0, init=False)
     _update_callback_tasks: Set[asyncio.Task] = attr.ib(default=attr.Factory(set))
 
     def __attrs_post_init__(self) -> None:
         """Initialize special attributes."""
         self._register_raw_callback(self._send_confirmation_callback)
+        self._user_commands_idle.set()
 
     async def async_connect(self) -> None:
         """Connect to the receiver asynchronously."""
@@ -896,8 +905,58 @@ class DenonAVRTelnetApi:
         command: str,
         skip_confirmation: bool = False,
         confirmation_timeout: Optional[float] = None,
+        background: bool = False,
     ) -> None:
-        """Send one telnet command to the receiver."""
+        """
+        Send one telnet command to the receiver.
+
+        Background commands wait until no user command is pending, so user
+        commands are not queued behind them in the receiver.
+        """
+        if background:
+            await self._async_wait_for_user_commands()
+            await self._async_send_command_locked(
+                command,
+                skip_confirmation=skip_confirmation,
+                confirmation_timeout=confirmation_timeout,
+            )
+            return
+
+        self._user_commands_pending += 1
+        self._user_commands_idle.clear()
+        try:
+            await self._async_send_command_locked(
+                command,
+                skip_confirmation=skip_confirmation,
+                confirmation_timeout=confirmation_timeout,
+            )
+        finally:
+            self._user_commands_pending -= 1
+            self._last_user_command_time = time.monotonic()
+            if self._user_commands_pending == 0:
+                self._user_commands_idle.set()
+
+    async def _async_wait_for_user_commands(self) -> None:
+        """Wait until no user command is pending or was sent recently."""
+        while True:
+            await self._user_commands_idle.wait()
+            remaining = (
+                self._last_user_command_time
+                + _BACKGROUND_PAUSE_AFTER_COMMAND
+                - time.monotonic()
+            )
+            if remaining <= 0:
+                return
+            await asyncio.sleep(remaining)
+
+    async def _async_send_command_locked(
+        self,
+        command: str,
+        *,
+        skip_confirmation: bool,
+        confirmation_timeout: Optional[float],
+    ) -> None:
+        """Send one telnet command to the receiver while holding the send lock."""
         if confirmation_timeout is None:
             confirmation_timeout = self._send_confirmation_timeout
 
@@ -933,6 +992,7 @@ class DenonAVRTelnetApi:
         *commands: str,
         skip_confirmation: bool = False,
         confirmation_timeout: Optional[float] = None,
+        background: bool = False,
     ) -> None:
         """Send telnet commands to the receiver."""
         for command in commands:
@@ -940,6 +1000,7 @@ class DenonAVRTelnetApi:
                 command,
                 skip_confirmation=skip_confirmation,
                 confirmation_timeout=confirmation_timeout,
+                background=background,
             )
 
     def send_commands(
@@ -947,6 +1008,7 @@ class DenonAVRTelnetApi:
         *commands: str,
         skip_confirmation: bool = False,
         confirmation_timeout: Optional[float] = None,
+        background: bool = False,
     ) -> None:
         """Send telnet commands to the receiver."""
         task = asyncio.create_task(
@@ -954,6 +1016,7 @@ class DenonAVRTelnetApi:
                 *commands,
                 skip_confirmation=skip_confirmation,
                 confirmation_timeout=confirmation_timeout,
+                background=background,
             )
         )
         self._send_tasks.add(task)
