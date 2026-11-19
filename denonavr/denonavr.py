@@ -24,6 +24,7 @@ from .const import (
     AudioRestorers,
     AutoStandbys,
     BluetoothOutputModes,
+    DigitalCodecModes,
     DimmerModes,
     DynamicVolumeSettings,
     EcoModes,
@@ -458,6 +459,17 @@ class DenonAVR(DenonAVRFoundation):
         return self.input.frequency
 
     @property
+    def digital_codec(self) -> Optional[str]:
+        """
+        Return the current digital converter mode.
+
+        Only available if using Telnet.
+
+        Possible values are: "Auto", "PCM", "DTS"
+        """
+        return self.input.digital_codec
+
+    @property
     def station(self) -> Optional[str]:
         """Return current radio station as string."""
         return self.input.station
@@ -853,6 +865,10 @@ class DenonAVR(DenonAVRFoundation):
     async def async_set_dynamicvol(self, value: DynamicVolumeSettings) -> None:
         """Set Dynamic Volume."""
         await self.audyssey.async_set_dynamicvol(value)
+
+    async def async_set_digital_codec(self, mode: DigitalCodecModes) -> None:
+        """Set digital converter mode on receiver."""
+        await self.input.async_set_digital_codec(mode)
 
     async def async_set_input_func(self, input_func: str) -> None:
         """
